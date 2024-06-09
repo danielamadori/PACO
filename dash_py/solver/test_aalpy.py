@@ -1,4 +1,8 @@
 from random import seed
+
+from dash_py.solver_optimized.create_automa import create_automa
+from dash_py.solver_optimized.states import States
+
 seed(42)
 #############
 # https://github.com/DES-Lab/AALpy/wiki/SUL-Interface,-or-How-to-Learn-Your-Systems
@@ -169,6 +173,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
                                             bpmn[IMPACTS], bpmn[DURATIONS], 
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H])
+
+        create_automa(custom_tree, States())
 
         # Calculate the number of nodes in the tree
         number_of_nodes = last_id + 1

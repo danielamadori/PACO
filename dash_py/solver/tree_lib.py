@@ -55,6 +55,9 @@ class CNode:
         if self.id == other.id: return True
         else: return False
 
+    def __hash__(self):
+        return hash(self.id)
+
 def from_lark_parsed_to_custom_tree(lark_tree, probabilities, impacts, durations, names, delays, h = 0, loop_thresholds = None, parent = None, index_in_parent = None, id = 0) -> CTree:
     if lark_tree.data == 'task':
         impact = impacts[lark_tree.children[0].value] if lark_tree.children[0].value in impacts else []
