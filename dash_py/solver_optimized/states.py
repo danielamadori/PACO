@@ -22,6 +22,10 @@ class States:
 		self.activityState[state] = activityState
 		self.executed_time[state] = executed_time
 
+	def update(self, state: CNode):
+		self.activityState.update(state.activityState)
+		self.executed_time.update(state.executed_time)
+
 
 def check_state(root: CNode, states: States):
 	if root not in states.activityState:
@@ -30,6 +34,7 @@ def check_state(root: CNode, states: States):
 	if (not root.isLeaf and (states.activityState[root] == ActivityState.WAITING
 			or states.activityState[root] == ActivityState.ACTIVE)):
 		# We need the children just if activityState[root] is waiting or active
+		# But we can created just
 		for subTree in root.childrens:
 			if subTree.root not in states.activityState:
 				states.add(subTree.root, ActivityState.WAITING, 0)

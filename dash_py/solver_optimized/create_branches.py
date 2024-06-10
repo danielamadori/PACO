@@ -8,8 +8,7 @@ def create_branches(states: States):
 	active_branches = []
 
 	node: CNode
-	nodes = states.activityState.keys()
-	for node in nodes:
+	for node in states.activityState.keys():
 		# check_state(node, states)
 		# print(f"create_branches: {node_info(node, states)}")
 		if (node.type == 'choice' or node.type == 'natural'
@@ -18,24 +17,24 @@ def create_branches(states: States):
 				and states.activityState[node.childrens[0].root] == ActivityState.WAITING
 				and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
 			active_branches.append(node)
-			print(f"create_branches:active_branches: " + node_info(node, states))
+			#print(f"create_branches:active_branches:" + node_info(node, states))
 
-	branches_choices = list(product([True, False], repeat=len(active_branches)))
-	print(f"create_branches:cardinality:{len(active_branches)}; combinations: {branches_choices}")
+	active_branches_dim = len(active_branches)
+	branches_choices = list(product([True, False], repeat=active_branches_dim))
+	#print(f"create_branches:cardinality:{active_branches_dim}:combinations:{branches_choices}")
 
 	branches = []
 	for branch_choices in branches_choices:
 		branch_states = copy.deepcopy(states)
 
-		for i in range(len(active_branches)):
+		for i in range(active_branches_dim):
 			sxNode = active_branches[i].childrens[0].root
 			dxNode = active_branches[i].childrens[1].root
-			branch_choice = branch_choices[i]
 
-			branch_states.activityState[sxNode] = ActivityState.ACTIVE if branch_choice else ActivityState.WILL_NOT_BE_EXECUTED
-			branch_states.activityState[dxNode] = ActivityState.WILL_NOT_BE_EXECUTED if branch_choice else ActivityState.ACTIVE
+			branch_states.activityState[sxNode] = ActivityState.ACTIVE if branch_choices[i] else ActivityState.WILL_NOT_BE_EXECUTED
+			branch_states.activityState[dxNode] = ActivityState.WILL_NOT_BE_EXECUTED if branch_choices[i] else ActivityState.ACTIVE
 
-			print(f"create_branch: choice: {branch_choice}\n sxNode: {node_info(sxNode, branch_states)}\n dxNode: {node_info(dxNode, branch_states)}\n")
+			#print(f"create_branch: choice: {branch_choices[i]}\n sxNode: {node_info(sxNode, branch_states)}\n dxNode: {node_info(dxNode, branch_states)}\n")
 
 		branches.append(branch_states)
 

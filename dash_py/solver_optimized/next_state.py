@@ -14,15 +14,15 @@ def next_state(tree: CTree, states: States, k: int):
 	if root.type == 'task':
 		remaining_time = root.duration - states.executed_time[root]
 		#print("next_state:Task: " + node_info(root, states))
-		if remaining_time >= k:
-			#print(f"next_state:Task:remaining_time >= k: {remaining_time} >= {k} ; Remaining time T/F: {remaining_time == k}")
+		if remaining_time > k:
 			states.activityState[root] = ActivityState.ACTIVE
 			states.executed_time[root] += k
 
-			return states, 0, remaining_time == k
+			#print(f"next_state:Task:remaining_time > k: {remaining_time} > {k}")
+			return states, 0, False
 
 		states.activityState[root] = ActivityState.COMPLETED
-		#print(f"next_state:Task:remaining_time < k: {remaining_time} < {k}; ActivityCompleted!")
+		#print(f"next_state:Task:remaining_time <= k: {remaining_time} <= {k}: ActivityCompleted!")
 		return states, states.executed_time[root] + k - root.duration, True
 
 	leftSubTree = root.childrens[0]
@@ -56,14 +56,16 @@ def next_state(tree: CTree, states: States, k: int):
 		print("Choice/Natural: " + node_info(root, states) + " k: " + str(k))
 		raise Exception(root)
 
-	if root.type == 'sequential':
-		#leftStates = States(leftSubTree.root, ActivityState.WAITING, 0)
-		leftStates = copy.deepcopy(states)
+	leftStates = States(root, ActivityState.ACTIVE, 0)
+	leftStates.add(leftSubTree.root, ActivityState.WAITING, 0)
+	rightStates = States(root, ActivityState.ACTIVE, 0)
+	rightStates.add(rightSubTree.root, ActivityState.WAITING, 0)
 
+	if root.type == 'sequential':
 		leftK = k
 		leftCl = True
 
-		if states.activityState[root] != ActivityState.COMPLETED:
+		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
 			leftStates, leftK, leftCl = next_state(leftSubTree, states, k)
 
 		#print(f"next_state:Sequential: {node_info(root, states)} leftK: {leftK} leftCl: {leftCl}")
@@ -81,8 +83,11 @@ def next_state(tree: CTree, states: States, k: int):
 			leftStates.activityState[rightSubTree.root] = ActivityState.ACTIVE
 			return leftStates, leftK, False
 
-		rightStates, rightK, rightCl = next_state(rightSubTree, copy.deepcopy(states), leftK)
+
+		rightStates, rightK, rightCl = next_state(rightSubTree, states, leftK)
 		#print(f"next_state:Sequential: {node_info(root, states)} rightK: {rightK} rightCl: {rightCl}")
+		#print("Sequential:right " + node_info(rightSubTree.root, states))
+		#print(f"Sequential:right:{rightCl} {rightK}")
 
 		if not rightCl:
 			#print("next_state:Sequential:Not rightCl")
@@ -103,23 +108,18 @@ def next_state(tree: CTree, states: States, k: int):
 		return rightStates, rightK, True
 
 	if root.type == 'parallel':
-		# leftStates = States(leftSubTree.root, ActivityState.WAITING, 0)
-		# rightStates = States(rightSubTree.root, ActivityState.WAITING, 0)
-		leftStates = copy.deepcopy(states)
-		rightStates = copy.deepcopy(states)
-
 		leftK = rightK = math.inf
 		leftCl = rightCl = True
 
 		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
-			leftStates, leftK, leftCl = next_state(leftSubTree, leftStates, k)
-			print("next_state:Parallel:LeftStates:")
-			print_states(leftStates)
+			leftStates, leftK, leftCl = next_state(leftSubTree, states, k)
+			#print("next_state:Parallel:LeftStates:")
+			#print_states(leftStates)
 
 		if states.activityState[rightSubTree.root] != ActivityState.COMPLETED:
-			rightStates, rightK, rightCl = next_state(rightSubTree, rightStates, k)
-			print("next_state:Parallel:RightStates:")
-			print_states(rightStates)
+			rightStates, rightK, rightCl = next_state(rightSubTree, states, k)
+			#print("next_state:Parallel:RightStates:")
+			#print_states(rightStates)
 
 		if leftK != math.inf and rightK != math.inf:
 			maxK = max(leftK, rightK)
@@ -127,48 +127,54 @@ def next_state(tree: CTree, states: States, k: int):
 			if leftCl and rightCl:
 				states.activityState[root] = ActivityState.COMPLETED
 				states.executed_time[root] = 0
-				return states, maxK - k, True
+				return states, maxK, True
 
 			if leftCl:
-				rightStates.activityState[root] = ActivityState.ACTIVE
-				rightStates.activityState[leftSubTree.root] = ActivityState.COMPLETED
-				return rightStates, k - rightK, False
+				states.update(rightStates)
+				states.activityState[root] = ActivityState.ACTIVE
+				states.activityState[leftSubTree.root] = ActivityState.COMPLETED
+
+				return states, rightK, False
 
 			if rightCl:
-				leftStates.activityState[root] = ActivityState.ACTIVE
-				leftStates.activityState[rightSubTree.root] = ActivityState.COMPLETED
-				return leftStates, k - leftK, False
+				states.update(leftStates)
+				states.activityState[root] = ActivityState.ACTIVE
+				states.activityState[rightSubTree.root] = ActivityState.COMPLETED
 
+				return states, leftK, False
+
+			#print(f"next_state:Parallel:Both branches are active: ! {leftCl} {rightCl}")
 			# Union of the two states
-			leftStates.activityState.update(rightStates.activityState)
-			leftStates.activityState[root] = ActivityState.ACTIVE
-			leftStates.executed_time.update(rightStates.executed_time)
+			states.update(leftStates)
+			states.update(rightStates)
+			states.activityState[root] = ActivityState.ACTIVE
 
-			# TODO: check if k - maxK == 0; if true put 0 instead
-			# print(f"k-maxK: {k - maxK}")
-			return leftStates, k - maxK, False
+			#print(f"maxK: {maxK}") # TODO: check if maxK == 0; if true put 0 instead
+			return states, maxK, False
 
 		if leftK != math.inf:
 			if leftCl:
 				states.activityState[root] = ActivityState.COMPLETED
 				states.executed_time[root] = 0
-				return states, k - leftK, True
+				return states, leftK, True
 
-			leftStates.activityState[root] = ActivityState.ACTIVE
-			leftStates.activityState[rightSubTree.root] = ActivityState.COMPLETED
+			states.update(leftStates)
+			states.activityState[root] = ActivityState.ACTIVE
+			states.activityState[rightSubTree.root] = ActivityState.COMPLETED
 
-			return leftStates, k - leftK, False
+			return states, leftK, False
 
 		if rightK != math.inf:
 			if rightCl:
 				states.activityState[root] = ActivityState.COMPLETED
 				states.executed_time[root] = 0
-				return states, k - rightK, True
+				return states, rightK, True
 
-			rightStates.activityState[root] = ActivityState.ACTIVE
-			rightStates.activityState[leftSubTree.root] = ActivityState.COMPLETED
+			states.update(rightStates)
+			states.activityState[root] = ActivityState.ACTIVE
+			states.activityState[leftSubTree.root] = ActivityState.COMPLETED
 
-			return rightStates, k - rightK, False
+			return states, rightK, False
 
 		raise Exception(root)
 

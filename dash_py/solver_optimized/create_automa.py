@@ -7,42 +7,32 @@ from solver_optimized.states import States, print_states, ActivityState
 from solver_optimized.step_to_saturation import steps_to_saturation
 
 
-def create_automa(region_tree, states):
-	k = steps_to_saturation(region_tree, states)
-	print('create_automa:k:', k)
-	#print_states(states)
+def create_automa(region_tree, states, automa=[]):
+	branches = []
 
-	states, k, cl = next_state(region_tree, states, k)
-	print_states(states)
-	print('create_automa:k:', k)
-	print('create_automa:cl:', cl)
+	while len(branches) == 0:
+		#print("step_to_saturation:")
+		#print_states(states)
+		k = steps_to_saturation(region_tree, states)
+		#print('step_to_saturation:k:', k)
+		#print_states(states)
 
-	if states.activityState[region_tree.root] == ActivityState.COMPLETED:
-		print("Finished")
-		return states
+		states, k, cl = next_state(region_tree, states, k)
+		#print('next_state:k:', k)
+		#print('next_state:cl:', cl)
+		print_states(states)
 
+		if states.activityState[region_tree.root] == ActivityState.COMPLETED:
+			#print("Finished")
+			#print_states(states)
+			automa.append(states)
+			return
 
-	print("Automate:")
-	automates = []
-	branches = create_branches(states)
+		branches = create_branches(states)
 
-	return create_automa(region_tree, branches[0])
-
-
-	for branch in create_branches(states): # Could be parallelized
-		print(f'create_automa:branches:')
-		print_states(branch)
-
-		time.sleep(60)
-
-		automa = create_automa(region_tree, branch)
-
-
-		automates.append(automa)
-
-
-
-	return automates
+	automa.append(states)
+	for branch in branches:
+		#print("Branch:")
+		create_automa(region_tree, branch, automa)
 
 	#print_sese_custom_tree(region_tree)
-
