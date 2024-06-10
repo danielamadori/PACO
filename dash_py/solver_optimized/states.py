@@ -23,25 +23,13 @@ class States:
 		self.executed_time[state] = executed_time
 
 
-'''
-In case of a task duration is the time needed to complete the task
-In case of a choice duration is the max_delay. Which is the maximum time that it is
-possible to wait until make a decision.
-'''
-
-'''
-def remaining_activity_time(duration: int, executed_time: int):
-	return duration - executed_time;  # time needed to complete the task
-	# delta(n) - q|delta(n);
-	# q|delta(n) € [0, delta(n)]
-	# delta(n) = duration of the task or max_delay of the choice
-'''
-
-
 def check_state(root: CNode, states: States):
 	if root not in states.activityState:
 		states.add(root, ActivityState.WAITING, 0)
-	if not root.isLeaf and states.activityState[root] < ActivityState.COMPLETED:
+
+	if (not root.isLeaf and (states.activityState[root] == ActivityState.WAITING
+			or states.activityState[root] == ActivityState.ACTIVE)):
+		# We need the children just if activityState[root] is waiting or active
 		for subTree in root.childrens:
 			if subTree.root not in states.activityState:
 				states.add(subTree.root, ActivityState.WAITING, 0)
