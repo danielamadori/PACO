@@ -1,7 +1,7 @@
 from random import seed
 
 from dash_py.solver_optimized.create_automa import create_automa
-from dash_py.solver_optimized.states import States, print_states
+from dash_py.solver_optimized.states import States, print_states, ActivityState
 
 seed(42)
 #############
@@ -175,14 +175,11 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H])
 
         automa = []
-        create_automa(custom_tree, States(), automa)
-
+        create_automa(custom_tree, States(custom_tree.root, ActivityState.WAITING, 0), automa)
         print("\n---FSM---\n")
-
         for node in automa:
             print_states(node)
-
-
+        print("\n---FSM---\n")
 
         # Calculate the number of nodes in the tree
         number_of_nodes = last_id + 1

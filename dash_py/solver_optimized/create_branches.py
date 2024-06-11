@@ -20,6 +20,9 @@ def create_branches(states: States):
 			#print(f"create_branches:active_branches:" + node_info(node, states))
 
 	active_branches_dim = len(active_branches)
+	if active_branches_dim == 0:
+		return []
+
 	branches_choices = list(product([True, False], repeat=active_branches_dim))
 	#print(f"create_branches:cardinality:{active_branches_dim}:combinations:{branches_choices}")
 
