@@ -21,7 +21,7 @@ class AGraph():
         self.init_node = init_node
 
     def __str__(self) -> str:
-        result = self.create_dot_graph(self.init_node, 0)
+        result = self.create_dot_graph(self.init_node)
         return result[0] + result[1]
 
     def save_dot(self, path):
@@ -35,32 +35,29 @@ class AGraph():
     def init_dot_graph(self):
         result = "digraph automa {\n"
 
-        node, transition = self.create_dot_graph(self.init_node, 0)
+        node, transition = self.create_dot_graph(self.init_node)
 
         result += node
         result += transition
         result += "__start0 [label=\"\", shape=none];\n"
-        result += "__start0 -> s0  [label=\"\"];\n}"
+        result += f"__start0 -> s{self.init_node.state_id}  [label=\"\"];\n" + "}"
 
         return result
 
-    def create_dot_graph(self, root: ANode, id: int):
-        node_id = f"s{id} [label=\"s{id}\"];\n"
-        transition = ""
-        #print("root:", root.state_id, " id:", id)
+    def create_dot_graph(self, root: ANode):
+        node_id = f"s{root.state_id} [label=\"s{root.state_id}\"];\n"
+        transitions_id = ""
 
-        next_node_id = id
-        for transition_id in root.transitions.keys():
-            next_node = root.transitions[transition_id].init_node
-            next_node_id += 1
+        for transition in root.transitions.keys():
+            next_node = root.transitions[transition].init_node
 
-            transition += f"s{id} -> s{next_node_id} [label=\"{transition_id}/{1 if next_node.is_final_state else 1}\"];\n"
-            ids = self.create_dot_graph(next_node, next_node_id)
+            transitions_id += f"s{root.state_id} -> s{next_node.state_id} [label=\"{transition}\"];\n"
+            ids = self.create_dot_graph(next_node)
 
             node_id += ids[0]
-            transition += ids[1]
+            transitions_id += ids[1]
 
-        return node_id, transition
+        return node_id, transitions_id
 
 class AutomatonGraph():
     def __init__(self, aalpy_automaton, sul) -> None:

@@ -25,14 +25,14 @@ def create_automa(region_tree: CTree, states: States, automa: AGraph = None) -> 
 		branches = create_branches(states)
 
 	#print_states(states)
-	id = str(max([s.id for s in states.activityState.keys()])) + ";" + str(states)
-	node = AGraph(ANode(id,
-						is_final_state=states.activityState[region_tree.root] == ActivityState.COMPLETED))
+
+	node = AGraph(ANode(str(max(s.id for s in states.activityState.keys() if states.activityState[s] > ActivityState.WAITING)),
+	is_final_state=states.activityState[region_tree.root] == ActivityState.COMPLETED))
 
 	if automa == None:
 		automa = node
 	else:
-		automa.init_node.add_transition(id, node)
+		automa.init_node.add_transition(str(states) + "/" + "1" if node.init_node.is_final_state else "0", node)
 	#automa.append(states)
 
 	for branch in branches:
