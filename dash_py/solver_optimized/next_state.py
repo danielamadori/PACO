@@ -50,7 +50,7 @@ def next_state(tree: CTree, states: States, k: int):
 			#print(f"next_state:Choice/Nature:remaining_time == k: {remaining_time} == {k}")
 			states.activityState[root] = ActivityState.ACTIVE
 			states.executed_time[root] += k
-			return states, 0, True # TODO check if True or False
+			return states, 0, False
 
 		print(f"next_state:Choice/Nature:remaining_time > k: {remaining_time} > {k}")
 		print("Choice/Natural: " + node_info(root, states) + " k: " + str(k))
@@ -75,7 +75,7 @@ def next_state(tree: CTree, states: States, k: int):
 		if not leftCl:
 			#print("next_state:Sequential:Not leftCl")
 			leftStates.activityState[root] = ActivityState.ACTIVE
-			return leftStates, leftK, leftCl
+			return leftStates, leftK, False
 
 		if leftK == 0:
 			#print("next_state:Sequential:leftK: 0")
@@ -93,7 +93,7 @@ def next_state(tree: CTree, states: States, k: int):
 			#print("next_state:Sequential:Not rightCl")
 			rightStates.activityState[root] = ActivityState.ACTIVE
 			rightStates.activityState[leftSubTree.root] = ActivityState.COMPLETED
-			return rightStates, rightK, rightCl
+			return rightStates, rightK, False
 
 		if rightK == 0:
 			#print("next_state:Sequential:rightK: 0")
@@ -122,25 +122,21 @@ def next_state(tree: CTree, states: States, k: int):
 			#print_states(rightStates)
 
 		if leftK != math.inf and rightK != math.inf:
-			maxK = max(leftK, rightK)
-
 			if leftCl and rightCl:
 				states.activityState[root] = ActivityState.COMPLETED
 				states.executed_time[root] = 0
-				return states, maxK, True
+				return states, min(leftK, rightK), True
 
 			if leftCl:
 				states.update(rightStates)
 				states.activityState[root] = ActivityState.ACTIVE
 				states.activityState[leftSubTree.root] = ActivityState.COMPLETED
-
 				return states, rightK, False
 
 			if rightCl:
 				states.update(leftStates)
 				states.activityState[root] = ActivityState.ACTIVE
 				states.activityState[rightSubTree.root] = ActivityState.COMPLETED
-
 				return states, leftK, False
 
 			#print(f"next_state:Parallel:Both branches are active: ! {leftCl} {rightCl}")
@@ -149,8 +145,8 @@ def next_state(tree: CTree, states: States, k: int):
 			states.update(rightStates)
 			states.activityState[root] = ActivityState.ACTIVE
 
-			#print(f"maxK: {maxK}") # TODO: check if maxK == 0; if true put 0 instead
-			return states, maxK, False
+			#print(f"minK: {min(leftK, rightK)}") # TODO: check if minK == 0; if true put 0 instead
+			return states, min(leftK, rightK), False
 
 		if leftK != math.inf:
 			if leftCl:
@@ -176,6 +172,7 @@ def next_state(tree: CTree, states: States, k: int):
 
 			return states, rightK, False
 
+		print("next_state:Parallel:Exception" + node_info(root, states))
 		raise Exception(root)
 
 	print(f"Unknown case: {root}")

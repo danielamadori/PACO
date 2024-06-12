@@ -1,5 +1,6 @@
 import solver.array_operations as array_operations
 from solver.view_points import VPChecker
+from graphviz import Source
 
 class ANode():
     def __init__(self, state_id: str, is_final_state: bool = False, is_square_node: bool = False, generator: str = None) -> None:
@@ -18,6 +19,48 @@ class ANode():
 class AGraph():
     def __init__(self, init_node: ANode) -> None:
         self.init_node = init_node
+
+    def __str__(self) -> str:
+        result = self.create_dot_graph(self.init_node, 0)
+        return result[0] + result[1]
+
+    def save_dot(self, path):
+        with open(path, 'w') as file:
+            file.write(self.init_dot_graph())
+
+    def save_pdf(self, path):
+        self.graph = Source(self.init_dot_graph(), format='pdf')
+        self.graph.render(path, cleanup=True)
+
+    def init_dot_graph(self):
+        result = "digraph automa {\n"
+
+        node, transition = self.create_dot_graph(self.init_node, 0)
+
+        result += node
+        result += transition
+        result += "__start0 [label=\"\", shape=none];\n"
+        result += "__start0 -> s0  [label=\"\"];\n}"
+
+        return result
+
+    def create_dot_graph(self, root: ANode, id: int):
+        node_id = f"s{id} [label=\"s{id}\"];\n"
+        transition = ""
+        #print("root:", root.state_id, " id:", id)
+
+        next_node_id = id
+        for transition_id in root.transitions.keys():
+            next_node = root.transitions[transition_id].init_node
+            next_node_id += 1
+
+            transition += f"s{id} -> s{next_node_id} [label=\"{transition_id}/{1 if next_node.is_final_state else 1}\"];\n"
+            ids = self.create_dot_graph(next_node, next_node_id)
+
+            node_id += ids[0]
+            transition += ids[1]
+
+        return node_id, transition
 
 class AutomatonGraph():
     def __init__(self, aalpy_automaton, sul) -> None:
@@ -83,8 +126,11 @@ class AutomatonGraph():
             for tk in traceroutes_dict.keys():
                 tmp_node = ANode(node.state_id+tk, is_square_node=True, generator=node.state_id)
                 for out_char in traceroutes_dict[tk]:
+                    print("out_char:" + out_char)
                     tmp_node.add_transition(out_char, node.transitions[out_char])
                     node.remove_transition(out_char)
+
+                print("tk:" + tk)
                 node.add_transition(tk, AGraph(tmp_node))
 
     def activated_choices_and_naturals(self, in_char, out_chars, sul: VPChecker):

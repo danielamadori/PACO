@@ -23,7 +23,7 @@ from solver.view_points import VPChecker
 from solver.tree_lib import CNode, CTree, print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
-from utils.env import AUTOMATON_TYPE, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, SESE_PARSER, TASK_SEQ, IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS,H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, IMPACTS_NAMES
+from utils.env import AUTOMATON_TYPE, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, SESE_PARSER, TASK_SEQ, IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS,H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, IMPACTS_NAMES, PATH_AUTOMA, PATH_AUTOMA_IMAGE, PATH_AUTOMA_IMAGE_SVG
 from solver.gCleaner import gCleaner
 from explainer.explainer import explainer
 # import array_operations
@@ -174,12 +174,18 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                                             bpmn[IMPACTS], bpmn[DURATIONS], 
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H])
 
-        automa = []
-        create_automa(custom_tree, States(custom_tree.root, ActivityState.WAITING, 0), automa)
-        print("\n---FSM---\n")
-        for node in automa:
-            print_states(node)
-        print("\n---FSM---\n")
+        print("Automa:")
+        ag = create_automa(custom_tree, States(custom_tree.root, ActivityState.WAITING, 0), None)
+        print("Automa:created:\n" + str(ag))
+        ag.save_dot(PATH_AUTOMA)
+
+        graphs = pydot.graph_from_dot_file(PATH_AUTOMA)
+        graph = graphs[0]
+        graph.write_svg(PATH_AUTOMA_IMAGE_SVG)
+        graph.set('dpi', RESOLUTION)
+        graph.write_png(PATH_AUTOMA_IMAGE)
+
+
 
         # Calculate the number of nodes in the tree
         number_of_nodes = last_id + 1
@@ -212,6 +218,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Create an automaton graph with the cleaned automaton and the SUL
         ag = AutomatonGraph(mealy, sul)
         print(f'{datetime.now()} eseguito ag')
+
         # Create a game solver with the automaton graph and the bound
         solver = GameSolver(ag, bound)
         print('eseguito solver')

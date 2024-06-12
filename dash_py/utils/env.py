@@ -58,6 +58,11 @@ PATH_AUTOMATON = 'assets/automaton.dot'
 PATH_AUTOMATON_CLEANED = 'assets/automaton_cleaned.dot'
 PATH_AUTOMATON_IMAGE = 'assets/automaton.png'
 PATH_AUTOMATON_IMAGE_SVG = 'assets/automaton.svg'
+
+PATH_AUTOMA = 'assets/automa.dot'
+PATH_AUTOMA_IMAGE = 'assets/automa.png'
+PATH_AUTOMA_IMAGE_SVG = 'assets/automa.svg'
+
 ### args for tree LARK
 TASK_SEQ = 'expression'
 IMPACTS = 'impacts'

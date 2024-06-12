@@ -8,6 +8,9 @@ class ActivityState(enum.IntEnum):
 	ACTIVE = 1
 	COMPLETED = 2
 
+	def __str__(self):
+		return str(self.value)
+
 
 class States:
 	# Indicate for the nodes with activityState = ACTIVE
@@ -25,6 +28,13 @@ class States:
 	def update(self, state: CNode):
 		self.activityState.update(state.activityState)
 		self.executed_time.update(state.executed_time)
+
+	def __str__(self):
+		result = "("
+		for state in self.activityState.keys():
+			result += str(self.activityState[state]) + ", "
+		# Remove last  ", "
+		return result[:-2] + ")"
 
 
 def check_state(root: CNode, states: States):
