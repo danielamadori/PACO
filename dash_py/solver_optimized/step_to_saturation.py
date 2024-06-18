@@ -6,14 +6,14 @@ import math
 def steps_to_saturation(tree: CTree, states: States):
 	root: CNode = tree.root
 
-	check_state(root, states)
 	#print("step_to_saturation: " + node_info(root, states))
 
 	if root.type == 'task':
 		remaining_time = root.duration - states.executed_time[root]
 		#print("step_to_saturation:Task:remaining_time: ", remaining_time)
-
 		return remaining_time
+
+	check_state(root, states)
 
 	leftSubTree = root.childrens[0]
 	rightSubTree = root.childrens[1]
@@ -55,9 +55,7 @@ def steps_to_saturation(tree: CTree, states: States):
 		remaining_time = 0
 		if root.type == 'choice':
 			remaining_time = root.max_delay - states.executed_time[root]
-
 		#print("step_to_saturation:Natural/Choice:remaining_time: ", remaining_time)
-
 		return remaining_time
 
 	print("Error: Invalid root type!")

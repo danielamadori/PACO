@@ -1,6 +1,6 @@
 import copy
 from solver.tree_lib import CNode
-from solver_optimized.states import States, ActivityState, node_info
+from solver_optimized.states import States, ActivityState, node_info, check_state
 from itertools import product
 
 
@@ -8,19 +8,24 @@ def create_branches(states: States):
 	active_branches = []
 
 	node: CNode
-	for node in states.activityState.keys():
-		# check_state(node, states)
+	print("create_branches:states:len:" + str(len(states.activityState.keys())))
+
+	for node in list(states.activityState.keys()):
+		check_state(node, states)
 		# print(f"create_branches: {node_info(node, states)}")
-		if (node.type == 'choice' or node.type == 'natural'
+		if ((node.type == 'choice' or node.type == 'natural')
 				and states.activityState[node] == ActivityState.ACTIVE
 				and states.executed_time[node] == node.max_delay
 				and states.activityState[node.childrens[0].root] == ActivityState.WAITING
 				and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
 			active_branches.append(node)
-			#print(f"create_branches:active_branches:" + node_info(node, states))
+			print(f"create_branches:active_branches:" + node_info(node, states))
+
 
 	active_branches_dim = len(active_branches)
+	print("create_branches:active branches:" + str(active_branches_dim))
 	if active_branches_dim == 0:
+		print("create_branches:no active branches")
 		return []
 
 	branches_choices = list(product([True, False], repeat=active_branches_dim))

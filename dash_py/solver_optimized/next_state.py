@@ -9,7 +9,7 @@ def next_state(tree: CTree, states: States, k: int):
 	root: CNode = tree.root
 
 	#check_state(root, states)
-	#print(f"next_state: " + node_info(root, states))
+	print(f"next_state: " + node_info(root, states))
 
 	if root.type == 'task':
 		remaining_time = root.duration - states.executed_time[root]
@@ -97,9 +97,19 @@ def next_state(tree: CTree, states: States, k: int):
 
 		if rightK == 0:
 			#print("next_state:Sequential:rightK: 0")
-			rightStates.activityState[root] = ActivityState.ACTIVE
+			# TODO: check
+			#rightStates.activityState[root] = ActivityState.ACTIVE
+			#rightStates.activityState[leftSubTree.root] = ActivityState.COMPLETED
+			#return rightStates, rightK, True
+
+			rightStates.activityState[root] = ActivityState.COMPLETED
 			rightStates.activityState[leftSubTree.root] = ActivityState.COMPLETED
-			return rightStates, rightK, True
+			return rightStates, 0, True
+
+		# Not original
+		print("next_state:Sequential:Exception" + node_info(root, states))
+		raise Exception(root)
+		# End not original
 
 		rightStates.activityState[root] = ActivityState.COMPLETED
 		rightStates.activityState[leftSubTree.root] = ActivityState.COMPLETED

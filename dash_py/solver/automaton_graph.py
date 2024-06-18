@@ -48,6 +48,8 @@ class AGraph():
         node_id = f"s{root.state_id} [label=\"s{root.state_id}\"];\n"
         transitions_id = ""
 
+        # TODO tree search
+
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
 

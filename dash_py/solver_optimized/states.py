@@ -44,17 +44,20 @@ def check_state(root: CNode, states: States):
 	if (not root.isLeaf and (states.activityState[root] == ActivityState.WAITING
 			or states.activityState[root] == ActivityState.ACTIVE)):
 		# We need the children just if activityState[root] is waiting or active
-		# But we can created just
 		for subTree in root.childrens:
 			if subTree.root not in states.activityState:
 				states.add(subTree.root, ActivityState.WAITING, 0)
 
 
 def node_info(node: CNode, states: States):
-	duration = node.duration
+	result = f"name:{node.name}; id:{node.id}; type:{node.type}; activityState: {states.activityState[node]}; executed_time: {states.executed_time[node]};"
+
 	if node.type == 'choice':
-		duration = node.max_delay
-	return f"name:{node.name}; id:{node.id}; type:{node.type}; activityState: {states.activityState[node]}; executed_time: {states.executed_time[node]}; duration: {duration}"
+		result += f"max_delay: {node.max_delay}"
+	elif node.type != 'natural':
+		result += f"duration: {node.duration}"
+
+	return result
 
 
 def print_states(states):
