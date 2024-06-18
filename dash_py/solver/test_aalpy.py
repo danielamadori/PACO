@@ -1,7 +1,7 @@
 from random import seed
 
 from dash_py.solver_optimized.create_automa import create_automa
-from dash_py.solver_optimized.states import States, print_states, ActivityState
+from dash_py.solver_optimized.states import States, states_info, ActivityState
 
 seed(42)
 #############

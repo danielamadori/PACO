@@ -13,10 +13,26 @@ def steps_to_saturation(tree: CTree, states: States):
 		#print("step_to_saturation:Task:remaining_time: ", remaining_time)
 		return remaining_time
 
-	check_state(root, states)
-
 	leftSubTree = root.childrens[0]
 	rightSubTree = root.childrens[1]
+	check_state(root, states)
+
+	if root.type == 'natural' or root.type == 'choice':
+		# print("step_to_saturation:Natural/Choice: " + node_info(root, states))
+		# print("step_to_saturation:Natural/Choice:Left: " + node_info(leftSubTree.root, states))
+		# print("step_to_saturation:Natural/Choice:Right: " + node_info(rightSubTree.root, states))
+
+		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:
+			return steps_to_saturation(leftSubTree, states)
+		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
+			return steps_to_saturation(rightSubTree, states)
+
+		remaining_time = 0
+		if root.type == 'choice':
+			remaining_time = root.max_delay - states.executed_time[root]
+		#print("step_to_saturation:Natural/Choice:remaining_time: ", remaining_time)
+		return remaining_time
+
 
 	if root.type == 'sequential':
 		#print("step_to_saturation:Sequential: " + node_info(root, states))
@@ -41,22 +57,6 @@ def steps_to_saturation(tree: CTree, states: States):
 			dur_right = steps_to_saturation(rightSubTree, states)
 
 		return min(dur_left, dur_right)
-
-	if root.type == 'natural' or root.type == 'choice':
-		# print("step_to_saturation:Natural/Choice: " + node_info(root, states))
-		# print("step_to_saturation:Natural/Choice:Left: " + node_info(leftSubTree.root, states))
-		# print("step_to_saturation:Natural/Choice:Right: " + node_info(rightSubTree.root, states))
-
-		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:
-			return steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
-			return steps_to_saturation(rightSubTree, states)
-
-		remaining_time = 0
-		if root.type == 'choice':
-			remaining_time = root.max_delay - states.executed_time[root]
-		#print("step_to_saturation:Natural/Choice:remaining_time: ", remaining_time)
-		return remaining_time
 
 	print("Error: Invalid root type!")
 	raise Exception(root)

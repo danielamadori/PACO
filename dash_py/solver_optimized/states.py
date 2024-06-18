@@ -7,6 +7,7 @@ class ActivityState(enum.IntEnum):
 	WAITING = 0
 	ACTIVE = 1
 	COMPLETED = 2
+	COMPLETED_WIHTOUT_PASSING_OVER = 3
 
 	def __str__(self):
 		return str(self.value)
@@ -60,7 +61,9 @@ def node_info(node: CNode, states: States):
 	return result
 
 
-def print_states(states):
-	print('States:')
+def states_info(states):
+	result = 'States:\n'
 	for s in states.activityState.keys():
-		print(node_info(s, states))
+		result += node_info(s, states) + "\n"
+
+	return result

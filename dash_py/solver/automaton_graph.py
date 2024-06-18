@@ -3,18 +3,21 @@ from solver.view_points import VPChecker
 from graphviz import Source
 
 class ANode():
-    def __init__(self, state_id: str, is_final_state: bool = False, is_square_node: bool = False, generator: str = None) -> None:
+    def __init__(self, state_id: str, process_id: str, is_final_state: bool = False, is_square_node: bool = False, generator: str = None) -> None:
         self.state_id = state_id
+        self.process_id = process_id
         self.is_final_state = is_final_state
         self.is_square_node = is_square_node
         self.generator = generator
         self.transitions: dict[str, AGraph] = {}
 
-    def add_transition(self, transition_key, children_graph: 'AGraph'):
-        self.transitions[transition_key] = children_graph
+    def add_transition(self, children_graph: 'AGraph'):
+        t_key = self.process_id + ":" + children_graph.init_node.process_id
+        self.transitions[t_key] = children_graph
 
-    def remove_transition(self, transition_key):
-        self.transitions.pop(transition_key)
+    def remove_transition(self, children_graph: 'AGraph'):
+        t_key = self.process_id + ":" + children_graph.init_node.process_id
+        self.transitions.pop(t_key)
 
 class AGraph():
     def __init__(self, init_node: ANode) -> None:
@@ -29,8 +32,7 @@ class AGraph():
             file.write(self.init_dot_graph())
 
     def save_pdf(self, path):
-        self.graph = Source(self.init_dot_graph(), format='pdf')
-        self.graph.render(path, cleanup=True)
+        Source(self.init_dot_graph(), format='pdf').render(path, cleanup=True)
 
     def init_dot_graph(self):
         result = "digraph automa {\n"
@@ -40,22 +42,24 @@ class AGraph():
         result += node
         result += transition
         result += "__start0 [label=\"\", shape=none];\n"
-        result += f"__start0 -> s{self.init_node.state_id}  [label=\"\"];\n" + "}"
+        result += f"__start0 -> s{self.clean_state_id(self.init_node.state_id)}  [label=\"\"];\n" + "}"
 
         return result
 
+    def clean_state_id(self, state_id):
+        return state_id.replace('(', '').replace(')', '').replace(', ', '_')
+
     def create_dot_graph(self, root: ANode):
-        node_id = f"s{root.state_id} [label=\"s{root.state_id}\"];\n"
+        node_id = f"s{self.clean_state_id(root.state_id)} [label=\"s{root.state_id}\"];\n"
         transitions_id = ""
 
         # TODO tree search
 
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
+            transitions_id += f"s{self.clean_state_id(root.state_id)} -> s{self.clean_state_id(next_node.state_id)} [label=\"{transition.replace(":", "->")}\"];\n"
 
-            transitions_id += f"s{root.state_id} -> s{next_node.state_id} [label=\"{transition}\"];\n"
             ids = self.create_dot_graph(next_node)
-
             node_id += ids[0]
             transitions_id += ids[1]
 
@@ -103,11 +107,13 @@ class AutomatonGraph():
 
     def generate_graph_from_automaton(self, aalpy_automaton_state):
         is_final_state = True if aalpy_automaton_state.state_id in self.final_states else False
-        tmp_node = ANode(aalpy_automaton_state.state_id, is_final_state=is_final_state)
+        tmp_node = ANode(state_id=aalpy_automaton_state.state_id,
+                         process_id=aalpy_automaton_state.process_id,
+                         is_final_state=is_final_state)
         if not is_final_state: # qui devo sistemare, se ho uno stato in loop non finisco più
             for kt in aalpy_automaton_state.transitions.keys():
                 if aalpy_automaton_state.transitions[kt].state_id != aalpy_automaton_state.state_id:
-                    tmp_node.add_transition(kt, self.generate_graph_from_automaton(aalpy_automaton_state.transitions[kt]))
+                    tmp_node.add_transition(self.generate_graph_from_automaton(aalpy_automaton_state.transitions[kt]))
         return AGraph(tmp_node)
     
     def process_graph(self, graph: AGraph, sul: VPChecker):
@@ -123,14 +129,18 @@ class AutomatonGraph():
             node.is_square_node = True
         elif active_choices > 0 and active_naturals > 0:
             for tk in traceroutes_dict.keys():
-                tmp_node = ANode(node.state_id+tk, is_square_node=True, generator=node.state_id)
+                tmp_node = ANode(state_id=node.state_id,
+                                 process_id=tk,
+                                 is_square_node=True, generator=node.state_id)
                 for out_char in traceroutes_dict[tk]:
                     print("out_char:" + out_char)
-                    tmp_node.add_transition(out_char, node.transitions[out_char])
-                    node.remove_transition(out_char)
+                    #tmp_node.add_transition(out_char, node.transitions[out_char])
+                    tmp_node.add_transition(node.transitions[out_char])
+                    #node.remove_transition(out_char)
+                    node.remove_transition(node.transitions[out_char])
 
                 print("tk:" + tk)
-                node.add_transition(tk, AGraph(tmp_node))
+                node.add_transition(AGraph(tmp_node))
 
     def activated_choices_and_naturals(self, in_char, out_chars, sul: VPChecker):
         if len(out_chars) == 0:

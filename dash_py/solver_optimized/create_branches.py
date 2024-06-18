@@ -8,7 +8,7 @@ def create_branches(states: States):
 	active_branches = []
 
 	node: CNode
-	print("create_branches:states:len:" + str(len(states.activityState.keys())))
+	#print("create_branches:states:len:" + str(len(states.activityState.keys())))
 
 	for node in list(states.activityState.keys()):
 		check_state(node, states)
@@ -20,7 +20,6 @@ def create_branches(states: States):
 				and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
 			active_branches.append(node)
 			print(f"create_branches:active_branches:" + node_info(node, states))
-
 
 	active_branches_dim = len(active_branches)
 	print("create_branches:active branches:" + str(active_branches_dim))
