@@ -1,48 +1,60 @@
 import copy
 from solver.tree_lib import CNode
-from solver_optimized.states import States, ActivityState, node_info, check_state
+from solver_optimized.states import States, ActivityState, node_info, states_info
 from itertools import product
 
 
 def create_branches(states: States):
-	active_branches = []
-
+	choice_nature = []
 	node: CNode
-	#print("create_branches:states:len:" + str(len(states.activityState.keys())))
-
 	for node in list(states.activityState.keys()):
-		check_state(node, states)
+		#TODO: check check_state(node, states)
 		# print(f"create_branches: {node_info(node, states)}")
 		if ((node.type == 'choice' or node.type == 'natural')
 				and states.activityState[node] == ActivityState.ACTIVE
 				and states.executed_time[node] == node.max_delay
 				and states.activityState[node.childrens[0].root] == ActivityState.WAITING
 				and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
-			active_branches.append(node)
-			print(f"create_branches:active_branches:" + node_info(node, states))
 
-	active_branches_dim = len(active_branches)
-	print("create_branches:active branches:" + str(active_branches_dim))
-	if active_branches_dim == 0:
-		print("create_branches:no active branches")
-		return []
+			choice_nature.append(node)
+			#choice_nature_id.append(node.id)
+			print(f"create_branches:active_choice-nature:" + node_info(node, states))
 
-	branches_choices = list(product([True, False], repeat=active_branches_dim))
-	#print(f"create_branches:cardinality:{active_branches_dim}:combinations:{branches_choices}")
+	branches = {}
 
-	branches = []
+	#TODO check if is corret to assign the id of a node with the max val
+	actual_node_id = str(max(s.id for s in states.activityState.keys() if states.activityState[s] > ActivityState.WAITING))
+	choice_nature_dim = len(choice_nature)
+	if choice_nature_dim == 0:
+		print("create_branches:no_active_choice-nature:id: ", actual_node_id)
+		return actual_node_id, branches
+
+	print("create_branches:active_choice-nature:" + str(choice_nature_dim))
+	branches_choices = list(product([True, False], repeat=choice_nature_dim))
+	#print(f"create_branches:cardinality:{choice_nature_dim}:combinations:{branches_choices}")
+
 	for branch_choices in branches_choices:
 		branch_states = copy.deepcopy(states)
+		transition_id = ""
+		for i in range(choice_nature_dim):
+			node = choice_nature[i]
 
-		for i in range(active_branches_dim):
-			sxNode = active_branches[i].childrens[0].root
-			dxNode = active_branches[i].childrens[1].root
+			if branch_choices[i]:
+				activeNode = node.childrens[0].root
+				inactiveNode = node.childrens[1].root
+			else:
+				activeNode = node.childrens[1].root
+				inactiveNode = node.childrens[0].root
 
-			branch_states.activityState[sxNode] = ActivityState.ACTIVE if branch_choices[i] else ActivityState.WILL_NOT_BE_EXECUTED
-			branch_states.activityState[dxNode] = ActivityState.WILL_NOT_BE_EXECUTED if branch_choices[i] else ActivityState.ACTIVE
+			transition_id += str(node.id) + ":" + str(activeNode.id) + "; "
 
-			#print(f"create_branch: choice: {branch_choices[i]}\n sxNode: {node_info(sxNode, branch_states)}\n dxNode: {node_info(dxNode, branch_states)}\n")
+			branch_states.activityState[activeNode] = ActivityState.ACTIVE
+			branch_states.activityState[inactiveNode] = ActivityState.WILL_NOT_BE_EXECUTED
 
-		branches.append(branch_states)
+		#Remove "; " from the end
+		branches[transition_id[:-2]] = branch_states
 
-	return branches
+	#for transition_id in branches.keys():
+	#	print(f"create_branches:branches:id:{transition_id}:\n" + states_info(branches[transition_id]))
+
+	return actual_node_id, branches

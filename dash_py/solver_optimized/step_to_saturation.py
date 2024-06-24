@@ -1,5 +1,5 @@
 from solver.tree_lib import CTree, CNode
-from solver_optimized.states import States, ActivityState, check_state, node_info
+from solver_optimized.states import States, ActivityState, node_info
 import math
 
 
@@ -15,7 +15,7 @@ def steps_to_saturation(tree: CTree, states: States):
 
 	leftSubTree = root.childrens[0]
 	rightSubTree = root.childrens[1]
-	check_state(root, states)
+	#TODO: check check_state(root, states)
 
 	if root.type == 'natural' or root.type == 'choice':
 		# print("step_to_saturation:Natural/Choice: " + node_info(root, states))

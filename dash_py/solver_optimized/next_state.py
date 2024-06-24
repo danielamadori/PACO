@@ -1,7 +1,7 @@
 import copy
 
 from solver.tree_lib import CTree, CNode
-from solver_optimized.states import States, ActivityState, check_state, node_info, states_info
+from solver_optimized.states import States, ActivityState, node_info, states_info
 import math
 
 
@@ -9,7 +9,7 @@ def next_state(tree: CTree, states: States, k: int):
 	root: CNode = tree.root
 
 	#check_state(root, states)
-	print(f"next_state: " + node_info(root, states))
+	#print(f"next_state: " + node_info(root, states))
 
 	if root.type == 'task':
 		#print("next_state:Task: " + node_info(root, states))
@@ -60,6 +60,7 @@ def next_state(tree: CTree, states: States, k: int):
 	rightStates = States()
 
 	if root.type == 'sequential':
+		#print("next_state:Sequential: " + node_info(root, states))
 		leftK = k
 		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
 			leftStates, leftK = next_state(leftSubTree, states, k)
@@ -88,14 +89,19 @@ def next_state(tree: CTree, states: States, k: int):
 		return leftStates, rightK
 
 	if root.type == 'parallel':
+		#print("next_state:Parallel: " + node_info(root, states))
 		leftK = rightK = math.inf
 
+		#print("next_state:Parallel:LeftCheck ")# + node_info(leftSubTree.root, states))
 		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
+			#print("next_state:Parallel:Left")
 			leftStates, leftK = next_state(leftSubTree, states, k)
 			#print("next_state:Parallel:LeftStates:")
 			#print_states(leftStates)
 
+		#print("next_state:Parallel:RightCheck ")# + node_info(rightSubTree.root, states))
 		if states.activityState[rightSubTree.root] != ActivityState.COMPLETED:
+			#print("next_state:Parallel:Right")
 			rightStates, rightK = next_state(rightSubTree, states, k)
 			#print("next_state:Parallel:RightStates:")
 			#print_states(rightStates)

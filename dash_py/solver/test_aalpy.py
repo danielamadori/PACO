@@ -28,7 +28,7 @@ from solver.gCleaner import gCleaner
 from explainer.explainer import explainer
 # import array_operations
 
-from solver.automaton_graph import AutomatonGraph
+from solver.automaton_graph import AutomatonGraph, ANode, AGraph
 from solver.solver import GameSolver
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
@@ -175,7 +175,13 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H])
 
         print("Automa:")
-        ag = create_automa(custom_tree, States(custom_tree.root, ActivityState.WAITING, 0), None)
+        states = States(custom_tree.root, ActivityState.WAITING, 0)
+        ag = AGraph(ANode(states, [- 1]))
+        create_automa(custom_tree, states, ag)
+        print("Automa:completed")
+        print(ag.init_node.transitions.keys())
+        ag = ag.init_node.transitions[list(ag.init_node.transitions.keys())[0]]
+
         print("Automa:created:\n" + str(ag))
         ag.save_dot(PATH_AUTOMA)
 

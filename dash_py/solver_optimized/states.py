@@ -1,6 +1,6 @@
 import enum
 from solver.tree_lib import CNode
-
+from collections import defaultdict
 
 class ActivityState(enum.IntEnum):
 	WILL_NOT_BE_EXECUTED = -1
@@ -14,11 +14,11 @@ class ActivityState(enum.IntEnum):
 
 
 class States:
-	# Indicate for the nodes with activityState = ACTIVE
-	# how much time they are staying in that node.
 	def __init__(self, state: CNode = None, activityState: ActivityState = ActivityState.WAITING, executed_time: int = 0):
-		self.activityState = {}
-		self.executed_time = {}
+		self.activityState = defaultdict(lambda: ActivityState.WAITING)
+		self.executed_time = defaultdict(lambda: 0)
+		#self.activityState = {}
+		#self.executed_time = {}
 		if state is not None:
 			self.add(state, activityState, executed_time)
 
@@ -32,12 +32,13 @@ class States:
 
 	def __str__(self):
 		result = "("
-		for state in self.activityState.keys():
-			result += str(self.activityState[state]) + ", "
-		# Remove last  ", "
-		return result[:-2] + ")"
 
+		for state in sorted(self.activityState.keys(), key=lambda x: x.id):
+			result += str(state.id) + ":" + str(self.activityState[state]) + ";"
+		# Remove last  ";"
+		return result[:-1] + ")"
 
+'''
 def check_state(root: CNode, states: States):
 	if root not in states.activityState:
 		states.add(root, ActivityState.WAITING, 0)
@@ -48,7 +49,7 @@ def check_state(root: CNode, states: States):
 		for subTree in root.childrens:
 			if subTree.root not in states.activityState:
 				states.add(subTree.root, ActivityState.WAITING, 0)
-
+'''
 
 def node_info(node: CNode, states: States):
 	result = f"name:{node.name}; id:{node.id}; type:{node.type}; activityState: {states.activityState[node]}; executed_time: {states.executed_time[node]};"
@@ -63,7 +64,7 @@ def node_info(node: CNode, states: States):
 
 def states_info(states):
 	result = 'States:\n'
-	for s in states.activityState.keys():
+	for s in sorted(states.activityState.keys(), key=lambda x: x.id):
 		result += node_info(s, states) + "\n"
 
 	return result
