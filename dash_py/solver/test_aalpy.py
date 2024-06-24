@@ -175,14 +175,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H])
 
         print("Automa:")
-        states = States(custom_tree.root, ActivityState.WAITING, 0)
-        ag = AGraph(ANode(states, [- 1]))
-        create_automa(custom_tree, states, ag)
-        print("Automa:completed")
-        print(ag.init_node.transitions.keys())
-        ag = ag.init_node.transitions[list(ag.init_node.transitions.keys())[0]]
-
-        print("Automa:created:\n" + str(ag))
+        ag = create_automa(custom_tree)
+        print("Automa:completed:\n" + str(ag))
         ag.save_dot(PATH_AUTOMA)
 
         graphs = pydot.graph_from_dot_file(PATH_AUTOMA)
