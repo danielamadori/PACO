@@ -7,7 +7,7 @@ from solver_optimized.states import States
 class ANode:
     def __init__(self, states: States, process_ids: list = [], is_final_state: bool = False, is_square_node: bool = False, generator: str = None) -> None:
         self.states = states
-        self.state_id = str(states)
+        self.state_id = states.activityState_str()
         self.process_ids = str(process_ids)
         self.is_final_state = is_final_state
         self.is_square_node = is_square_node
@@ -17,10 +17,16 @@ class ANode:
     def __str__(self) -> str:
         return self.state_id
 
-    def dot_str(self, full=True):
+    def dot_str(self, full=True, executed_time=False):
         result = str(self).replace('(', '').replace(')', '').replace(';', '_').replace(':', '_').replace('-', "neg")
         if full:
-            result += f" [label=\"{self.state_id}\"];\n"
+            result += ' [label=\"'
+            if not executed_time:
+                result += "q|s:{" + self.state_id
+            else:
+                result += "q|delta:{" + self.states.executed_time_str()
+
+            result += "}\"];\n"
 
         return result
 
@@ -43,35 +49,35 @@ class AGraph:
         result = self.create_dot_graph(self.init_node)
         return result[0] + result[1]
 
-    def save_dot(self, path):
+    def save_dot(self, path, executed_time=False):
         with open(path, 'w') as file:
-            file.write(self.init_dot_graph())
+            file.write(self.init_dot_graph(executed_time=executed_time))
 
-    def save_pdf(self, path):
-        Source(self.init_dot_graph(), format='pdf').render(path, cleanup=True)
+    def save_pdf(self, path, executed_time=False):
+        Source(self.init_dot_graph(executed_time=executed_time), format='pdf').render(path, cleanup=True)
 
-    def init_dot_graph(self):
+    def init_dot_graph(self, executed_time=False):
         result = "digraph automa {\n"
 
-        node, transition = self.create_dot_graph(self.init_node)
+        node, transition = self.create_dot_graph(self.init_node, executed_time=executed_time)
 
         result += node
         result += transition
         result += "__start0 [label=\"\", shape=none];\n"
 
-        result += f"__start0 -> {self.init_node.dot_str(full=False)}  [label=\"{self.init_node.process_ids}\"];\n" + "}"
+        result += f"__start0 -> {self.init_node.dot_str(full=False)}  [label=\"{self.init_node.process_ids[:-1]}\"];\n" + "}"
         return result
 
-    def create_dot_graph(self, root: ANode):
-        nodes_id = root.dot_str()
+    def create_dot_graph(self, root: ANode, executed_time=False):
+        nodes_id = root.dot_str(executed_time=executed_time)
 
         transitions_id = ""
-        # TODO tree search
+
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
-            transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{transition.replace(":", "->")}\"];\n"
+            transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{transition.replace(":", "->")[:-1]}\"];\n"
 
-            ids = self.create_dot_graph(next_node)
+            ids = self.create_dot_graph(next_node, executed_time=executed_time)
             nodes_id += ids[0]
             transitions_id += ids[1]
 

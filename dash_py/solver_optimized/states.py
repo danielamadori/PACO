@@ -17,8 +17,7 @@ class States:
 	def __init__(self, state: CNode = None, activityState: ActivityState = ActivityState.WAITING, executed_time: int = 0):
 		self.activityState = defaultdict(lambda: ActivityState.WAITING)
 		self.executed_time = defaultdict(lambda: 0)
-		#self.activityState = {}
-		#self.executed_time = {}
+
 		if state is not None:
 			self.add(state, activityState, executed_time)
 
@@ -30,34 +29,34 @@ class States:
 		self.activityState.update(state.activityState)
 		self.executed_time.update(state.executed_time)
 
-	def __str__(self):
-		result = "("
-
+	def activityState_str(self):
+		result = ""
 		for state in sorted(self.activityState.keys(), key=lambda x: x.id):
 			result += str(state.id) + ":" + str(self.activityState[state]) + ";"
 		# Remove last  ";"
-		return result[:-1] + ")"
+		return result[:-1]
 
-'''
-def check_state(root: CNode, states: States):
-	if root not in states.activityState:
-		states.add(root, ActivityState.WAITING, 0)
+	def executed_time_str(self):
+		result = ""
+		for state in sorted(self.executed_time.keys(), key=lambda x: x.id):
+			# If state is >= WAITING there is no need to show because will not be executed
+			if self.activityState[state] >= ActivityState.WAITING:
+				result += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+		# Remove last  ";"
+		return result[:-1]
 
-	if (not root.isLeaf and (states.activityState[root] == ActivityState.WAITING
-			or states.activityState[root] == ActivityState.ACTIVE)):
-		# We need the children just if activityState[root] is waiting or active
-		for subTree in root.childrens:
-			if subTree.root not in states.activityState:
-				states.add(subTree.root, ActivityState.WAITING, 0)
-'''
+	def __str__(self):
+		return self.activityState_str() + "-" + self.executed_time_str()
+
 
 def node_info(node: CNode, states: States):
-	result = f"name:{node.name}; id:{node.id}; type:{node.type}; activityState: {states.activityState[node]}; executed_time: {states.executed_time[node]};"
+	name = "" if node.name is None else "name:" + node.name + '; '
+	result = f"id:{node.id}; {name}type:{node.type}; q|s: {states.activityState[node]}; q|delta: {states.executed_time[node]}; "
 
 	if node.type == 'choice':
-		result += f"max_delay: {node.max_delay}"
+		result += f"delta: {node.max_delay}"
 	elif node.type != 'natural':
-		result += f"duration: {node.duration}"
+		result += f"delta: {node.duration}"
 
 	return result
 

@@ -5,7 +5,6 @@ import math
 
 def steps_to_saturation(tree: CTree, states: States):
 	root: CNode = tree.root
-
 	#print("step_to_saturation: " + node_info(root, states))
 
 	if root.type == 'task':
@@ -15,16 +14,15 @@ def steps_to_saturation(tree: CTree, states: States):
 
 	leftSubTree = root.childrens[0]
 	rightSubTree = root.childrens[1]
-	#TODO: check check_state(root, states)
 
 	if root.type == 'natural' or root.type == 'choice':
 		# print("step_to_saturation:Natural/Choice: " + node_info(root, states))
 		# print("step_to_saturation:Natural/Choice:Left: " + node_info(leftSubTree.root, states))
 		# print("step_to_saturation:Natural/Choice:Right: " + node_info(rightSubTree.root, states))
 
-		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:
+		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:# TODO check if == or >=
 			return steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
+		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:# TODO check if == or >=
 			return steps_to_saturation(rightSubTree, states)
 
 		remaining_time = 0
@@ -51,9 +49,10 @@ def steps_to_saturation(tree: CTree, states: States):
 		#print("step_to_saturation:Parallel:Right: " + node_info(rightSubTree.root, states))
 		dur_left = math.inf
 		dur_right = math.inf
-		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
+
+		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED:
 			dur_left = steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] != ActivityState.COMPLETED:
+		if states.activityState[rightSubTree.root] < ActivityState.COMPLETED:
 			dur_right = steps_to_saturation(rightSubTree, states)
 
 		return min(dur_left, dur_right)

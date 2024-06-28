@@ -1,3 +1,6 @@
+import copy
+import time
+
 from solver.automaton_graph import AGraph, ANode
 from solver.tree_lib import CTree, CNode
 from solver_optimized.create_branches import create_branches
@@ -9,7 +12,7 @@ import re
 
 def create_automa(region_tree: CTree) -> AGraph:
 	branches, states = create_current_automa_state(
-		region_tree.root,region_tree,
+		region_tree.root, region_tree,
 		States(region_tree.root, ActivityState.WAITING, 0))
 
 	current_node_id = re.sub(r':[^;]*;', ';', list(branches.keys())[0])
@@ -22,7 +25,8 @@ def create_automa(region_tree: CTree) -> AGraph:
 	)
 
 	for next_node_id in branches.keys():
-		branch = branches[next_node_id]
+		branch = states
+		branch.update(branches[next_node_id])
 		print(f"create_automa:next_node_id:{next_node_id}:\n" + states_info(branch))
 		create_next_automa_state(region_tree.root, region_tree, branch, automa, next_node_id)
 
@@ -31,31 +35,34 @@ def create_automa(region_tree: CTree) -> AGraph:
 
 def create_current_automa_state(root: CNode, region_tree: CTree, states: States):
 	branches = {}
-
+	i = 0
 	while len(branches) == 0 and states.activityState[root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
-		#print("step_to_saturation:")
-		#print_states(states)
-		k = steps_to_saturation(region_tree, states)
-		#print('step_to_saturation:k:', k)
-		#print_states(states)
+		#print("start:", states_info(states))
 
-		#print("next_state:")
+		k = steps_to_saturation(region_tree, states)
+		#print('step_to_saturation:k:', k, states_info(states))
+
 		states, k = next_state(region_tree, states, k)
-		#print('next_state:k:', k)
-		#print_states(states)
-		#print("create_branches:")
+		#print('next_state:k:', k, states_info(states))
+
 		branches = create_branches(states)
+		#if len(branches) > 0:
+			#print("create_branches:", states_info(states))
+
 
 	#print("Branches:" + str(len(branches)))
-	#print("Root activity state: ", states.activityState[region_tree.root])
-	#print_states(states)
+	#print("Root activity state: ", states.activityState[region_tree.root], states_info(states))
 
 	return branches, states
 
 
 def create_next_automa_state(root: CNode, region_tree: CTree, states: States, automa: AGraph, next_node_id: str):
-	branches, states = create_current_automa_state(root, region_tree, states)
+	branches, childStates = create_current_automa_state(root, region_tree, copy.deepcopy(states))
+
+	print("create_next_automa_state:childStates:" + states_info(childStates))
+	states.update(childStates)
+	print("create_next_automa_state:states:" + states_info(states))
 
 	next_node = AGraph(ANode(
 		states=states,
@@ -66,6 +73,7 @@ def create_next_automa_state(root: CNode, region_tree: CTree, states: States, au
 	automa.init_node.add_transition(next_node)
 
 	for next_node_id in branches.keys():
-		branch = branches[next_node_id]
-		print(f"create_automa:next_node_id:{next_node_id}:\n" + states_info(branch))
+		branch = copy.deepcopy(states)
+		branch.update(branches[next_node_id])
+		print("create_automa:next_node_id:" + next_node_id + states_info(branch))
 		create_next_automa_state(root, region_tree, branch, next_node, next_node_id)
