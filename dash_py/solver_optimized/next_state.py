@@ -36,8 +36,9 @@ def next_state(tree: CTree, states: States, k: int):
 			selectedStates, selectedK = next_state(selectedTree, states, k)
 
 			selectedStates.activityState[root] = selectedStates.activityState[selectedTree.root]
-			selectedStates.activityState[notSelectedTree.root] = ActivityState.WILL_NOT_BE_EXECUTED
+			selectedStates.activityState[notSelectedTree.root] = ActivityState.WILL_NOT_BE_EXECUTED # TODO check if needed
 			selectedStates.executed_time[root] = states.executed_time[root] + k - selectedK
+			selectedStates.executed_time[notSelectedTree.root] = 0 # TODO check if needed
 			return selectedStates, selectedK
 
 		if root.type == 'natural':
@@ -52,11 +53,9 @@ def next_state(tree: CTree, states: States, k: int):
 			#print(f"next_state:Choice:remaining_time == k: k={k}")
 			return States(root, ActivityState.ACTIVE, states.executed_time[root] + k), 0
 
-	leftStates = States()
-	rightStates = States()
-
 	if root.type == 'sequential':
 		#print("next_state:Sequential: " + node_info(root, states))
+		leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #TODO: not original
 		leftK = k
 		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED:  #TODO: check if != or <
 			leftStates, leftK = next_state(leftSubTree, states, k)
@@ -67,6 +66,7 @@ def next_state(tree: CTree, states: States, k: int):
 
 			if leftStates.activityState[leftSubTree.root] == ActivityState.ACTIVE:
 				leftStates.activityState[root] = ActivityState.ACTIVE
+				leftStates.executed_time[root] = leftStates.executed_time[leftSubTree.root]
 				return leftStates, leftK
 
 		rightStates, rightK = next_state(rightSubTree, states, leftK)
@@ -78,24 +78,23 @@ def next_state(tree: CTree, states: States, k: int):
 		leftStates.activityState[root] = rightStates.activityState[rightSubTree.root]
 		leftStates.executed_time[root] = states.executed_time[root] + k - rightK
 
-		#TODO check:
-		leftStates.activityState[leftSubTree.root] = ActivityState.COMPLETED
-
 		return leftStates, rightK
 
 	if root.type == 'parallel':
 		#print("next_state:Parallel: " + node_info(root, states))
 		leftK = rightK = math.inf
+		leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #TODO: not original
+		rightStates = States(rightSubTree.root, ActivityState.COMPLETED, states.executed_time[rightSubTree.root]) #TODO: not original
 
 		#print("next_state:Parallel:LeftCheck ")# + node_info(leftSubTree.root, states))
-		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED:
+		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED: #TODO: check if != or <
 			#print("next_state:Parallel:Left")
 			leftStates, leftK = next_state(leftSubTree, states, k)
 		#print("next_state:Parallel:LeftStates:")
 		#print_states(leftStates)
 
 		#print("next_state:Parallel:RightCheck ")# + node_info(rightSubTree.root, states))
-		if states.activityState[rightSubTree.root] < ActivityState.COMPLETED:
+		if states.activityState[rightSubTree.root] < ActivityState.COMPLETED: #TODO: check if != or <
 			#print("next_state:Parallel:Right")
 			rightStates, rightK = next_state(rightSubTree, states, k)
 		#print("next_state:Parallel:RightStates:")
@@ -106,7 +105,7 @@ def next_state(tree: CTree, states: States, k: int):
 
 			status = ActivityState.ACTIVE
 		elif (leftStates.activityState[leftSubTree.root] == ActivityState.COMPLETED and
-			rightStates.activityState[rightSubTree.root] == ActivityState.COMPLETED):
+			  rightStates.activityState[rightSubTree.root] == ActivityState.COMPLETED):
 
 			status = ActivityState.COMPLETED
 		else:
