@@ -29,24 +29,27 @@ class States:
 		self.activityState.update(state.activityState)
 		self.executed_time.update(state.executed_time)
 
-	def activityState_str(self):
-		result = ""
-		for state in sorted(self.activityState.keys(), key=lambda x: x.id):
-			result += str(state.id) + ":" + str(self.activityState[state]) + ";"
-		# Remove last  ";"
-		return result[:-1]
+	def str(self, previousStates=None):
+		result_s = ""
+		result_d = ""
 
-	def executed_time_str(self):
-		result = ""
-		for state in sorted(self.executed_time.keys(), key=lambda x: x.id):
-			# If state is >= WAITING there is no need to show because will not be executed
-			if self.activityState[state] >= ActivityState.WAITING:
-				result += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+		if previousStates is None:
+			for state in sorted(self.activityState.keys(), key=lambda x: x.id):
+				result_s += str(state.id) + ":" + str(self.activityState[state]) + ";"
+				result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+		else:
+			for state in sorted(self.activityState.keys(), key=lambda x: x.id):
+				if state not in previousStates.activityState or self.activityState[state] != previousStates.activityState[state]:
+					result_s += str(state.id) + ":" + str(self.activityState[state]) + ";"
+					result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+
 		# Remove last  ";"
-		return result[:-1]
+		return result_s[:-1], result_d[:-1]
+
 
 	def __str__(self):
-		return self.activityState_str() + "-" + self.executed_time_str()
+		s, d = self.str()
+		return s + "-" + d
 
 
 def node_info(node: CNode, states: States):
