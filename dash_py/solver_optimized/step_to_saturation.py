@@ -20,9 +20,9 @@ def steps_to_saturation(tree: CTree, states: States):
 		# print("step_to_saturation:Natural/Choice:Left: " + node_info(leftSubTree.root, states))
 		# print("step_to_saturation:Natural/Choice:Right: " + node_info(rightSubTree.root, states))
 
-		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:# TODO check if == ACTIVE or also COMPLETED_WIHTOUT_PASSING_OVER
+		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:
 			return steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:# TODO check if == ACTIVE or also COMPLETED_WIHTOUT_PASSING_OVER
+		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
 			return steps_to_saturation(rightSubTree, states)
 
 		remaining_time = 0
@@ -38,7 +38,7 @@ def steps_to_saturation(tree: CTree, states: States):
 		#print("step_to_saturation:Sequential:Right: " + node_info(rightSubTree.root, states))
 
 		# If the activity state of left child is in active mode (it means that the activity is currently ongoing)
-		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE: # TODO check if == ACTIVE or also COMPLETED_WIHTOUT_PASSING_OVER
+		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
 			return steps_to_saturation(rightSubTree, states)
 		else:
 			return steps_to_saturation(leftSubTree, states)

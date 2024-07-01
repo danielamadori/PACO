@@ -41,7 +41,9 @@ def create_current_automa_state(region_tree: CTree, states: States):
 		k = steps_to_saturation(region_tree, states)
 		print('step_to_saturation:k:', k, states_info(states))
 
-		states, k = next_state(region_tree, states, k)
+		updatedStates, k = next_state(region_tree, states, k)
+		states.update(updatedStates) # Bottleneck
+		#states = updatedStates # Original code
 		print('next_state:k:', k, states_info(states))
 		if k > 0:
 			Exception("StepsException" + str(k))
@@ -55,6 +57,7 @@ def create_current_automa_state(region_tree: CTree, states: States):
 	#print("Root activity state: ", states.activityState[region_tree.root], states_info(states))
 
 	return branches, states
+
 
 def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph, next_node_id: str):
 	branches, childStates = create_current_automa_state(region_tree, states)
