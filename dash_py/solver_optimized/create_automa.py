@@ -1,8 +1,6 @@
 import copy
-import time
-
 from solver.automaton_graph import AGraph, ANode
-from solver.tree_lib import CTree, CNode
+from solver.tree_lib import CTree
 from solver_optimized.create_branches import create_branches
 from solver_optimized.next_state import next_state
 from solver_optimized.states import States, states_info, ActivityState
@@ -39,18 +37,18 @@ def create_current_automa_state(region_tree: CTree, states: States):
 		#print("start:", states_info(states))
 
 		k = steps_to_saturation(region_tree, states)
-		print('step_to_saturation:k:', k, states_info(states))
+		#print('step_to_saturation:k:', k, states_info(states))
 
 		updatedStates, k = next_state(region_tree, states, k)
 		states.update(updatedStates) # Bottleneck
 		#states = updatedStates # Original code
-		print('next_state:k:', k, states_info(states))
+		#print('next_state:k:', k, states_info(states))
 		if k > 0:
 			Exception("StepsException" + str(k))
 
 		branches = create_branches(states)
-		if len(branches) > 0:
-			print("create_branches:", states_info(states))
+		#if len(branches) > 0:
+		#	print("create_branches:", states_info(states))
 
 
 	#print("Branches:" + str(len(branches)))
@@ -60,10 +58,7 @@ def create_current_automa_state(region_tree: CTree, states: States):
 
 
 def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph, next_node_id: str):
-	branches, childStates = create_current_automa_state(region_tree, states)
-
-	print("create_next_automa_state:childStates:" + states_info(childStates))
-	states.update(childStates)
+	branches, states = create_current_automa_state(region_tree, states)
 	print("create_next_automa_state:states:" + states_info(states))
 
 	next_node = AGraph(ANode(
