@@ -50,8 +50,8 @@ def next_state(tree: CTree, states: States, k: int):
 
 	if root.type == 'sequential':
 		#print("next_state:Sequential: " + node_info(root, states))
-		#leftStates = States()
-		leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #TODO: not original
+		leftStates = States()
+		#leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #TODO: check if needed
 		leftK = k
 		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
 			leftStates, leftK = next_state(leftSubTree, states, k)
@@ -81,8 +81,8 @@ def next_state(tree: CTree, states: States, k: int):
 		leftK = rightK = math.inf
 		#leftStates = States()
 		#rightStates = States()
-		leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #TODO: not original
-		rightStates = States(rightSubTree.root, ActivityState.COMPLETED, states.executed_time[rightSubTree.root]) #TODO: not original
+		leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root])
+		rightStates = States(rightSubTree.root, ActivityState.COMPLETED, states.executed_time[rightSubTree.root])
 
 		#print("next_state:Parallel:LeftCheck ")# + node_info(leftSubTree.root, states))
 		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
