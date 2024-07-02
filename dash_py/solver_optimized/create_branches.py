@@ -15,10 +15,9 @@ def create_branches(states: States) -> dict:
 				and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
 
 			choice_nature.append(node)
-			print(f"create_branches:active_choice-nature:" + node_info(node, states))
+			#print(f"create_branches:active_choice-nature:" + node_info(node, states))
 
 	branches = {}
-
 	if len(choice_nature) == 0:
 		return branches
 

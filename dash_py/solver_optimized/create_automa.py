@@ -1,15 +1,13 @@
 import copy
 from solver.automaton_graph import AGraph, ANode
 from solver.tree_lib import CTree
-from solver_optimized.create_branches import create_branches
-from solver_optimized.next_state import next_state
+from solver_optimized.create_automa_state import create_automa_state
 from solver_optimized.states import States, states_info, ActivityState
-from solver_optimized.step_to_saturation import steps_to_saturation
 import re
 
 
 def create_automa(region_tree: CTree) -> AGraph:
-	branches, states = create_current_automa_state(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
+	branches, states = create_automa_state(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	current_node_id = re.sub(r':[^;]*;', ';', list(branches.keys())[0])# Get id of the first choice/nature node
 	print("create_automa:root:" + current_node_id + states_info(states))
@@ -29,48 +27,21 @@ def create_automa(region_tree: CTree) -> AGraph:
 	return automa
 
 
-def create_current_automa_state(region_tree: CTree, states: States):
-	branches = {}
-
-	while len(branches) == 0 and states.activityState[region_tree.root] < ActivityState.COMPLETED:
-		#print("step_to_saturation:")
-		#print("start:", states_info(states))
-
-		k = steps_to_saturation(region_tree, states)
-		#print('step_to_saturation:k:', k, states_info(states))
-
-		updatedStates, k = next_state(region_tree, states, k)
-		states.update(updatedStates) # Bottleneck
-		#states = updatedStates # Original code
-		#print('next_state:k:', k, states_info(states))
-		if k > 0:
-			Exception("StepsException" + str(k))
-
-		branches = create_branches(states)
-		#if len(branches) > 0:
-		#	print("create_branches:", states_info(states))
-
-
-	#print("Branches:" + str(len(branches)))
-	#print("Root activity state: ", states.activityState[region_tree.root], states_info(states))
-
-	return branches, states
-
-
-def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph, next_node_id: str):
-	branches, states = create_current_automa_state(region_tree, states)
+def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph, transitions: str):
+	branches, updatedStates = create_automa_state(region_tree, states)
 	print("create_next_automa_state:states:" + states_info(states))
 
+	states.update(updatedStates)
 	next_node = AGraph(ANode(
 		states=states,
-		process_ids=next_node_id,
+		process_ids=transitions,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
 	)
 
 	automa.init_node.add_transition(next_node)
 
-	for next_node_id in branches.keys():
+	for next_transitions in branches.keys():
 		branch = copy.deepcopy(states)
-		branch.update(branches[next_node_id])
-		print("create_automa:next_node_id:" + next_node_id + states_info(branch))
-		create_next_automa_state(region_tree, branch, next_node, next_node_id)
+		branch.update(branches[next_transitions])
+		print("create_automa:next_node_id:" + next_transitions + states_info(branch))
+		create_next_automa_state(region_tree, branch, next_node, next_transitions)
