@@ -50,9 +50,9 @@ def steps_to_saturation(tree: CTree, states: States):
 		dur_left = math.inf
 		dur_right = math.inf
 
-		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED: # TODO check if < or != COMPLETED (original code is !=)
+		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED:
 			dur_left = steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] < ActivityState.COMPLETED: # TODO check if < or != COMPLETED (original code is !=)
+		if states.activityState[rightSubTree.root] < ActivityState.COMPLETED:
 			dur_right = steps_to_saturation(rightSubTree, states)
 
 		return min(dur_left, dur_right)

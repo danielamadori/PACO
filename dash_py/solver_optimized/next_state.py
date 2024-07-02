@@ -14,8 +14,8 @@ def next_state(tree: CTree, states: States, k: int):
 		if remaining_time >= k:
 			#print(f"next_state:Task:remaining_time >= k: {remaining_time} >= {k}")
 			return (States(root,
-						   ActivityState.ACTIVE if remaining_time > k else ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
-						   states.executed_time[root] + k),
+						ActivityState.ACTIVE if remaining_time > k else ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+						states.executed_time[root] + k),
 					0)
 
 		states.activityState[root] = ActivityState.COMPLETED
@@ -30,13 +30,10 @@ def next_state(tree: CTree, states: States, k: int):
 		childSx = states.activityState[leftSubTree.root] >= ActivityState.ACTIVE
 		if childSx or states.activityState[rightSubTree.root] >= ActivityState.ACTIVE:
 			selectedTree = leftSubTree if childSx else rightSubTree
-			notSelectedTree = rightSubTree if childSx else leftSubTree
 			selectedStates, selectedK = next_state(selectedTree, states, k)
 
 			selectedStates.activityState[root] = selectedStates.activityState[selectedTree.root]
-			selectedStates.activityState[notSelectedTree.root] = ActivityState.WILL_NOT_BE_EXECUTED # TODO check if needed
 			selectedStates.executed_time[root] = states.executed_time[root] + k - selectedK
-			selectedStates.executed_time[notSelectedTree.root] = 0 # TODO check if needed
 			return selectedStates, selectedK
 
 		if root.type == 'natural':
