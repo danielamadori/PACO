@@ -25,7 +25,7 @@ def create_branches(states: States) -> dict:
 	branches_choices = list(product([True, False], repeat=len(choice_nature)))
 	#print(f"create_branches:cardinality:{choice_nature_dim}:combinations:{branches_choices}")
 	for branch_choices in branches_choices:
-		branch_states = copy.deepcopy(states)
+		branch_states = States() # Original code: branch_states = copy.deepcopy(states)
 		transition_id = ""
 		for i in range(len(choice_nature)):
 			node = choice_nature[i]
