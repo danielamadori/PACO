@@ -1,3 +1,5 @@
+from itertools import zip_longest
+
 import solver.array_operations as array_operations
 from solver.view_points import VPChecker
 from graphviz import Source
@@ -14,6 +16,10 @@ class ANode:
         self.is_square_node = is_square_node
         self.generator = generator
         self.transitions: dict[str, AGraph] = {}
+
+        self.impacts = []
+        if is_final_state:
+            self.impacts = self.impacts_evaluation()
 
     def __str__(self) -> str:
         return self.state_id
@@ -45,6 +51,16 @@ class ANode:
         #t_key = self.process_ids + ":" + children_graph.init_node.process_ids
         t_key = children_graph.init_node.process_ids
         self.transitions.pop(t_key)
+
+    def impacts_evaluation(self):
+        impacts = []
+        for node, state in self.states.activityState.items():
+            if node.type == 'task' and state > 0:
+                impacts = [x + y for x, y in zip_longest(impacts, node.impact, fillvalue=0)]
+
+        return impacts
+
+
 
 
 class AGraph:

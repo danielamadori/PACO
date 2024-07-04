@@ -1,7 +1,8 @@
 from random import seed
 
 from dash_py.solver_optimized.create_automa import create_automa
-from dash_py.solver_optimized.states import States, states_info, ActivityState
+from dash_py.solver_optimized.states import States, states_info, ActivityState, node_info
+from solver_optimized.impact_evaluation import impact_evaluation
 
 seed(42)
 #############
@@ -181,7 +182,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         t = datetime.now()
         print(str(t) + " Automa:")
-        ag = create_automa(custom_tree)
+        ag, final_state = create_automa(custom_tree)
         t1 = datetime.now()
         print(str(t1) + " Automa:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
@@ -200,6 +201,10 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.write_svg(PATH_AUTOMA_TIME_IMAGE_SVG)
         graph.set('dpi', RESOLUTION)
         graph.write_png(PATH_AUTOMA_TIME_IMAGE)
+
+        for s in final_state:
+            print(f'{s.init_node.state_id} {s.init_node.impacts}')
+
 
         return "Automa created"
 

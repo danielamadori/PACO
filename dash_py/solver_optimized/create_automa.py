@@ -18,13 +18,16 @@ def create_automa(region_tree: CTree) -> AGraph:
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
 	)
 
+	final_states = []
 	for next_node_id in branches.keys():
 		branch = copy.deepcopy(states)
 		branch.update(branches[next_node_id])
 		print(f"create_automa:next_node_id:{next_node_id}:\n" + states_info(branch))
-		create_next_automa_state(region_tree, branch, automa, next_node_id)
+		final_states.extend(
+			create_next_automa_state(region_tree, branch, automa, next_node_id)
+		)
 
-	return automa
+	return automa, final_states
 
 
 def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph, transitions: str):
@@ -32,11 +35,15 @@ def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph,
 	print("create_next_automa_state:states:" + states_info(states))
 
 	states.update(updatedStates)
+	is_final_state = states.activityState[region_tree.root] >= ActivityState.COMPLETED
+	final_states = []
 	next_node = AGraph(ANode(
 		states=states,
 		process_ids=transitions,
-		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
+		is_final_state=is_final_state)
 	)
+	if is_final_state:
+		final_states.append(next_node)
 
 	automa.init_node.add_transition(next_node)
 
@@ -44,4 +51,10 @@ def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph,
 		branch = copy.deepcopy(states)
 		branch.update(branches[next_transitions])
 		print("create_automa:next_node_id:" + next_transitions + states_info(branch))
-		create_next_automa_state(region_tree, branch, next_node, next_transitions)
+		# Merge the final states list and the return value of the recursive call
+
+		final_states.extend(
+			create_next_automa_state(region_tree, branch, next_node, next_transitions)
+		)
+
+	return final_states
