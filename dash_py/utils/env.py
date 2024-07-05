@@ -31,6 +31,7 @@ sese_diagram_grammar = r"""
 
 SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
 MAX_DELAY = 1
+DEFAULT_UNFOLDING_NUMBER = 3
 
 FAILED = False
 ADMITTED = True
@@ -47,7 +48,7 @@ ALGORITHMS = {  # strategies with labels
 
 ALL_SYNTAX = ['^', '/', '||', '<', '>', '[', ']', ',', '', '(', ')'] # all syntax characters available
 ALGORITHMS_MISSING_SYNTAX = { 
-    's1': ['<', '>'], # no LOOPs in PACO
+    's1': [],#['<', '>'], # no LOOPs in PACO
     's2': [],
     's3': []
 }
@@ -79,10 +80,16 @@ DURATIONS = 'durations'
 DELAYS = 'delays'
 H = 'h'
 IMPACTS_NAMES ='impacts_names'
+LOOP = 'loop_round'
 ### Automaton parameters
 AUTOMATON_TYPE = 'mealy'
 ### SYNTAX
 LOOPS = 'loops'
+LOOPS_PROB = 'loops_prob'
 ADVERSARIES = 'adversaries' # not yet implemented, neither in the grammar
 # BPMN RESOLUTION #######################
 RESOLUTION = 300
+#############################
+# STRATEGY 
+STRATEGY = 'strategy'
+BOUND = 'bound'

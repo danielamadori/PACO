@@ -22,10 +22,11 @@ from solver.view_points import VPChecker
 from solver.tree_lib import CNode, CTree, print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
-from utils.env import AUTOMATON_TYPE, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, SESE_PARSER, TASK_SEQ, \
+from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, SESE_PARSER, TASK_SEQ, \
     IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, \
     IMPACTS_NAMES, PATH_AUTOMA_IMAGE, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_DOT, PATH_AUTOMA_TIME_DOT, \
     PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_IMAGE_SVG
+
 from solver.gCleaner import gCleaner
 from explainer.explainer import explainer
 # import array_operations
@@ -174,7 +175,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Convert the parsed tree into a custom tree and get the last ID
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
                                             bpmn[IMPACTS], bpmn[DURATIONS], 
-                                            bpmn[NAMES], bpmn[DELAYS], h=bpmn[H])
+                                            bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
 
         print_sese_custom_tree(custom_tree)
 
