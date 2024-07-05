@@ -54,9 +54,12 @@ class ANode:
 
     def impacts_evaluation(self):
         impacts = []
+
         for node, state in self.states.activityState.items():
             if node.type == 'task' and state > 0:
-                impacts = [x + y for x, y in zip_longest(impacts, node.impact, fillvalue=0)]
+                node.probability = 1
+                print("task: ", node.probability)
+                impacts = [x + y * node.probability for x, y in zip_longest(impacts, node.impact, fillvalue=0)]
 
         return impacts
 

@@ -1,8 +1,6 @@
 from random import seed
 
 from dash_py.solver_optimized.create_automa import create_automa
-from dash_py.solver_optimized.states import States, states_info, ActivityState, node_info
-from solver_optimized.impact_evaluation import impact_evaluation
 
 seed(42)
 #############
