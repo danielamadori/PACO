@@ -1,3 +1,4 @@
+import math
 from itertools import zip_longest
 
 import solver.array_operations as array_operations
@@ -24,21 +25,45 @@ class ANode:
     def __str__(self) -> str:
         return self.state_id
 
+    @staticmethod
+    def text_format(text: str, line_length: int):
+        parts = []
+        current_part = ""
+        char_count = 0
+
+        for char in text:
+            current_part += char
+            char_count += 1
+            if char == ';' and char_count >= line_length:
+                parts.append(current_part)
+                current_part = ""
+                char_count = 0
+
+        if current_part:
+            parts.append(current_part)
+
+        return "\\n".join(parts)
+
     def dot_str(self, full=True, state=True, executed_time=False, previous_node:States=None):
         result = str(self).replace('(', '').replace(')', '').replace(';', '_').replace(':', '_').replace('-', "neg")
+
         if full:
             result += ' [label=\"'
 
             s, d = self.states.str(previous_node)
+            s = "q|s:{" + s + "}"
+            d = "q|delta:{" + d + "}"
 
+            label = ""
             if state:
-                result += "q|s:{" + s
+                label += s
             if state and executed_time:
-                result += "},\n"
+                label += ",\n"
             if executed_time:
-                result += "q|delta:{" + d
+                label += d
 
-            result += "}\"];\n"
+            line_length = int(1.2 * math.sqrt(len(label)))
+            result += self.text_format(label, line_length) + "\"];\n"
 
         return result
 
@@ -58,12 +83,13 @@ class ANode:
         for node, state in self.states.activityState.items():
             if node.type == 'task' and state > 0:
                 node.probability = 1
-                print("task: ", node.probability)
+                #print("task: ", node.probability)
                 impacts = [x + y * node.probability for x, y in zip_longest(impacts, node.impact, fillvalue=0)]
 
         return impacts
 
-
+    def dot_impact_str(self):
+        return self.dot_str(full=False) + "_impact", f" [label=\"{str(self.impacts)}\", shape=rect];\n"
 
 
 class AGraph:
@@ -71,20 +97,20 @@ class AGraph:
         self.init_node = init_node
 
     def __str__(self) -> str:
-        result = self.create_dot_graph(self.init_node, True, True)
+        result = self.create_dot_graph(self.init_node, True, True, True)
         return result[0] + result[1]
 
-    def save_dot(self, path, state: bool = True, executed_time: bool = False):
+    def save_dot(self, path, state: bool = True, executed_time: bool = False, all_states: bool = False):
         with open(path, 'w') as file:
-            file.write(self.init_dot_graph(state=state, executed_time=executed_time))
+            file.write(self.init_dot_graph(state=state, executed_time=executed_time, all_states=all_states))
 
     def save_pdf(self, path, state: bool = True, executed_time: bool = False):
         Source(self.init_dot_graph(state=state, executed_time=executed_time), format='pdf').render(path, cleanup=True)
 
-    def init_dot_graph(self, state: bool, executed_time: bool):
+    def init_dot_graph(self, state: bool, executed_time: bool, all_states: bool):
         result = "digraph automa {\n"
 
-        node, transition = self.create_dot_graph(self.init_node, state=state, executed_time=executed_time)
+        node, transition = self.create_dot_graph(self.init_node, state=state, executed_time=executed_time, all_states=all_states)
 
         result += node
         result += transition
@@ -93,16 +119,23 @@ class AGraph:
         result += f"__start0 -> {self.init_node.dot_str(full=False)}  [label=\"{self.init_node.process_ids[:-1]}\"];\n" + "}"
         return result
 
-    def create_dot_graph(self, root: ANode, state: bool, executed_time: bool, previous_node: States = None):
-        nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
+    def create_dot_graph(self, root: ANode, state: bool, executed_time: bool, all_states: bool, previous_node: States = None):
+        if all_states:
+            previous_node = None
 
+        nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
         transitions_id = ""
+
+        if root.is_final_state:
+            impact_id, impact_label = root.dot_impact_str()
+            transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" style=invis];\n"
+            nodes_id += impact_id + impact_label
 
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
             transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{transition.replace(":", "->")[:-1]}\"];\n"
 
-            ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, previous_node=root.states)
+            ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, all_states=all_states, previous_node=root.states)
             nodes_id += ids[0]
             transitions_id += ids[1]
 

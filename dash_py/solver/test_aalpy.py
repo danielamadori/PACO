@@ -22,10 +22,12 @@ from solver.view_points import VPChecker
 from solver.tree_lib import CNode, CTree, print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
-from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, SESE_PARSER, TASK_SEQ, \
+from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
+    SESE_PARSER, TASK_SEQ, \
     IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, \
     IMPACTS_NAMES, PATH_AUTOMA_IMAGE, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_DOT, PATH_AUTOMA_TIME_DOT, \
-    PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_IMAGE_SVG
+    PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED, PATH_AUTOMA_TIME_EXTENDED_DOT, \
+    PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_IMAGE
 
 from solver.gCleaner import gCleaner
 from explainer.explainer import explainer
@@ -201,9 +203,16 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.set('dpi', RESOLUTION)
         graph.write_png(PATH_AUTOMA_TIME_IMAGE)
 
+        ag.save_dot(PATH_AUTOMA_TIME_EXTENDED_DOT, executed_time=True, all_states=True)
+
+        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_EXTENDED_DOT)
+        graph = graphs[0]
+        graph.write_svg(PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG)
+        graph.set('dpi', RESOLUTION)
+        graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
+
         for s in final_state:
             print(f'{s.init_node.state_id} {s.init_node.impacts}')
-
 
         return "Automa created"
 
