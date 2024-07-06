@@ -2,6 +2,7 @@ import enum
 from solver.tree_lib import CNode
 from collections import defaultdict
 
+
 class ActivityState(enum.IntEnum):
 	WILL_NOT_BE_EXECUTED = -1
 	WAITING = 0
@@ -29,7 +30,7 @@ class States:
 		self.activityState.update(state.activityState)
 		self.executed_time.update(state.executed_time)
 
-	def str(self, previousStates=None):
+	def str(self, previousStates: 'States' = None):
 		result_s = ""
 		result_d = ""
 
@@ -45,7 +46,6 @@ class States:
 
 		# Remove last  ";"
 		return result_s[:-1], result_d[:-1]
-
 
 	def __str__(self):
 		s, d = self.str()

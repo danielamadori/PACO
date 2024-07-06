@@ -1,4 +1,3 @@
-import copy
 from solver.tree_lib import CNode
 from solver_optimized.states import States, ActivityState, node_info, states_info
 from itertools import product

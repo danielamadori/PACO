@@ -15,7 +15,7 @@ class ANode:
         self.process_ids = str(process_ids)
         self.is_final_state = is_final_state
         self.is_square_node = is_square_node
-        self.generator = generator
+        self.generator = generator # TODO ask what is
         self.transitions: dict[str, AGraph] = {}
 
         self.impacts = []
@@ -44,7 +44,7 @@ class ANode:
 
         return "\\n".join(parts)
 
-    def dot_str(self, full=True, state=True, executed_time=False, previous_node:States=None):
+    def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
         result = str(self).replace('(', '').replace(')', '').replace(';', '_').replace(':', '_').replace('-', "neg")
 
         if full:
@@ -62,7 +62,7 @@ class ANode:
             if executed_time:
                 label += d
 
-            line_length = int(1.2 * math.sqrt(len(label)))
+            line_length = int(1.3 * math.sqrt(len(label)))
             result += self.text_format(label, line_length) + "\"];\n"
 
         return result
@@ -104,8 +104,8 @@ class AGraph:
         with open(path, 'w') as file:
             file.write(self.init_dot_graph(state=state, executed_time=executed_time, all_states=all_states))
 
-    def save_pdf(self, path, state: bool = True, executed_time: bool = False):
-        Source(self.init_dot_graph(state=state, executed_time=executed_time), format='pdf').render(path, cleanup=True)
+    def save_pdf(self, path, state: bool = True, executed_time: bool = False, all_states: bool = False):
+        Source(self.init_dot_graph(state=state, executed_time=executed_time, all_states=all_states), format='pdf').render(path, cleanup=True)
 
     def init_dot_graph(self, state: bool, executed_time: bool, all_states: bool):
         result = "digraph automa {\n"
@@ -115,7 +115,6 @@ class AGraph:
         result += node
         result += transition
         result += "__start0 [label=\"\", shape=none];\n"
-
         result += f"__start0 -> {self.init_node.dot_str(full=False)}  [label=\"{self.init_node.process_ids[:-1]}\"];\n" + "}"
         return result
 

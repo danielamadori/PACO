@@ -1,9 +1,9 @@
+import re
 import copy
-from solver.automaton_graph import AGraph, ANode
 from solver.tree_lib import CTree
+from solver.automaton_graph import AGraph, ANode
 from solver_optimized.create_automa_state import create_automa_state
 from solver_optimized.states import States, states_info, ActivityState
-import re
 
 
 def create_automa(region_tree: CTree) -> AGraph:
@@ -51,8 +51,6 @@ def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph,
 		branch = copy.deepcopy(states)
 		branch.update(branches[next_transitions])
 		print("create_automa:next_node_id:" + next_transitions + states_info(branch))
-		# Merge the final states list and the return value of the recursive call
-
 		final_states.extend(
 			create_next_automa_state(region_tree, branch, next_node, next_transitions)
 		)
