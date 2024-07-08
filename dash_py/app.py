@@ -8,7 +8,7 @@ app.layout = html.Div([
         dbc.DropdownMenu([
             dbc.DropdownMenuItem(
                 f"{page['name']}", href=page["relative_path"]
-            ) for page in dash.page_registry.values()                
+            ) for page in dash.page_registry.values()
             ],
             label="Menu",
         ),

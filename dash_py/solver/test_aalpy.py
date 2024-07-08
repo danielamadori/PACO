@@ -1,4 +1,7 @@
 from random import seed
+
+from dash_py.solver_optimized.create_automa import create_automa
+
 seed(42)
 #############
 # https://github.com/DES-Lab/AALpy/wiki/SUL-Interface,-or-How-to-Learn-Your-Systems
@@ -19,12 +22,18 @@ from solver.view_points import VPChecker
 from solver.tree_lib import CNode, CTree, print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
-from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, SESE_PARSER, TASK_SEQ, IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS,H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, IMPACTS_NAMES
+from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
+    SESE_PARSER, TASK_SEQ, \
+    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, \
+    IMPACTS_NAMES, PATH_AUTOMA_IMAGE, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_DOT, PATH_AUTOMA_TIME_DOT, \
+    PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED, PATH_AUTOMA_TIME_EXTENDED_DOT, \
+    PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_IMAGE
+
 from solver.gCleaner import gCleaner
 from explainer.explainer import explainer
 # import array_operations
 
-from solver.automaton_graph import AutomatonGraph
+from solver.automaton_graph import AutomatonGraph, ANode, AGraph
 from solver.solver import GameSolver
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
@@ -170,6 +179,43 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                                             bpmn[IMPACTS], bpmn[DURATIONS], 
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
 
+        print_sese_custom_tree(custom_tree)
+
+        t = datetime.now()
+        print(str(t) + " Automa:")
+        ag, final_state = create_automa(custom_tree)
+        t1 = datetime.now()
+        print(str(t1) + " Automa:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+
+        ag.save_dot(PATH_AUTOMA_DOT)
+
+        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_DOT)
+        graph = graphs[0]
+        graph.write_svg(PATH_AUTOMA_IMAGE_SVG)
+        graph.set('dpi', RESOLUTION)
+        graph.write_png(PATH_AUTOMA_IMAGE)
+
+        ag.save_dot(PATH_AUTOMA_TIME_DOT, executed_time=True)
+
+        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_DOT)
+        graph = graphs[0]
+        graph.write_svg(PATH_AUTOMA_TIME_IMAGE_SVG)
+        graph.set('dpi', RESOLUTION)
+        graph.write_png(PATH_AUTOMA_TIME_IMAGE)
+
+        ag.save_dot(PATH_AUTOMA_TIME_EXTENDED_DOT, executed_time=True, all_states=True)
+
+        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_EXTENDED_DOT)
+        graph = graphs[0]
+        graph.write_svg(PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG)
+        graph.set('dpi', RESOLUTION)
+        graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
+
+        for s in final_state:
+            print(f'{s.init_node.state_id} {s.init_node.probability}*{s.init_node.impacts}={s.init_node.probability * np.array(s.init_node.impacts)}')
+
+        return "Automa created"
+
         # Calculate the number of nodes in the tree
         number_of_nodes = last_id + 1
         print('Number of nodes:', number_of_nodes)
@@ -201,6 +247,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Create an automaton graph with the cleaned automaton and the SUL
         ag = AutomatonGraph(mealy, sul)
         print(f'{datetime.now()} eseguito ag')
+
         # Create a game solver with the automaton graph and the bound
         solver = GameSolver(ag, bound)
         print('eseguito solver')

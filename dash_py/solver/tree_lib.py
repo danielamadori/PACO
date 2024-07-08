@@ -57,6 +57,9 @@ class CNode:
         if self.id == other.id: return True
         else: return False
 
+    def __hash__(self):
+        return hash(self.id)
+
 def recursiveUnfoldingOfLoop(children_list, id, parent, index_in_parent, loop_prob):
     #recursive construction of the final unfolded tree
     if len(children_list) == 1:
@@ -170,7 +173,7 @@ def dot_tree(t: CTree, h=0, prob={}, imp={}, loops={}, token_is_task=True):
             code += dot_exclusive_gateway(r.id, r.name + ' id:' + str(r.id) + ' dly:' + dly_str)
         elif label == 'natural':
             code += dot_exclusive_gateway(r.id, label + ' id:' + str(r.id))
-        elif label == 'loops_prob': 
+        elif label == 'loops_prob':
             code += dot_loop_gateway(r.id, label + ' id:' + str(r.id))
         elif label == 'parallel':
             code += dot_parallel_gateway(r.id, label + ' id:' + str(r.id))        
@@ -182,7 +185,7 @@ def dot_tree(t: CTree, h=0, prob={}, imp={}, loops={}, token_is_task=True):
             edge_labels = [f'{proba}', f'{round((1 - proba), 2)}']
         if label == "loops_prob":
             proba = r.probability
-            edge_labels = [f'{proba}', f'{round((1 - proba), 2)}']  
+            edge_labels = [f'{proba}', f'{round((1 - proba), 2)}']
         for ei,i in enumerate(child_ids):
             edge_label = edge_labels[ei]
             code += f'\n node_{r.id} -> node_{i} [label="{edge_label}"];'

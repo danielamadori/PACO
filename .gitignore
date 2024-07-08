@@ -5,6 +5,8 @@ dash_py/__pycache__/
 dash_py/utils/__pycache__/
 venv
 dash_py/assets/
+dash_py/assets/automaton.*
+.idea/
 .idea/inspectionProfiles/profiles_settings.xml
-
 .idea/inspectionProfiles/Project_Default.xml
+/dash_py/pages/__pycache__
