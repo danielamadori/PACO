@@ -1,10 +1,12 @@
 import math
 from itertools import zip_longest
 
+import numpy as np
+
 import solver.array_operations as array_operations
 from solver.view_points import VPChecker
 from graphviz import Source
-from solver_optimized.states import States
+from solver_optimized.states import States, ActivityState
 
 
 class ANode:
@@ -18,9 +20,7 @@ class ANode:
         self.generator = generator # TODO ask what is
         self.transitions: dict[str, AGraph] = {}
 
-        self.impacts = []
-        if is_final_state:
-            self.impacts = self.impacts_evaluation()
+        self.impacts, self.probability = self.impacts_evaluation() if is_final_state else ([], 0.0)
 
     def __str__(self) -> str:
         return self.state_id
@@ -77,19 +77,24 @@ class ANode:
         t_key = children_graph.init_node.process_ids
         self.transitions.pop(t_key)
 
-    def impacts_evaluation(self):
+    def impacts_evaluation(self) -> tuple[list, float]:
         impacts = []
-
+        probability = 1.0
         for node, state in self.states.activityState.items():
-            if node.type == 'task' and state > 0:
-                node.probability = 1
-                #print("task: ", node.probability)
-                impacts = [x + y * node.probability for x, y in zip_longest(impacts, node.impact, fillvalue=0)]
+            if node.type == 'natural' and state > ActivityState.WAITING:
+                p = node.probability
+                if self.states.activityState[node.childrens[1].root] > 0:
+                    p = 1 - p
+                probability *= p
 
-        return impacts
+            if node.type == 'task' and state > 0:
+                impacts = array_operations.sum(impacts, node.impact)
+
+        return impacts, probability
 
     def dot_impact_str(self):
-        return self.dot_str(full=False) + "_impact", f" [label=\"{str(self.impacts)}\", shape=rect];\n"
+        return (self.dot_str(full=False) + "_impact",
+                f" [label=\"{self.probability}*{str(self.impacts)} = {self.probability * np.array(self.impacts)}\", shape=rect];\n")
 
 
 class AGraph:

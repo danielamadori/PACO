@@ -212,7 +212,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
 
         for s in final_state:
-            print(f'{s.init_node.state_id} {s.init_node.impacts}')
+            print(f'{s.init_node.state_id} {s.init_node.probability}*{s.init_node.impacts}={s.init_node.probability * np.array(s.init_node.impacts)}')
 
         return "Automa created"
 
