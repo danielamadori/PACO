@@ -137,7 +137,8 @@ class AGraph:
 
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
-            transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{transition.replace(":", "->")[:-1]}\"];\n"
+            t = transition.replace(':', '->')[:-1]
+            transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{t}\"];\n"
 
             ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, all_states=all_states, previous_node=root.states)
             nodes_id += ids[0]
