@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import dash
 from dash import html, dcc, Input, Output,State, callback
 import dash_bootstrap_components as dbc
@@ -68,7 +69,7 @@ def layout():
                 html.Div([
                     html.Div(id='task-duration'),
                     html.P('Insert the impacts list of the tasks in the following format: cost, hours. IF for some task the impacts are not defined they will be put 0 by default.'),
-                    dcc.Textarea(value='',  id = 'input-impacts', persistence=True, style={'width': '100%'}),
+                    dcc.Textarea(value='cost  ',  id = 'input-impacts', persistence=True, style={'width': '100%'}),
                     html.Div(id='impacts-table'),
                     html.Br(),
                     html.P('Insert the probabilities for each natural choice. The values have to be between 0 and 1.'),
@@ -392,8 +393,11 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
     if cs.checkCorrectSyntax(bpmn_lark):
         print(f'bpmn in printing {bpmn_lark}')
         try:
+            bpmn_svg_folder = "assets/bpmnSvg/"
+            if not os.path.exists(bpmn_svg_folder):
+                os.makedirs(bpmn_svg_folder)
             # Create a new SESE Diagram from the input
-            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+            name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
             return [None, name_svg]
         except Exception as e:
