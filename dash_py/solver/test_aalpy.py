@@ -1,6 +1,6 @@
 from random import seed
 
-from dash_py.solver_optimized.create_automa import create_automa
+from solver_optimized.create_automa import create_automa
 
 seed(42)
 #############
