@@ -17,7 +17,7 @@ class ANode:
         self.process_ids = str(process_ids)
         self.is_final_state = is_final_state
         self.is_square_node = is_square_node
-        self.generator = generator # TODO ask what is
+        self.generator = generator # node_id of the node that generated this node
         self.transitions: dict[str, AGraph] = {}
 
         self.impacts, self.probability = self.impacts_evaluation() if is_final_state else ([], 0.0)

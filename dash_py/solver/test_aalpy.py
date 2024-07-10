@@ -214,39 +214,6 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         for s in final_state:
             print(f'{s.init_node.state_id} {s.init_node.probability}*{s.init_node.impacts}={s.init_node.probability * np.array(s.init_node.impacts)}')
 
-        return "Automa created"
-
-        # Calculate the number of nodes in the tree
-        number_of_nodes = last_id + 1
-        print('Number of nodes:', number_of_nodes)
-        # Create a system under learning (SUL) with the custom tree and number of nodes
-        sul = VPChecker(custom_tree, number_of_nodes)
-        print(sul.VPDict, sul.accepted_alphabet)
-        print('eseguito sul')
-        print_sese_custom_tree(custom_tree)#.show() # ,sul, custom_tree
-        # Get the accepted alphabet from the SUL
-        input_al = sul.accepted_alphabet
-
-        # Create an equivalence oracle using a random walk
-        eq_oracle = RandomWalkEqOracle(input_al, sul, num_steps=100, reset_after_cex=True, reset_prob=0.01)
-        print(f'{datetime.now()} eseguito eq_oracle') #, sul.print_vp_list()
-        # Learn the automaton using the L* algorithm
-        learned_automaton= run_Lstar(input_al, sul, eq_oracle=eq_oracle, automaton_type=AUTOMATON_TYPE, cache_and_non_det_check=False,
-                        print_level=2, max_learning_rounds=20)
-        print(f'{datetime.now()} eseguito run_Lstar')
-        # Save the learned automaton
-        learned_automaton.save(PATH_AUTOMATON)
-
-        # Clean the automaton
-        cleaner = gCleaner(PATH_AUTOMATON)
-        cleaner.remove_null_nodes_from_graph()
-        print(f'{datetime.now()} eseguito cleaner')
-        # Load the cleaned automaton
-        mealy = load_automaton_from_file(path=PATH_AUTOMATON_CLEANED, automaton_type=AUTOMATON_TYPE, compute_prefixes=True)
-        print('eseguito mealy')
-        # Create an automaton graph with the cleaned automaton and the SUL
-        ag = AutomatonGraph(mealy, sul)
-        print(f'{datetime.now()} eseguito ag')
 
         # Create a game solver with the automaton graph and the bound
         solver = GameSolver(ag, bound)
@@ -257,6 +224,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Print the winning set
         print(f'{datetime.now()} winning set:')
         print(winning_set)
+
+        return "Automa created"
 
         # If a winning set exists, return a strategy
         if winning_set != None: 
