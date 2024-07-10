@@ -1,6 +1,7 @@
 from random import seed
 
 from solver_optimized.create_automa import create_automa
+from solver_optimized.solver_optimized import add_cei_to_automa
 
 seed(42)
 #############
@@ -187,6 +188,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         t1 = datetime.now()
         print(str(t1) + " Automa:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
+        add_cei_to_automa(ag)
+
         ag.save_dot(PATH_AUTOMA_DOT)
 
         graphs = pydot.graph_from_dot_file(PATH_AUTOMA_DOT)
@@ -214,6 +217,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         for s in final_state:
             print(f'{s.init_node.state_id} {s.init_node.probability}*{s.init_node.impacts}={s.init_node.probability * np.array(s.init_node.impacts)}')
 
+        return "Automa created"
 
         # Create a game solver with the automaton graph and the bound
         solver = GameSolver(ag, bound)
@@ -224,8 +228,6 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Print the winning set
         print(f'{datetime.now()} winning set:')
         print(winning_set)
-
-        return "Automa created"
 
         # If a winning set exists, return a strategy
         if winning_set != None: 

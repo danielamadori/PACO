@@ -20,7 +20,9 @@ class ANode:
         self.generator = generator # node_id of the node that generated this node
         self.transitions: dict[str, AGraph] = {}
 
-        self.impacts, self.probability = self.impacts_evaluation() if is_final_state else ([], 0.0)
+        self.impacts, self.probability = self.impacts_evaluation()
+        self.cei_top_down = np.zeros(len(self.impacts))
+        self.cei_bottom_up = np.zeros(len(self.impacts))
 
     def __str__(self) -> str:
         return self.state_id
@@ -81,7 +83,10 @@ class ANode:
         impacts = []
         probability = 1.0
         for node, state in self.states.activityState.items():
-            if node.type == 'natural' and state > ActivityState.WAITING:
+            if (node.type == 'natural' and state > ActivityState.WAITING
+                and (self.states.activityState[node.childrens[0].root] > ActivityState.WAITING
+                or self.states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
+
                 p = node.probability
                 if self.states.activityState[node.childrens[1].root] > 0:
                     p = 1 - p
@@ -92,9 +97,14 @@ class ANode:
 
         return impacts, probability
 
-    def dot_impact_str(self):
+    def dot_cei_str(self):
+        '''
         return (self.dot_str(full=False) + "_impact",
                 f" [label=\"{self.probability}*{str(self.impacts)} = {self.probability * np.array(self.impacts)}\", shape=rect];\n")
+        '''
+
+        return (self.dot_str(full=False) + "_impact",
+                f" [label=\"(cei_td: {self.cei_top_down}, cei_bu: {self.cei_bottom_up})\", shape=rect];\n")
 
 
 class AGraph:
@@ -130,10 +140,10 @@ class AGraph:
         nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
         transitions_id = ""
 
-        if root.is_final_state:
-            impact_id, impact_label = root.dot_impact_str()
-            transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" style=invis];\n"
-            nodes_id += impact_id + impact_label
+
+        impact_id, impact_label = root.dot_cei_str()
+        transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" color=red];\n" #style=invis
+        nodes_id += impact_id + impact_label
 
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
