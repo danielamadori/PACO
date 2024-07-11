@@ -1,7 +1,7 @@
 from random import seed
 
 from solver_optimized.create_automa import create_automa
-from solver_optimized.solver_optimized import add_cei_to_automa
+from solver_optimized.solver_optimized import add_cei_to_automa, found_strategy
 
 seed(42)
 #############
@@ -32,9 +32,6 @@ from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUT
 
 from solver.gCleaner import gCleaner
 from explainer.explainer import explainer
-# import array_operations
-
-from solver.automaton_graph import AutomatonGraph, ANode, AGraph
 from solver.solver import GameSolver
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
@@ -214,8 +211,16 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.set('dpi', RESOLUTION)
         graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
 
-        for s in final_state:
-            print(f'{s.init_node.state_id} {s.init_node.probability}*{s.init_node.impacts}={s.init_node.probability * np.array(s.init_node.impacts)}')
+
+        founded, sol, cei_bottom_up = found_strategy(ag, bound)
+
+        if founded:
+            print(f'{datetime.now()} A strategy could be found')
+            print("cei_bottom_up:", cei_bottom_up)
+            for s in sol:
+                print(s.init_node.process_ids)
+        else:
+            print(f'{datetime.now()} For this specific instance a strategy does not exist')
 
         return "Automa created"
 

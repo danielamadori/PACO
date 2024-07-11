@@ -92,8 +92,12 @@ class ANode:
                     p = 1 - p
                 probability *= p
 
-            if node.type == 'task' and state > 0:
-                impacts = array_operations.sum(impacts, node.impact)
+            if node.type == 'task':
+                if state > 0:
+                    impacts = array_operations.sum(impacts, node.impact)
+                else:
+                    impacts = array_operations.sum(impacts, [0 for _ in range(len(node.impact))])#TODO
+
 
         return impacts, probability
 
