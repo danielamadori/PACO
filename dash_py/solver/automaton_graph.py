@@ -1,8 +1,5 @@
 import math
-from itertools import zip_longest
-
 import numpy as np
-
 import solver.array_operations as array_operations
 from solver.view_points import VPChecker
 from graphviz import Source
@@ -143,7 +140,6 @@ class AGraph:
 
         nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
         transitions_id = ""
-
 
         impact_id, impact_label = root.dot_cei_str()
         transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" color=red];\n" #style=invis

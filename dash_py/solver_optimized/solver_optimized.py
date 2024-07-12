@@ -1,7 +1,5 @@
 import random
-
 import numpy as np
-
 from solver.automaton_graph import AGraph, ANode
 from solver_optimized.states import states_info, States, ActivityState
 
@@ -46,10 +44,7 @@ def choose(children: [], method: str = 'random'):
 	return children[random.randint(0, len(children) - 1)]
 
 def pick(frontier: list,  method: str = 'random'):
-	if method == 'random':
-		return frontier[random.randint(0, len(frontier) - 1)]
 
-	#TODO
 	return frontier[random.randint(0, len(frontier) - 1)]
 
 def found_strategy2(graph: AGraph, bound: []):
@@ -102,13 +97,18 @@ def found_strategy2(graph: AGraph, bound: []):
 	raise Exception("Unknown case")
 
 
-def nature_clousure(subgraph: AGraph):
-	if subgraph.init_node.node_type == 'natural':
-		new_frontier = []
-		for child in subgraph.init_node.transitions.values():
-			new_frontier.append(nature_clousure(child))
+def nature_closure(subgraph: AGraph):
+	c_c = []
+	t_c = []
 
-		return new_frontier
+	for t in t_c:
+		par, child = t.split(":")
+
+		if c.status.activityState.keys().type == "choice":
+			c_c.append(t)
+
+		if len(c_c) == 0:
+			return [c, brother]
 
 	return subgraph
 
