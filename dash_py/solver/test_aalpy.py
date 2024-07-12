@@ -1,7 +1,7 @@
 from random import seed
 
 from solver_optimized.create_automa import create_automa
-from solver_optimized.solver_optimized import add_cei_to_automa, found_strategy
+from solver_optimized.solver_optimized import add_cei_to_automa, found_strategy2, found_strategy
 
 seed(42)
 #############
@@ -174,7 +174,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(f'{datetime.now()} bound {bound}')
         # Convert the parsed tree into a custom tree and get the last ID
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
-                                            bpmn[IMPACTS], bpmn[DURATIONS], 
+                                            bpmn[IMPACTS], bpmn[DURATIONS],
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
 
         print_sese_custom_tree(custom_tree)
@@ -212,11 +212,13 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
 
 
-        founded, sol, cei_bottom_up = found_strategy(ag, bound)
+        #founded, sol, cei_bottom_up = found_strategy2(ag, bound)
 
-        if founded:
+        sol, fvs = found_strategy([ag], bound)
+
+        if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
-            print("cei_bottom_up:", cei_bottom_up)
+            print("cei_bottom_up:", fvs)
             for s in sol:
                 print(s.init_node.process_ids)
         else:
@@ -235,25 +237,25 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(winning_set)
 
         # If a winning set exists, return a strategy
-        if winning_set != None: 
+        if winning_set != None:
             graphs = pydot.graph_from_dot_file(PATH_AUTOMATON_CLEANED)
-            graph = graphs[0] 
-            # color the winning nodes            
-            for el in winning_set: 
+            graph = graphs[0]
+            # color the winning nodes
+            for el in winning_set:
                 node = graph.get_node(el[0])[0]
                 node.set_style('filled')
-                node.set_fillcolor('green')            
-            
+                node.set_fillcolor('green')
+
             graph.write_svg(PATH_AUTOMATON_IMAGE_SVG)
             graph.set('dpi', RESOLUTION)
-            graph.write_png(PATH_AUTOMATON_IMAGE)   
+            graph.write_png(PATH_AUTOMATON_IMAGE)
             expected_impacts = [s[1] for s in winning_set]
             expected_impacts = [sum(values) for values in zip(*expected_impacts)]
             impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES], expected_impacts))
             s = f"A strategy could be found, which has as an expected imact of : {impacts} "
             explainer(custom_tree)
             return s
-        else: 
+        else:
             # If no winning set exists, return a message indicating that no strategy exists
             s = "\n\nFor this specific instance a strategy does not exist\n"
             return s
