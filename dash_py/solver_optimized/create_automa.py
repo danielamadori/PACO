@@ -1,58 +1,68 @@
-import re
 import copy
 from solver.tree_lib import CTree
 from solver.automaton_graph import AGraph, ANode
-from solver_optimized.create_automa_state import create_automa_state
+from solver_optimized.create_automa_state import saturate_graph_node
 from solver_optimized.states import States, states_info, ActivityState
 
 
-def create_automa(region_tree: CTree) -> AGraph:
-	branches, states = create_automa_state(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
+def graph_node_info(node: ANode) -> str:
+	result = "decisions:<"
+	for n in node.decisions:
+		result += str(n.id) + ";"
 
-	current_node_id = re.sub(r':[^;]*;', ';', list(branches.keys())[0])# Get id of the first choice/nature node
-	print("create_automa:root:" + current_node_id + states_info(states))
+	result = result[:-1] + ">:choices_natures:<"
+	tmp = ""
+	for n in node.choices_natures:
+		tmp += str(n.id) + ";"
 
-	automa = AGraph(ANode(
+	return result + tmp[:-1] + ">:status:" + states_info(node.states)
+
+
+def create_graph(region_tree: CTree) -> AGraph:
+	states, choices_natures, branches = saturate_graph_node(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
+
+	graph = AGraph(ANode(
 		states=states,
-		process_ids=current_node_id,
+		decisions=(region_tree.root,),
+		choices_natures=choices_natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
 	)
 
+	print("create_graph:", graph_node_info(graph.init_node))
+
 	final_states = []
-	for next_node_id in branches.keys():
+	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
-		branch.update(branches[next_node_id])
-		print(f"create_automa:next_node_id:{next_node_id}:\n" + states_info(branch))
-		final_states.extend(
-			create_next_automa_state(region_tree, branch, automa, next_node_id)
-		)
+		branch.update(branch_states)
+		final_states.extend(create_graph_node(region_tree, decisions, branch, graph))
 
-	return automa, final_states
+	return graph, final_states
 
 
-def create_next_automa_state(region_tree: CTree, states: States, automa: AGraph, transitions: str):
-	branches, updatedStates = create_automa_state(region_tree, states)
-	print("create_next_automa_state:states:" + states_info(states))
+def create_graph_node(region_tree: CTree, decisions: tuple, states: States, graph: AGraph):
+	saturatedStates, choices_natures, branches = saturate_graph_node(region_tree, states)
+	states.update(saturatedStates)
+	#print("create_graph_node:start_id:" + str(start_ids) + ":exit_id:" + str(exit_id) + states_info(states))
 
-	states.update(updatedStates)
 	is_final_state = states.activityState[region_tree.root] >= ActivityState.COMPLETED
 	final_states = []
 	next_node = AGraph(ANode(
 		states=states,
-		process_ids=transitions,
+		decisions=decisions,
+		choices_natures=choices_natures,
 		is_final_state=is_final_state)
 	)
+
+	print("create_graph_node:", graph_node_info(next_node.init_node))
+
 	if is_final_state:
 		final_states.append(next_node)
 
-	automa.init_node.add_transition(next_node)
+	graph.init_node.add_transition(decisions, next_node)
 
-	for next_transitions in branches.keys():
+	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
-		branch.update(branches[next_transitions])
-		print("create_automa:next_node_id:" + next_transitions + states_info(branch))
-		final_states.extend(
-			create_next_automa_state(region_tree, branch, next_node, next_transitions)
-		)
+		branch.update(branch_states)
+		final_states.extend(create_graph_node(region_tree, decisions, branch, next_node))
 
 	return final_states

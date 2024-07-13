@@ -1,7 +1,7 @@
 from random import seed
 
-from solver_optimized.create_automa import create_automa
-from solver_optimized.solver_optimized import add_cei_to_automa, found_strategy2, found_strategy
+from solver_optimized.create_automa import create_graph
+from solver_optimized.solver_optimized import evaluate_cumulative_expected_impacts, found_strategy2, found_strategy
 
 seed(42)
 #############
@@ -180,12 +180,13 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print_sese_custom_tree(custom_tree)
 
         t = datetime.now()
-        print(str(t) + " Automa:")
-        ag, final_state = create_automa(custom_tree)
+        print(str(t) + " Graph:")
+        ag, final_state = create_graph(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " Automa:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-
-        add_cei_to_automa(ag)
+        print(str(t1) + " Graph:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        evaluate_cumulative_expected_impacts(ag)
+        t2 = datetime.now()
+        print(str(t2) + " Graph:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
 
         ag.save_dot(PATH_AUTOMA_DOT)
 
@@ -213,14 +214,24 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
 
         #founded, sol, cei_bottom_up = found_strategy2(ag, bound)
-
+        t = datetime.now()
+        print(str(t) + " Solver:")
         sol, fvs = found_strategy([ag], bound)
+        t1 = datetime.now()
+        print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+
 
         if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
+            result = "[\n"
             for s in sol:
-                print(s.init_node.process_ids)
+                result += "["
+                for n in s.init_node.choices_natures:
+                    result += str(n.id) + ";"
+                result = result[:-1] + "]\n"
+            result += "]"
+            print(result)
         else:
             print(f'{datetime.now()} For this specific instance a strategy does not exist')
 

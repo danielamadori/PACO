@@ -5,10 +5,11 @@ from solver_optimized.create_branches import create_branches
 from solver_optimized.step_to_saturation import steps_to_saturation
 
 
-def create_automa_state(region_tree: CTree, states: States):
+def saturate_graph_node(region_tree: CTree, states: States):
 	branches = {}
+	choices_natures = []
 
-	while len(branches) == 0 and states.activityState[region_tree.root] < ActivityState.COMPLETED:
+	while len(choices_natures) == 0 and states.activityState[region_tree.root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
 		#print("start:", states_info(states))
 
@@ -22,11 +23,11 @@ def create_automa_state(region_tree: CTree, states: States):
 		if k > 0:
 			Exception("StepsException" + str(k))
 
-		branches = create_branches(states)
+		choices_natures, branches = create_branches(states)
 	#if len(branches) > 0:
 	#	print("create_branches:", states_info(states))
 
 	#print("Branches:" + str(len(branches)))
 	#print("Root activity state: ", states.activityState[region_tree.root], states_info(states))
 
-	return branches, states
+	return states, choices_natures, branches

@@ -1,11 +1,9 @@
 import random
 import numpy as np
-from solver.automaton_graph import AGraph, ANode
-from solver_optimized.states import states_info, States, ActivityState
+from solver.automaton_graph import AGraph
 
-
-def add_cei_to_automa(automa: AGraph):
-	node = automa.init_node
+def evaluate_cumulative_expected_impacts(graph: AGraph):
+	node = graph.init_node
 
 	#print(node.impacts)
 	node.cei_bottom_up = np.zeros(len(node.impacts)) #Useless, already done in the constructor
@@ -22,7 +20,7 @@ def add_cei_to_automa(automa: AGraph):
 			child.cei_bottom_up = child.cei_top_down = child.probability * np.array(child.impacts)
 			node.cei_bottom_up += child.cei_bottom_up
 		else:
-			node.cei_bottom_up += add_cei_to_automa(subGraph)
+			node.cei_bottom_up += evaluate_cumulative_expected_impacts(subGraph)
 
 	return node.cei_bottom_up
 
@@ -43,9 +41,38 @@ def choose(children: [], method: str = 'random'):
 	#TODO
 	return children[random.randint(0, len(children) - 1)]
 
-def pick(frontier: list,  method: str = 'random'):
+def pick(frontier: list[AGraph],  method: str = 'random'):
 
 	return frontier[random.randint(0, len(frontier) - 1)]
+
+def natural_clousure(graph: AGraph, chose_graph: AGraph):
+	node = graph.init_node
+	chose_child = chose_graph.init_node
+	nats = [node for node in node.choices_natures if node.type == 'natural']
+	frontier = []
+	#print("nat_nodes: ", [node.id for node in nat_nodes], "chose_id: ", [node.id for node in chose_id])
+
+	for transition, next_child in node.transitions.items():
+		check_nat = len(nats) == 0
+		check_choice = len(chose_child.decisions) != 0
+		for t in transition:
+			#print("t: ", t[0].type, t[0].id, t[1].id)
+			if t[0].type == 'natural' and t[0] in nats:
+				#print("ok nat")
+				check_nat = True
+			elif t[0].type == 'choice' and t[1] not in chose_child.decisions:
+				#print("not ok choice")
+				check_choice = False
+
+			if check_nat and not check_choice:
+				break
+
+		if check_nat and check_choice:
+			frontier.append(next_child)
+
+	print("frontier_nat: ", frontier_info(frontier))
+	return frontier
+
 
 def found_strategy2(graph: AGraph, bound: []):
 	node = graph.init_node
@@ -97,26 +124,13 @@ def found_strategy2(graph: AGraph, bound: []):
 	raise Exception("Unknown case")
 
 
-def nature_closure(subgraph: AGraph):
-	c_c = []
-	t_c = []
-
-	for t in t_c:
-		par, child = t.split(":")
-
-		if c.status.activityState.keys().type == "choice":
-			c_c.append(t)
-
-		if len(c_c) == 0:
-			return [c, brother]
-
-	return subgraph
-
-def frontier_info(frontier: list):
-	result = "["
+def frontier_info(frontier: list[AGraph]):
+	result = ""
 	for graph in frontier:
 		result += str(graph.init_node) + ", "
-	return result[:-2] + "]"
+
+	return "[" + result[:-2] + "]"
+
 
 def found_strategy(frontier: list, bound: list):
 	print("frontier: ", frontier_info(frontier))
@@ -141,17 +155,16 @@ def found_strategy(frontier: list, bound: list):
 		new_frontier = [subgraph for subgraph in graph.init_node.transitions.values() if subgraph not in tested]
 		print("new_frontier: ", frontier_info(new_frontier))
 
-		subgraph = pick(new_frontier)
-		#subgraph = nature_clousure(subgraph)
+		chose_frontier = natural_clousure(graph, pick(new_frontier))
 
 		new_frontier = frontier.copy()
-		new_frontier.append(subgraph)
+		new_frontier.extend(chose_frontier)
 		print("new_frontier:after_pick: ", frontier_info(new_frontier))
 		r, fvs = found_strategy(new_frontier, bound)
 		print("end_rec")
 		if r is None:
 			failed.append(fvs)
-			tested.append(subgraph)
+			tested.extend(chose_frontier)
 		else:
 			return r, fvs
 
