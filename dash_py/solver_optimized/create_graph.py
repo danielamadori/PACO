@@ -1,7 +1,8 @@
 import copy
+import numpy as np
 from solver.tree_lib import CTree
 from solver.automaton_graph import AGraph, ANode
-from solver_optimized.create_automa_state import saturate_graph_node
+from solver_optimized.saturate_graph_node import saturate_graph_node
 from solver_optimized.states import States, states_info, ActivityState
 
 
@@ -66,3 +67,26 @@ def create_graph_node(region_tree: CTree, decisions: tuple, states: States, grap
 		final_states.extend(create_graph_node(region_tree, decisions, branch, next_node))
 
 	return final_states
+
+def evaluate_cumulative_expected_impacts(graph: AGraph):
+	node = graph.init_node
+
+	#print(node.impacts)
+	node.cei_bottom_up = np.zeros(len(node.impacts)) #Useless, already done in the constructor
+	node.cei_top_down = node.probability * np.array(node.impacts)
+
+	#print(states_info(node.states))
+	#print("cei_bottom_up: " + str(node.cei_bottom_up) + " cei_top_down: " + str(node.cei_top_down))
+	#print("probability: " + str(node.probability) + " impacts: " + str(node.impacts) + "\n")
+
+	for subGraph in node.transitions.values():
+		child = subGraph.init_node
+
+		if child.is_final_state:
+			child.cei_bottom_up = child.cei_top_down = child.probability * np.array(child.impacts)
+			node.cei_bottom_up += child.cei_bottom_up
+		else:
+			node.cei_bottom_up += evaluate_cumulative_expected_impacts(subGraph)
+
+	return node.cei_bottom_up
+

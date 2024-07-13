@@ -1,28 +1,5 @@
 import random
-import numpy as np
 from solver.automaton_graph import AGraph
-
-def evaluate_cumulative_expected_impacts(graph: AGraph):
-	node = graph.init_node
-
-	#print(node.impacts)
-	node.cei_bottom_up = np.zeros(len(node.impacts)) #Useless, already done in the constructor
-	node.cei_top_down = node.probability * np.array(node.impacts)
-
-	#print(states_info(node.states))
-	#print("cei_bottom_up: " + str(node.cei_bottom_up) + " cei_top_down: " + str(node.cei_top_down))
-	#print("probability: " + str(node.probability) + " impacts: " + str(node.impacts) + "\n")
-
-	for subGraph in node.transitions.values():
-		child = subGraph.init_node
-
-		if child.is_final_state:
-			child.cei_bottom_up = child.cei_top_down = child.probability * np.array(child.impacts)
-			node.cei_bottom_up += child.cei_bottom_up
-		else:
-			node.cei_bottom_up += evaluate_cumulative_expected_impacts(subGraph)
-
-	return node.cei_bottom_up
 
 
 def compare_bound(cei, bound: []):
@@ -41,9 +18,11 @@ def choose(children: [], method: str = 'random'):
 	#TODO
 	return children[random.randint(0, len(children) - 1)]
 
+
 def pick(frontier: list[AGraph],  method: str = 'random'):
 
 	return frontier[random.randint(0, len(frontier) - 1)]
+
 
 def natural_clousure(graph: AGraph, chose_graph: AGraph):
 	node = graph.init_node
@@ -173,13 +152,3 @@ def found_strategy(frontier: list, bound: list):
 
 	print("Failed: No choose left")
 	return None, failed
-
-
-
-
-
-
-
-
-
-

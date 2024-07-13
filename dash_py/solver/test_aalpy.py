@@ -1,7 +1,7 @@
 from random import seed
 
-from solver_optimized.create_automa import create_graph
-from solver_optimized.solver_optimized import evaluate_cumulative_expected_impacts, found_strategy2, found_strategy
+from solver_optimized.create_graph import create_graph, evaluate_cumulative_expected_impacts
+from solver_optimized.solver_optimized import found_strategy2, found_strategy
 
 seed(42)
 #############
