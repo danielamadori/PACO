@@ -216,7 +216,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         #founded, sol, cei_bottom_up = found_strategy2(ag, bound)
         t = datetime.now()
         print(str(t) + " Solver:")
-        sol, fvs = found_strategy([ag], bound)
+        sol, fvs, decisions = found_strategy([ag], bound)
         t1 = datetime.now()
         print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
@@ -232,6 +232,9 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                 result = result[:-1] + "]\n"
             result += "]"
             print(result)
+            print("decisions:")
+            for d in decisions:
+                print(f"{d.id}: {d.name}")
         else:
             print(f'{datetime.now()} For this specific instance a strategy does not exist')
 

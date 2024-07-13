@@ -117,13 +117,13 @@ def found_strategy(frontier: list, bound: list):
 	frontier_value_bottom_up = sum(graph.init_node.cei_bottom_up for graph in frontier)
 	if compare_bound(frontier_value_bottom_up, bound) <= 0:
 		print("Win")
-		return frontier, [frontier_value_bottom_up]
+		return frontier, [frontier_value_bottom_up], []
 
 	frontier_value_top_down = sum(graph.init_node.cei_top_down for graph in frontier)
 	if (compare_bound(frontier_value_top_down, bound) > 0 or
 			all(graph.init_node.is_final_state for graph in frontier)):
 		print("Failed top_down: not a valid choose", compare_bound(frontier_value_top_down, bound) > 0)
-		return None, [frontier_value_top_down]
+		return None, [frontier_value_top_down], []
 
 	graph = pick([graph for graph in frontier if not graph.init_node.is_final_state])
 	frontier.remove(graph)
@@ -134,21 +134,23 @@ def found_strategy(frontier: list, bound: list):
 		new_frontier = [subgraph for subgraph in graph.init_node.transitions.values() if subgraph not in tested]
 		print("new_frontier: ", frontier_info(new_frontier))
 
-		chose_frontier = natural_clousure(graph, pick(new_frontier))
+		chose = pick(new_frontier)
+		chose_frontier = natural_clousure(graph, chose)
 
 		new_frontier = frontier.copy()
 		new_frontier.extend(chose_frontier)
 		print("new_frontier:after_pick: ", frontier_info(new_frontier))
-		r, fvs = found_strategy(new_frontier, bound)
+		r, fvs, decisions = found_strategy(new_frontier, bound)
 		print("end_rec")
 		if r is None:
 			failed.append(fvs)
 			tested.extend(chose_frontier)
 		else:
-			return r, fvs
+			decisions.extend(chose.init_node.decisions)
+			return r, fvs, decisions
 
 		print("tested", frontier_info(tested))
 		print("n.children", frontier_info(graph.init_node.transitions.values()))
 
 	print("Failed: No choose left")
-	return None, failed
+	return None, failed, []
