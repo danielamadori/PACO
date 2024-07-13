@@ -49,7 +49,6 @@ def natural_clousure(graph: AGraph, chose_graph: AGraph):
 		if check_nat and check_choice:
 			frontier.append(next_child)
 
-	print("frontier_nat: ", frontier_info(frontier))
 	return frontier
 
 
@@ -106,7 +105,15 @@ def found_strategy2(graph: AGraph, bound: []):
 def frontier_info(frontier: list[AGraph]):
 	result = ""
 	for graph in frontier:
-		result += str(graph.init_node) + ", "
+		decisions = ""
+		for decision in graph.init_node.decisions:
+			decisions += str(decision.id) + ", "
+
+		choices_natures = ""
+		for choice_nature in graph.init_node.choices_natures:
+			choices_natures += str(choice_nature.id) + ", "
+
+		result += "<<" + decisions[:-2] + ">,<" + choices_natures[:-2] + ">>, "
 
 	return "[" + result[:-2] + "]"
 
@@ -117,40 +124,45 @@ def found_strategy(frontier: list, bound: list):
 	frontier_value_bottom_up = sum(graph.init_node.cei_bottom_up for graph in frontier)
 	if compare_bound(frontier_value_bottom_up, bound) <= 0:
 		print("Win")
-		return frontier, [frontier_value_bottom_up], []
+		return frontier, [frontier_value_bottom_up], {}
 
 	frontier_value_top_down = sum(graph.init_node.cei_top_down for graph in frontier)
 	if (compare_bound(frontier_value_top_down, bound) > 0 or
 			all(graph.init_node.is_final_state for graph in frontier)):
 		print("Failed top_down: not a valid choose", compare_bound(frontier_value_top_down, bound) > 0)
-		return None, [frontier_value_top_down], []
+		return None, [frontier_value_top_down], {}
 
 	graph = pick([graph for graph in frontier if not graph.init_node.is_final_state])
-	frontier.remove(graph)
 
 	failed = []
 	tested = []
 	while len(tested) < len(graph.init_node.transitions.values()):
-		new_frontier = [subgraph for subgraph in graph.init_node.transitions.values() if subgraph not in tested]
-		print("new_frontier: ", frontier_info(new_frontier))
+		to_pick_frontier = [subgraph for subgraph in graph.init_node.transitions.values() if subgraph not in tested]
+		print("to_pick_frontier: ", frontier_info(to_pick_frontier))
 
-		chose = pick(new_frontier)
+		chose = pick(to_pick_frontier)
 		chose_frontier = natural_clousure(graph, chose)
+		print("frontier_nat: ", frontier_info(chose_frontier))
 
 		new_frontier = frontier.copy()
+		new_frontier.remove(graph)
 		new_frontier.extend(chose_frontier)
-		print("new_frontier:after_pick: ", frontier_info(new_frontier))
+		print("new_frontier: ", frontier_info(new_frontier))
 		r, fvs, decisions = found_strategy(new_frontier, bound)
 		print("end_rec")
 		if r is None:
 			failed.append(fvs)
 			tested.extend(chose_frontier)
 		else:
-			decisions.extend(chose.init_node.decisions)
+			if graph.init_node not in decisions:
+				decisions[tuple(graph.init_node.choices_natures)] = chose.init_node.decisions
+			else:
+				print("Error: already in decisions")
+
 			return r, fvs, decisions
 
 		print("tested", frontier_info(tested))
 		print("n.children", frontier_info(graph.init_node.transitions.values()))
 
 	print("Failed: No choose left")
-	return None, failed, []
+	return None, failed, {}

@@ -216,63 +216,34 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         #founded, sol, cei_bottom_up = found_strategy2(ag, bound)
         t = datetime.now()
         print(str(t) + " Solver:")
-        sol, fvs, decisions = found_strategy([ag], bound)
+        sol, fvs, strategy = found_strategy([ag], bound)
         t1 = datetime.now()
         print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-
 
         if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
-            result = "[\n"
-            for s in sol:
-                result += "["
-                for n in s.init_node.choices_natures:
-                    result += str(n.id) + ";"
-                result = result[:-1] + "]\n"
-            result += "]"
+            result = "["
+
+            for choices_natures, decisions in strategy.items():
+                result += "<"
+                for i in range(len(choices_natures)):
+                    if choices_natures[i].type == 'choice':
+                        result += f"<{choices_natures[i].id}:{decisions[i].id}>,"
+
+                result = result[:-2] + ">; "
+
+            result = result[:-2] + "]"
             print(result)
-            print("decisions:")
-            for d in decisions:
-                print(f"{d.id}: {d.name}")
-        else:
-            print(f'{datetime.now()} For this specific instance a strategy does not exist')
 
-        return "Automa created"
+            impacts = -1
+            return f"A strategy could be found, which has as an expected impact of : {impacts} "
 
-        # Create a game solver with the automaton graph and the bound
-        solver = GameSolver(ag, bound)
-        print('eseguito solver')
-        # Compute the winning final set
-        winning_set = solver.compute_winning_final_set()
+        s = "For this specific instance a strategy does not exist"
 
-        # Print the winning set
-        print(f'{datetime.now()} winning set:')
-        print(winning_set)
+        print(str(datetime.now()) + " " + s)
+        return '\n\n' + s + '\n'
 
-        # If a winning set exists, return a strategy
-        if winning_set != None:
-            graphs = pydot.graph_from_dot_file(PATH_AUTOMATON_CLEANED)
-            graph = graphs[0]
-            # color the winning nodes
-            for el in winning_set:
-                node = graph.get_node(el[0])[0]
-                node.set_style('filled')
-                node.set_fillcolor('green')
-
-            graph.write_svg(PATH_AUTOMATON_IMAGE_SVG)
-            graph.set('dpi', RESOLUTION)
-            graph.write_png(PATH_AUTOMATON_IMAGE)
-            expected_impacts = [s[1] for s in winning_set]
-            expected_impacts = [sum(values) for values in zip(*expected_impacts)]
-            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES], expected_impacts))
-            s = f"A strategy could be found, which has as an expected imact of : {impacts} "
-            explainer(custom_tree)
-            return s
-        else:
-            # If no winning set exists, return a message indicating that no strategy exists
-            s = "\n\nFor this specific instance a strategy does not exist\n"
-            return s
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred
         print(f'test failed in PACO execution : {e}')
