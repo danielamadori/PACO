@@ -10,7 +10,7 @@ def compare_bound(cei, bound: []):
 	return 0
 
 
-def choose(children: [], method: str = 'random'):
+def choose(children: [AGraph], method: str = 'random') -> AGraph:
 	# Randomly choose a child
 	if method == 'random':
 		return children[random.randint(0, len(children) - 1)]
@@ -19,12 +19,12 @@ def choose(children: [], method: str = 'random'):
 	return children[random.randint(0, len(children) - 1)]
 
 
-def pick(frontier: list[AGraph],  method: str = 'random'):
+def pick(frontier: list[AGraph],  method: str = 'random') -> AGraph:
 
 	return frontier[random.randint(0, len(frontier) - 1)]
 
 
-def natural_clousure(graph: AGraph, chose_graph: AGraph):
+def natural_clousure(graph: AGraph, chose_graph: AGraph) -> list[AGraph]:
 	node = graph.init_node
 	chose_child = chose_graph.init_node
 	nats = [node for node in node.choices_natures if node.type == 'natural']
@@ -62,7 +62,7 @@ def found_strategy2(graph: AGraph, bound: []):
 		print("a <= b")
 		return True, [graph], node.cei_bottom_up
 
-	if node.node_type == 'choice':
+	if node.type == 'choice':
 		children = list(node.transitions.values())
 		print("choice")
 		min_cei_bottom_up = 0
@@ -83,7 +83,7 @@ def found_strategy2(graph: AGraph, bound: []):
 		print("end choice:failed:min_cei_bottom_up:", min_cei_bottom_up)
 		return False, min_graphs, min_cei_bottom_up
 
-	if node.node_type == 'natural':
+	if node.type == 'natural':
 		print("natural")
 		sum_cei_bottom_up = 0
 		frontier = []
@@ -102,7 +102,7 @@ def found_strategy2(graph: AGraph, bound: []):
 	raise Exception("Unknown case")
 
 
-def frontier_info(frontier: list[AGraph]):
+def frontier_info(frontier: list[AGraph]) -> str:
 	result = ""
 	for graph in frontier:
 		decisions = ""
@@ -118,7 +118,7 @@ def frontier_info(frontier: list[AGraph]):
 	return "[" + result[:-2] + "]"
 
 
-def found_strategy(frontier: list, bound: list):
+def found_strategy(frontier: list[AGraph], bound: list) -> (list[AGraph], list[int], dict[tuple, tuple]):
 	print("frontier: ", frontier_info(frontier))
 
 	frontier_value_bottom_up = sum(graph.init_node.cei_bottom_up for graph in frontier)
@@ -154,11 +154,7 @@ def found_strategy(frontier: list, bound: list):
 			failed.append(fvs)
 			tested.extend(chose_frontier)
 		else:
-			if graph.init_node not in decisions:
-				decisions[tuple(graph.init_node.choices_natures)] = chose.init_node.decisions
-			else:
-				print("Error: already in decisions")
-
+			decisions[tuple(graph.init_node.choices_natures)] = chose.init_node.decisions
 			return r, fvs, decisions
 
 		print("tested", frontier_info(tested))

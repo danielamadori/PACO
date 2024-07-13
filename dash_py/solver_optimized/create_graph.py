@@ -19,7 +19,7 @@ def graph_node_info(node: ANode) -> str:
 	return result + tmp[:-1] + ">:status:" + states_info(node.states)
 
 
-def create_graph(region_tree: CTree) -> AGraph:
+def create_graph(region_tree: CTree) -> (AGraph, list[AGraph]):
 	states, choices_natures, branches = saturate_graph_node(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	graph = AGraph(ANode(
@@ -40,7 +40,7 @@ def create_graph(region_tree: CTree) -> AGraph:
 	return graph, final_states
 
 
-def create_graph_node(region_tree: CTree, decisions: tuple, states: States, graph: AGraph):
+def create_graph_node(region_tree: CTree, decisions: tuple, states: States, graph: AGraph) -> list[AGraph]:
 	saturatedStates, choices_natures, branches = saturate_graph_node(region_tree, states)
 	states.update(saturatedStates)
 	#print("create_graph_node:start_id:" + str(start_ids) + ":exit_id:" + str(exit_id) + states_info(states))
@@ -68,7 +68,7 @@ def create_graph_node(region_tree: CTree, decisions: tuple, states: States, grap
 
 	return final_states
 
-def evaluate_cumulative_expected_impacts(graph: AGraph):
+def evaluate_cumulative_expected_impacts(graph: AGraph) -> np.ndarray:
 	node = graph.init_node
 
 	#print(node.impacts)

@@ -1,11 +1,11 @@
-from solver.tree_lib import CTree
+from solver.tree_lib import CTree, CNode
 from solver_optimized.next_state import next_state
 from solver_optimized.states import States, ActivityState
 from solver_optimized.create_branches import create_branches
 from solver_optimized.step_to_saturation import steps_to_saturation
 
 
-def saturate_graph_node(region_tree: CTree, states: States):
+def saturate_graph_node(region_tree: CTree, states: States) ->(States, tuple[CNode], dict[tuple[CNode], States]):
 	branches = {}
 	choices_natures = []
 

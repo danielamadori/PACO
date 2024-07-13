@@ -1,6 +1,7 @@
 from random import seed
 
 from solver_optimized.create_graph import create_graph, evaluate_cumulative_expected_impacts
+from solver_optimized.cumulative_expected_impacts_analysis import cumulative_expected_impacts_analysis
 from solver_optimized.solver_optimized import found_strategy2, found_strategy
 
 seed(42)
@@ -223,8 +224,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
-            result = "["
-
+            result = ""
             for choices_natures, decisions in strategy.items():
                 result += "<"
                 for i in range(len(choices_natures)):
@@ -233,8 +233,9 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
                 result = result[:-2] + ">; "
 
-            result = result[:-2] + "]"
-            print(result)
+            print("Strategy: [" + result[:-2] + "]")
+
+            print(cumulative_expected_impacts_analysis(ag, strategy))
 
             impacts = -1
             return f"A strategy could be found, which has as an expected impact of : {impacts} "
