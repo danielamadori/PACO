@@ -3,7 +3,7 @@ from solver.tree_lib import CTree, CNode
 from solver_optimized.states import States, ActivityState, node_info, states_info
 
 
-def next_state(tree: CTree, states: States, k: int):
+def next_state(tree: CTree, states: States, k: int) -> (States, int):
 	root: CNode = tree.root
 	#print(f"next_state: " + node_info(root, states))
 
