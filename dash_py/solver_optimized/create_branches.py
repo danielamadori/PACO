@@ -3,7 +3,7 @@ from solver_optimized.states import States, ActivityState, node_info, states_inf
 from itertools import product
 
 
-def create_branches(states: States) -> dict:
+def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]):
 	choices_natures = []
 	node: CNode
 	for node in list(states.activityState.keys()):
@@ -19,7 +19,7 @@ def create_branches(states: States) -> dict:
 
 	branches = {}
 	if len(choices_natures) == 0:
-		return choices_natures, branches
+		return tuple(choices_natures), branches
 
 	branches_choices = list(product([True, False], repeat=len(choices_natures)))
 	#print(f"create_branches:cardinality:{choice_nature_dim}:combinations:{branches_choices}")
@@ -42,4 +42,4 @@ def create_branches(states: States) -> dict:
 
 		branches[tuple(decisions)] = branch_states
 
-	return choices_natures, branches
+	return tuple(choices_natures), branches

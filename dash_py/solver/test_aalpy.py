@@ -1,7 +1,9 @@
 from random import seed
 
-from solver_optimized.create_graph import create_graph, evaluate_cumulative_expected_impacts
-from solver_optimized.solver_optimized import found_strategy2, found_strategy
+from solver_optimized.build_strategy import build_strategy
+from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
+    evaluate_cumulative_expected_impacts2
+from solver_optimized.solver_optimized import found_strategy
 
 seed(42)
 #############
@@ -180,13 +182,13 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print_sese_custom_tree(custom_tree)
 
         t = datetime.now()
-        print(str(t) + " Graph:")
-        ag, final_state = create_graph(custom_tree)
+        print(str(t) + " SolutionTree:")
+        ag, final_state = create_tree(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " Graph:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        evaluate_cumulative_expected_impacts(ag)
+        print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        evaluate_cumulative_expected_impacts2(ag)
         t2 = datetime.now()
-        print(str(t2) + " Graph:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
+        print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
 
         ag.save_dot(PATH_AUTOMA_DOT)
 
@@ -213,63 +215,34 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
 
 
-        #founded, sol, cei_bottom_up = found_strategy2(ag, bound)
         t = datetime.now()
         print(str(t) + " Solver:")
         sol, fvs = found_strategy([ag], bound)
         t1 = datetime.now()
         print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
-
         if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
-            result = "[\n"
-            for s in sol:
-                result += "["
-                for n in s.init_node.choices_natures:
-                    result += str(n.id) + ";"
-                result = result[:-1] + "]\n"
-            result += "]"
-            print(result)
-        else:
-            print(f'{datetime.now()} For this specific instance a strategy does not exist')
+            _, strategy = build_strategy(sol)
+            print("Strategy: ", strategy)
 
-        return "Automa created"
+            for choice in strategy:
+                print(f"Choice {choice}:")
+                for decision in strategy[choice]:
+                    print(f"Decision {decision}:")
+                    for state in strategy[choice][decision]:
+                        print(state.root)
 
-        # Create a game solver with the automaton graph and the bound
-        solver = GameSolver(ag, bound)
-        print('eseguito solver')
-        # Compute the winning final set
-        winning_set = solver.compute_winning_final_set()
 
-        # Print the winning set
-        print(f'{datetime.now()} winning set:')
-        print(winning_set)
+            impacts = -1
+            return f"A strategy could be found, which has as an expected impact of : {impacts} "
 
-        # If a winning set exists, return a strategy
-        if winning_set != None:
-            graphs = pydot.graph_from_dot_file(PATH_AUTOMATON_CLEANED)
-            graph = graphs[0]
-            # color the winning nodes
-            for el in winning_set:
-                node = graph.get_node(el[0])[0]
-                node.set_style('filled')
-                node.set_fillcolor('green')
+        s = "For this specific instance a strategy does not exist"
 
-            graph.write_svg(PATH_AUTOMATON_IMAGE_SVG)
-            graph.set('dpi', RESOLUTION)
-            graph.write_png(PATH_AUTOMATON_IMAGE)
-            expected_impacts = [s[1] for s in winning_set]
-            expected_impacts = [sum(values) for values in zip(*expected_impacts)]
-            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES], expected_impacts))
-            s = f"A strategy could be found, which has as an expected imact of : {impacts} "
-            explainer(custom_tree)
-            return s
-        else:
-            # If no winning set exists, return a message indicating that no strategy exists
-            s = "\n\nFor this specific instance a strategy does not exist\n"
-            return s
+        print(str(datetime.now()) + " " + s)
+        return '\n\n' + s + '\n'
+
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred
         print(f'test failed in PACO execution : {e}')
