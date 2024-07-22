@@ -1,8 +1,9 @@
 from random import seed
 
-from solver_optimized.create_graph import create_graph, evaluate_cumulative_expected_impacts
-from solver_optimized.cumulative_expected_impacts_analysis import cumulative_expected_impacts_analysis
-from solver_optimized.solver_optimized import found_strategy2, found_strategy
+from solver_optimized.build_strategy import build_strategy
+from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
+    evaluate_cumulative_expected_impacts2
+from solver_optimized.solver_optimized import found_strategy
 
 seed(42)
 #############
@@ -181,13 +182,13 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print_sese_custom_tree(custom_tree)
 
         t = datetime.now()
-        print(str(t) + " Graph:")
-        ag, final_state = create_graph(custom_tree)
+        print(str(t) + " SolutionTree:")
+        ag, final_state = create_tree(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " Graph:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        evaluate_cumulative_expected_impacts(ag)
+        print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        evaluate_cumulative_expected_impacts2(ag)
         t2 = datetime.now()
-        print(str(t2) + " Graph:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
+        print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
 
         ag.save_dot(PATH_AUTOMA_DOT)
 
@@ -214,28 +215,25 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
 
 
-        #founded, sol, cei_bottom_up = found_strategy2(ag, bound)
         t = datetime.now()
         print(str(t) + " Solver:")
-        sol, fvs, strategy = found_strategy([ag], bound)
+        sol, fvs = found_strategy([ag], bound)
         t1 = datetime.now()
         print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
         if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
-            result = ""
-            for choices_natures, decisions in strategy.items():
-                result += "<"
-                for i in range(len(choices_natures)):
-                    if choices_natures[i].type == 'choice':
-                        result += f"<{choices_natures[i].id}:{decisions[i].id}>,"
+            _, strategy = build_strategy(sol)
+            print("Strategy: ", strategy)
 
-                result = result[:-2] + ">; "
+            for choice in strategy:
+                print(f"Choice {choice}:")
+                for decision in strategy[choice]:
+                    print(f"Decision {decision}:")
+                    for state in strategy[choice][decision]:
+                        print(state.root)
 
-            print("Strategy: [" + result[:-2] + "]")
-
-            print(cumulative_expected_impacts_analysis(ag, strategy))
 
             impacts = -1
             return f"A strategy could be found, which has as an expected impact of : {impacts} "
