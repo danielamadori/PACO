@@ -1,6 +1,10 @@
 from random import seed
 
-from solver_optimized.create_automa import create_automa
+from solver_optimized.build_strategy import build_strategy
+from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
+    evaluate_cumulative_expected_impacts2
+from solver_optimized.solver_optimized import found_strategy
+from solver_optimized.write_solution_tree import write_solution_tree
 
 seed(42)
 #############
@@ -14,27 +18,14 @@ from aalpy.utils import visualize_automaton, load_automaton_from_file
 from lark import Lark
 import os, sys
 from IPython.display import display
-import numpy as np
-from itertools import product
-import pydot
 from datetime import datetime
-from solver.view_points import VPChecker
 from solver.tree_lib import CNode, CTree, print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
 from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
     SESE_PARSER, TASK_SEQ, \
-    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, \
-    IMPACTS_NAMES, PATH_AUTOMA_IMAGE, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_DOT, PATH_AUTOMA_TIME_DOT, \
-    PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED, PATH_AUTOMA_TIME_EXTENDED_DOT, \
-    PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_IMAGE
+    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H
 
-from solver.gCleaner import gCleaner
-from explainer.explainer import explainer
-# import array_operations
-
-from solver.automaton_graph import AutomatonGraph, ANode, AGraph
-from solver.solver import GameSolver
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
 # Add the current directory to the Python path
@@ -176,80 +167,50 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(f'{datetime.now()} bound {bound}')
         # Convert the parsed tree into a custom tree and get the last ID
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
-                                            bpmn[IMPACTS], bpmn[DURATIONS], 
+                                            bpmn[IMPACTS], bpmn[DURATIONS],
                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
 
         print_sese_custom_tree(custom_tree)
 
         t = datetime.now()
-        print(str(t) + " Automa:")
-        ag, final_state = create_automa(custom_tree)
+        print(str(t) + " SolutionTree:")
+        ag, final_state = create_tree(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " Automa:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        evaluate_cumulative_expected_impacts2(ag)
+        t2 = datetime.now()
+        print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
 
-        ag.save_dot(PATH_AUTOMA_DOT)
+        write_solution_tree(ag)
 
-        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_DOT)
-        graph = graphs[0]
-        graph.write_svg(PATH_AUTOMA_IMAGE_SVG)
-        graph.set('dpi', RESOLUTION)
-        graph.write_png(PATH_AUTOMA_IMAGE)
+        t = datetime.now()
+        print(str(t) + " Solver:")
+        sol, fvs = found_strategy([ag], bound)
+        t1 = datetime.now()
+        print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
-        ag.save_dot(PATH_AUTOMA_TIME_DOT, executed_time=True)
+        if sol is not None:
+            print(f'{datetime.now()} A strategy could be found')
+            print("cei_bottom_up:", fvs)
+            _, strategy = build_strategy(sol)
+            print("Strategy: ")
 
-        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_DOT)
-        graph = graphs[0]
-        graph.write_svg(PATH_AUTOMA_TIME_IMAGE_SVG)
-        graph.set('dpi', RESOLUTION)
-        graph.write_png(PATH_AUTOMA_TIME_IMAGE)
-
-        ag.save_dot(PATH_AUTOMA_TIME_EXTENDED_DOT, executed_time=True, all_states=True)
-
-        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_EXTENDED_DOT)
-        graph = graphs[0]
-        graph.write_svg(PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG)
-        graph.set('dpi', RESOLUTION)
-        graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
-
-        for s in final_state:
-            print(f'{s.init_node.state_id} {s.init_node.probability}*{s.init_node.impacts}={s.init_node.probability * np.array(s.init_node.impacts)}')
+            for choice in strategy:
+                print(f"Choice {choice}:")
+                for decision in strategy[choice]:
+                    print(f"Decision {decision}:")
+                    for state in strategy[choice][decision]:
+                        print(state.root)
 
 
-        # Create a game solver with the automaton graph and the bound
-        solver = GameSolver(ag, bound)
-        print('eseguito solver')
-        # Compute the winning final set
-        winning_set = solver.compute_winning_final_set()
+            impacts = -1
+            return f"A strategy could be found, which has as an expected impact of : {impacts} "
 
-        # Print the winning set
-        print(f'{datetime.now()} winning set:')
-        print(winning_set)
+        s = "For this specific instance a strategy does not exist"
 
-        return "Automa created"
+        print(str(datetime.now()) + " " + s)
+        return '\n\n' + s + '\n'
 
-        # If a winning set exists, return a strategy
-        if winning_set != None: 
-            graphs = pydot.graph_from_dot_file(PATH_AUTOMATON_CLEANED)
-            graph = graphs[0] 
-            # color the winning nodes            
-            for el in winning_set: 
-                node = graph.get_node(el[0])[0]
-                node.set_style('filled')
-                node.set_fillcolor('green')            
-            
-            graph.write_svg(PATH_AUTOMATON_IMAGE_SVG)
-            graph.set('dpi', RESOLUTION)
-            graph.write_png(PATH_AUTOMATON_IMAGE)   
-            expected_impacts = [s[1] for s in winning_set]
-            expected_impacts = [sum(values) for values in zip(*expected_impacts)]
-            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES], expected_impacts))
-            s = f"A strategy could be found, which has as an expected imact of : {impacts} "
-            explainer(custom_tree)
-            return s
-        else: 
-            # If no winning set exists, return a message indicating that no strategy exists
-            s = "\n\nFor this specific instance a strategy does not exist\n"
-            return s
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred
         print(f'test failed in PACO execution : {e}')

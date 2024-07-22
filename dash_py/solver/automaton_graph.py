@@ -1,8 +1,5 @@
 import math
-from itertools import zip_longest
-
 import numpy as np
-
 import solver.array_operations as array_operations
 from solver.view_points import VPChecker
 from graphviz import Source
@@ -10,17 +7,20 @@ from solver_optimized.states import States, ActivityState
 
 
 class ANode:
-    def __init__(self, states: States, process_ids: list = [], is_final_state: bool = False, is_square_node: bool = False, generator: str = None) -> None:
+    def __init__(self, states: States, decisions: tuple, choices_natures: tuple, is_final_state: bool = False, is_square_node: bool = False, generator: str = None) -> None:
         self.states = states
         s, _ = self.states.str()
         self.state_id = s
-        self.process_ids = str(process_ids)
+        self.decisions = decisions
+        self.choices_natures = choices_natures
         self.is_final_state = is_final_state
         self.is_square_node = is_square_node
         self.generator = generator # node_id of the node that generated this node
-        self.transitions: dict[str, AGraph] = {}
+        self.transitions: dict[tuple, AGraph] = {}
 
-        self.impacts, self.probability = self.impacts_evaluation() if is_final_state else ([], 0.0)
+        self.impacts, self.probability = self.impacts_evaluation()
+        self.cei_top_down = np.zeros(len(self.impacts))
+        self.cei_bottom_up = np.zeros(len(self.impacts))
 
     def __str__(self) -> str:
         return self.state_id
@@ -67,34 +67,42 @@ class ANode:
 
         return result
 
-    def add_transition(self, children_graph: 'AGraph'):
-        #t_key = self.process_ids + ":" + children_graph.init_node.process_ids
-        t_key = children_graph.init_node.process_ids
-        self.transitions[t_key] = children_graph
+    def add_transition(self, decision_ids: tuple, children_graph: 'AGraph'):
+        transition = []
+        for i in range(len(self.choices_natures)):
+            transition.append((self.choices_natures[i], decision_ids[i], ))
 
-    def remove_transition(self, children_graph: 'AGraph'):
-        #t_key = self.process_ids + ":" + children_graph.init_node.process_ids
-        t_key = children_graph.init_node.process_ids
-        self.transitions.pop(t_key)
+        self.transitions[tuple(transition)] = children_graph
 
     def impacts_evaluation(self) -> tuple[list, float]:
         impacts = []
         probability = 1.0
         for node, state in self.states.activityState.items():
-            if node.type == 'natural' and state > ActivityState.WAITING:
+            if (node.type == 'natural' and state > ActivityState.WAITING
+                and (self.states.activityState[node.childrens[0].root] > ActivityState.WAITING
+                or self.states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
+
                 p = node.probability
                 if self.states.activityState[node.childrens[1].root] > 0:
                     p = 1 - p
                 probability *= p
 
-            if node.type == 'task' and state > 0:
-                impacts = array_operations.sum(impacts, node.impact)
+            if node.type == 'task':
+                if state > 0:
+                    impacts = array_operations.sum(impacts, node.impact)
+                else:
+                    impacts = array_operations.sum(impacts, [0 for _ in range(len(node.impact))])#TODO
 
         return impacts, probability
 
-    def dot_impact_str(self):
+    def dot_cei_str(self):
+        '''
         return (self.dot_str(full=False) + "_impact",
                 f" [label=\"{self.probability}*{str(self.impacts)} = {self.probability * np.array(self.impacts)}\", shape=rect];\n")
+        '''
+
+        return (self.dot_str(full=False) + "_impact",
+                f" [label=\"(cei_td: {self.cei_top_down}, cei_bu: {self.cei_bottom_up})\", shape=rect];\n")
 
 
 class AGraph:
@@ -120,7 +128,16 @@ class AGraph:
         result += node
         result += transition
         result += "__start0 [label=\"\", shape=none];\n"
-        result += f"__start0 -> {self.init_node.dot_str(full=False)}  [label=\"{self.init_node.process_ids[:-1]}\"];\n" + "}"
+
+        starting_node_ids = ""
+        for n in self.init_node.decisions:
+            starting_node_ids += str(n.id) + ";"
+
+        starting_node_ids = starting_node_ids[:-1] + "->"
+        for n in self.init_node.choices_natures:
+            starting_node_ids += str(n.id) + ";"
+
+        result += f"__start0 -> {self.init_node.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
         return result
 
     def create_dot_graph(self, root: ANode, state: bool, executed_time: bool, all_states: bool, previous_node: States = None):
@@ -130,15 +147,18 @@ class AGraph:
         nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
         transitions_id = ""
 
-        if root.is_final_state:
-            impact_id, impact_label = root.dot_impact_str()
-            transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" style=invis];\n"
-            nodes_id += impact_id + impact_label
+        impact_id, impact_label = root.dot_cei_str()
+        transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" color=red];\n" #style=invis
+        nodes_id += impact_id + impact_label
 
         for transition in root.transitions.keys():
             next_node = root.transitions[transition].init_node
-            t = transition.replace(':', '->')[:-1]
-            transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{t}\"];\n"
+            x = ""
+            for t in transition:
+                x += str(t[0].id) + '->' + str(t[1].id) + ';'
+                #x += str(t)[1:-1].replace(',', '->') + ";"
+
+            transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
 
             ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, all_states=all_states, previous_node=root.states)
             nodes_id += ids[0]
@@ -194,7 +214,7 @@ class AutomatonGraph():
         if not is_final_state: # qui devo sistemare, se ho uno stato in loop non finisco più
             for kt in aalpy_automaton_state.transitions.keys():
                 if aalpy_automaton_state.transitions[kt].state_id != aalpy_automaton_state.state_id:
-                    tmp_node.add_transition(self.generate_graph_from_automaton(aalpy_automaton_state.transitions[kt]))
+                    tmp_node.add_transition([], self.generate_graph_from_automaton(aalpy_automaton_state.transitions[kt]))
         return AGraph(tmp_node)
     
     def process_graph(self, graph: AGraph, sul: VPChecker):
@@ -215,12 +235,12 @@ class AutomatonGraph():
                 for out_char in traceroutes_dict[tk]:
                     print("out_char:" + out_char)
                     #tmp_node.add_transition(out_char, node.transitions[out_char])
-                    tmp_node.add_transition(node.transitions[out_char])
+                    tmp_node.add_transition([], node.transitions[out_char])
                     #node.remove_transition(out_char)
-                    node.remove_transition(node.transitions[out_char])
+                    #node.remove_transition(node.transitions[out_char])
 
                 print("tk:" + tk)
-                node.add_transition(AGraph(tmp_node))
+                node.add_transition([],AGraph(tmp_node))
 
     def activated_choices_and_naturals(self, in_char, out_chars, sul: VPChecker):
         if len(out_chars) == 0:

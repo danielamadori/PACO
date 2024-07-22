@@ -67,8 +67,8 @@ class GameSolver:
         starting_set = []
         while set_after_interaction != starting_set:
             starting_set = set_after_interaction
-            set_after_interaction = self.attractor_solver_rec(self.automaton_graph.processed_graph.init_node, starting_set.copy())
-        if self.automaton_graph.processed_graph.init_node.state_id in set_after_interaction:
+            set_after_interaction = self.attractor_solver_rec(self.automaton_graph.processed_graph.root, starting_set.copy())
+        if self.automaton_graph.processed_graph.root.state_id in set_after_interaction:
             return True
         else:
             return False
