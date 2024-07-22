@@ -1,10 +1,11 @@
 import copy
 from solver.tree_lib import CNode
 from solver_optimized.solution_tree import SolutionTree, SolutionNode
+from solver_optimized.solver_optimized import frontier_info
 
 
 def build_strategy(frontier: set[SolutionTree], strategy: dict[CNode, dict[CNode, list[SolutionNode]]] = {}) -> (list[SolutionTree], dict[CNode, dict[CNode, list[SolutionNode]]]):
-	print("building_strategy:len(frontier):", len(frontier), frontier)
+	print("building_strategy:frontier: ", frontier_info(frontier))
 	if len(frontier) == 0:
 		return frontier, strategy
 

@@ -4,6 +4,7 @@ from solver_optimized.build_strategy import build_strategy
 from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
     evaluate_cumulative_expected_impacts2
 from solver_optimized.solver_optimized import found_strategy
+from solver_optimized.write_solution_tree import write_solution_tree
 
 seed(42)
 #############
@@ -17,24 +18,14 @@ from aalpy.utils import visualize_automaton, load_automaton_from_file
 from lark import Lark
 import os, sys
 from IPython.display import display
-import numpy as np
-from itertools import product
-import pydot
 from datetime import datetime
-from solver.view_points import VPChecker
 from solver.tree_lib import CNode, CTree, print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
 from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
     SESE_PARSER, TASK_SEQ, \
-    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, PATH_AUTOMATON, PATH_AUTOMATON_CLEANED, \
-    IMPACTS_NAMES, PATH_AUTOMA_IMAGE, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_DOT, PATH_AUTOMA_TIME_DOT, \
-    PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED, PATH_AUTOMA_TIME_EXTENDED_DOT, \
-    PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_IMAGE
+    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H
 
-from solver.gCleaner import gCleaner
-from explainer.explainer import explainer
-from solver.solver import GameSolver
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
 # Add the current directory to the Python path
@@ -190,30 +181,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         t2 = datetime.now()
         print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
 
-        ag.save_dot(PATH_AUTOMA_DOT)
-
-        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_DOT)
-        graph = graphs[0]
-        graph.write_svg(PATH_AUTOMA_IMAGE_SVG)
-        graph.set('dpi', RESOLUTION)
-        graph.write_png(PATH_AUTOMA_IMAGE)
-
-        ag.save_dot(PATH_AUTOMA_TIME_DOT, executed_time=True)
-
-        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_DOT)
-        graph = graphs[0]
-        graph.write_svg(PATH_AUTOMA_TIME_IMAGE_SVG)
-        graph.set('dpi', RESOLUTION)
-        graph.write_png(PATH_AUTOMA_TIME_IMAGE)
-
-        ag.save_dot(PATH_AUTOMA_TIME_EXTENDED_DOT, executed_time=True, all_states=True)
-
-        graphs = pydot.graph_from_dot_file(PATH_AUTOMA_TIME_EXTENDED_DOT)
-        graph = graphs[0]
-        graph.write_svg(PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG)
-        graph.set('dpi', RESOLUTION)
-        graph.write_png(PATH_AUTOMA_TIME_EXTENDED_IMAGE)
-
+        write_solution_tree(ag)
 
         t = datetime.now()
         print(str(t) + " Solver:")
@@ -225,7 +193,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
             _, strategy = build_strategy(sol)
-            print("Strategy: ", strategy)
+            print("Strategy: ")
 
             for choice in strategy:
                 print(f"Choice {choice}:")
