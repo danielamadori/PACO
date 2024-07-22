@@ -1,172 +1,100 @@
 import random
-import numpy as np
-from solver.automaton_graph import AGraph, ANode
-from solver_optimized.states import states_info, States, ActivityState
+from solver_optimized.solution_tree import SolutionTree
 
 
-def add_cei_to_automa(automa: AGraph):
-	node = automa.init_node
-
-	#print(node.impacts)
-	node.cei_bottom_up = np.zeros(len(node.impacts)) #Useless, already done in the constructor
-	node.cei_top_down = node.probability * np.array(node.impacts)
-
-	#print(states_info(node.states))
-	#print("cei_bottom_up: " + str(node.cei_bottom_up) + " cei_top_down: " + str(node.cei_top_down))
-	#print("probability: " + str(node.probability) + " impacts: " + str(node.impacts) + "\n")
-
-	for subGraph in node.transitions.values():
-		child = subGraph.init_node
-
-		if child.is_final_state:
-			child.cei_bottom_up = child.cei_top_down = child.probability * np.array(child.impacts)
-			node.cei_bottom_up += child.cei_bottom_up
-		else:
-			node.cei_bottom_up += add_cei_to_automa(subGraph)
-
-	return node.cei_bottom_up
+def compare_bound(cei: list, bound: list):
+	return [-1 if v1 < v2 else 0 if v1 == v2 else 1 for v1, v2 in zip(cei, bound)]
 
 
-def compare_bound(cei, bound: []):
-	for i in range(len(bound)):
-		if bound[i] != cei[i]:
-			return cei[i] - bound[i]
-
-	return 0
-
-
-def choose(children: [], method: str = 'random'):
-	# Randomly choose a child
-	if method == 'random':
-		return children[random.randint(0, len(children) - 1)]
-
-	#TODO
-	return children[random.randint(0, len(children) - 1)]
-
-def pick(frontier: list,  method: str = 'random'):
+def pick(frontier: list[SolutionTree],  method: str = 'random') -> SolutionTree:
 
 	return frontier[random.randint(0, len(frontier) - 1)]
 
-def found_strategy2(graph: AGraph, bound: []):
-	node = graph.init_node
 
-	if compare_bound(node.cei_top_down, bound) > 0:#a > b
-		print("a > b")
-		return False, [graph], 0#TODO: 0 is not the correct value
-	if compare_bound(node.cei_bottom_up, bound) <= 0:#a <= b
-		print("a <= b")
-		return True, [graph], node.cei_bottom_up
+def natural_closure(tree: SolutionTree, selected_tree: SolutionTree) -> list[SolutionTree]:
+	nats = [node for node in tree.root.choices_natures if node.type == 'natural']
+	frontier = []
+	#print("nat_nodes: ", [node.id for node in nat_nodes], "chose_id: ", [node.id for node in chose_id])
 
-	if node.node_type == 'choice':
-		children = list(node.transitions.values())
-		print("choice")
-		min_cei_bottom_up = 0
-		min_graphs = []
-		while len(children) > 0:
-			child = choose(children, bound)
-			children.remove(child)
+	for transition, next_child in tree.root.transitions.items():
+		check_nat = len(nats) == 0
+		check_choice = len(selected_tree.root.decisions) != 0
+		for t in transition:
+			#print("t: ", t[0].type, t[0].id, t[1].id)
+			if t[0].type == 'natural':# and t[0] in nats:
+				#print("ok nat")
+				check_nat = True
+			elif t[0].type == 'choice' and t[1] not in selected_tree.root.decisions:
+				#print("not ok choice")
+				check_choice = False
 
-			founded, sol, cei_bottom_up = found_strategy2(child, bound)
-			print("end choice:cei_bottom_up:", cei_bottom_up)
-			if founded:
-				return True, sol, cei_bottom_up
+			if check_nat and not check_choice:
+				break
 
-			if cei_bottom_up < min_cei_bottom_up:
-				min_cei_bottom_up = cei_bottom_up
-				min_graphs = sol
+		if check_nat and check_choice:
+			frontier.append(next_child)
 
-		print("end choice:failed:min_cei_bottom_up:", min_cei_bottom_up)
-		return False, min_graphs, min_cei_bottom_up
-
-	if node.node_type == 'natural':
-		print("natural")
-		sum_cei_bottom_up = 0
-		frontier = []
-		for child in node.transitions.values():
-			founded, sol, cei_bottom_up = found_strategy2(child, bound)
-
-			if not founded:
-				return False, graph, cei_bottom_up
-
-			sum_cei_bottom_up += cei_bottom_up
-			frontier.append(sol)
-			print("end nature:sum_cei_bottom_up:", sum_cei_bottom_up)
-
-		return compare_bound(sum_cei_bottom_up, bound) <= 0, frontier, sum_cei_bottom_up
-
-	raise Exception("Unknown case")
+	return frontier
 
 
-def nature_closure(subgraph: AGraph):
-	c_c = []
-	t_c = []
-
-	for t in t_c:
-		par, child = t.split(":")
-
-		if c.status.activityState.keys().type == "choice":
-			c_c.append(t)
-
-		if len(c_c) == 0:
-			return [c, brother]
-
-	return subgraph
-
-def frontier_info(frontier: list):
-	result = "["
+def frontier_info(frontier: list[SolutionTree]) -> str:
+	result = ""
 	for graph in frontier:
-		result += str(graph.init_node) + ", "
-	return result[:-2] + "]"
+		decisions = ""
+		for decision in graph.root.decisions:
+			decisions += str(decision.id) + ", "
 
-def found_strategy(frontier: list, bound: list):
+		choices_natures = ""
+		for choice_nature in graph.root.choices_natures:
+			choices_natures += str(choice_nature.id) + ", "
+
+		result += "<<" + decisions[:-2] + ">,<" + choices_natures[:-2] + ">>, "
+
+	return "[" + result[:-2] + "]"
+
+
+def found_strategy(frontier: list[SolutionTree], bound: list) -> (list[SolutionTree], list[int]):
 	print("frontier: ", frontier_info(frontier))
 
-	frontier_value_bottom_up = sum(graph.init_node.cei_bottom_up for graph in frontier)
-	if compare_bound(frontier_value_bottom_up, bound) <= 0:
-		print("Win")
+	frontier_value_bottom_up = sum(tree.root.cei_bottom_up for tree in frontier)
+
+	if all(result <= 0 for result in compare_bound(frontier_value_bottom_up, bound)):
+		print("Win", frontier_value_bottom_up, bound, compare_bound(frontier_value_bottom_up, bound))
 		return frontier, [frontier_value_bottom_up]
 
-	frontier_value_top_down = sum(graph.init_node.cei_top_down for graph in frontier)
-	if (compare_bound(frontier_value_top_down, bound) > 0 or
-			all(graph.init_node.is_final_state for graph in frontier)):
-		print("Failed top_down: not a valid choose", compare_bound(frontier_value_top_down, bound) > 0)
+	frontier_value_top_down = sum(tree.root.cei_top_down for tree in frontier)
+
+	if (all(result > 0 for result in compare_bound(frontier_value_top_down, bound))
+			or all(tree.root.is_final_state for tree in frontier)):
+		print("Failed top_down: not a valid choose")
 		return None, [frontier_value_top_down]
 
-	graph = pick([graph for graph in frontier if not graph.init_node.is_final_state])
-	frontier.remove(graph)
+	tree = pick([tree for tree in frontier if not tree.root.is_final_state])
 
 	failed = []
 	tested = []
-	while len(tested) < len(graph.init_node.transitions.values()):
-		new_frontier = [subgraph for subgraph in graph.init_node.transitions.values() if subgraph not in tested]
-		print("new_frontier: ", frontier_info(new_frontier))
+	while len(tested) < len(tree.root.transitions.values()):
+		to_pick_frontier = [subTree for subTree in tree.root.transitions.values() if subTree not in tested]
+		print("to_pick_frontier: ", frontier_info(to_pick_frontier))
 
-		subgraph = pick(new_frontier)
-		#subgraph = nature_clousure(subgraph)
+		chose = pick(to_pick_frontier)
+		chose_frontier = natural_closure(tree, chose)
+		print("frontier_nat: ", frontier_info(chose_frontier))
 
 		new_frontier = frontier.copy()
-		new_frontier.append(subgraph)
-		print("new_frontier:after_pick: ", frontier_info(new_frontier))
+		new_frontier.remove(tree)
+		new_frontier.extend(chose_frontier)
+		print("new_frontier: ", frontier_info(new_frontier))
 		r, fvs = found_strategy(new_frontier, bound)
 		print("end_rec")
 		if r is None:
 			failed.append(fvs)
-			tested.append(subgraph)
+			tested.extend(chose_frontier)
 		else:
 			return r, fvs
 
 		print("tested", frontier_info(tested))
-		print("n.children", frontier_info(graph.init_node.transitions.values()))
+		print("n.children", frontier_info(tree.root.transitions.values()))
 
 	print("Failed: No choose left")
 	return None, failed
-
-
-
-
-
-
-
-
-
-

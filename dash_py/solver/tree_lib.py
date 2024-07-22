@@ -60,6 +60,9 @@ class CNode:
     def __hash__(self):
         return hash(self.id)
 
+    def __str__(self) -> str:
+        return str(self.id)
+
 def recursiveUnfoldingOfLoop(children_list, id, parent, index_in_parent, loop_prob):
     #recursive construction of the final unfolded tree
     if len(children_list) == 1:
