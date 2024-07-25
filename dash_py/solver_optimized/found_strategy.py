@@ -1,17 +1,18 @@
 import random
-from solver_optimized.solution_tree import SolutionTree
+
+from solver_optimized.execution_tree import ExecutionTree
 
 
 def compare_bound(cei: list, bound: list):
 	return [-1 if v1 < v2 else 0 if v1 == v2 else 1 for v1, v2 in zip(cei, bound)]
 
 
-def pick(frontier: list[SolutionTree],  method: str = 'random') -> SolutionTree:
+def pick(frontier: list[ExecutionTree], method: str = 'random') -> ExecutionTree:
 
 	return frontier[random.randint(0, len(frontier) - 1)]
 
 
-def natural_closure(tree: SolutionTree, selected_tree: SolutionTree) -> list[SolutionTree]:
+def natural_closure(tree: ExecutionTree, selected_tree: ExecutionTree) -> list[ExecutionTree]:
 	nats = [node for node in tree.root.choices_natures if node.type == 'natural']
 	frontier = []
 	#print("nat_nodes: ", [node.id for node in nat_nodes], "chose_id: ", [node.id for node in chose_id])
@@ -37,7 +38,7 @@ def natural_closure(tree: SolutionTree, selected_tree: SolutionTree) -> list[Sol
 	return frontier
 
 
-def frontier_info(frontier: list[SolutionTree]) -> str:
+def frontier_info(frontier: list[ExecutionTree]) -> str:
 	result = ""
 	for graph in frontier:
 		decisions = ""
@@ -48,12 +49,12 @@ def frontier_info(frontier: list[SolutionTree]) -> str:
 		for choice_nature in graph.root.choices_natures:
 			choices_natures += str(choice_nature.id) + ", "
 
-		result += "<<" + decisions[:-2] + ">,<" + choices_natures[:-2] + ">>, "
+		result += f"ID:{graph.root.id}:<<" + decisions[:-2] + ">,<" + choices_natures[:-2] + ">>, "
 
 	return "[" + result[:-2] + "]"
 
 
-def found_strategy(frontier: list[SolutionTree], bound: list) -> (list[SolutionTree], list[int]):
+def found_strategy(frontier: list[ExecutionTree], bound: list) -> (list[ExecutionTree], list[int]):
 	print("frontier: ", frontier_info(frontier))
 
 	frontier_value_bottom_up = sum(tree.root.cei_bottom_up for tree in frontier)

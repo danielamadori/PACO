@@ -51,7 +51,7 @@ bpmn_ex = {
           "durations": {"Cutting": 1, "HP": 1, "LP": 1, "FD": 1, "RD":1 , "HPHS": 1, "LPLS": 1}, 
           "impacts_names": ["cost", "hours"], 
           "probabilities": {"N1": 0.6}, "names": {"C1": "C1", "C2": "C2", "N1": "N1"}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loops_round': {}
-        }, [28.7, 33.7]],
+        }, [26, 33.3]],
 
     "bpmn_prof": [{"expression": "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3)",
         "h": 0,
@@ -66,29 +66,34 @@ bpmn_ex = {
 }
 
 
-def test_calc_strategy_paco(bpmn_ex_dicts:dict):
+def test(name, bpmn):
+    print(f' type bpmn: {name}, strategy {bpmn}')
 
-    for key, bpmn in bpmn_ex_dicts.items():
-        
-        print(f' type bpmn: {key}, strategy {bpmn}')
-        
-        # per disegnare 
-        
-        # bpmn_svg_folder = "assets/bpmnTest/"
-        # if not os.path.exists(bpmn_svg_folder):
-        #     os.makedirs(bpmn_svg_folder)
-        # # Create a new SESE Diagram from the input
-        # name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
-        # print_sese_diagram(**bpmn, outfile=name_svg) 
-        
+    # per disegnare
 
-        # CHIAMA LA FUNZIONE per calcolo paco
-        strategies = calc_strategy_paco(bpmn[0], bpmn[1])
-        print(f' type bpmn: {key}, strategy {strategies}')
+    # bpmn_svg_folder = "assets/bpmnTest/"
+    # if not os.path.exists(bpmn_svg_folder):
+    #     os.makedirs(bpmn_svg_folder)
+    # # Create a new SESE Diagram from the input
+    # name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
+    # print_sese_diagram(**bpmn, outfile=name_svg)
 
-        #ask a string in input if the string is not yes exit
-        if input("Do you want to continue? ") != "yes":
-            break
+    strategies = calc_strategy_paco(bpmn[0], bpmn[1])
+    print(f'Type bpmn: {name}, strategy {strategies}')
 
 
-test_calc_strategy_paco(bpmn_ex)
+def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
+    if selected == -1:
+        for name, bpmn in bpmn_ex_dicts.items():
+            test(name, bpmn)
+            #ask a string in input if the string is not yes exit
+            answer = input("Do you want to continue? (yes/no): ")
+            if answer != "yes" and answer != "y":
+                break
+    else:
+        problem = list(bpmn_ex_dicts.items())[selected]
+        test(problem[0], problem[1])
+
+
+
+test_calc_strategy_paco(bpmn_ex, 5)

@@ -1,6 +1,6 @@
 import math
 from solver.tree_lib import CTree, CNode
-from solver_optimized.states import States, ActivityState, node_info, states_info
+from solver_optimized.saturate_execution.states import States, ActivityState
 
 
 def next_state(tree: CTree, states: States, k: int) -> (States, int):

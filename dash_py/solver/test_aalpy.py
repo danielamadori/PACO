@@ -1,10 +1,14 @@
 from random import seed
 
+import numpy as np
+
 from solver_optimized.build_strategy import build_strategy
-from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
-    evaluate_cumulative_expected_impacts
-from solver_optimized.solver_optimized import found_strategy
-from solver_optimized.write_solution_tree import write_solution_tree
+from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts, \
+    evaluate_cumulative_expected_impacts, preview_impacts, worst_impacts
+from solver_optimized.execution_tree import create_execution_tree, write_solution_tree, ExecutionTree, \
+    ExecutionViewPoint
+from solver_optimized.found_strategy import found_strategy
+from solver_optimized.saturate_execution.states import States
 
 seed(42)
 #############
@@ -174,7 +178,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         t = datetime.now()
         print(str(t) + " SolutionTree:")
-        ag, list_of_states = create_tree(custom_tree)
+        ag, list_of_states = create_execution_tree(custom_tree)
         t1 = datetime.now()
         print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
         evaluate_cumulative_expected_impacts(ag)
@@ -188,26 +192,36 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         write_solution_tree(ag, sol)
 
-        if sol is not None:
-            print(f'{datetime.now()} A strategy could be found')
-            print("cei_bottom_up:", fvs)
+        if sol is None:
+            s = "For this specific instance a strategy does not exist"
+            print(str(datetime.now()) + " " + s)
+            return '\n\n' + s + '\n'
 
-            _, strategy = build_strategy(sol)
-            print("Strategy: ")
+        print(f'{datetime.now()} A strategy could be found, cei_bottom_up:', fvs)
 
-            for choice in strategy:
-                print(f"Choice {choice}:")
-                for decision in strategy[choice]:
-                    print(f"Decision {decision}:")
-                    for tree in strategy[choice][decision]:
-                        print(tree.root)
+        print(f'{datetime.now()} Build Strategy:')
+        _, strategy = build_strategy(sol)
+        print(f'{datetime.now()} Strategy: ')
 
-            return f"A strategy could be found, which has as an expected impact of : {fvs} "
+        for choice in strategy:
+            print(f"Choice {choice}:")
+            for decision in strategy[choice]:
+                print(f"Decision {decision}:")
+                for tree in strategy[choice][decision]:
+                    print(tree.root)
 
-        s = "For this specific instance a strategy does not exist"
+        final_states = dict[ExecutionTree, tuple[States, np.array]]()
+        for node in sol:
+            print("Final States:", node.root.id)
+            state = worst_impacts(custom_tree, node.root.states)
+            print(state)
+            impacts = ExecutionViewPoint.impacts_evaluation2(state)
+            print("Probability: ", impacts[0], "Impacts: ", impacts[1])
+            final_states[node] = tuple[state, impacts]
 
-        print(str(datetime.now()) + " " + s)
-        return '\n\n' + s + '\n'
+        return f"A strategy could be found, which has as an expected impact of : {fvs} "
+
+
 
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred
