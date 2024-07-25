@@ -7,8 +7,8 @@ from solver_optimized.states import States, ActivityState
 
 
 class SolutionNode:
-    def __init__(self, states: States, decisions: tuple[CNode], choices_natures: tuple, parent: 'SolutionTree', is_final_state: bool):
-
+    def __init__(self, id: int, states: States, decisions: tuple[CNode], choices_natures: tuple, parent: 'SolutionTree', is_final_state: bool):
+        self.id = id
         self.states = states
         s, _ = self.states.str()
         self.state_id = s
@@ -49,7 +49,7 @@ class SolutionNode:
         return "\\n".join(parts)
 
     def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
-        result = str(self).replace('(', '').replace(')', '').replace(';', '_').replace(':', '_').replace('-', "neg")
+        result = str(self).replace('(', '').replace(')', '').replace(';', '_').replace(':', '_').replace('-', "neg").replace(' | ', '_')
 
         if full:
             result += ' [label=\"'
@@ -91,14 +91,19 @@ class SolutionNode:
                 self.probability *= p
 
             if node.type == 'task':
-                if self.impacts is None:
-                    self.impacts = np.array(node.impact, dtype=np.float64)
-                elif state > 0:
-                    self.impacts += node.impact
+                if state > ActivityState.WAITING:
+                    if self.impacts is None:
+                        self.impacts = np.array(node.impact, dtype=np.float64)
+                    elif state > 0:
+                        self.impacts += node.impact
+                else:
+                    if self.impacts is None:
+                        self.impacts = np.zeros(len(node.impact), dtype=np.float64)
+
 
     def dot_cei_str(self):
         return (self.dot_str(full=False) + "_impact",
-                f" [label=\"(cei_td: {self.cei_top_down}, cei_bu: {self.cei_bottom_up})\", shape=rect];\n")
+                f" [label=\"ID: {self.id} (cei_td: {self.cei_top_down}, cei_bu: {self.cei_bottom_up})\", shape=rect];\n")
 
 
 class SolutionTree:
@@ -108,6 +113,9 @@ class SolutionTree:
     def __str__(self) -> str:
         result = self.create_dot_graph(self.root, True, True, True)
         return result[0] + result[1]
+
+    def state_str(self):
+        return self.root.dot_str(state=True, executed_time=True, previous_node=None).split(' [')[0]
 
     def save_dot(self, path, state: bool = True, executed_time: bool = False, all_states: bool = False):
         with open(path, 'w') as file:
@@ -129,9 +137,10 @@ class SolutionTree:
         for n in self.root.decisions:
             starting_node_ids += str(n.id) + ";"
 
-        starting_node_ids = starting_node_ids[:-1] + "->"
-        for n in self.root.choices_natures:
-            starting_node_ids += str(n.id) + ";"
+        if len(self.root.choices_natures) > 0: #Just if we don't have choice
+            starting_node_ids = starting_node_ids[:-1] + "->"
+            for n in self.root.choices_natures:
+                starting_node_ids += str(n.id) + ";"
 
         result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
         return result

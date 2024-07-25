@@ -2,7 +2,7 @@ from random import seed
 
 from solver_optimized.build_strategy import build_strategy
 from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
-    evaluate_cumulative_expected_impacts2
+    evaluate_cumulative_expected_impacts
 from solver_optimized.solver_optimized import found_strategy
 from solver_optimized.write_solution_tree import write_solution_tree
 
@@ -174,24 +174,24 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         t = datetime.now()
         print(str(t) + " SolutionTree:")
-        ag, final_state = create_tree(custom_tree)
+        ag, list_of_states = create_tree(custom_tree)
         t1 = datetime.now()
         print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        evaluate_cumulative_expected_impacts2(ag)
+        evaluate_cumulative_expected_impacts(ag)
         t2 = datetime.now()
         print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
-
-        write_solution_tree(ag)
-
         t = datetime.now()
         print(str(t) + " Solver:")
         sol, fvs = found_strategy([ag], bound)
         t1 = datetime.now()
         print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
 
+        write_solution_tree(ag, sol)
+
         if sol is not None:
             print(f'{datetime.now()} A strategy could be found')
             print("cei_bottom_up:", fvs)
+
             _, strategy = build_strategy(sol)
             print("Strategy: ")
 
@@ -199,12 +199,10 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                 print(f"Choice {choice}:")
                 for decision in strategy[choice]:
                     print(f"Decision {decision}:")
-                    for state in strategy[choice][decision]:
-                        print(state.root)
+                    for tree in strategy[choice][decision]:
+                        print(tree.root)
 
-
-            impacts = -1
-            return f"A strategy could be found, which has as an expected impact of : {impacts} "
+            return f"A strategy could be found, which has as an expected impact of : {fvs} "
 
         s = "For this specific instance a strategy does not exist"
 

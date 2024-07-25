@@ -53,7 +53,7 @@ def create_tree(region_tree: CTree) -> (SolutionTree, list[SolutionTree]):
 	states, choices_natures, branches = saturate_solution_tree_node(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	solution_tree = SolutionTree(SolutionNode(
-		states=states,
+		id=0, states=states,
 		decisions=(region_tree.root,),
 		choices_natures=choices_natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
@@ -62,44 +62,46 @@ def create_tree(region_tree: CTree) -> (SolutionTree, list[SolutionTree]):
 
 	print("create_tree:", tree_node_info(solution_tree.root))
 
-	final_states = []
+	nodes = [solution_tree]
+	next_id = 0
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		final_states.extend(create_tree_node(region_tree, decisions, branch, solution_tree))
+		sub_nodes, last_child_id = create_tree_node(region_tree, decisions, branch, solution_tree, next_id + 1)
+		nodes.extend(sub_nodes)
+		next_id = last_child_id
 
-	return solution_tree, final_states
+	return solution_tree, nodes
 
 
-def create_tree_node(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: SolutionTree) -> list[SolutionTree]:
+def create_tree_node(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: SolutionTree, id: int) -> list[SolutionTree]:
 	saturatedStates, choices_natures, branches = saturate_solution_tree_node(region_tree, states)
 	states.update(saturatedStates)
 
-	is_final_state = states.activityState[region_tree.root] >= ActivityState.COMPLETED
-	final_states = []
 	next_node = SolutionTree(SolutionNode(
+		id=id,
 		states=states,
 		decisions=decisions,
 		choices_natures=choices_natures,
-		is_final_state=is_final_state,
+		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
 		parent=solution_tree)
 	)
 
 	print("create_tree_node:", tree_node_info(next_node.root))
 
-	if is_final_state:
-		final_states.append(next_node)
-
 	solution_tree.root.add_child(next_node)
+	nodes = [next_node]
 
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		final_states.extend(create_tree_node(region_tree, decisions, branch, next_node))
+		tmp, last_child_id = create_tree_node(region_tree, decisions, branch, next_node, id + 1)
+		nodes.extend(tmp)
+		id = last_child_id
 
-	return final_states
+	return nodes, id
 
-
+'''
 def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
 	solution_tree.root.cei_top_down = solution_tree.root.probability * np.array(solution_tree.root.impacts)
 	# solution_tree.root.cei_bottom_up = np.zeros(len(solution_tree.root.impacts))
@@ -112,20 +114,20 @@ def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
 	for sub_tree in solution_tree.root.transitions.values():
 		evaluate_cumulative_expected_impacts(sub_tree)
 		solution_tree.root.cei_bottom_up += sub_tree.root.child.bottom_up
+'''
 
-
-def evaluate_cumulative_expected_impacts2(solution_tree: SolutionTree):
+def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
 	root = solution_tree.root
 	root.cei_top_down = root.probability * np.array(root.impacts)
 	# root.cei_bottom_up = np.zeros(len(root.impacts)) #Useless, already done in the constructor
 	if root.is_final_state:
-		root.cei_bottom_up += root.cei_top_down
+		root.cei_bottom_up = copy.deepcopy(root.cei_top_down)
 		return
 
 	onlyChoice = True
 	choices_cei_bottom_up = {}
 	for Transition, subTree in root.transitions.items():
-		evaluate_cumulative_expected_impacts2(subTree)
+		evaluate_cumulative_expected_impacts(subTree)
 
 		choices_transitions = []
 		for t in Transition:
