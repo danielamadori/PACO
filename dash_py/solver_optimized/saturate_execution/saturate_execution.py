@@ -6,8 +6,8 @@ from solver_optimized.saturate_execution.step_to_saturation import steps_to_satu
 
 
 def saturate_execution(region_tree: CTree, states: States) -> (States, tuple[CNode], dict[tuple[CNode], States]):
-	branches = {}
-	choices_natures = []
+	branches = dict()
+	choices_natures = tuple()
 
 	while len(choices_natures) == 0 and states.activityState[region_tree.root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
@@ -24,6 +24,7 @@ def saturate_execution(region_tree: CTree, states: States) -> (States, tuple[CNo
 			Exception("StepsException" + str(k))
 
 		choices_natures, branches = create_branches(states)
+
 	#if len(branches) > 0:
 	#	print("create_branches:", states_info(states))
 

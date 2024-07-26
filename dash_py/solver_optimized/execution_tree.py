@@ -242,14 +242,14 @@ def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionT
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		sub_nodes, last_child_id = create_execution_viewpoints(region_tree, decisions, branch, solution_tree, next_id + 1)
+		sub_nodes, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, next_id + 1)
 		nodes.extend(sub_nodes)
 		next_id = last_child_id
 
 	return solution_tree, nodes
 
 
-def create_execution_viewpoints(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int) -> list[ExecutionTree]:
+def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int) -> list[ExecutionTree]:
 	saturatedStates, choices_natures, branches = saturate_execution(region_tree, states)
 	states.update(saturatedStates)
 
@@ -270,7 +270,7 @@ def create_execution_viewpoints(region_tree: CTree, decisions: tuple[CNode], sta
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		tmp, last_child_id = create_execution_viewpoints(region_tree, decisions, branch, next_node, id + 1)
+		tmp, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1)
 		nodes.extend(tmp)
 		id = last_child_id
 

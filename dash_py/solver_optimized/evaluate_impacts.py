@@ -1,6 +1,5 @@
 import copy
 import numpy as np
-
 from solver.tree_lib import CTree
 from solver_optimized.execution_tree import ExecutionTree
 from solver_optimized.saturate_execution.states import States, ActivityState, node_info
