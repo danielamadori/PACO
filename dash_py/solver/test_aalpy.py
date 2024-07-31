@@ -3,12 +3,12 @@ from random import seed
 import numpy as np
 
 from solver_optimized.build_strategy import build_strategy
-from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts, \
-    evaluate_cumulative_expected_impacts, preview_impacts, worst_impacts
-from solver_optimized.execution_tree import create_execution_tree, write_solution_tree, ExecutionTree, \
+from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
+from solver_optimized.explainer import unavoidable_tasks, explain_strategy
+from solver_optimized.execution_tree import create_execution_tree, write_execution_tree, ExecutionTree, \
     ExecutionViewPoint
 from solver_optimized.found_strategy import found_strategy
-from solver_optimized.saturate_execution.states import States
+from solver_optimized.pareto import get_pareto_frontier, plot_pareto_frontier
 
 seed(42)
 #############
@@ -28,8 +28,7 @@ from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
 from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
     SESE_PARSER, TASK_SEQ, \
-    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H
-
+    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, IMPACTS_NAMES
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
 # Add the current directory to the Python path
@@ -176,50 +175,50 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         print_sese_custom_tree(custom_tree)
 
+        print(str(datetime.now()) + " CreateExecutionTree:")
         t = datetime.now()
-        print(str(t) + " SolutionTree:")
-        ag, list_of_states = create_execution_tree(custom_tree)
+        execution_tree, list_of_states = create_execution_tree(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        evaluate_cumulative_expected_impacts(ag)
-        t2 = datetime.now()
-        print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
+        print(str(t1) + " CreateExecutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
         t = datetime.now()
-        print(str(t) + " Solver:")
-        sol, fvs = found_strategy([ag], bound)
+        evaluate_cumulative_expected_impacts(execution_tree)
         t1 = datetime.now()
-        print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        print(str(t1) + " CreateExecutionTree:CEI evaluated: " + str((t1 - t).total_seconds()*1000) + " ms")
+        print(str(t1) + " FoundStrategy:")
+        t = datetime.now()
+        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
+        t1 = datetime.now()
+        print(str(t1) + " FoundStrategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms, FrontierSolutionValueBottomUp: ", frontier_solution_value_bottom_up)
 
-        write_solution_tree(ag, sol)
+        write_execution_tree(execution_tree, frontier_solution)
 
-        if sol is None:
+        if frontier_solution is None:
+            pareto_frontier = get_pareto_frontier(frontier_solution_value_bottom_up)
+            print(f"ParetoFrontier\n{bpmn[IMPACTS_NAMES]}\n", pareto_frontier)
+
+            '''
+            #TODO
+            plot_pareto_frontier(np.array(pareto_frontier),
+                                 np.array(frontier_solution_value_bottom_up),
+                                 bpmn[IMPACTS_NAMES], file_name="pareto_frontier")
+            '''
+
             s = "For this specific instance a strategy does not exist"
             print(str(datetime.now()) + " " + s)
             return '\n\n' + s + '\n'
 
-        print(f'{datetime.now()} A strategy could be found, cei_bottom_up:', fvs)
+        print(f'{datetime.now()} BuildStrategy:')
+        t = datetime.now()
+        _, strategy = build_strategy(frontier_solution)
+        t1 = datetime.now()
+        print(str(t1) + " Build Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        print(f'{t1} Explain Strategy: ')
+        t = datetime.now()
+        currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = explain_strategy(custom_tree, strategy)
+        t1 = datetime.now()
+        print(str(t1) + " Explain Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
 
-        print(f'{datetime.now()} Build Strategy:')
-        _, strategy = build_strategy(sol)
-        print(f'{datetime.now()} Strategy: ')
-
-        for choice in strategy:
-            print(f"Choice {choice}:")
-            for decision in strategy[choice]:
-                print(f"Decision {decision}:")
-                for tree in strategy[choice][decision]:
-                    print(tree.root)
-
-        final_states = dict[ExecutionTree, tuple[States, np.array]]()
-        for node in sol:
-            print("Final States:", node.root.id)
-            state = worst_impacts(custom_tree, node.root.states)
-            print(state)
-            impacts = ExecutionViewPoint.impacts_evaluation2(state)
-            print("Probability: ", impacts[0], "Impacts: ", impacts[1])
-            final_states[node] = tuple[state, impacts]
-
-        return f"A strategy could be found, which has as an expected impact of : {fvs} "
+        return f"A strategy could be found, which has as an expected impact of : {frontier_solution_value_bottom_up} "
 
 
 

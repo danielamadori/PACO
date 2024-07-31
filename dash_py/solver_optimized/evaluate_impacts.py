@@ -1,8 +1,6 @@
 import copy
 import numpy as np
-from solver.tree_lib import CTree
 from solver_optimized.execution_tree import ExecutionTree
-from solver_optimized.saturate_execution.states import States, ActivityState, node_info
 
 '''
 def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
@@ -18,6 +16,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
 		evaluate_cumulative_expected_impacts(sub_tree)
 		solution_tree.root.cei_bottom_up += sub_tree.root.child.bottom_up
 '''
+
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 	root = solution_tree.root
@@ -77,31 +76,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 				root.cei_bottom_up[i] = choices_cei_bottom_up[c][i]
 
 
-def preview_impacts(tree: CTree, states: States):
-	root = tree.root
-	print(node_info(root, states))
-	if root in states.activityState and states.activityState[root] in [ActivityState.WILL_NOT_BE_EXECUTED, ActivityState.COMPLETED, ActivityState.COMPLETED_WIHTOUT_PASSING_OVER]:
-		return {}
-	if root.type == 'task':
-		if root not in states.activityState or (root in states.activityState and states.activityState[root] == ActivityState.WAITING):
-			print("ciao")
-			return {root}
-		return {}
-	if root.type in ['sequential', 'parallel']:
-		result = {}
-		for child in root.childrens:
-			result.update(preview_impacts(child, states))
-		return result
-
-	if root.type in ['choice', 'natural'] and root in states.activityState and states.activityState[root] == ActivityState.ACTIVE:
-		for child in root.childrens:
-			if child.root in states.activityState and states.activityState[child.root] == ActivityState.ACTIVE:
-				return preview_impacts(child, states)
-
-	return {}
-
-
-
+'''
 def worst_impacts(tree: CTree, states: States):
 	root = tree.root
 	#print(node_info(root, states))
@@ -124,3 +99,4 @@ def worst_impacts(tree: CTree, states: States):
 				return worst_impacts(child, states)
 
 	return States()
+'''

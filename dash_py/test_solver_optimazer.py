@@ -62,7 +62,37 @@ bpmn_ex = {
         "loops_prob": {},
         "names": {"N1": "N1", "N2": "N2", "c1": "c1"},
         "delays": {"c1": 0}, "loop_round": {}
-        }, [1, 1, 1, 1]]
+        }, [1, 1, 1, 1]],
+
+    "bpmn_unavoidable_tasks": [{"expression": "(TaskA ^ [C1] TaskB), Task2",
+        "h": 0,
+        "impacts": {"TaskA": [10], "TaskB": [10], "Task2": [10]},
+        "durations": {"TaskA": 100, "TaskB": 100, "Task2": 100},
+        "impacts_names": ["cost"],
+        "probabilities": {"C1": 0.5}, "names": {"C1": "C1"}, "delays": {"C1": 0},'loops_prob' : {}, 'loops_round': {}
+        }, [20]],
+
+    "bpmn_unavoidable_tasks2": [{"expression": "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3), t4",
+                   "h": 0,
+                   "impacts": {"HP": [1, 0, 0, 0], "LP": [0, 1, 0, 0], "HPHS": [0, 0, 1, 0], "LPLS": [0, 0, 0, 1], "t1": [1, 0, 0, 0], "t3": [0, 1, 0, 0], "t4": [1, 1, 1, 1]},
+                   "durations": {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100, "t4": 100},
+                   "impacts_names": ["cost", "r", "s", "e"],
+                   "probabilities": {"N1": 0.5, "N2": 0.5},
+                   "loops_prob": {},
+                   "names": {"N1": "N1", "N2": "N2", "c1": "c1"},
+                   "delays": {"c1": 0}, "loop_round": {}
+                   }, [2, 2, 2, 2]],
+
+    "bpmn_unavoidable_tasks3": [{"expression": "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3), t4, t5",
+                    "h": 0,
+                    "impacts": {"HP": [1, 0, 0, 0], "LP": [0, 1, 0, 0], "HPHS": [0, 0, 1, 0], "LPLS": [0, 0, 0, 1], "t1": [1, 0, 0, 0], "t3": [0, 1, 0, 0], "t4": [1, 1, 1, 1], "t5": [1, 1, 1, 1]},
+                    "durations": {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100, "t4": 100, "t5": 100},
+                    "impacts_names": ["cost", "r", "s", "e"],
+                    "probabilities": {"N1": 0.5, "N2": 0.5},
+                    "loops_prob": {},
+                    "names": {"N1": "N1", "N2": "N2", "c1": "c1"},
+                    "delays": {"c1": 0}, "loop_round": {}
+                    }, [3, 3, 3, 3]],
 }
 
 
@@ -95,5 +125,5 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
         test(problem[0], problem[1])
 
 
-
-test_calc_strategy_paco(bpmn_ex, 5)
+test_calc_strategy_paco(bpmn_ex, 9)
+#test_calc_strategy_paco(bpmn_ex, 7)

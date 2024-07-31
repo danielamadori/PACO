@@ -13,7 +13,7 @@ from utils.env import RESOLUTION, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_A
 
 class ExecutionViewPoint:
 	def __init__(self, id: int, states: States, decisions: tuple[CNode], choices_natures: tuple,
-				 parent: 'ExecutionTree', is_final_state: bool):
+				parent: 'ExecutionTree', is_final_state: bool):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()
@@ -25,7 +25,7 @@ class ExecutionViewPoint:
 		self.transitions: dict[tuple, ExecutionTree] = {}
 		self.probability = None
 		self.impacts = None
-		self.probability, self.impacts = ExecutionViewPoint.impacts_evaluation2(states)
+		self.probability, self.impacts = ExecutionViewPoint.impacts_evaluation(states)
 		self.cei_top_down = np.zeros(len(self.impacts), dtype=np.float64)
 		self.cei_bottom_up = np.zeros(len(self.impacts), dtype=np.float64)
 
@@ -86,29 +86,8 @@ class ExecutionViewPoint:
 
 		self.transitions[tuple(transition)] = subTree
 
-	def impacts_evaluation(self):
-		self.probability = 1.0
-		for node, state in self.states.activityState.items():
-			if (node.type == 'natural' and state > ActivityState.WAITING
-					and (self.states.activityState[node.childrens[0].root] > ActivityState.WAITING
-						 or self.states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
-
-				p = node.probability
-				if self.states.activityState[node.childrens[1].root] > 0:
-					p = 1 - p
-				self.probability *= p
-
-			if node.type == 'task':
-				if state > ActivityState.WAITING:
-					if self.impacts is None:
-						self.impacts = np.array(node.impact, dtype=np.float64)
-					elif state > 0:
-						self.impacts += node.impact
-				else:
-					if self.impacts is None:
-						self.impacts = np.zeros(len(node.impact), dtype=np.float64)
-
-	def impacts_evaluation2(states: States):
+	@staticmethod
+	def impacts_evaluation(states: States):
 		impacts = None
 
 		probability = 1.0
@@ -133,7 +112,6 @@ class ExecutionViewPoint:
 						impacts = np.zeros(len(node.impact), dtype=np.float64)
 
 		return probability, impacts
-
 
 	def dot_cei_str(self):
 		return (self.dot_str(full=False) + "_impact",
@@ -277,7 +255,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 	return nodes, id
 
 
-def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str, pngPath: str):
+def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", pngPath: str = ""):
 	graphs = pydot.graph_from_dot_file(dotPath)
 	graph = graphs[0]
 	# print([node.get_name() for node in graph.get_nodes()])
@@ -288,17 +266,21 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str, pngPa
 			node.set_style('filled')
 			node.set_fillcolor('green')
 
-	graph.write_svg(svgPath)
+	# if svgPath not ""
+	if svgPath != "":
+		graph.write_svg(svgPath)
+
 	graph.set('dpi', RESOLUTION)
-	graph.write_png(pngPath)
+	if pngPath != "":
+		graph.write_png(pngPath)
 
 
-def write_solution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
+def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
 	solution_tree.save_dot(PATH_AUTOMA_DOT)
-	write_image(frontier, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_IMAGE)
+	write_image(frontier, PATH_AUTOMA_DOT, svgPath=PATH_AUTOMA_IMAGE_SVG)#, PATH_AUTOMA_IMAGE)
 
 	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, executed_time=True)
-	write_image(frontier, PATH_AUTOMA_TIME_DOT, PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_IMAGE)
+	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
 
 	solution_tree.save_dot(PATH_AUTOMA_TIME_EXTENDED_DOT, executed_time=True, all_states=True)
-	write_image(frontier, PATH_AUTOMA_TIME_EXTENDED_DOT, PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_IMAGE)
+	write_image(frontier, PATH_AUTOMA_TIME_EXTENDED_DOT, svgPath=PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG)#, PATH_AUTOMA_TIME_EXTENDED_IMAGE)
