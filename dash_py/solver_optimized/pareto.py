@@ -1,7 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from itertools import combinations
-from scipy.spatial import Delaunay
 
 def get_pareto_frontier(frontier):
 	pareto_frontier = []

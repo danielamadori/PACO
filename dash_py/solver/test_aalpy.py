@@ -8,7 +8,7 @@ from solver_optimized.explainer import unavoidable_tasks, explain_strategy
 from solver_optimized.execution_tree import create_execution_tree, write_execution_tree, ExecutionTree, \
     ExecutionViewPoint
 from solver_optimized.found_strategy import found_strategy
-from solver_optimized.pareto import get_pareto_frontier, plot_pareto_frontier
+from solver_optimized.pareto import get_pareto_frontier
 
 seed(42)
 #############
