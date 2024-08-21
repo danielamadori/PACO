@@ -4,9 +4,8 @@ import numpy as np
 
 from solver_optimized.build_strategy import build_strategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
-from solver_optimized.explainer import unavoidable_tasks, explain_strategy
-from solver_optimized.execution_tree import create_execution_tree, write_execution_tree, ExecutionTree, \
-    ExecutionViewPoint
+from solver_optimized.explainer import explain_strategy, test_cnf_strategy
+from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
 from solver_optimized.found_strategy import found_strategy
 from solver_optimized.pareto import get_pareto_frontier
 
@@ -217,9 +216,13 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = explain_strategy(custom_tree, strategy)
         t1 = datetime.now()
         print(str(t1) + " Explain Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
+        print(f'{t1} Test CNF Strategy: currentImpactsStrategy')
+        t = datetime.now()
+        test_cnf_strategy(currentImpactsStrategy)
+        t1 = datetime.now()
+        print(str(t1) + " Test CNF Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
 
         return f"A strategy could be found, which has as an expected impact of : {frontier_solution_value_bottom_up} "
-
 
 
     except Exception as e:

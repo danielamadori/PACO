@@ -199,7 +199,7 @@ def tree_node_info(node: ExecutionViewPoint) -> str:
 	for n in node.choices_natures:
 		tmp += str(n.id) + ";"
 
-	return result + tmp[:-1] + ">:status:" + states_info(node.states)
+	return result + tmp[:-1] + ">:status:\n" + states_info(node.states)
 
 
 def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionTree]):

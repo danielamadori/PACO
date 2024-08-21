@@ -1,7 +1,7 @@
 import numpy as np
-
 from solver.tree_lib import CTree, CNode
 from solver_optimized.execution_tree import ExecutionViewPoint
+from solver_optimized.found_cnf import get_min_cnf
 from solver_optimized.saturate_execution.states import States, node_info, ActivityState
 
 
@@ -33,32 +33,27 @@ def unavoidable_tasks(tree: CTree, states: States) -> set[CTree]:
 
 
 def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionViewPoint]]]):
-	currentImpactsStrategy = dict[CNode, dict[CNode, list[np.ndarray]]]()
-	unavoidableImpactsStrategy = dict[CNode, dict[CNode, list[np.ndarray]]]()
-	statefulStrategy = dict[CNode, dict[CNode, list[np.ndarray]]]()
+	currentImpactsStrategy = {}
+	unavoidableImpactsStrategy = {}
+	statefulStrategy = {}
 
 	for choice in strategy:
-		#print(f"Choice {choice}:")
-		currentImpactsStrategy[choice] = dict[CNode, list[np.ndarray]]()
-		unavoidableImpactsStrategy[choice] = dict[CNode, list[np.ndarray]]()
-		statefulStrategy[choice] = dict[CNode, list[np.ndarray]]()
+		currentImpactsStrategy[choice] = {}
+		unavoidableImpactsStrategy[choice] = {}
+		statefulStrategy[choice] = {}
 
 		for decision in strategy[choice]:
-			#print(f"Decision {decision}:")
-			currentImpactsStrategy[choice][decision] = list[np.ndarray]()
-			unavoidableImpactsStrategy[choice][decision] = list[np.ndarray]()
-			statefulStrategy[choice][decision] = list[np.ndarray]()
+			currentImpactsStrategy[choice][decision] = []
+			unavoidableImpactsStrategy[choice][decision] = []
+			statefulStrategy[choice][decision] = []
 
 			for tree in strategy[choice][decision]:
-				#print("Final States:", tree.root.id)
 				unavoidableTasks = unavoidable_tasks(region_tree, tree.root.states)
-				#print("end")
 
 				currentImpacts = tree.root.impacts
 				unavoidableImpacts = np.zeros(len(currentImpacts))
 				if unavoidableTasks:
 					for unavoidableTask in unavoidableTasks:
-						#print(f'id:{unavoidableTask.id}; {"" if unavoidableTask.name is None else "name:" + unavoidableTask.name + '; '}type:{unavoidableTask.type};')
 						unavoidableImpacts += np.array(unavoidableTask.impact)
 
 				stateful = currentImpacts + unavoidableImpacts
@@ -66,8 +61,31 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 				print(f"<c:{choice}, d:{decision}, s:{tree.root.id}> Current impacts: ", currentImpacts)
 				print(f"<c:{choice}, d:{decision}, s:{tree.root.id}> Unavoidable impacts: ", unavoidableImpacts)
 				print(f"<c:{choice}, d:{decision}, s:{tree.root.id}> Stateful impacts: ", stateful)
-			currentImpactsStrategy[choice][decision].append(currentImpacts)
-			unavoidableImpactsStrategy[choice][decision].append(unavoidableImpacts)
-			statefulStrategy[choice][decision].append(stateful)
+
+				currentImpactsStrategy[choice][decision].append(currentImpacts)
+				unavoidableImpactsStrategy[choice][decision].append(unavoidableImpacts)
+				statefulStrategy[choice][decision].append(stateful)
 
 	return currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy
+
+
+def test_cnf_strategy(strategy):
+	for choice in strategy:
+		print(f"strategy[{choice}] {strategy[choice]}")
+		impacts = []
+		labels = []
+		i = 0
+		for decision in strategy[choice]:
+			print(f"Choice {choice}, Decision {decision}: strategy[{choice}][{decision}] {strategy[choice][decision]}")
+			for state in strategy[choice][decision]:
+				print(f"\tState: {state}")
+				impacts.append(state)
+				labels.append(i)
+			i += 1
+
+		vector_size = len(impacts[0])
+		print("Impacts:", impacts)
+		print("Labels:", labels)
+		print("Impacts size:", vector_size)
+		found, cnf = get_min_cnf(impacts, labels, vector_size, 10)# TODO: fix k
+		print("CNF:", cnf)

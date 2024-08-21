@@ -125,5 +125,5 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
         test(problem[0], problem[1])
 
 
-test_calc_strategy_paco(bpmn_ex)
-#test_calc_strategy_paco(bpmn_ex, 7)
+#test_calc_strategy_paco(bpmn_ex)
+test_calc_strategy_paco(bpmn_ex, 8)
