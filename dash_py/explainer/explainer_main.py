@@ -1,7 +1,10 @@
 import numpy as np
+import pandas as pd
+
 from solver.tree_lib import CTree, CNode
 from solver_optimized.execution_tree import ExecutionViewPoint
-from solver_optimized.found_cnf import get_min_cnf
+from solver_optimized.explainer.dag import Dag
+from solver_optimized.explainer.bdd import BDD
 from solver_optimized.saturate_execution.states import States, node_info, ActivityState
 
 
@@ -69,7 +72,7 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 	return currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy
 
 
-def test_cnf_strategy(strategy):
+def test_strategy(strategy):
 	for choice in strategy:
 		print(f"strategy[{choice}] {strategy[choice]}")
 		impacts = []
@@ -87,5 +90,15 @@ def test_cnf_strategy(strategy):
 		print("Impacts:", impacts)
 		print("Labels:", labels)
 		print("Impacts size:", vector_size)
-		found, cnf = get_min_cnf(impacts, labels, vector_size, 10)# TODO: fix k
-		print("CNF:", cnf)
+
+
+		df = pd.DataFrame(impacts, columns=[f'impact_{i}' for i in range(vector_size)])
+		df['class'] = labels
+
+		dag = Dag(df)
+		dag.run(file_path="out/output")
+		#print(dag.transitions_str())
+
+		min_tree = BDD(dag)
+		print(min_tree.build())
+		min_tree.to_file("out/bdd_tree")

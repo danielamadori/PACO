@@ -2,9 +2,9 @@ from random import seed
 
 import numpy as np
 
+from explainer.explainer_main import test_strategy, explain_strategy
 from solver_optimized.build_strategy import build_strategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
-from solver_optimized.explainer import explain_strategy, test_cnf_strategy
 from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
 from solver_optimized.found_strategy import found_strategy
 from solver_optimized.pareto import get_pareto_frontier
@@ -218,7 +218,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(str(t1) + " Explain Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
         print(f'{t1} Test CNF Strategy: currentImpactsStrategy')
         t = datetime.now()
-        test_cnf_strategy(currentImpactsStrategy)
+        test_strategy(currentImpactsStrategy)
         t1 = datetime.now()
         print(str(t1) + " Test CNF Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
 
