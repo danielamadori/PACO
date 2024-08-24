@@ -1,5 +1,5 @@
 import copy
-from solver.tree_lib import CNode
+from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree, ExecutionViewPoint
 from solver_optimized.found_strategy import frontier_info
 

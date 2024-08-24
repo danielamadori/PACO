@@ -1,8 +1,7 @@
 from random import seed
 
-import numpy as np
-
-from explainer.explainer_main import test_strategy, explain_strategy
+from solver_optimized.build_strategies import build_strategies
+from explainer.explain_strategy import explain_strategy
 from solver_optimized.build_strategy import build_strategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
 from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
@@ -14,20 +13,12 @@ seed(42)
 # https://github.com/DES-Lab/AALpy/wiki/SUL-Interface,-or-How-to-Learn-Your-Systems
 #############
 
-from aalpy.oracles import RandomWalkEqOracle, StatePrefixEqOracle
-from aalpy.learning_algs import run_Lstar, run_KV
-from aalpy.utils import visualize_automaton, load_automaton_from_file
-
-from lark import Lark
 import os, sys
-from IPython.display import display
 from datetime import datetime
-from solver.tree_lib import CNode, CTree, print_sese_custom_tree
+from solver.tree_lib import print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
-from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
-from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
-    SESE_PARSER, TASK_SEQ, \
-    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H, IMPACTS_NAMES
+from utils.env import LOOPS_PROB, SESE_PARSER, TASK_SEQ, \
+    IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, IMPACTS_NAMES
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
 # Add the current directory to the Python path
@@ -211,16 +202,16 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         _, strategy = build_strategy(frontier_solution)
         t1 = datetime.now()
         print(str(t1) + " Build Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        print(f'{t1} Explain Strategy: ')
+        print(f'{t1} Build Strategies: ')
         t = datetime.now()
-        currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = explain_strategy(custom_tree, strategy)
+        currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = build_strategies(custom_tree, strategy)
+        t1 = datetime.now()
+        print(str(t1) + " Build Strategies:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
+        print(f'{t1} Explain Strategy: currentImpactsStrategy')
+        t = datetime.now()
+        explain_strategy(currentImpactsStrategy, bpmn[IMPACTS_NAMES])
         t1 = datetime.now()
         print(str(t1) + " Explain Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
-        print(f'{t1} Test CNF Strategy: currentImpactsStrategy')
-        t = datetime.now()
-        test_strategy(currentImpactsStrategy)
-        t1 = datetime.now()
-        print(str(t1) + " Test CNF Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
 
         return f"A strategy could be found, which has as an expected impact of : {frontier_solution_value_bottom_up} "
 

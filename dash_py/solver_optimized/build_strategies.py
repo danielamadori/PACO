@@ -1,11 +1,8 @@
 import numpy as np
-import pandas as pd
 
 from solver.tree_lib import CTree, CNode
 from solver_optimized.execution_tree import ExecutionViewPoint
-from solver_optimized.explainer.dag import Dag
-from solver_optimized.explainer.bdd import BDD
-from solver_optimized.saturate_execution.states import States, node_info, ActivityState
+from solver_optimized.saturate_execution.states import States, ActivityState
 
 
 def unavoidable_tasks(tree: CTree, states: States) -> set[CTree]:
@@ -35,7 +32,8 @@ def unavoidable_tasks(tree: CTree, states: States) -> set[CTree]:
 	return {}
 
 
-def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionViewPoint]]]):
+
+def build_strategies(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionViewPoint]]]):
 	currentImpactsStrategy = {}
 	unavoidableImpactsStrategy = {}
 	statefulStrategy = {}
@@ -70,35 +68,3 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 				statefulStrategy[choice][decision].append(stateful)
 
 	return currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy
-
-
-def test_strategy(strategy):
-	for choice in strategy:
-		print(f"strategy[{choice}] {strategy[choice]}")
-		impacts = []
-		labels = []
-		i = 0
-		for decision in strategy[choice]:
-			print(f"Choice {choice}, Decision {decision}: strategy[{choice}][{decision}] {strategy[choice][decision]}")
-			for state in strategy[choice][decision]:
-				print(f"\tState: {state}")
-				impacts.append(state)
-				labels.append(i)
-			i += 1
-
-		vector_size = len(impacts[0])
-		print("Impacts:", impacts)
-		print("Labels:", labels)
-		print("Impacts size:", vector_size)
-
-
-		df = pd.DataFrame(impacts, columns=[f'impact_{i}' for i in range(vector_size)])
-		df['class'] = labels
-
-		dag = Dag(df)
-		dag.run(file_path="out/output")
-		#print(dag.transitions_str())
-
-		min_tree = BDD(dag)
-		print(min_tree.build())
-		min_tree.to_file("out/bdd_tree")
