@@ -3,7 +3,7 @@ import math
 import pandas as pd
 
 
-class Node:
+class DagNode:
 	# root ---- {('a', 2.5, True), ('b', 3.5, True)} ---->  index = {0,1,2}
 	def __init__(self, df: pd.DataFrame):
 		self.df = df
@@ -55,16 +55,16 @@ class Node:
 	def edge_str(edge: set):
 		result = ""
 		for test in sorted(edge):
-			result += Node.test_str(test) + ", "
+			result += DagNode.test_str(test) + ", "
 
 		result = result[:-2]
 		line_length = int(2 * math.sqrt(len(result)))
-		return "{" + Node.text_format(result, line_length) + "}"
+		return "{" + DagNode.text_format(result, line_length) + "}"
 
-	def transition_str(self, target_node: 'Node', changed=False):
-		return f'{("*" if changed else "")}{self} --{Node.edge_str(self.edges[target_node])}--> {target_node}'
+	def transition_str(self, target_node: 'DagNode', changed=False):
+		return f'{("*" if changed else "")}{self} --{self.edge_str(self.edges[target_node])}--> {target_node}'
 
-	def add_node(self, target_node: 'Node', test: tuple):
+	def add_node(self, target_node: 'DagNode', test: tuple):
 		feature, threshold, lt = test
 		self.tests.add((feature, threshold))
 		# The edge is a set of tests

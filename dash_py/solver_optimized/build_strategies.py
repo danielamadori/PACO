@@ -2,7 +2,7 @@ import numpy as np
 
 from solver.tree_lib import CTree, CNode
 from solver_optimized.execution_tree import ExecutionViewPoint
-from solver_optimized.saturate_execution.states import States, ActivityState
+from saturate_execution.states import States, ActivityState
 
 
 def unavoidable_tasks(tree: CTree, states: States) -> set[CTree]:
@@ -30,7 +30,6 @@ def unavoidable_tasks(tree: CTree, states: States) -> set[CTree]:
 				return unavoidable_tasks(child, states)
 
 	return {}
-
 
 
 def build_strategies(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionViewPoint]]]):

@@ -6,7 +6,7 @@ from solver_optimized.build_strategy import build_strategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
 from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
 from solver_optimized.found_strategy import found_strategy
-from solver_optimized.pareto import get_pareto_frontier
+from solver_optimized.pareto import get_non_dominated_impacts
 
 seed(42)
 #############
@@ -157,7 +157,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Parse the task sequence from the BPMN diagram
         tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
         print(tree.pretty)
-        print(f'{datetime.now()} bound {bound}')
+        print(f'{datetime.now()} Bound {bound}')
         # Convert the parsed tree into a custom tree and get the last ID
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
                                             bpmn[IMPACTS], bpmn[DURATIONS],
@@ -165,53 +165,56 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         print_sese_custom_tree(custom_tree)
 
-        print(str(datetime.now()) + " CreateExecutionTree:")
+        print(f"{datetime.now()} CreateExecutionTree:")
         t = datetime.now()
         execution_tree, list_of_states = create_execution_tree(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " CreateExecutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
         t = datetime.now()
         evaluate_cumulative_expected_impacts(execution_tree)
         t1 = datetime.now()
-        print(str(t1) + " CreateExecutionTree:CEI evaluated: " + str((t1 - t).total_seconds()*1000) + " ms")
-        print(str(t1) + " FoundStrategy:")
+        print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
+        print(f"{t1} FoundStrategy:")
         t = datetime.now()
         frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
         t1 = datetime.now()
-        print(str(t1) + " FoundStrategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms, FrontierSolutionValueBottomUp: ", frontier_solution_value_bottom_up)
-
+        print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
         write_execution_tree(execution_tree, frontier_solution)
 
         if frontier_solution is None:
-            pareto_frontier = get_pareto_frontier(frontier_solution_value_bottom_up)
-            print(f"ParetoFrontier\n{bpmn[IMPACTS_NAMES]}\n", pareto_frontier)
+            non_dominated_impacts = get_non_dominated_impacts(frontier_solution_value_bottom_up)
 
-            '''
-            #TODO
-            plot_pareto_frontier(np.array(pareto_frontier),
-                                 np.array(frontier_solution_value_bottom_up),
-                                 bpmn[IMPACTS_NAMES], file_name="pareto_frontier")
-            '''
+            s = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\n"
+            for i in range(len(non_dominated_impacts)):
+                s += f"Exp. Impacts {i}:\t{non_dominated_impacts[i]}\n"
+            print(s)
+
+            #TODO plot_pareto_frontier
 
             s = "For this specific instance a strategy does not exist"
             print(str(datetime.now()) + " " + s)
             return '\n\n' + s + '\n'
 
+        print(f"Success:\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_solution_value_bottom_up[0]}")
+
         print(f'{datetime.now()} BuildStrategy:')
         t = datetime.now()
         _, strategy = build_strategy(frontier_solution)
         t1 = datetime.now()
-        print(str(t1) + " Build Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        print(f'{t1} Build Strategies: ')
-        t = datetime.now()
-        currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = build_strategies(custom_tree, strategy)
-        t1 = datetime.now()
-        print(str(t1) + " Build Strategies:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
-        print(f'{t1} Explain Strategy: currentImpactsStrategy')
-        t = datetime.now()
-        explain_strategy(currentImpactsStrategy, bpmn[IMPACTS_NAMES])
-        t1 = datetime.now()
-        print(str(t1) + " Explain Strategy:completed: " + str((t1 - t).total_seconds()*1000) + " ms\n")
+        print(f"{t1} Build Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
+        if len(strategy) == 0:
+            print("For this specific instance, a strategy isn't needed (choices not found)")
+        else:
+            print(f'{t1} Build Strategies: ')
+            t = datetime.now()
+            currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = build_strategies(custom_tree, strategy)
+            t1 = datetime.now()
+            print(f"{t1} Build Strategies:completed: {(t1 - t).total_seconds()*1000} ms")
+            print(f'{t1} Explain Strategy: currentImpactsStrategy')
+            t = datetime.now()
+            explain_strategy(currentImpactsStrategy, bpmn[IMPACTS_NAMES])
+            t1 = datetime.now()
+            print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
 
         return f"A strategy could be found, which has as an expected impact of : {frontier_solution_value_bottom_up} "
 

@@ -1,5 +1,5 @@
 from solver.tree_lib import CNode
-from solver_optimized.saturate_execution.states import States, ActivityState
+from saturate_execution.states import States, ActivityState
 from itertools import product
 
 

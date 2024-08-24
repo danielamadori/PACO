@@ -2,12 +2,17 @@ import math
 import os
 import graphviz
 import pandas as pd
-from explainer.node import Node
+from explainer.dag_node import DagNode
+from solver.tree_lib import CNode
+from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Dag:
-	def __init__(self, df:pd.DataFrame):
-		self.root = Node(df)
+	def __init__(self, id: CNode, classes: list[CNode], df: pd.DataFrame):
+		self.id = id
+		self.class_true = classes[0]
+		self.class_false = classes[1]
+		self.root = DagNode(df)
 		self.nodes = {self.root}
 
 	def __str__(self):
@@ -50,10 +55,10 @@ class Dag:
 					tests.append((feature, threshold, False, d2))
 		return tests
 
-	def expand(self, node:Node):
-		thresholds = Dag.generate_test(node.df)
+	def expand(self, node: DagNode):
+		thresholds = self.generate_test(node.df)
 		#print("thresholds:",  thresholds)
-		for feature, threshold, lt, df in Dag.generate_tests(node.df, thresholds):
+		for feature, threshold, lt, df in self.generate_tests(node.df, thresholds):
 			#print(f"{Node.test_str((feature, threshold, lt))}, index: {index}")
 			index = frozenset(sorted(df.index.to_list()))
 			target_node = None
@@ -66,7 +71,7 @@ class Dag:
 					break
 
 			if target_node is None:
-				target_node = Node(df)
+				target_node = DagNode(df)
 				self.nodes.add(target_node)
 				target_node.min_distances_from_root = distances_from_root
 
@@ -82,7 +87,7 @@ class Dag:
 			self.expand(node)
 		return False
 
-	def compute_tree(self, node: Node):
+	def compute_tree(self, node: DagNode):
 		if node.visited:
 			return
 		if len(node.edges) == 0: # is leaf
@@ -101,22 +106,21 @@ class Dag:
 					node.best_test = test
 			node.visited = True
 
-	def explore(self, file_path=""):
+	def explore(self, write=False):
 		i = 1
 		while not self.step():
 			print(f"step {i}\n", self)
 			#print(self.transitions_str())
-			if file_path != "":
-				self.to_file(f'{file_path}{i}')
-
+			if write:
+				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.id)}_{i}')
 			i += 1
+
 		print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
-		if file_path != "":
-			self.to_file(f'{file_path}{i}')
+		if write:
+			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.id)}_{i}_final')
 
-
-	def get_minimum_tree_nodes(self, node: Node):
+	def get_minimum_tree_nodes(self, node: DagNode):
 		nodes = []
 		if node.best_test is not None and len(node.edges) > 0: # is not leaf
 			nodes.append(node)
@@ -125,7 +129,7 @@ class Dag:
 			nodes.extend(self.get_minimum_tree_nodes(target_f))
 		return nodes
 
-	def to_file(self, file_path: str):
+	def dag_to_file(self, file_path: str):
 		dot = graphviz.Digraph()
 
 		minimum_tree_nodes = self.get_minimum_tree_nodes(self.root)
@@ -144,11 +148,55 @@ class Dag:
 			dot.node(node_name, label=label, style='filled', fillcolor=color)
 
 			for target_node, edge in node.edges.items():
-				dot.edge(node_name, str(target_node), label=Node.edge_str(edge))
+				dot.edge(node_name, str(target_node), label=DagNode.edge_str(edge))
 
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)  # tmp dot file
+
+	def get_bdd(self):
+		return self.get_bdd_recursively(self.root)
+
+	def get_bdd_recursively(self, node: DagNode):
+		if not node.splittable:
+			return f"Class: {list(node.df['class'])[0]}"
+		if node.best_test is None:
+			return "Undetermined"
+		left_child, right_child = node.get_targets(node.best_test)
+		left_bdd = self.get_bdd_recursively(left_child)
+		right_bdd = self.get_bdd_recursively(right_child)
+
+		return f"({node.best_test[0]} < {node.best_test[1]} ? {left_bdd} : {right_bdd})"
+
+	def bdd_to_file(self):
+		dot = graphviz.Digraph()
+
+		node_name = "root_" + str(self.root)
+		dot.node(node_name, label=f"{self.id.name}, ID:{self.id.id}", shape="box", style="filled", color="orange")
+		dot.edge(node_name, str(self.root))
+
+		self.bdd_to_file_recursively(dot, self.root)
+		file_path = PATH_EXPLAINER_DECISION_TREE + str(self.id)
+		dot.save(file_path + '.dot')
+		dot.render(filename=file_path, format='svg')
+		os.remove(file_path)# tmp file
+
+	def bdd_to_file_recursively(self, dot, node: DagNode):
+		if not node.splittable:
+			class_, color = self.class_true, "lightblue"
+			if list(node.df['class'])[0] == self.class_false.id:
+				class_, color = self.class_false, "lightgreen"
+			dot.node(str(node), label=f"{class_.name}, ID:{class_.id}", shape="box", style="filled", color=color)
+		elif node.best_test is None:
+			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
+		else:
+			dot.node(str(node), label=f"{node.best_test[0]} < {node.best_test[1]}", shape="ellipse")
+
+			left_child, right_child = node.get_targets(node.best_test)
+			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True")
+			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
+
+		return str(node)
 
 '''
 X = [

@@ -1,8 +1,8 @@
 from solver.tree_lib import CTree, CNode
-from solver_optimized.saturate_execution.create_branches import create_branches
-from solver_optimized.saturate_execution.next_state import next_state
-from solver_optimized.saturate_execution.states import States, ActivityState
-from solver_optimized.saturate_execution.step_to_saturation import steps_to_saturation
+from saturate_execution.create_branches import create_branches
+from saturate_execution.next_state import next_state
+from saturate_execution.states import States, ActivityState
+from saturate_execution.step_to_saturation import steps_to_saturation
 
 
 def saturate_execution(region_tree: CTree, states: States) -> (States, tuple[CNode], dict[tuple[CNode], States]):

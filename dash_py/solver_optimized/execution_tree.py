@@ -4,11 +4,11 @@ import numpy as np
 import pydot
 from graphviz import Source
 from solver.tree_lib import CNode, CTree
-from solver_optimized.saturate_execution.saturate_execution import saturate_execution
-from solver_optimized.saturate_execution.states import States, states_info, ActivityState
-from utils.env import RESOLUTION, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_IMAGE, PATH_AUTOMA_TIME_DOT, \
-	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_IMAGE, PATH_AUTOMA_TIME_EXTENDED_DOT, \
-	PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_IMAGE
+from saturate_execution.saturate_execution import saturate_execution
+from saturate_execution.states import States, states_info, ActivityState
+from utils.env import RESOLUTION, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_TIME_DOT, \
+	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_DOT, \
+	PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG
 
 
 class ExecutionViewPoint:

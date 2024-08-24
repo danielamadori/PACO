@@ -1,33 +1,34 @@
 import pandas as pd
 from explainer.dag import Dag
-from explainer.bdd import BDD
 
 
 def explain_strategy(strategy, impacts_names):
 	for choice in strategy:
-		print(f"strategy[{choice}] {strategy[choice]}")
-		impacts = []
-		labels = []
-		i = 0
-		for decision in strategy[choice]:
-			print(f"Choice {choice}, Decision {decision}: strategy[{choice}][{decision}] {strategy[choice][decision]}")
-			for state in strategy[choice][decision]:
-				print(f"\tState: {state}")
-				impacts.append(state)
-				labels.append(i)
-			i += 1
+		s = f"Strategy for Choice: {choice}:"
 
-		vector_size = len(impacts[0])
-		print("Impacts:", impacts)
-		print("Labels:", labels)
-		print("Impacts size:", vector_size)
+		impacts = []
+		decision_labels = []
+		decisions = []
+		for decision in strategy[choice]:
+			s += f"\n\tDecision {decision}: {strategy[choice][decision]}"
+			decisions.append(decision)
+			for state in strategy[choice][decision]:
+				impacts.append(state)
+				decision_labels.append(decision.id)
+		print(s)
+
+		if len(strategy[choice]) == 1:
+			print(f"\tNo choice in this case")
+			continue
+			# TODO ask how to manage this case
+
+		#print("Impacts:", impacts)
+		#print("Labels:", decision_labels)
+		#print("Impacts size:", vector_size)
 
 		df = pd.DataFrame(impacts, columns=impacts_names)
-		df['class'] = labels
+		df['class'] = decision_labels
 
-		dag = Dag(df)
-		dag.explore(file_path="out/output")
-		#print(dag.transitions_str())
-		min_tree = BDD(dag)
-		print(min_tree.build())
-		min_tree.to_file("out/bdd_tree")
+		dag = Dag(id=choice, classes=decisions, df=df)
+		dag.explore(write=True)
+		dag.bdd_to_file()

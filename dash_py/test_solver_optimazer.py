@@ -5,7 +5,7 @@ from utils.automa import calc_strategy_paco
 
 
 bpmn_ex = {
-    "bpmn_linear": [{"expression": "SimpleTask1, Task1",
+    "just task, no strategy (no choice)": [{"expression": "SimpleTask1, Task1",
           "h": 0, 
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2]}, 
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100]}, 
@@ -13,7 +13,7 @@ bpmn_ex = {
           "probabilities": {}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         }, [15, 17]],
 
-    "bpmn_only_choices": [{"expression": "SimpleTask1, (Task1 / [C1] T2)",
+    "one choice, strategy with one decision (always True)": [{"expression": "SimpleTask1, (Task1 / [C1] T2)",
           "h": 0, 
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2] , "T2": [3, 3]},
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]}, 
@@ -21,7 +21,7 @@ bpmn_ex = {
           "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 0},'loops_prob' : {}, 'loops_round': {}
         }, [14, 18]], #[15, 17]
     
-    "bpmn_only_natures": [{"expression": "SimpleTask1, (Task1 ^ [N1] T2)",
+    "only natures, no strategy (no choice)": [{"expression": "SimpleTask1, (Task1 ^ [N1] T2)",
           "h": 0, 
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1]}, 
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]}, 
@@ -29,13 +29,13 @@ bpmn_ex = {
           "probabilities": {"N1": 0.6}, "names": {'N1':'N1'}, "delays": {},'loops_prob' : {}, 'loops_round': {}
         }, [14.7, 16.7]],
     
-    "bpmn_seq_choices": [{"expression": "SimpleTask1,  (Task1 / [C1] T2),  (T3 / [C2] T4)",
+    "sequential choices": [{"expression": "SimpleTask1,  (Task1 / [C1] T2),  (T3 / [C2] T4)",
           "h": 0, 
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]}, 
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
           "impacts_names": ["cost", "hours"], 
           "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loops_round': {}
-        }, [23, 26]], #[25, 22], [22, 25], [24, 21]
+        }, [23, 26]], #[23, 26], [25, 22], [22, 25], [24, 21]
 
     "bpmn_seq_natures": [{"expression": "SimpleTask1,  (Task1 ^ [N1] T2),  (T3 ^ [N2] T4)",
           "h": 0, 
@@ -125,5 +125,7 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
         test(problem[0], problem[1])
 
 
+# Ask how to manage this case 1
+
 #test_calc_strategy_paco(bpmn_ex)
-test_calc_strategy_paco(bpmn_ex, 8)
+test_calc_strategy_paco(bpmn_ex, 5)

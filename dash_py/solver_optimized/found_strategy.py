@@ -63,7 +63,6 @@ def found_strategy(frontier: list[ExecutionTree], bound: list) -> (list[Executio
 	frontier_value_bottom_up = np.sum([tree.root.cei_bottom_up for tree in frontier], axis=0)
 
 	if all(result <= 0 for result in compare_bound(frontier_value_bottom_up, bound)):
-		print("Win", frontier_value_bottom_up, bound)
 		return frontier, [frontier_value_bottom_up]
 
 	#frontier_value_top_down = sum(tree.root.cei_top_down for tree in frontier)

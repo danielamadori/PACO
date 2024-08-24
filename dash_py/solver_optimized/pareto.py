@@ -1,7 +1,8 @@
 import numpy as np
 
-def get_pareto_frontier(frontier):
-	pareto_frontier = []
+
+def get_non_dominated_impacts(frontier):
+	non_dominated_impacts = []
 
 	for i, arr in enumerate(frontier):
 		dominated = False
@@ -12,7 +13,7 @@ def get_pareto_frontier(frontier):
 				break
 		if not dominated:
 			# Check for duplicates
-			if not any(np.array_equal(arr, x) for x in pareto_frontier):
-				pareto_frontier.append(arr)
+			if not any(np.array_equal(arr, x) for x in non_dominated_impacts):
+				non_dominated_impacts.append(arr)
 
-	return np.array(pareto_frontier)
+	return np.array(non_dominated_impacts)
