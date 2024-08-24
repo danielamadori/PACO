@@ -1,31 +1,24 @@
 from random import seed
 
+from solver_optimized.build_strategies import build_strategies
+from explainer.explain_strategy import explain_strategy
 from solver_optimized.build_strategy import build_strategy
-from solver_optimized.create_solution_tree import create_tree, evaluate_cumulative_expected_impacts, \
-    evaluate_cumulative_expected_impacts2
-from solver_optimized.solver_optimized import found_strategy
-from solver_optimized.write_solution_tree import write_solution_tree
+from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
+from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
+from solver_optimized.found_strategy import found_strategy
+from solver_optimized.pareto import get_non_dominated_impacts
 
 seed(42)
 #############
 # https://github.com/DES-Lab/AALpy/wiki/SUL-Interface,-or-How-to-Learn-Your-Systems
 #############
 
-from aalpy.oracles import RandomWalkEqOracle, StatePrefixEqOracle
-from aalpy.learning_algs import run_Lstar, run_KV
-from aalpy.utils import visualize_automaton, load_automaton_from_file
-
-from lark import Lark
 import os, sys
-from IPython.display import display
 from datetime import datetime
-from solver.tree_lib import CNode, CTree, print_sese_custom_tree
+from solver.tree_lib import print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
-from solver.tree_lib import print_sese_custom_tree as print_sese_CTree
-from utils.env import AUTOMATON_TYPE, LOOPS_PROB, PATH_AUTOMATON_IMAGE, PATH_AUTOMATON_IMAGE_SVG, RESOLUTION, \
-    SESE_PARSER, TASK_SEQ, \
-    IMPACTS, NAMES, PROBABILITIES, DURATIONS, LOOP_THRESHOLD, DELAYS, H
-
+from utils.env import LOOPS_PROB, SESE_PARSER, TASK_SEQ, \
+    IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, IMPACTS_NAMES
 
 current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
 # Add the current directory to the Python path
@@ -164,7 +157,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         # Parse the task sequence from the BPMN diagram
         tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
         print(tree.pretty)
-        print(f'{datetime.now()} bound {bound}')
+        print(f'{datetime.now()} Bound {bound}')
         # Convert the parsed tree into a custom tree and get the last ID
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
                                             bpmn[IMPACTS], bpmn[DURATIONS],
@@ -172,44 +165,59 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         print_sese_custom_tree(custom_tree)
 
+        print(f"{datetime.now()} CreateExecutionTree:")
         t = datetime.now()
-        print(str(t) + " SolutionTree:")
-        ag, final_state = create_tree(custom_tree)
+        execution_tree, list_of_states = create_execution_tree(custom_tree)
         t1 = datetime.now()
-        print(str(t1) + " SolutionTree:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
-        evaluate_cumulative_expected_impacts2(ag)
-        t2 = datetime.now()
-        print(str(t2) + " SolutionTree:CEI evaluated: " + str((t2 - t1).total_seconds()*1000) + " ms")
-
-        write_solution_tree(ag)
-
+        print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
         t = datetime.now()
-        print(str(t) + " Solver:")
-        sol, fvs = found_strategy([ag], bound)
+        evaluate_cumulative_expected_impacts(execution_tree)
         t1 = datetime.now()
-        print(str(t1) + " Solver:completed: " + str((t1 - t).total_seconds()*1000) + " ms")
+        print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
+        print(f"{t1} FoundStrategy:")
+        t = datetime.now()
+        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
+        t1 = datetime.now()
+        print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
+        write_execution_tree(execution_tree, frontier_solution)
 
-        if sol is not None:
-            print(f'{datetime.now()} A strategy could be found')
-            print("cei_bottom_up:", fvs)
-            _, strategy = build_strategy(sol)
-            print("Strategy: ")
+        if frontier_solution is None:
+            non_dominated_impacts = get_non_dominated_impacts(frontier_solution_value_bottom_up)
 
-            for choice in strategy:
-                print(f"Choice {choice}:")
-                for decision in strategy[choice]:
-                    print(f"Decision {decision}:")
-                    for state in strategy[choice][decision]:
-                        print(state.root)
+            s = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\n"
+            for i in range(len(non_dominated_impacts)):
+                s += f"Exp. Impacts {i}:\t{non_dominated_impacts[i]}\n"
+            print(s)
 
+            #TODO plot_pareto_frontier
 
-            impacts = -1
-            return f"A strategy could be found, which has as an expected impact of : {impacts} "
+            s = "For this specific instance a strategy does not exist"
+            print(str(datetime.now()) + " " + s)
+            return '\n\n' + s + '\n'
 
-        s = "For this specific instance a strategy does not exist"
+        print(f"Success:\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_solution_value_bottom_up[0]}")
 
-        print(str(datetime.now()) + " " + s)
-        return '\n\n' + s + '\n'
+        print(f'{datetime.now()} BuildStrategy:')
+        t = datetime.now()
+        _, strategy = build_strategy(frontier_solution)
+        t1 = datetime.now()
+        print(f"{t1} Build Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
+        if len(strategy) == 0:
+            print("For this specific instance, a strategy isn't needed (choices not found)")
+        else:
+            print(f'{t1} Build Strategies: ')
+            t = datetime.now()
+            currentImpactsStrategy, unavoidableImpactsStrategy, statefulStrategy = build_strategies(custom_tree, strategy)
+            t1 = datetime.now()
+            print(f"{t1} Build Strategies:completed: {(t1 - t).total_seconds()*1000} ms")
+            print(f'{t1} Explain Strategy: currentImpactsStrategy')
+            t = datetime.now()
+            explain_strategy(currentImpactsStrategy, bpmn[IMPACTS_NAMES])
+            t1 = datetime.now()
+            print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
+
+        return f"A strategy could be found, which has as an expected impact of : {frontier_solution_value_bottom_up} "
+
 
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred

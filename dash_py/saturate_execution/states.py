@@ -49,7 +49,7 @@ class States:
 
 	def __str__(self):
 		s, d = self.str()
-		return s + "-" + d
+		return s + " | " + d
 
 
 def node_info(node: CNode, states: States):
@@ -65,7 +65,7 @@ def node_info(node: CNode, states: States):
 
 
 def states_info(states):
-	result = 'States:\n'
+	result = ''
 	for s in sorted(states.activityState.keys(), key=lambda x: x.id):
 		result += node_info(s, states) + "\n"
 
