@@ -1,11 +1,11 @@
 import math
 from solver.tree_lib import CTree, CNode
-from saturate_execution.states import States, ActivityState
+from saturate_execution.states import States, ActivityState, node_info
 
 
 def steps_to_saturation(tree: CTree, states: States):
 	root: CNode = tree.root
-	#print("step_to_saturation: " + node_info(root, states))
+	# print("step_to_saturation: " + node_info(root, states))
 
 	if root.type == 'task':
 		remaining_time = root.duration - states.executed_time[root]
@@ -28,7 +28,7 @@ def steps_to_saturation(tree: CTree, states: States):
 		remaining_time = 0
 		if root.type == 'choice':
 			remaining_time = root.max_delay - states.executed_time[root]
-		#print("step_to_saturation:Natural/Choice:remaining_time: ", remaining_time)
+		# print("step_to_saturation:Natural/Choice:remaining_time: ", remaining_time)
 		return remaining_time
 
 
@@ -57,5 +57,5 @@ def steps_to_saturation(tree: CTree, states: States):
 
 		return min(dur_left, dur_right)
 
-	print("Error: Invalid root type!")
+	print("Error: Invalid type!")
 	raise Exception(root)

@@ -5,10 +5,10 @@ from utils.automa import calc_strategy_paco
 
 
 bpmn_ex = {
-    "just task, no strategy (no choice)": [{"expression": "SimpleTask1, Task1",
+    "just task, no strategy (no choice)": [{"expression": "T1, T2",
           "h": 0, 
-          "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2]}, 
-          "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100]}, 
+          "impacts": {"T1": [11, 15], "T2": [4, 2]},
+          "durations": {"T1": [0, 100], "T2": [0, 100]},
           "impacts_names": ["cost", "hours"], 
           "probabilities": {}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         }, [15, 17]],
@@ -128,4 +128,4 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 # Ask how to manage this case 1
 
 #test_calc_strategy_paco(bpmn_ex)
-test_calc_strategy_paco(bpmn_ex, 5)
+test_calc_strategy_paco(bpmn_ex, 6)

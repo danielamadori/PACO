@@ -115,5 +115,5 @@ def next_state(tree: CTree, states: States, k: int) -> (States, int):
 
 		return leftStates, min(leftK, rightK)
 
-	print(f"Unknown case: {root}")
+	print("Error: Invalid type!")
 	raise Exception(root)

@@ -107,7 +107,7 @@ def from_lark_parsed_to_custom_tree(lark_tree, probabilities, impacts, durations
         tmp_node.set_childrens(childrens)
         return CTree(tmp_node), last_id
     elif (lark_tree.data == 'loop_probability'):
-        loop_prob = loop_prob[lark_tree.children[0].value] if lark_tree.children[0].value in loops_prob else 0.5
+        loop_prob = loops_prob[lark_tree.children[0].value] if lark_tree.children[0].value in loops_prob else 0.5
         number_of_unfoldings = loop_round[lark_tree.children[0].value] if lark_tree.children[0].value in loop_round else env.DEFAULT_UNFOLDING_NUMBER
         num_of_regions_to_replicate = ((number_of_unfoldings - 1)*2) + 1
         # loops have only one child

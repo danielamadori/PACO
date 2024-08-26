@@ -21,12 +21,12 @@ def saturate_execution(region_tree: CTree, states: States) -> (States, tuple[CNo
 
 		#print('next_state:k:', k, states_info(states))
 		if k > 0:
-			Exception("StepsException" + str(k))
+			raise Exception("StepsException" + str(k))
 
 		choices_natures, branches = create_branches(states)
 
 	#if len(branches) > 0:
-	#	print("create_branches:", states_info(states))
+		#print("create_branches:", states_info(states))
 
 	#print("Branches:" + str(len(branches)))
 	#print("Root activity state: ", states.activityState[region_tree.root], states_info(states))

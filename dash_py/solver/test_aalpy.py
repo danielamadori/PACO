@@ -1,8 +1,7 @@
 from random import seed
 
-from solver_optimized.build_strategies import build_strategies
+from solver_optimized.build_strategies import build_strategy, build_strategies
 from explainer.explain_strategy import explain_strategy
-from solver_optimized.build_strategy import build_strategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
 from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
 from solver_optimized.found_strategy import found_strategy

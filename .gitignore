@@ -10,3 +10,4 @@ dash_py/assets/automaton.*
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/inspectionProfiles/Project_Default.xml
 /dash_py/pages/__pycache__
+/tests/output_files
