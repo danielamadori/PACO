@@ -166,7 +166,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
         print(f"{datetime.now()} CreateExecutionTree:")
         t = datetime.now()
-        execution_tree, list_of_states = create_execution_tree(custom_tree, bpmn[IMPACTS_NAMES])
+        execution_tree = create_execution_tree(custom_tree, bpmn[IMPACTS_NAMES])
         t1 = datetime.now()
         print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
         t = datetime.now()
