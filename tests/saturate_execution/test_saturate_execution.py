@@ -568,7 +568,6 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t1.root], 1,
                          "T1 should be completed at time 1")
 
-
         self.assertEqual(len(choices_natures), 1, "There should be one choice")
         self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
 
@@ -583,14 +582,12 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_decisions[1][0], t3.root, "The second decision should be T3")
 
         self.assertEqual(len(multi_branches), 2, "There should be two branches")
+
         self.assertEqual(multi_branches[0].activityState[t2.root], ActivityState.ACTIVE, "T2 should be active")
         self.assertEqual(multi_branches[0].activityState[t3.root], ActivityState.WILL_NOT_BE_EXECUTED, "T3 should be waiting")
 
         self.assertEqual(multi_branches[1].activityState[t2.root], ActivityState.WILL_NOT_BE_EXECUTED, "T2 should be waiting")
         self.assertEqual(multi_branches[1].activityState[t3.root], ActivityState.ACTIVE, "T3 should be active")
-
-
-
 
 
         custom_tree = create_custom_tree({
@@ -625,6 +622,27 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t1.root], 1,
                          "T1 should be completed at time 1")
 
+        self.assertEqual(len(choices_natures), 1, "There should be one choice")
+        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+
+        multi_decisions = []
+        multi_branches = []
+        for decisions, branch_states in branches.items():
+            multi_decisions.append(decisions)
+            multi_branches.append(branch_states)
+
+        self.assertEqual(len(multi_decisions), 2, "There should be two decisions")
+        self.assertEqual(multi_decisions[0][0], t2.root, "The first decision should be T2")
+        self.assertEqual(multi_decisions[1][0], t3.root, "The second decision should be T3")
+
+        self.assertEqual(len(multi_branches), 2, "There should be two branches")
+
+        self.assertEqual(multi_branches[0].activityState[t2.root], ActivityState.ACTIVE, "T2 should be active")
+        self.assertEqual(multi_branches[0].activityState[t3.root], ActivityState.WILL_NOT_BE_EXECUTED, "T3 should be waiting")
+
+        self.assertEqual(multi_branches[1].activityState[t2.root], ActivityState.WILL_NOT_BE_EXECUTED, "T2 should be waiting")
+        self.assertEqual(multi_branches[1].activityState[t3.root], ActivityState.ACTIVE, "T3 should be active")
+
 
         custom_tree = create_custom_tree({
             "expression": "(T2 / [C1] T3) || T1",
@@ -657,6 +675,29 @@ class TestSaturateExecution(unittest.TestCase):
                          "T1 should be completed")
         self.assertEqual(states.executed_time[t1.root], 1,
                          "T1 should be completed at time 1")
+
+        self.assertEqual(len(choices_natures), 1, "There should be one choice")
+        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+
+        multi_decisions = []
+        multi_branches = []
+        for decisions, branch_states in branches.items():
+            multi_decisions.append(decisions)
+            multi_branches.append(branch_states)
+
+        self.assertEqual(len(multi_decisions), 2, "There should be two decisions")
+        self.assertEqual(multi_decisions[0][0], t2.root, "The first decision should be T2")
+        self.assertEqual(multi_decisions[1][0], t3.root, "The second decision should be T3")
+
+        self.assertEqual(len(multi_branches), 2, "There should be two branches")
+
+        self.assertEqual(multi_branches[0].activityState[t2.root], ActivityState.ACTIVE, "T2 should be active")
+        self.assertEqual(multi_branches[0].activityState[t3.root], ActivityState.WILL_NOT_BE_EXECUTED, "T3 should be waiting")
+
+        self.assertEqual(multi_branches[1].activityState[t2.root], ActivityState.WILL_NOT_BE_EXECUTED, "T2 should be waiting")
+        self.assertEqual(multi_branches[1].activityState[t3.root], ActivityState.ACTIVE, "T3 should be active")
+
+
 
     # TODO use parallel_natures, parallel_choices, parallel_nature_choice for the solver test
 
@@ -709,6 +750,32 @@ class TestSaturateExecution(unittest.TestCase):
                             "T2B should be waiting")
         self.assertEqual(states.executed_time[t2b.root], 0,
                          "T2B never increases its executed time")
+
+        self.assertEqual(len(choices_natures), 1, "There should be one choice")
+        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+
+        multi_decisions = []
+        multi_branches = []
+        for decisions, branch_states in branches.items():
+            multi_decisions.append(decisions)
+            multi_branches.append(branch_states)
+
+        self.assertEqual(len(multi_decisions), 2, "There should be two decisions")
+        self.assertEqual(multi_decisions[0][0], t2.root, "The first decision should be T2")
+        self.assertEqual(multi_decisions[1][0], t3.root, "The second decision should be T3")
+
+        self.assertEqual(len(multi_branches), 2, "There should be two branches")
+        #TODO remove
+        self.info(custom_tree, multi_branches[0], "parallel_choice_gt_task_branch0")
+
+        self.assertEqual(multi_branches[0].activityState[t2.root], ActivityState.ACTIVE, "T2 should be active")
+        self.assertEqual(multi_branches[0].activityState[t3.root], ActivityState.WILL_NOT_BE_EXECUTED, "T3 should be waiting")
+
+        self.info(custom_tree, multi_branches[1], "parallel_choice_gt_task_branch1")
+        self.assertEqual(multi_branches[1].activityState[t2.root], ActivityState.WILL_NOT_BE_EXECUTED, "T2 should be waiting")
+        self.assertEqual(multi_branches[1].activityState[t3.root], ActivityState.ACTIVE, "T3 should be active")
+
+
 
     # TODO parallel_choices (=, <, >)
 
