@@ -6,14 +6,14 @@ from graphviz import Source
 from solver.tree_lib import CNode, CTree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
-from utils.env import RESOLUTION, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_AUTOMA_TIME_DOT, \
-	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_TIME_EXTENDED_DOT, \
-	PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG
+from utils.env import RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_DOT, \
+	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, \
+	PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_DOT
 
 
 class ExecutionViewPoint:
 	def __init__(self, id: int, states: States, decisions: tuple[CNode], choices_natures: tuple,
-				 is_final_state: bool, parent: 'ExecutionTree' = None):
+				 is_final_state: bool, impacts_names, parent: 'ExecutionTree' = None):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()
@@ -23,11 +23,9 @@ class ExecutionViewPoint:
 		self.parent = parent
 		self.is_final_state = is_final_state
 		self.transitions: dict[tuple, ExecutionTree] = {}
-		self.probability = None
-		self.impacts = None
-		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states)
-		self.cei_top_down = np.zeros(len(self.impacts), dtype=np.float64)
-		self.cei_bottom_up = np.zeros(len(self.impacts), dtype=np.float64)
+		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states, len(impacts_names))
+		self.cei_top_down = self.probability * self.impacts
+		self.cei_bottom_up = np.zeros(len(impacts_names), dtype=np.float64)
 
 	def __str__(self) -> str:
 		return str(self.states)
@@ -87,10 +85,10 @@ class ExecutionViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	@staticmethod
-	def expected_impacts_evaluation(states: States):
-		impacts = None
-
+	def expected_impacts_evaluation(states: States, impacts_size: int):
+		impacts = np.zeros(impacts_size, dtype=np.float64)
 		probability = 1.0
+
 		for node, state in states.activityState.items():
 			if (node.type == 'natural' and state > ActivityState.WAITING
 					and (states.activityState[node.childrens[0].root] > ActivityState.WAITING
@@ -101,15 +99,8 @@ class ExecutionViewPoint:
 					p = 1 - p
 				probability *= p
 
-			if node.type == 'task':
-				if state > ActivityState.WAITING:
-					if impacts is None:
-						impacts = np.array(node.impact, dtype=np.float64)
-					elif state > 0:
-						impacts += node.impact
-				else:
-					if impacts is None:
-						impacts = np.zeros(len(node.impact), dtype=np.float64)
+			elif node.type == 'task' and state > ActivityState.WAITING:
+					impacts += np.array(node.impact, dtype=np.float64)
 
 		return probability, impacts
 
@@ -124,25 +115,25 @@ class ExecutionTree:
 		self.root = root
 
 	def __str__(self) -> str:
-		result = self.create_dot_graph(self.root, True, True, True)
+		result = self.create_dot_graph(self.root, True, True, False)
 		return result[0] + result[1]
 
 	def state_str(self):
 		return self.root.dot_str(state=True, executed_time=True, previous_node=None).split(' [')[0]
 
-	def save_dot(self, path, state: bool = True, executed_time: bool = False, all_states: bool = False):
+	def save_dot(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
 		with open(path, 'w') as file:
-			file.write(self.init_dot_graph(state=state, executed_time=executed_time, all_states=all_states))
+			file.write(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff))
 
-	def save_pdf(self, path, state: bool = True, executed_time: bool = False, all_states: bool = False):
-		Source(self.init_dot_graph(state=state, executed_time=executed_time, all_states=all_states),
+	def save_pdf(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
+		Source(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff),
 			   format='pdf').render(path, cleanup=True)
 
-	def init_dot_graph(self, state: bool, executed_time: bool, all_states: bool):
+	def init_dot_graph(self, state: bool, executed_time: bool, diff: bool):
 		result = "digraph automa {\n"
 
 		node, transition = self.create_dot_graph(self.root, state=state, executed_time=executed_time,
-												 all_states=all_states)
+												 diff=diff)
 
 		result += node
 		result += transition
@@ -160,9 +151,9 @@ class ExecutionTree:
 		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
 		return result
 
-	def create_dot_graph(self, root: ExecutionViewPoint, state: bool, executed_time: bool, all_states: bool,
+	def create_dot_graph(self, root: ExecutionViewPoint, state: bool, executed_time: bool, diff: bool,
 						 previous_node: States = None):
-		if all_states:
+		if diff == False:# print all nodes
 			previous_node = None
 
 		nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
@@ -181,7 +172,7 @@ class ExecutionTree:
 
 			transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
 
-			ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, all_states=all_states,
+			ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, diff=diff,
 										previous_node=root.states)
 			nodes_id += ids[0]
 			transitions_id += ids[1]
@@ -202,31 +193,29 @@ def tree_node_info(node: ExecutionViewPoint) -> str:
 	return result + tmp[:-1] + ">:status:\n" + states_info(node.states)
 
 
-def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionTree]):
+def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
 	states, choices_natures, branches = saturate_execution(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
+	id = 0
 	solution_tree = ExecutionTree(ExecutionViewPoint(
-		id=0, states=states,
+		id=id, states=states,
 		decisions=(region_tree.root,),
 		choices_natures=choices_natures,
-		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
+		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
+		impacts_names=impacts_names)
 	)
 
 	print("create_tree:", tree_node_info(solution_tree.root))
 
-	nodes = [solution_tree]
-	next_id = 0
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		sub_nodes, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, next_id + 1)
-		nodes.extend(sub_nodes)
-		next_id = last_child_id
+		id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, id + 1, impacts_names)
 
-	return solution_tree, nodes
+	return solution_tree
 
 
-def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int) -> (list, int):
+def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> (list, int):
 	saturatedStates, choices_natures, branches = saturate_execution(region_tree, states)
 	states.update(saturatedStates)
 
@@ -236,22 +225,18 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 		decisions=decisions,
 		choices_natures=choices_natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
+		impacts_names=impacts_names,
 		parent=solution_tree)
 	)
 
 	print("create_tree_node:", tree_node_info(next_node.root))
 
 	solution_tree.root.add_child(next_node)
-	nodes = [next_node]
-
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		tmp, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1)
-		nodes.extend(tmp)
-		id = last_child_id
-
-	return nodes, id
+		id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1, impacts_names)
+	return id
 
 
 def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", pngPath: str = ""):
@@ -275,11 +260,14 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 
 
 def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
-	solution_tree.save_dot(PATH_AUTOMA_DOT)
-	write_image(frontier, PATH_AUTOMA_DOT, svgPath=PATH_AUTOMA_IMAGE_SVG)#, PATH_AUTOMA_IMAGE)
+	solution_tree.save_dot(PATH_AUTOMA_STATE_DOT)
+	write_image(frontier, PATH_AUTOMA_STATE_DOT, svgPath=PATH_AUTOMA_STATE_IMAGE_SVG)#, PATH_AUTOMA_IMAGE)
 
-	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, executed_time=True)
+	solution_tree.save_dot(PATH_AUTOMA_STATE_TIME_DOT, executed_time=True)
+	write_image(frontier, PATH_AUTOMA_STATE_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
+
+	solution_tree.save_dot(PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, executed_time=True, diff=False)
+	write_image(frontier, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, svgPath=PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG)#, PATH_AUTOMA_TIME_EXTENDED_IMAGE)
+
+	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, state=False, executed_time=True)
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
-
-	solution_tree.save_dot(PATH_AUTOMA_TIME_EXTENDED_DOT, executed_time=True, all_states=True)
-	write_image(frontier, PATH_AUTOMA_TIME_EXTENDED_DOT, svgPath=PATH_AUTOMA_TIME_EXTENDED_IMAGE_SVG)#, PATH_AUTOMA_TIME_EXTENDED_IMAGE)

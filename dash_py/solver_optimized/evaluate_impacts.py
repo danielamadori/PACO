@@ -20,8 +20,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 	root = solution_tree.root
-	root.cei_top_down = root.probability * np.array(root.impacts)
-	# root.cei_bottom_up = np.zeros(len(root.impacts)) #Useless, already done in the constructor
+	# root.cei_top_down = root.probability * root.impacts #Useless, already done in the constructor
 	if root.is_final_state:
 		root.cei_bottom_up = copy.deepcopy(root.cei_top_down)
 		return

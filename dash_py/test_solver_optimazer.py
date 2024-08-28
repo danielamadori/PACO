@@ -5,6 +5,14 @@ from utils.automa import calc_strategy_paco
 
 
 bpmn_ex = {
+    "natures of natures": [{"expression": "(Task1 ^ [N1] T2) ^[N] (T3 ^ [N2] T4)",
+                          "h": 0,
+                          "impacts": {"Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
+                          "durations": {"Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
+                          "impacts_names": ["cost", "hours"],
+                          "probabilities": {"N": 0.5, "N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob' : {}, 'loops_round': {}
+                          }, [23.3, 24.4]],
+
     "just task, no strategy (no choice)": [{"expression": "T1, T2",
           "h": 0, 
           "impacts": {"T1": [11, 15], "T2": [4, 2]},
@@ -126,4 +134,4 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 
 
 #test_calc_strategy_paco(bpmn_ex)
-test_calc_strategy_paco(bpmn_ex, -1)
+test_calc_strategy_paco(bpmn_ex, 1)
