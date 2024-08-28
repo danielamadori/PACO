@@ -13,7 +13,7 @@ from utils.env import RESOLUTION, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_A
 
 class ExecutionViewPoint:
 	def __init__(self, id: int, states: States, decisions: tuple[CNode], choices_natures: tuple,
-				parent: 'ExecutionTree', is_final_state: bool):
+				 is_final_state: bool, parent: 'ExecutionTree' = None):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()
@@ -25,7 +25,7 @@ class ExecutionViewPoint:
 		self.transitions: dict[tuple, ExecutionTree] = {}
 		self.probability = None
 		self.impacts = None
-		self.probability, self.impacts = ExecutionViewPoint.impacts_evaluation(states)
+		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states)
 		self.cei_top_down = np.zeros(len(self.impacts), dtype=np.float64)
 		self.cei_bottom_up = np.zeros(len(self.impacts), dtype=np.float64)
 
@@ -87,7 +87,7 @@ class ExecutionViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	@staticmethod
-	def impacts_evaluation(states: States):
+	def expected_impacts_evaluation(states: States):
 		impacts = None
 
 		probability = 1.0
@@ -209,8 +209,7 @@ def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionT
 		id=0, states=states,
 		decisions=(region_tree.root,),
 		choices_natures=choices_natures,
-		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
-		parent=None)
+		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
 	)
 
 	print("create_tree:", tree_node_info(solution_tree.root))
@@ -227,7 +226,7 @@ def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionT
 	return solution_tree, nodes
 
 
-def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int) -> list[ExecutionTree]:
+def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int) -> (list, int):
 	saturatedStates, choices_natures, branches = saturate_execution(region_tree, states)
 	states.update(saturatedStates)
 

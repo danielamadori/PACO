@@ -98,7 +98,5 @@ def found_strategy(frontier: list[ExecutionTree], bound: list) -> (list[Executio
 			return frontier_solution, frontier_solution_value_bottom_up
 
 		print("tested_frontier_solution", frontier_info(tested_frontier_solution))
-		print("n.children", frontier_info(tree.root.transitions.values()))
-
 	print("Failed: No choose left")
 	return None, failed_frontier_solution_value_bottom_up

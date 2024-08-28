@@ -1,5 +1,5 @@
 import dash
-from dash import html, Input, Output, State, callback
+from dash import html, Input, Output, State, callback, dcc
 import dash_bootstrap_components as dbc
 from langchain_community.llms import Ollama
 import torch
@@ -19,6 +19,7 @@ def instructLLAMA():
     prompt_init += f'the grammar is {sese_diagram_grammar}. \n All the different section of the process are inserted in (). These can be nested as (T1, (T2,T3)).'    
     response = llm.invoke(prompt_init)
     chat_history.append((prompt_init, response))
+    print(chat_history)
     prompt_init += '''
         Here an example. 
         User: depicts a metal manufacturing process that involves cutting, milling,
@@ -42,16 +43,22 @@ def instructLLAMA():
 
 llm = Ollama(model="llama3",num_gpu = 1)
 # Initialize chat history
-chat_history = []
 # instructLLAMA()
+chat_history = []
+
 
 layout = html.Div([
     dbc.Textarea(id='input-box', placeholder='Type your message here...'),
     html.Br(),
     dbc.Button('Send', id='send-button'),
-    html.Div(id='chat-output')
+    dcc.Loading(
+        id="loading-spinner",
+        type="default",
+        overlay_style={"visibility":"visible", "filter": "blur(2px)"},
+        custom_spinner=html.H2(["I'm thinking...", dcc.Loading(id="loading-1", type="default",)]), #,  dbc.Spinner(color="primary")
+        children=html.Div(id='chat-output')
+    )
 ])
-
 @callback(
     Output('chat-output', 'children'),
     [Input('send-button', 'n_clicks')],
@@ -59,10 +66,10 @@ layout = html.Div([
     prevent_initial_call=True
 )
 def update_output(n_clicks, prompt):
-    instructLLAMA()
     if prompt:
         print(prompt)
-        try:
+        try:            
+            # Generate the response
             response = llm.invoke(prompt)
             print(f' response {response}')
             
@@ -79,3 +86,29 @@ def update_output(n_clicks, prompt):
         except Exception as e:
             return html.P(f"Error: {e}")
 
+# @callback(
+#     Output('chat-output', 'children'),
+#     [Input('send-button', 'n_clicks')],
+#     [State('input-box', 'value')],
+#     prevent_initial_call=True
+# )
+# def update_output(n_clicks, prompt):
+#     #instructLLAMA()
+#     if prompt:
+#         print(prompt)
+#         try:
+#             response = llm.invoke(prompt)
+#             print(f' response {response}')
+            
+#             # Add the user's message and the assistant's response to the chat history
+#             chat_history.append((prompt, response))
+            
+#             # Generate the chat history for display
+#             chat_display = []
+#             for user_msg, assistant_msg in chat_history:
+#                 chat_display.append(html.P(f"User: {user_msg}"))
+#                 chat_display.append(html.P(f"Assistant: {assistant_msg}"))
+            
+#             return html.Div(chat_display)
+#         except Exception as e:
+#             return html.P(f"Error: {e}")

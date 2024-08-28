@@ -53,9 +53,9 @@ class CNode:
         self.isLeaf = False
 
     def __eq__(self, other: 'CNode') -> bool:
-        if other == None: return False
-        if self.id == other.id: return True
-        else: return False
+        if isinstance(other, CNode):
+            return self.id == other.id
+        return False
 
     def __hash__(self):
         return hash(self.id)
