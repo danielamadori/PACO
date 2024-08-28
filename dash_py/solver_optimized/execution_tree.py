@@ -13,7 +13,7 @@ from utils.env import RESOLUTION, PATH_AUTOMA_DOT, PATH_AUTOMA_IMAGE_SVG, PATH_A
 
 class ExecutionViewPoint:
 	def __init__(self, id: int, states: States, decisions: tuple[CNode], choices_natures: tuple,
-				 is_final_state: bool, parent: 'ExecutionTree' = None):
+				 is_final_state: bool, impacts_names:list, parent: 'ExecutionTree' = None):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()
@@ -23,11 +23,9 @@ class ExecutionViewPoint:
 		self.parent = parent
 		self.is_final_state = is_final_state
 		self.transitions: dict[tuple, ExecutionTree] = {}
-		self.probability = None
-		self.impacts = None
-		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states)
-		self.cei_top_down = np.zeros(len(self.impacts), dtype=np.float64)
-		self.cei_bottom_up = np.zeros(len(self.impacts), dtype=np.float64)
+		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states, len(impacts_names))
+		self.cei_top_down = self.probability * self.impacts
+		self.cei_bottom_up = np.zeros(len(impacts_names), dtype=np.float64)
 
 	def __str__(self) -> str:
 		return str(self.states)
@@ -87,10 +85,10 @@ class ExecutionViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	@staticmethod
-	def expected_impacts_evaluation(states: States):
-		impacts = None
-
+	def expected_impacts_evaluation(states: States, impacts_size: int):
+		impacts = np.zeros(impacts_size, dtype=np.float64)
 		probability = 1.0
+
 		for node, state in states.activityState.items():
 			if (node.type == 'natural' and state > ActivityState.WAITING
 					and (states.activityState[node.childrens[0].root] > ActivityState.WAITING
@@ -101,15 +99,8 @@ class ExecutionViewPoint:
 					p = 1 - p
 				probability *= p
 
-			if node.type == 'task':
-				if state > ActivityState.WAITING:
-					if impacts is None:
-						impacts = np.array(node.impact, dtype=np.float64)
-					elif state > 0:
-						impacts += node.impact
-				else:
-					if impacts is None:
-						impacts = np.zeros(len(node.impact), dtype=np.float64)
+			elif node.type == 'task' and state > ActivityState.WAITING:
+					impacts += np.array(node.impact, dtype=np.float64)
 
 		return probability, impacts
 
@@ -202,14 +193,15 @@ def tree_node_info(node: ExecutionViewPoint) -> str:
 	return result + tmp[:-1] + ">:status:\n" + states_info(node.states)
 
 
-def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionTree]):
+def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
 	states, choices_natures, branches = saturate_execution(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	solution_tree = ExecutionTree(ExecutionViewPoint(
 		id=0, states=states,
 		decisions=(region_tree.root,),
 		choices_natures=choices_natures,
-		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED)
+		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
+		impacts_names=impacts_names)
 	)
 
 	print("create_tree:", tree_node_info(solution_tree.root))
@@ -219,14 +211,14 @@ def create_execution_tree(region_tree: CTree) -> (ExecutionTree, list[ExecutionT
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		sub_nodes, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, next_id + 1)
+		sub_nodes, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, next_id + 1, impacts_names)
 		nodes.extend(sub_nodes)
 		next_id = last_child_id
 
 	return solution_tree, nodes
 
 
-def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int) -> (list, int):
+def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> (list, int):
 	saturatedStates, choices_natures, branches = saturate_execution(region_tree, states)
 	states.update(saturatedStates)
 
@@ -236,6 +228,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 		decisions=decisions,
 		choices_natures=choices_natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
+		impacts_names=impacts_names,
 		parent=solution_tree)
 	)
 
@@ -247,7 +240,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		tmp, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1)
+		tmp, last_child_id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1, impacts_names)
 		nodes.extend(tmp)
 		id = last_child_id
 
