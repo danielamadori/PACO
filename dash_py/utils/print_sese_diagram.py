@@ -21,7 +21,7 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     graph.write_png(outfile)    
     return  Image.open(outfile)   
 
-def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = []):
+def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}):
     exit_label = ''
     if type(t) == Token:
         label = t.value
@@ -45,7 +45,7 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
         if label != "sequential":    
             id_exit = last_id
             if label == "choice":
-                code += dot_exclusive_gateway(id_enter)
+                code += dot_exclusive_gateway(id_enter, label=t.children[1])
                 code += dot_exclusive_gateway(id_exit)
             elif label == 'natural':
                 code += dot_probabilistic_gateway(id_enter)
@@ -92,7 +92,7 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
     return code, id_enter, id_exit, exit_label
 
 def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, durations={}, names={}, delays={}, impacts_names=[]):
-    code, id_enter, id_exit, exit_label = dot_sese_diagram(tree, 0, h, probabilities, impacts, loop_thresholds, durations, imp_names = impacts_names)   
+    code, id_enter, id_exit, exit_label = dot_sese_diagram(tree, 0, h, probabilities, impacts, loop_thresholds, durations, imp_names = impacts_names, names=names)   
     code = '\n start[label="" style="filled" shape=circle fillcolor=palegreen1]' +   '\n end[label="" style="filled" shape=doublecircle fillcolor=orangered] \n' + code
     code += f'\n start -> node_{id_enter};'
     code += f'\n node_{id_exit} -> end [label="{exit_label}"];'
