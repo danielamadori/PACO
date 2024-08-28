@@ -26,9 +26,9 @@ class States:
 		self.activityState[state] = activityState
 		self.executed_time[state] = executed_time
 
-	def update(self, state: CNode):
-		self.activityState.update(state.activityState)
-		self.executed_time.update(state.executed_time)
+	def update(self, states: 'States'):
+		self.activityState.update(states.activityState)
+		self.executed_time.update(states.executed_time)
 
 	def str(self, previousStates: 'States' = None):
 		result_s = ""
@@ -58,7 +58,7 @@ def node_info(node: CNode, states: States):
 
 	if node.type == 'choice':
 		result += f"delta: {node.max_delay}"
-	elif node.type != 'natural':
+	elif node.type == 'task':
 		result += f"delta: {node.duration}"
 
 	return result

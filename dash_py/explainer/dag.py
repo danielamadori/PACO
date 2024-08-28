@@ -8,12 +8,20 @@ from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Dag:
-	def __init__(self, id: CNode, classes: list[CNode], df: pd.DataFrame):
-		self.id = id
-		self.class_true = classes[0]
-		self.class_false = classes[1]
-		self.root = DagNode(df)
-		self.nodes = {self.root}
+	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, impacts_label:list, impacts_names):
+		self.choice = choice
+		self.class_0 = class_0
+		self.class_1 = class_1
+
+		if class_1 is not None:
+			df = pd.DataFrame(impacts, columns=impacts_names)
+			df['class'] = impacts_label
+			self.root = DagNode(df)
+			self.nodes = {self.root}
+		else:
+			self.df = None
+			self.root = None
+			self.nodes = None
 
 	def __str__(self):
 		result = ""
@@ -77,7 +85,7 @@ class Dag:
 
 			edge = (feature, threshold, lt)
 			changed = node.add_node(target_node, edge)
-		#print(node.transition_str(target_node, changed))
+	#print(node.transition_str(target_node, changed))
 
 	def step(self):
 		open_leaves = self.get_splittable_leaves()
@@ -109,16 +117,18 @@ class Dag:
 	def explore(self, write=False):
 		i = 1
 		while not self.step():
-			print(f"step {i}\n", self)
+			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
 			if write:
-				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.id)}_{i}')
+				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice)}_{i}')
 			i += 1
 
-		print(f"computed tree: {i}\n", self)
+		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
 		if write:
-			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.id)}_{i}_final')
+			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice)}_{i}_final')
+
+		return self.root.best_test is not None # true if the classification worked
 
 	def get_minimum_tree_nodes(self, node: DagNode):
 		nodes = []
@@ -171,50 +181,34 @@ class Dag:
 	def bdd_to_file(self):
 		dot = graphviz.Digraph()
 
-		node_name = "root_" + str(self.root)
-		dot.node(node_name, label=f"{self.id.name}, ID:{self.id.id}", shape="box", style="filled", color="orange")
-		dot.edge(node_name, str(self.root))
+		dot.node(str(self.choice), label=f"{self.choice.name}, ID:{self.choice}", shape="box", style="filled", color="orange")
+		if self.class_1 is not None:
+			dot.edge(str(self.choice), str(self.root))
+			self.bdd_to_file_recursively(dot, self.root)
+		else:
+			label = "?"
+			dot.node(label, label=label, shape="ellipse")
+			dot.edge(str(self.choice), label)
+			class_0_id = str(self.class_0)
+			dot.node(class_0_id, label="ID:"+class_0_id, shape="box", style="filled")
+			dot.edge(label, class_0_id, label="True", style="dashed")
 
-		self.bdd_to_file_recursively(dot, self.root)
-		file_path = PATH_EXPLAINER_DECISION_TREE + str(self.id)
+		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice)
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)# tmp file
 
 	def bdd_to_file_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			class_, color = self.class_true, "lightblue"
-			if list(node.df['class'])[0] == self.class_false.id:
-				class_, color = self.class_false, "lightgreen"
-			dot.node(str(node), label=f"{class_.name}, ID:{class_.id}", shape="box", style="filled", color=color)
+			label = self.class_0 if list(node.df['class'])[0] == self.class_0.id else self.class_1
+			dot.node(str(node), label=f"ID:{label}", shape="box", style="filled")
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
 		else:
 			dot.node(str(node), label=f"{node.best_test[0]} < {node.best_test[1]}", shape="ellipse")
 
 			left_child, right_child = node.get_targets(node.best_test)
-			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True")
+			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True", style="dashed")
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
 
 		return str(node)
-
-'''
-X = [
-	[0,1,3,4,5,2,3],
-	[1,2,3,4,5,6,7],
-	[2,3,4,5,6,7,8],
-	[3,4,5,6,7,8,9],
-	[4,5,6,7,8,9,10],
-]
-Y = [0,1,0,1,1]
-
-def create_df(X,Y):
-	df = pd.DataFrame(X, columns=['a','b','c','d','e','f','g'])
-	df['class'] = Y
-	return df
-
-
-dag = Dag(create_df(X,Y))
-dag.explore(file_path="out/output")
-#print(dag.transitions_str())
-'''

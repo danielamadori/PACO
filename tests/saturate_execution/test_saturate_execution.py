@@ -9,7 +9,7 @@ from solver.tree_lib import CTree, CNode, print_sese_custom_tree
 class TestSaturateExecution(unittest.TestCase):
     def info(self, custom_tree, states, name):
         print_sese_custom_tree(custom_tree, outfile=self.directory + name + ".png")
-        print(states_info(states))
+        print(f"{name}:\n{states_info(states)}")
 
     def setUp(self):
         self.directory = "output_files/saturate_execution/"
@@ -529,13 +529,414 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2.root], 1,
                          "T2 should be completed at time 1")
 
-    # TODO parallel_choice_tasks, parallel_nature_tasks (=, <, >)
+    def test_parallel_choice_task(self):
+        custom_tree = create_custom_tree({
+            "expression": "(T2 / [C1] T3) || T1",
+            "h": 0,
+            "impacts": {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
+            "durations": {"T1": [0, 1], "T2": [0, 10], "T3": [1, 20]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 1}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_eq_task")
 
-    # TODO parallel_natures (=)
+        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
+        c1 = CTree(CNode("C1", 0, "", 1, 0, 0, 0, 0))
+        t1 = CTree(CNode("T1", 0, "", 4, 0, 0, 0, 0))
+        t2 = CTree(CNode("T2", 0, "", 2, 0, 0, 0, 0))
+        t3 = CTree(CNode("T3", 0, "", 3, 0, 0, 0, 0))
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 1,
+                         "P1 should be executed with time 1")
+        self.assertEqual(states.activityState[c1.root], ActivityState.ACTIVE,
+                         "C1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c1.root], 1,
+                         "C1 should be executed with time 1")
+        self.assertEqual(states.activityState[t2.root], ActivityState.WAITING,
+                         "T2 should be waiting")
+        self.assertEqual(states.executed_time[t2.root], 0,
+                         "T2 never increases its executed time")
+        self.assertEqual(states.activityState[t3.root], ActivityState.WAITING,
+                         "T3 should be waiting")
+        self.assertEqual(states.executed_time[t3.root], 0,
+                         "T3 never increases its executed time")
+        self.assertEqual(states.activityState[t1.root], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+                         "T1 should be completed without passing over")
+        self.assertEqual(states.executed_time[t1.root], 1,
+                         "T1 should be completed at time 1")
+
+
+        self.assertEqual(len(choices_natures), 1, "There should be one choice")
+        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+
+        multi_decisions = []
+        multi_branches = []
+        for decisions, branch_states in branches.items():
+            multi_decisions.append(decisions)
+            multi_branches.append(branch_states)
+
+        self.assertEqual(len(multi_decisions), 2, "There should be two decisions")
+        self.assertEqual(multi_decisions[0][0], t2.root, "The first decision should be T2")
+        self.assertEqual(multi_decisions[1][0], t3.root, "The second decision should be T3")
+
+        self.assertEqual(len(multi_branches), 2, "There should be two branches")
+        self.assertEqual(multi_branches[0].activityState[t2.root], ActivityState.ACTIVE, "T2 should be active")
+        self.assertEqual(multi_branches[0].activityState[t3.root], ActivityState.WILL_NOT_BE_EXECUTED, "T3 should be waiting")
+
+        self.assertEqual(multi_branches[1].activityState[t2.root], ActivityState.WILL_NOT_BE_EXECUTED, "T2 should be waiting")
+        self.assertEqual(multi_branches[1].activityState[t3.root], ActivityState.ACTIVE, "T3 should be active")
+
+
+
+
+
+        custom_tree = create_custom_tree({
+            "expression": "(T2 / [C1] T3) || T1",
+            "h": 0,
+            "impacts": {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
+            "durations": {"T1": [0, 2], "T2": [0, 10], "T3": [1, 20]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 1}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_lt_task")
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 1,
+                         "P1 should be executed with time 1")
+        self.assertEqual(states.activityState[c1.root], ActivityState.ACTIVE,
+                         "C1 should be completed without passing over")
+        self.assertEqual(states.executed_time[c1.root], 1,
+                         "C1 should be completed at time 1")
+        self.assertEqual(states.activityState[t2.root], ActivityState.WAITING,
+                         "T2 should be waiting")
+        self.assertEqual(states.executed_time[t2.root], 0,
+                         "T2 never increases its executed time")
+        self.assertEqual(states.activityState[t3.root], ActivityState.WAITING,
+                         "T3 should be waiting")
+        self.assertEqual(states.executed_time[t3.root], 0,
+                         "T3 never increases its executed time")
+        self.assertEqual(states.activityState[t1.root], ActivityState.ACTIVE,
+                         "T1 should be active")
+        self.assertEqual(states.executed_time[t1.root], 1,
+                         "T1 should be completed at time 1")
+
+
+        custom_tree = create_custom_tree({
+            "expression": "(T2 / [C1] T3) || T1",
+            "h": 0,
+            "impacts": {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
+            "durations": {"T1": [0, 1], "T2": [0, 10], "T3": [1, 20]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 2}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_gt_task")
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 2,
+                         "P1 should be executed with time 2")
+        self.assertEqual(states.activityState[c1.root], ActivityState.ACTIVE,
+                         "C1 should be completed without passing over")
+        self.assertEqual(states.executed_time[c1.root], 2,
+                         "C1 should be completed at time 2")
+        self.assertEqual(states.activityState[t2.root], ActivityState.WAITING,
+                         "T2 should be waiting")
+        self.assertEqual(states.executed_time[t2.root], 0,
+                         "T2 never increases its executed time")
+        self.assertEqual(states.activityState[t3.root], ActivityState.WAITING,
+                         "T3 should be waiting")
+        self.assertEqual(states.executed_time[t3.root], 0,
+                         "T3 never increases its executed time")
+        self.assertEqual(states.activityState[t1.root], ActivityState.COMPLETED,
+                         "T1 should be completed")
+        self.assertEqual(states.executed_time[t1.root], 1,
+                         "T1 should be completed at time 1")
+
+    # TODO use parallel_natures, parallel_choices, parallel_nature_choice for the solver test
+
+    def test_parallel_natures(self):
+        custom_tree = create_custom_tree({
+            "expression": "(T1A ^[N1] T1B) || (T2A ^[N2] T2B)",
+            "h": 0,
+            "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {"N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_natures")
+
+        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
+        n1 = CTree(CNode("N1", 0, "", 1, 0, 0, 0, 0))
+        t1a = CTree(CNode("T1A", 0, "", 2, 0, 0, 0, 0))
+        t1b = CTree(CNode("T1B", 0, "", 3, 0, 0, 0, 0))
+
+        n2 = CTree(CNode("N2", 0, "", 4, 0, 0, 0, 0))
+        t2a = CTree(CNode("T1A", 0, "", 5, 0, 0, 0, 0))
+        t2b = CTree(CNode("T1B", 0, "", 6, 0, 0, 0, 0))
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 0,
+                            "P1 should be executed with time 0")
+        self.assertEqual(states.activityState[n1.root], ActivityState.ACTIVE,
+                         "N1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[n1.root], 0,
+                         "N1 should be executed with time 0")
+        self.assertEqual(states.activityState[t1a.root], ActivityState.WAITING,
+                            "T1A should be waiting")
+        self.assertEqual(states.executed_time[t1a.root], 0,
+                         "T1A never increases its executed time")
+        self.assertEqual(states.activityState[t1b.root], ActivityState.WAITING,
+                            "T1B should be waiting")
+        self.assertEqual(states.executed_time[t1b.root], 0,
+                         "T1B never increases its executed time")
+        self.assertEqual(states.activityState[n2.root], ActivityState.ACTIVE,
+                            "N2 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[n2.root], 0,
+                         "N2 should be executed with time 0")
+        self.assertEqual(states.activityState[t2a.root], ActivityState.WAITING,
+                            "T2A should be waiting")
+        self.assertEqual(states.executed_time[t2a.root], 0,
+                         "T2A never increases its executed time")
+        self.assertEqual(states.activityState[t2b.root], ActivityState.WAITING,
+                            "T2B should be waiting")
+        self.assertEqual(states.executed_time[t2b.root], 0,
+                         "T2B never increases its executed time")
 
     # TODO parallel_choices (=, <, >)
 
-    # TODO parallel_nature_choice (=)
+    def test_parallel_choices(self):
+        # TODO branches check for each sub test
+        custom_tree = create_custom_tree({
+            "expression": "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            "h": 0,
+            "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 1, "C2": 1}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_eq_choice")
+
+        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
+        c1 = CTree(CNode("C1", 0, "", 1, 0, 0, 0, 0))
+        t1a = CTree(CNode("T1A", 0, "", 2, 0, 0, 0, 0))
+        t1b = CTree(CNode("T1B", 0, "", 3, 0, 0, 0, 0))
+        c2 = CTree(CNode("C2", 0, "", 4, 0, 0, 0, 0))
+        t2a = CTree(CNode("T1A", 0, "", 5, 0, 0, 0, 0))
+        t2b = CTree(CNode("T1B", 0, "", 6, 0, 0, 0, 0))
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 1,
+                         "P1 should be executed with time 1")
+        self.assertEqual(states.activityState[c1.root], ActivityState.ACTIVE,
+                         "C1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c1.root], 1,
+                         "C1 should be executed with time 1")
+        self.assertEqual(states.activityState[t1a.root], ActivityState.WAITING,
+                         "T1A should be waiting")
+        self.assertEqual(states.executed_time[t1a.root], 0,
+                         "T1A never increases its executed time")
+        self.assertEqual(states.activityState[t1b.root], ActivityState.WAITING,
+                         "T1B should be waiting")
+        self.assertEqual(states.executed_time[t1b.root], 0,
+                         "T1B never increases its executed time")
+        self.assertEqual(states.activityState[c2.root], ActivityState.ACTIVE,
+                         "C2 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c2.root], 1,
+                         "C2 should be executed with time 1")
+        self.assertEqual(states.activityState[t2a.root], ActivityState.WAITING,
+                         "T2A should be waiting")
+        self.assertEqual(states.executed_time[t2a.root], 0,
+                         "T2A never increases its executed time")
+        self.assertEqual(states.activityState[t2b.root], ActivityState.WAITING,
+                         "T2B should be waiting")
+        self.assertEqual(states.executed_time[t2b.root], 0,
+                         "T2B never increases its executed time")
+
+
+        custom_tree = create_custom_tree({
+            "expression": "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            "h": 0,
+            "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 1, "C2": 2}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_lt_choice")
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 1,
+                         "P1 should be executed with time 1")
+        self.assertEqual(states.activityState[c1.root], ActivityState.ACTIVE,
+                         "C1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c1.root], 1,
+                         "C1 should be executed with time 1")
+        self.assertEqual(states.activityState[t1a.root], ActivityState.WAITING,
+                         "T1A should be waiting")
+        self.assertEqual(states.executed_time[t1a.root], 0,
+                         "T1A never increases its executed time")
+        self.assertEqual(states.activityState[t1b.root], ActivityState.WAITING,
+                         "T1B should be waiting")
+        self.assertEqual(states.executed_time[t1b.root], 0,
+                         "T1B never increases its executed time")
+        self.assertEqual(states.activityState[c2.root], ActivityState.ACTIVE,
+                         "C2 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c2.root], 1,
+                         "C2 should be executed with time 0")
+        self.assertEqual(states.activityState[t2a.root], ActivityState.WAITING,
+                         "T2A should be waiting")
+        self.assertEqual(states.executed_time[t2a.root], 0,
+                         "T2A never increases its executed time")
+        self.assertEqual(states.activityState[t2b.root], ActivityState.WAITING,
+                         "T2B should be waiting")
+        self.assertEqual(states.executed_time[t2b.root], 0,
+                         "T2B never increases its executed time")
+
+
+        custom_tree = create_custom_tree({
+            "expression": "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            "h": 0,
+            "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 2, "C2": 1}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_gt_choice")
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 1,
+                         "P1 should be executed with time 1")
+        self.assertEqual(states.activityState[c1.root], ActivityState.ACTIVE,
+                         "C1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c1.root], 1,
+                         "C1 should be executed with time 1")
+        self.assertEqual(states.activityState[t1a.root], ActivityState.WAITING,
+                         "T1A should be waiting")
+        self.assertEqual(states.executed_time[t1a.root], 0,
+                         "T1A never increases its executed time")
+        self.assertEqual(states.activityState[t1b.root], ActivityState.WAITING,
+                         "T1B should be waiting")
+        self.assertEqual(states.executed_time[t1b.root], 0,
+                         "T1B never increases its executed time")
+        self.assertEqual(states.activityState[c2.root], ActivityState.ACTIVE,
+                         "C2 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c2.root], 1,
+                         "C2 should be executed with time 0")
+        self.assertEqual(states.activityState[t2a.root], ActivityState.WAITING,
+                         "T2A should be waiting")
+        self.assertEqual(states.executed_time[t2a.root], 0,
+                         "T2A never increases its executed time")
+        self.assertEqual(states.activityState[t2b.root], ActivityState.WAITING,
+                         "T2B should be waiting")
+        self.assertEqual(states.executed_time[t2b.root], 0,
+                         "T2B never increases its executed time")
+
+
+
+    # TODO parallel_nature_choice (=, <)
+    def test_parallel_nature_choice(self):
+        custom_tree = create_custom_tree({
+            "expression": "(T1A ^[N1] T1B) || (T2A /[C2] T2B)",
+            "h": 0,
+            "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C2':'C2'}, "delays": {"C2": 0}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_nature_eq_choice")
+
+        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
+        n1 = CTree(CNode("N1", 0, "", 1, 0, 0, 0, 0))
+        t1a = CTree(CNode("T1A", 0, "", 2, 0, 0, 0, 0))
+        t1b = CTree(CNode("T1B", 0, "", 3, 0, 0, 0, 0))
+        c2 = CTree(CNode("C2", 0, "", 4, 0, 0, 0, 0))
+        t2a = CTree(CNode("T1A", 0, "", 5, 0, 0, 0, 0))
+        t2b = CTree(CNode("T1B", 0, "", 6, 0, 0, 0, 0))
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 0,
+                         "P1 should be executed with time 0")
+        self.assertEqual(states.activityState[n1.root], ActivityState.ACTIVE,
+                         "N1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[n1.root], 0,
+                         "N1 should be executed with time 0")
+        self.assertEqual(states.activityState[t1a.root], ActivityState.WAITING,
+                         "T1A should be waiting")
+        self.assertEqual(states.executed_time[t1a.root], 0,
+                         "T1A never increases its executed time")
+        self.assertEqual(states.activityState[t1b.root], ActivityState.WAITING,
+                         "T1B should be waiting")
+        self.assertEqual(states.executed_time[t1b.root], 0,
+                         "T1B never increases its executed time")
+        self.assertEqual(states.activityState[c2.root], ActivityState.ACTIVE,
+                         "C2 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c2.root], 0,
+                         "C2 should be executed with time 0")
+        self.assertEqual(states.activityState[t2a.root], ActivityState.WAITING,
+                         "T2A should be waiting")
+        self.assertEqual(states.executed_time[t2a.root], 0,
+                         "T2A never increases its executed time")
+        self.assertEqual(states.activityState[t2b.root], ActivityState.WAITING,
+                         "T2B should be waiting")
+        self.assertEqual(states.executed_time[t2b.root], 0,
+                         "T2B never increases its executed time")
+
+
+        custom_tree = create_custom_tree({
+            "expression": "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            "h": 0,
+            "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
+            "impacts_names": ["cost", "hours"],
+            "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 1, "C2": 2}, 'loops_prob': {}, 'loops_round': {}
+        })
+        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        self.info(custom_tree, states, "parallel_choice_lt_choice")
+
+        self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
+                         "The root should be active")
+        self.assertEqual(states.executed_time[p1.root], 1,
+                         "P1 should be executed with time 1")
+        self.assertEqual(states.activityState[n1.root], ActivityState.ACTIVE,
+                         "C1 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[n1.root], 1,
+                         "C1 should be executed with time 1")
+        self.assertEqual(states.activityState[t1a.root], ActivityState.WAITING,
+                         "T1A should be waiting")
+        self.assertEqual(states.executed_time[t1a.root], 0,
+                         "T1A never increases its executed time")
+        self.assertEqual(states.activityState[t1b.root], ActivityState.WAITING,
+                         "T1B should be waiting")
+        self.assertEqual(states.executed_time[t1b.root], 0,
+                         "T1B never increases its executed time")
+        self.assertEqual(states.activityState[c2.root], ActivityState.ACTIVE,
+                         "C2 should be active, with two waiting children")
+        self.assertEqual(states.executed_time[c2.root], 1,
+                         "C2 should be executed with time 0")
+        self.assertEqual(states.activityState[t2a.root], ActivityState.WAITING,
+                         "T2A should be waiting")
+        self.assertEqual(states.executed_time[t2a.root], 0,
+                         "T2A never increases its executed time")
+        self.assertEqual(states.activityState[t2b.root], ActivityState.WAITING,
+                         "T2B should be waiting")
+        self.assertEqual(states.executed_time[t2b.root], 0,
+                         "T2B never increases its executed time")
+
 
     # TODO parallel_parallel choice_nature_nature (=)
 
