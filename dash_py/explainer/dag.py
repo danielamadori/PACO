@@ -2,6 +2,7 @@ import math
 import os
 import graphviz
 import pandas as pd
+
 from explainer.dag_node import DagNode
 from solver.tree_lib import CNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE
@@ -186,19 +187,36 @@ class Dag:
 			dot.edge(str(self.choice), str(self.root))
 			self.bdd_to_file_recursively(dot, self.root)
 		else:
-			class_0_id = str(self.class_0)
-			dot.node(class_0_id, label="ID:"+class_0_id, shape="box", style="filled")
-			dot.edge(str(self.choice), class_0_id, label="True", style="dashed")
+			label, color = self.get_decision(self.class_0.id)
+
+			node = str(self.class_0)
+			dot.node(node, label=label, shape="box", style="filled", color=color)
+			dot.edge(str(self.choice), node, label="True", style="dashed")
 
 		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice.name)
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)# tmp file
 
+
+	def get_decision(self, decision_id: int):
+		decision = self.class_0 if decision_id == self.class_0.id else self.class_1
+		if decision.type == 'nature' or decision.type == 'choice': #TODO loop (color for loops found in print_sese_diagram is 'yellow')
+			color = 'orange'
+		elif decision.type == 'parallel':
+			color = 'yellowgreen'
+		elif decision.type == 'task':
+			color = 'lightblue'
+		else:
+			raise Exception(f"Decision type {self.decison.type} not recognized")
+
+		return "ID:" + str(decision.id), color
+
+
 	def bdd_to_file_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			label = self.class_0 if list(node.df['class'])[0] == self.class_0.id else self.class_1
-			dot.node(str(node), label=f"ID:{label}", shape="box", style="filled")
+			label, color = self.get_decision(list(node.df['class'])[0])
+			dot.node(str(node), label=label, shape="box", style="filled", color=color)
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
 		else:
