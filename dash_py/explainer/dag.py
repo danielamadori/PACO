@@ -120,13 +120,13 @@ class Dag:
 			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
 			if write:
-				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice)}_{i}')
+				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
 			i += 1
 
 		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
 		if write:
-			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice)}_{i}_final')
+			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
 
 		return self.root.best_test is not None # true if the classification worked
 
