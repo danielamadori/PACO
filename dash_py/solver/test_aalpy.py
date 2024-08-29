@@ -14,7 +14,7 @@ seed(42)
 
 import os, sys
 from datetime import datetime
-from solver.tree_lib import print_sese_custom_tree
+from solver.tree_lib import print_sese_custom_tree, CNode
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from utils.env import LOOPS_PROB, SESE_PARSER, TASK_SEQ, \
     IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, IMPACTS_NAMES
@@ -206,7 +206,19 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         else:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
-            impacts = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
+            bdds = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
+            for bdd in bdds:
+                choice:CNode = bdd.choice
+                choice_name = choice.name
+                print(choice_name)
+                choice_id = choice.id
+                decision0:CNode = bdd.class_0  # dashed line
+                decision0_id = decision0.id
+                if bdd.class_1 is not None:
+                    decision1:CNode = bdd.class_1 # normal line
+                    decision1_id = decision1.id
+
+
             t1 = datetime.now()
             print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
 
