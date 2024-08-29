@@ -33,18 +33,18 @@ min_duration = 0
 max_duration = 100
 value_interval = [min_duration, max_duration]
 marks = {j: str(j) for j in range(min_duration, int(max_duration), 10) if j != 0}
-data = {
-    'Task': bpmn_lark[TASK_SEQ],
-    'Duration': dcc.RangeSlider(
-        id=f'range-slider-',
-        min=min_duration,
-        max=max_duration,
-        value=value_interval,
-        marks=marks
-    )
-}
+# data = {
+#     'Task': bpmn_lark[TASK_SEQ],
+#     'Duration': dcc.RangeSlider(
+#         id=f'range-slider-',
+#         min=min_duration,
+#         max=max_duration,
+#         value=value_interval,
+#         marks=marks
+#     )
+# }
 
-img = print_sese_diagram(**bpmn_lark)
+# img = print_sese_diagram(**bpmn_lark)
 
 spinner = dbc.Spinner(color="primary", type="grow", fullscreen=True)
 def layout():
@@ -360,7 +360,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
     if cs.checkCorrectSyntax(bpmn_lark) and cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):  
         print(bpmn_lark)   
         strategy_d[BOUND] = list(cs.extract_values_bound(bound))
-        finded_strategies = at.calc_strat(bpmn_lark, bound, algo)
+        finded_strategies, list_choises, name_svg = at.calc_strat(bpmn_lark, bound, algo)
         if finded_strategies == {}: 
             return [None,
                 dbc.Modal(
@@ -385,8 +385,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
             ]
         else:
             strategy_d[STRATEGY] = finded_strategies['strat1']
-            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-            print_sese_diagram(**bpmn_lark, outfile_svg=name_svg, explainer = True) 
+            
             navigate_tabs('go-to-show-strategy')
             return [
                 html.Div([
@@ -396,7 +395,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
                     dcc.Tabs(
                         children=[
-                            dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in bpmn_lark['choices_list']
+                            dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in list_choises
                         ]
                     )
                 ]), None, 'tab-7']
@@ -526,7 +525,6 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
             bpmn_lark[H] = 0
-            bpmn_lark['choices_list'] = list(set(list_choises) - set(choises_nat))
             # add tree creation in a store!
             return [None, name_svg, bpmn_lark]
         except Exception as e:

@@ -42,7 +42,7 @@ def calc_strategy_paco(bpmn:dict, bound:list[int]) -> dict:
         # replace the duration list with the max duration
         bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])         
         print(f'{datetime.now()} bpmn + cpi {bpmn}')
-        strat = automata_search_strategy(bpmn, bound)
+        strat, list_choices, name_svg = automata_search_strategy(bpmn, bound)
         if strat.startswith("A strategy") :
             strategies['strat1'] = strat
         elif strat.startswith("Error"):
@@ -52,7 +52,7 @@ def calc_strategy_paco(bpmn:dict, bound:list[int]) -> dict:
     except Exception as e:
         print(f'test failed for Paco: {e}')
         strategies['error'] = f'Error while calculating the strategy: {e}'
-    return strategies
+    return strategies, list(list_choices.keys()), name_svg
 
 def calc_strategy_algo1(bpmn:dict, bound:list[int]) -> dict:
     strategies = {}

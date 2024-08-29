@@ -9,13 +9,12 @@ from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, SESE_PARSE
 def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_LARK, outfile_svg = PATH_IMAGE_BPMN_LARK_SVG,
                         graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={}, explainer= False, choices_list =[]):
     tree = SESE_PARSER.parse(expression)
-    diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names)
+    diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names, explainer = explainer, choices_list=choices_list)
     global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'
     dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
-    if explainer:
-        print('explainer')
-    graphs = pydot.graph_from_dot_data(dot_string)
+    graphs = pydot.graph_from_dot_data(dot_string)    
     graph = graphs[0]  
+    print(graph)
     graph.write_svg(outfile_svg)
     graph.write_svg(PATH_IMAGE_BPMN_LARK_SVG)
     #print(graph)  
@@ -23,7 +22,7 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     graph.write_png(outfile)    
     return  Image.open(outfile)   
 
-def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}):
+def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
     exit_label = ''
     if type(t) == Token:
         label = t.value
@@ -80,10 +79,16 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
         if label != "sequential":
             for ei,i in enumerate(child_ids):
                 edge_label = edge_labels[ei]
-                code += f'\n node_{id_enter} -> node_{i[0]} [label="{edge_label}"];'
+                edge_style = ''                
+                if label in {'choice'} and explainer and choices_list != {} and str(t.children[1]) in list(choices_list.keys()) and i[0] == choices_list[str(t.children[1])][-1]+2:
+                    print(f' ids = {i[0]} { choices_list[str(t.children[1])][-1]}')   
+                    edge_style = ', style="dashed"'
+                code += f'\n node_{id_enter} -> node_{i[0]} [label="{edge_label}" {edge_style}];'
                 code += f'\n node_{i[1]} -> node_{id_exit};'
             if label in  {'loop', 'loop_probability'}:  
                 code += f'\n node_{id_exit} -> node_{id_enter} [label="{edge_labels[1]}"];'
+            # if label in {'choice'} and explainer and str(t.children[1]) in list(choices_list.keys()):
+            #     code += f'\n node_{choices_list[t.children[1]][0]} -> node_{choices_list[t.children[1]][1]+2} [style="dashed"];'
         else:
             for ei,i in enumerate(child_ids):
                 edge_label = edge_labels[ei]
@@ -93,8 +98,8 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
                     exit_label = exit_labels[1]             
     return code, id_enter, id_exit, exit_label
 
-def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, durations={}, names={}, delays={}, impacts_names=[]):
-    code, id_enter, id_exit, exit_label = dot_sese_diagram(tree, 0, h, probabilities, impacts, loop_thresholds, durations, imp_names = impacts_names, names=names)   
+def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, durations={}, names={}, delays={}, impacts_names=[],  choices_list = {}, explainer = False):
+    code, id_enter, id_exit, exit_label = dot_sese_diagram(tree, 0, h, probabilities, impacts, loop_thresholds, durations, imp_names = impacts_names, names=names, choices_list = choices_list, explainer = explainer)   
     code = '\n start[label="" style="filled" shape=circle fillcolor=palegreen1]' +   '\n end[label="" style="filled" shape=doublecircle fillcolor=orangered] \n' + code
     code += f'\n start -> node_{id_enter};'
     code += f'\n node_{id_exit} -> end [label="{exit_label}"];'

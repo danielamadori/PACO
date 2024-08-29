@@ -1,5 +1,6 @@
 from random import seed
 
+from utils.print_sese_diagram import print_sese_diagram
 from solver_optimized.build_strategy import build_strategy
 from explainer.explain_strategy import explain_strategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
@@ -207,22 +208,24 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
             bdds = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
+            list_choices = {}   
             for bdd in bdds:
                 choice:CNode = bdd.choice
                 choice_name = choice.name
-                print(choice_name)
                 choice_id = choice.id
                 decision0:CNode = bdd.class_0  # dashed line
                 decision0_id = decision0.id
+                print(choice_name,choice_id, decision0_id, decision0.name)
+                list_choices[choice_name]= [choice_id, decision0_id]
                 if bdd.class_1 is not None:
                     decision1:CNode = bdd.class_1 # normal line
                     decision1_id = decision1.id
-
-
+            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+            print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)             
             t1 = datetime.now()
             print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
-
-        return f"A strategy could be found, which has as an expected impact of : {frontier_solution_value_bottom_up} "
+            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))
+        return f"A strategy could be found, which has as an expected impact of : {impacts} ", list_choices, name_svg
 
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred
