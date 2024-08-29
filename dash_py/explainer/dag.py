@@ -187,8 +187,7 @@ class Dag:
 			dot.edge(str(self.choice), str(self.root))
 			self.bdd_to_file_recursively(dot, self.root)
 		else:
-			label, color = self.get_decision(self.class_0.id)
-
+			label, color = self.get_decision(self.class_0)
 			node = str(self.class_0)
 			dot.node(node, label=label, shape="box", style="filled", color=color)
 			dot.edge(str(self.choice), node, label="True", style="dashed")
@@ -199,23 +198,25 @@ class Dag:
 		os.remove(file_path)# tmp file
 
 
-	def get_decision(self, decision_id: int):
-		decision = self.class_0 if decision_id == self.class_0.id else self.class_1
+	@staticmethod
+	def get_decision(decision: CNode):
 		if decision.type == 'nature' or decision.type == 'choice': #TODO loop (color for loops found in print_sese_diagram is 'yellow')
 			color = 'orange'
 		elif decision.type == 'parallel':
 			color = 'yellowgreen'
 		elif decision.type == 'task':
 			color = 'lightblue'
+		elif decision.type == 'sequential':
+			return Dag.get_decision(decision.childrens[0].root)
 		else:
-			raise Exception(f"Decision type {self.decison.type} not recognized")
+			raise Exception(f"Decision type {decision.type} not recognized")
 
 		return "ID:" + str(decision.id), color
 
 
 	def bdd_to_file_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			label, color = self.get_decision(list(node.df['class'])[0])
+			label, color = Dag.get_decision(self.class_0 if list(node.df['class'])[0] == self.class_0.id else self.class_1)
 			dot.node(str(node), label=label, shape="box", style="filled", color=color)
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
