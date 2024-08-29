@@ -186,14 +186,11 @@ class Dag:
 			dot.edge(str(self.choice), str(self.root))
 			self.bdd_to_file_recursively(dot, self.root)
 		else:
-			label = "?"
-			dot.node(label, label=label, shape="ellipse")
-			dot.edge(str(self.choice), label)
 			class_0_id = str(self.class_0)
 			dot.node(class_0_id, label="ID:"+class_0_id, shape="box", style="filled")
-			dot.edge(label, class_0_id, label="True", style="dashed")
+			dot.edge(str(self.choice), class_0_id, label="True", style="dashed")
 
-		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice)
+		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice.name)
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)# tmp file
