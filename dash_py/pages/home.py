@@ -435,7 +435,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
     print(bpmn_lark)
     if not bpmn_lark:
-        return [ None, None, None]
+        return [ None, None, bpmn_lark]
     #check the syntax of the input if correct print the diagram otherwise an error message
     try:
         if task == '' and bpmn_lark[TASK_SEQ] == '':
@@ -457,7 +457,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None, None
+                None, bpmn_lark
             ]
     print(impacts)
     try:
@@ -476,7 +476,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None, None
+                None, bpmn_lark
             ]
     try:
         if durations:
@@ -492,7 +492,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None, None
+                None, bpmn_lark
             ]
     try:
         list_choises = cs.extract_choises(task)        
@@ -514,7 +514,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None, None
+                None, bpmn_lark
             ]
     if cs.checkCorrectSyntax(bpmn_lark):
         print(f'bpmn in printing {bpmn_lark}')
@@ -539,7 +539,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                         id="modal",
                         is_open=True,
                     ),
-                    None,None
+                    None,bpmn_lark
                 ]
     else:
         return  [#dbc.Alert(f'Error in the syntax! Please check the syntax of the BPMN diagram.', color="danger")
@@ -551,7 +551,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None, None
+                None, bpmn_lark
                 ]
 
 #######################
