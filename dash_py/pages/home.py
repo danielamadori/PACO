@@ -91,7 +91,6 @@ def layout():
             ]),
             dcc.Tab(label='Durations', value='tab-2', children=[
                 html.Div([
-                    html.P('Insert the impacts list of the tasks in the following format: cost, hours. IF for some task the impacts are not defined they will be put 0 by default.'),
                     html.Div(id='task-duration'),
                     dbc.Button('Back', id='back-to-load-bpmn'),
                     dbc.Button('Next', id='go-to-impacts-bpmn'),
@@ -99,6 +98,7 @@ def layout():
             ]),
             dcc.Tab(label='CPI: Impacts', value='tab-3', children=[
                 html.Div([
+                    html.P('Insert the impacts list of the tasks in the following format: cost, hours. IF for some task the impacts are not defined they will be put 0 by default.'),
                     dcc.Textarea(value='cost',  id = 'input-impacts', persistence=True, style={'width': '100%'}),
                     html.Div(id='impacts-table'),
                     dbc.Button('Back', id='back-to-durations'),
@@ -107,13 +107,13 @@ def layout():
             ]),
             dcc.Tab(label='CPI: Choices and natures', value='tab-4', children=[
                 html.Div([                   
-                    html.P('Insert the probabilities for each natural choice. The values have to be between 0 and 1.'),
+                    html.P('Insert the probabilities for each natural choice, if any. The values have to be between 0 and 1.'),
                     html.Div(id= 'probabilities'),
                     html.Br(),
-                    html.P('Insert the delays for each natural choice. The values have to be between 0 and 100.'),
+                    html.P('Insert the delays for each natural choice, if any. The values have to be between 0 and 100.'),
                     html.Div(id= 'delays'),
                     html.Br(),    
-                    html.P('Insert the number of maximum loops round. The value have to be between 1 and 100.'),    
+                    html.P('Insert the number of maximum loops round, if any. The value have to be between 1 and 100.'),    
                     html.Div(id= 'loops'),
                     html.Br(),
                     dbc.Button('Back', id='back-to-impacts'),
@@ -154,7 +154,7 @@ def layout():
                 html.Div([
                     
                     html.Div(id="strategy", children=[
-                        html.H1("Choose the algorithm to use:"),
+                        html.H3("Choose the algorithm to use:"),
                         dcc.Dropdown(
                             id='choose-strategy',
                             options=[
@@ -163,7 +163,7 @@ def layout():
                             ],
                             value= list(ALGORITHMS.keys())[0] # default value
                         ),
-                        html.P('Insert the bound dictionary -it has to correspond to the impact dictionary- : {"cost": 10, "working_hours": 12}'),                        
+                        html.H3('Insert the bound'),                        
                         html.Div(id= 'choose-bound-dict'),
                         html.Br(),
                         html.Br(),
@@ -229,7 +229,7 @@ def layout():
 #######################
 
 @callback(
-    Output('tabs', 'value'),
+    Output('tabs', 'value', allow_duplicate=True),
     [
      Input('back-to-load-bpmn', 'n_clicks'),
      Input('go-to-show-bpmn', 'n_clicks'),
@@ -304,7 +304,7 @@ def parse_contents(contents, filename):
                            {tasks} 
                            If you want to modify it, just copy and paste in the textarea below. 
                            Note that this will reset all the other values to the default one.""")
-            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark
+            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ",".join(bpmn_lark['impacts_names'])
     except Exception as e:
         print(e)
         return None, None, None, None, None, None
@@ -317,6 +317,7 @@ def parse_contents(contents, filename):
         Output('delays', 'children',allow_duplicate=True),
         Output('loops', 'children',allow_duplicate=True),
         Output('bpmn-lark-store', 'data',allow_duplicate=True),
+        Output('input-impacts', 'value', allow_duplicate=True),
     ],
     [Input('upload-data', 'contents')],
     [State('upload-data', 'filename')],
@@ -335,7 +336,7 @@ def update_output(list_of_contents, list_of_names):
 
 #########################
 @callback(
-    [Output('strategy-founded', 'children'), Output('logging-strategy', 'children')],
+    [Output('strategy-founded', 'children'), Output('logging-strategy', 'children'), Output('tabs','value', allow_duplicate=True)],
     Input('find-strategy-button', 'n_clicks'),
     State('choose-strategy', 'value'),
     State('choose-bound-dict', 'children'),
@@ -353,10 +354,9 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     ],
                     id="modal",
                     is_open=True,
-                ),
+                ),'tab-6'
             ]
     print(bpmn_lark)
-    bpmn_lark[H] = 0
     if cs.checkCorrectSyntax(bpmn_lark) and cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):  
         print(bpmn_lark)   
         strategy_d[BOUND] = list(cs.extract_values_bound(bound))
@@ -370,7 +370,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     ],
                     id="modal",
                     is_open=True,
-                ),
+                ),'tab-6'
             ]
         elif finded_strategies.get('error') != None:
             return [None,
@@ -381,22 +381,25 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     ],
                     id="modal",
                     is_open=True,
-                ),
+                ),'tab-6'
             ]
         else:
             strategy_d[STRATEGY] = finded_strategies['strat1']
+            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+            print_sese_diagram(**bpmn_lark, outfile_svg=name_svg, explainer = True) 
+            navigate_tabs('go-to-show-strategy')
             return [
                 html.Div([
                     html.P(f"Strategies: {finded_strategies['strat1']}"),
-                    html.Iframe(src=bpmn_lark['path'], style={'height': '100%', 'width': '100%'}),
+                    html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
                     # download diagram as svg
                     html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
                     dcc.Tabs(
                         children=[
-                            dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in bpmn_lark['CHOISES_LIST']
+                            dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in bpmn_lark['choices_list']
                         ]
                     )
-                ]), None]
+                ]), None, 'tab-7']
     else:
         return [None,
                 dbc.Modal(
@@ -406,7 +409,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     ],
                     id="modal",
                     is_open=True,
-                ),
+                ),'tab-6'
             ]
 
 
@@ -431,18 +434,8 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
 )
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
     print(bpmn_lark)
-    # if not bpmn_lark:
-    #     return [  # dbc.Alert(f'Error while parsing the bpmn: {e}', color="danger")]
-    #             dbc.Modal(
-    #                 [
-    #                     dbc.ModalHeader(dbc.ModalTitle("ERROR"), class_name="bg-danger"),
-    #                     dbc.ModalBody(f'Error: bpmn is empty'),
-    #                 ],
-    #                 id="modal",
-    #                 is_open=True,
-    #             ),
-    #             None, None
-    #         ]
+    if not bpmn_lark:
+        return [ None, None, None]
     #check the syntax of the input if correct print the diagram otherwise an error message
     try:
         if task == '' and bpmn_lark[TASK_SEQ] == '':
@@ -502,8 +495,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 None, None
             ]
     try:
-        list_choises = cs.extract_choises(task)
-        bpmn_lark['CHOISES_LIST'] = list_choises
+        list_choises = cs.extract_choises(task)        
         loops_chioses = cs.extract_loops(task) 
         choises_nat = cs.extract_choises_nat(task) + loops_chioses
         bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choises_nat, probabilities)
@@ -531,9 +523,10 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
             if not os.path.exists(bpmn_svg_folder):
                 os.makedirs(bpmn_svg_folder)
             # Create a new SESE Diagram from the input
-            name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
-            bpmn_lark['path'] = name_svg
+            bpmn_lark[H] = 0
+            bpmn_lark['choices_list'] = list(set(list_choises) - set(choises_nat))
             # add tree creation in a store!
             return [None, name_svg, bpmn_lark]
         except Exception as e:
