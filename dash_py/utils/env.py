@@ -58,7 +58,7 @@ PATH_IMAGE_BPMN_LARK_SVG ='assets/bpmn.svg'
 PATH_AUTOMATON = 'assets/automaton.dot'
 PATH_AUTOMATON_CLEANED = 'assets/automaton_cleaned.dot'
 PATH_AUTOMATON_IMAGE = 'assets/automaton.png'
-PATH_AUTOMATON_IMAGE_SVG = 'assets/automaton.svg'
+PATH_AUTOMATON_IMAGE_SVG = 'assets/automata.svg'
 
 
 PATH_EXECUTION_TREE = 'assets/execution_tree/'

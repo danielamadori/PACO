@@ -1,12 +1,13 @@
 import copy
 import math
+import os
 import numpy as np
 import pydot
 from graphviz import Source
 from solver.tree_lib import CNode, CTree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
-from utils.env import RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_DOT, \
+from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_DOT, \
 	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, \
 	PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_DOT
 
@@ -260,6 +261,8 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 
 
 def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
+	if not os.path.exists(PATH_EXECUTION_TREE):
+		os.makedirs(PATH_EXECUTION_TREE)
 	solution_tree.save_dot(PATH_AUTOMA_STATE_DOT)
 	write_image(frontier, PATH_AUTOMA_STATE_DOT, svgPath=PATH_AUTOMA_STATE_IMAGE_SVG)#, PATH_AUTOMA_IMAGE)
 

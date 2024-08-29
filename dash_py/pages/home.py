@@ -355,6 +355,8 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     is_open=True,
                 ),
             ]
+    print(bpmn_lark)
+    bpmn_lark[H] = 0
     if cs.checkCorrectSyntax(bpmn_lark) and cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):  
         print(bpmn_lark)   
         strategy_d[BOUND] = list(cs.extract_values_bound(bound))
@@ -386,10 +388,14 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
             return [
                 html.Div([
                     html.P(f"Strategies: {finded_strategies['strat1']}"),
-                    html.Iframe(src=PATH_AUTOMATON_IMAGE_SVG, style={'height': '100%', 'width': '100%'}),
+                    html.Iframe(src=bpmn_lark['path'], style={'height': '100%', 'width': '100%'}),
                     # download diagram as svg
                     html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
-                    html.Img(src="assets/out.png"),
+                    dcc.Tabs(
+                        children=[
+                            dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in bpmn_lark['CHOISES_LIST']
+                        ]
+                    )
                 ]), None]
     else:
         return [None,
@@ -411,7 +417,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
 #########################
 
 @callback(
-    [Output('logging', 'children'), Output('lark-frame', 'src')],
+    [Output('logging', 'children'), Output('lark-frame', 'src'), Output('bpmn-lark-store', 'data', allow_duplicate=True)],
     Input('create-diagram-button', 'n_clicks'),
     State('input-bpmn', 'value'), # task seq
     State('input-impacts', 'value'), # # impacts name list
@@ -425,27 +431,27 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
 )
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
     print(bpmn_lark)
-    if not bpmn_lark:
-        return [  # dbc.Alert(f'Error while parsing the bpmn: {e}', color="danger")]
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader(dbc.ModalTitle("ERROR"), class_name="bg-danger"),
-                        dbc.ModalBody(f'Error: bpmn is empty'),
-                    ],
-                    id="modal",
-                    is_open=True,
-                ),
-                None
-            ]
+    # if not bpmn_lark:
+    #     return [  # dbc.Alert(f'Error while parsing the bpmn: {e}', color="danger")]
+    #             dbc.Modal(
+    #                 [
+    #                     dbc.ModalHeader(dbc.ModalTitle("ERROR"), class_name="bg-danger"),
+    #                     dbc.ModalBody(f'Error: bpmn is empty'),
+    #                 ],
+    #                 id="modal",
+    #                 is_open=True,
+    #             ),
+    #             None, None
+    #         ]
     #check the syntax of the input if correct print the diagram otherwise an error message
     try:
         if task == '' and bpmn_lark[TASK_SEQ] == '':
             raise Exception
         elif task != '':
-            # print('task non vuota ')
+            print('task non vuota ')
             bpmn_lark[TASK_SEQ] = task
         else:
-            # print('task  vuota  bpmn no')
+            print('task  vuota  bpmn no')
             task = bpmn_lark[TASK_SEQ]
     except Exception as e:
         print(f'Error at 1st step while parsing the BPMN tasks sequence: {e}')
@@ -458,7 +464,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None
+                None, None
             ]
     print(impacts)
     try:
@@ -477,7 +483,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None
+                None, None
             ]
     try:
         if durations:
@@ -493,10 +499,11 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None
+                None, None
             ]
     try:
         list_choises = cs.extract_choises(task)
+        bpmn_lark['CHOISES_LIST'] = list_choises
         loops_chioses = cs.extract_loops(task) 
         choises_nat = cs.extract_choises_nat(task) + loops_chioses
         bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choises_nat, probabilities)
@@ -515,7 +522,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None
+                None, None
             ]
     if cs.checkCorrectSyntax(bpmn_lark):
         print(f'bpmn in printing {bpmn_lark}')
@@ -526,7 +533,9 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
             # Create a new SESE Diagram from the input
             name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
-            return [None, name_svg]
+            bpmn_lark['path'] = name_svg
+            # add tree creation in a store!
+            return [None, name_svg, bpmn_lark]
         except Exception as e:
             return [ #dbc.Alert(f'Error while creating the diagram: {e}', color="danger")
                     dbc.Modal(
@@ -537,7 +546,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                         id="modal",
                         is_open=True,
                     ),
-                    None
+                    None,None
                 ]
     else:
         return  [#dbc.Alert(f'Error in the syntax! Please check the syntax of the BPMN diagram.', color="danger")
@@ -549,7 +558,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                     id="modal",
                     is_open=True,
                 ),
-                None
+                None, None
                 ]
 
 #######################

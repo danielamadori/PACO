@@ -46,7 +46,7 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
             id_exit = last_id
             if label == "choice":
                 code += dot_exclusive_gateway(id_enter, label=t.children[1])
-                code += dot_exclusive_gateway(id_exit)
+                code += dot_exclusive_gateway(id_exit, label=t.children[1])
             elif label == 'natural':
                 code += dot_probabilistic_gateway(id_enter)
                 code += dot_probabilistic_gateway(id_exit)
