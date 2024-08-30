@@ -44,7 +44,9 @@ def explain_strategy(strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], imp
 		print(unavoidableImpacts, unavoidableImpacts_labels)
 		impacts.extend(unavoidableImpacts)
 		impacts_labels.extend(unavoidableImpacts_labels)
+		print(impacts, impacts_labels)
 		bdd = explain_choice(choice, list(decisions.keys()), impacts, impacts_labels, impacts_names)
+
 		if bdd is not None:
 			bdds.append(bdd)
 			continue

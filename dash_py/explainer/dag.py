@@ -90,11 +90,10 @@ class Dag:
 
 	def step(self):
 		open_leaves = self.get_splittable_leaves()
-		if len(open_leaves) == 0:
-			return True
 		for node in open_leaves:
 			self.expand(node)
-		return False
+
+		return len(self.get_splittable_leaves()) > 0, len(open_leaves) > len(self.get_splittable_leaves())
 
 	def compute_tree(self, node: DagNode):
 		if node.visited:
@@ -117,7 +116,12 @@ class Dag:
 
 	def explore(self, write=False):
 		i = 1
-		while not self.step():
+
+		is_dividable = True
+		while is_dividable:
+			is_dividable, changed = self.step()
+			if not changed: # It means that is not separable
+				return False
 			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
 			if write:
@@ -129,7 +133,7 @@ class Dag:
 		if write:
 			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
 
-		return self.root.best_test is not None # true if the classification worked
+		return True
 
 	def get_minimum_tree_nodes(self, node: DagNode):
 		nodes = []
