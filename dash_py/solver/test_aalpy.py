@@ -1,5 +1,6 @@
 from random import seed
 
+from solver_optimized.saturate_execution.strategy_tree import StrategyTree, write_strategy_tree
 from utils.print_sese_diagram import print_sese_diagram
 from solver_optimized.build_strategy import build_strategy
 from explainer.explain_strategy import explain_strategy
@@ -208,6 +209,9 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
             bdds = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
+            strategy_tree = StrategyTree(execution_tree, bdds)
+            write_strategy_tree(strategy_tree)
+
             list_choices = {}   
             for bdd in bdds:
                 choice:CNode = bdd.choice

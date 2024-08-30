@@ -7,7 +7,8 @@ from graphviz import Source
 from solver.tree_lib import CNode, CTree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
-from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_DOT, \
+from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, \
+	PATH_AUTOMA_STATE_TIME_DOT, \
 	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, \
 	PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_DOT
 
@@ -185,13 +186,16 @@ def tree_node_info(node: ExecutionViewPoint) -> str:
 	result = f"ID:{node.id}:decisions:<"
 	for n in node.decisions:
 		result += str(n.id) + ";"
+	result = result[:-1]
 
-	result = result[:-1] + ">:choices_natures:<"
-	tmp = ""
-	for n in node.choices_natures:
-		tmp += str(n.id) + ";"
+	if len(node.choices_natures) > 0:
+		result += ">:choices_natures:<"
+		tmp = ""
+		for n in node.choices_natures:
+			tmp += str(n.id) + ";"
+		result += tmp[:-1]
 
-	return result + tmp[:-1] + ">:status:\n" + states_info(node.states)
+	return result + ">:status:\n" + states_info(node.states)
 
 
 def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
@@ -274,3 +278,8 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 
 	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, state=False, executed_time=True)
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
+
+
+
+
+
