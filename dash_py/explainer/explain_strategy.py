@@ -1,7 +1,7 @@
 import numpy as np
 from explainer.dag import Dag
 from explainer.impacts import current_impacts, unavoidable_impacts
-from solver.tree_lib import CNode
+from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
 
@@ -26,25 +26,28 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], 
 	return dag
 
 
-def explain_strategy(strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str]) -> list[Dag]:
+def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str]) -> list[Dag]:
 	bdds = []
 	for choice, decisions in strategy.items():
 		print("Explaining: choice", choice)
 
 		print("Current impacts:")
 		impacts, impacts_labels = current_impacts(decisions)
-		print(impacts, impacts_labels)
+		for i in range(len(impacts)):
+			print(f"I({impacts_labels[i]}): {impacts[i]}")
 		bdd = explain_choice(choice, list(decisions.keys()), impacts, impacts_labels, impacts_names)
 		if bdd is not None:
 			bdds.append(bdd)
 			continue
 
 		print("Unavoidable impacts:")
-		unavoidableImpacts, unavoidableImpacts_labels = unavoidable_impacts(choice, decisions, len(impacts_names))
+		unavoidableImpacts, unavoidableImpacts_labels = unavoidable_impacts(region_tree, choice, decisions, len(impacts_names))
 		print(unavoidableImpacts, unavoidableImpacts_labels)
 		impacts.extend(unavoidableImpacts)
 		impacts_labels.extend(unavoidableImpacts_labels)
-		print(impacts, impacts_labels)
+		for i in range(len(impacts)):
+			print(f"I({impacts_labels[i]}): {impacts[i]}")
+
 		bdd = explain_choice(choice, list(decisions.keys()), impacts, impacts_labels, impacts_names)
 
 		if bdd is not None:

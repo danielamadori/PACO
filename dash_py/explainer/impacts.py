@@ -1,6 +1,8 @@
+from random import choice
+
 import numpy as np
-from saturate_execution.states import States, ActivityState
-from solver.tree_lib import CNode
+from saturate_execution.states import States, ActivityState, node_info, states_info
+from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
 
@@ -14,7 +16,7 @@ def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	return impacts, impacts_labels
 
 def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
-	#print(node_info(root, states))
+	#print("root " + node_info(root, states))
 	if root in states.activityState and states.activityState[root] in [ActivityState.WILL_NOT_BE_EXECUTED, ActivityState.COMPLETED, ActivityState.COMPLETED_WIHTOUT_PASSING_OVER]:
 		#print("general node with: -1, 2, 3")
 		return set()
@@ -25,7 +27,7 @@ def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
 	if root.type in ['sequential', 'parallel']:
 		result = set[CNode]()
 		for child in root.childrens:
-			result.union(unavoidable_tasks(child.root, states))
+			result = result.union(unavoidable_tasks(child.root, states))
 		return result
 
 	if root.type in ['choice', 'natural'] and root in states.activityState and states.activityState[root] == ActivityState.ACTIVE:
@@ -35,12 +37,14 @@ def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
 
 	return set()
 
-def unavoidable_impacts(choice_sub_region: CNode, decisions: dict[CNode, set[ExecutionTree]], impacts_size:int) -> (list, list):
+def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]], impacts_size:int) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
 		for executionTree in executionTrees:
 			unavoidableImpacts = np.zeros(impacts_size)
-			for unavoidableTask in unavoidable_tasks(choice_sub_region, executionTree.root.states):
+			print("Unavoidable:\n" + states_info(executionTree.root.states))
+			for unavoidableTask in unavoidable_tasks(region_tree.root, executionTree.root.states):
+				print("unavoidableTask " + node_info(unavoidableTask, executionTree.root.states))
 				unavoidableImpacts += np.array(unavoidableTask.impact)
 
 			impacts.append(unavoidableImpacts)

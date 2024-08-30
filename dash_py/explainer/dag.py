@@ -88,12 +88,6 @@ class Dag:
 			changed = node.add_node(target_node, edge)
 	#print(node.transition_str(target_node, changed))
 
-	def step(self):
-		open_leaves = self.get_splittable_leaves()
-		for node in open_leaves:
-			self.expand(node)
-
-		return len(self.get_splittable_leaves()) > 0, len(open_leaves) > len(self.get_splittable_leaves())
 
 	def compute_tree(self, node: DagNode):
 		if node.visited:
@@ -116,17 +110,23 @@ class Dag:
 
 	def explore(self, write=False):
 		i = 1
+		while True:
+			open_leaves = self.get_splittable_leaves()
+			if len(open_leaves) == 0:
+				break
 
-		is_dividable = True
-		while is_dividable:
-			is_dividable, changed = self.step()
-			if not changed: # It means that is not separable
-				return False
+			for node in open_leaves:
+				self.expand(node)
+
 			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
 			if write:
 				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
 			i += 1
+
+			if len(open_leaves) <= len(self.get_splittable_leaves()):#Is not expanding (not separable)
+				return False
+
 
 		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
@@ -232,3 +232,4 @@ class Dag:
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
 
 		return str(node)
+

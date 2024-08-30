@@ -207,7 +207,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         else:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
-            bdds = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
+            bdds = explain_strategy(custom_tree, strategy, bpmn[IMPACTS_NAMES])
             list_choices = {}   
             for bdd in bdds:
                 choice:CNode = bdd.choice

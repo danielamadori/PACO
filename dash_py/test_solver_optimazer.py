@@ -5,10 +5,21 @@ from utils.automa import calc_strategy_paco
 
 
 bpmn_ex = {
-    "unavoidable_example" : [
+    "wrong_unavoidable_example" : [
         {'impacts_names': ['a', 'b'],
          'expression': '((T1 /[C1] T2) || (( (T3 ^[N2] T4), TU1) ^[N1] ( (T5 ^[N3] T6), TU2)))',
          'impacts': {'T1': [3, 1], 'T2': [1, 3], 'T3': [2, 0], 'T4': [0, 2], 'TU1': [3, 1], 'T5': [2, 0], 'T6': [0, 2], 'TU2': [1, 3]}, 'durations': {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1]}, 'probabilities': {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
+         'loops_prob': {},
+         'names': {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
+         'delays': {'C1': 1}, 'loop_round': {}, 'h': 0,
+         'choices_list': ['C1']
+         }, [5, 6]
+    ],
+    "unavoidable_example" : [
+        {'impacts_names': ['a', 'b'],
+         'expression': '((T1 /[C1] T2) || ((TD1, (T3 ^[N2] T4), TU1) ^[N1] (TD2,  (T5 ^[N3] T6), TU2)))',
+         'impacts': {'T1': [3, 1], 'T2': [1, 3], 'T3': [2, 0], 'T4': [0, 2], 'TU1': [3, 1], 'T5': [2, 0], 'T6': [0, 2], 'TU2': [1, 3], 'TD1': [0, 0], 'TD2': [0, 0]},
+         'durations': {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1], 'TD1': [0, 2], 'TD2': [0, 2]}, 'probabilities': {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
          'loops_prob': {},
          'names': {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
          'delays': {'C1': 1}, 'loop_round': {}, 'h': 0,
@@ -115,16 +126,14 @@ bpmn_ex = {
 
 
 def test(name, bpmn):
-    print(f' type bpmn: {name}, strategy {bpmn}')
+    print(f' type bpmn: {name}')
 
-    # per disegnare
-
-    # bpmn_svg_folder = "assets/bpmnTest/"
-    # if not os.path.exists(bpmn_svg_folder):
-    #     os.makedirs(bpmn_svg_folder)
+    bpmn_folder = "assets/" #bpmnTest/"
+    if not os.path.exists(bpmn_folder):
+         os.makedirs(bpmn_folder)
     # # Create a new SESE Diagram from the input
-    # name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
-    # print_sese_diagram(**bpmn, outfile=name_svg)
+    filename =  bpmn_folder + "bpmn_test.png"
+    print_sese_diagram(**bpmn[0], outfile=filename)
 
     strategies = calc_strategy_paco(bpmn[0], bpmn[1])
     print(f'Type bpmn: {name}, strategy {strategies}')
@@ -144,4 +153,6 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 
 
 #test_calc_strategy_paco(bpmn_ex)
-test_calc_strategy_paco(bpmn_ex, 0)
+test_calc_strategy_paco(bpmn_ex, 1) #unavoidable_example
+
+#test_calc_strategy_paco(bpmn_ex, 7) # currents impacts
