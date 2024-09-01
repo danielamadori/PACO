@@ -9,14 +9,14 @@ from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Dag:
-	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, impacts_label:list, impacts_names):
+	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, label:list, features_names:list):
 		self.choice = choice
 		self.class_0 = class_0
 		self.class_1 = class_1
 
 		if class_1 is not None:
-			df = pd.DataFrame(impacts, columns=impacts_names)
-			df['class'] = impacts_label
+			df = pd.DataFrame(impacts, columns=features_names)
+			df['class'] = label
 			self.root = DagNode(df)
 			self.nodes = {self.root}
 		else:

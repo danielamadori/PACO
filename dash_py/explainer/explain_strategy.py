@@ -5,7 +5,7 @@ from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], impacts_labels:list, impacts_names:list) -> Dag:
+def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], labels:list, features_names:list) -> Dag:
 	decisions = list(decisions)
 	decision_0 = decisions[0]
 	decision_1 = None
@@ -13,7 +13,7 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], 
 	if not is_unavoidable_decision:
 		decision_1 = decisions[1]
 
-	dag = Dag(choice, decision_0, decision_1, impacts, impacts_labels, impacts_names)
+	dag = Dag(choice, decision_0, decision_1, impacts, labels, features_names)
 
 	success = True
 	if not is_unavoidable_decision:

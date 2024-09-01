@@ -1,6 +1,4 @@
 import copy
-from random import choice
-
 import numpy as np
 from saturate_execution.states import States, ActivityState, node_info, states_info
 from solver.tree_lib import CNode, CTree
@@ -57,16 +55,15 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 def propagate_status(node: CNode, states: States):
 	print("ID: " + str(node.id))
 	if node in states:
-		print("propagate_status: " + str(states[node]))
+		print("propagate status: " + str(states[node]))
 		return states[node]
 
 	if node.parent is None:
 		raise Exception("Node without parent")
 
-	propagated_status = propagate_status(node.parent, states)
-	states[node] = propagated_status
+	states[node] = propagate_status(node.parent, states)
 
-	return propagated_status
+	return states[node]
 
 
 def get_full_states(all_states: list[dict[CNode, ActivityState]]):
@@ -104,5 +101,3 @@ def stateful(decisions: dict[CNode, set[ExecutionTree]]):
 		print(f"State vector: {states_vectors[i]}, label: {labels[i]}")
 
 	return all_nodes, states_vectors, labels
-
-
