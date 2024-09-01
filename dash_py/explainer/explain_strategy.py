@@ -55,8 +55,10 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 		#stateful stuff
 		print("Stateful impacts")
 		all_nodes, states_vectors, labels = stateful(decisions)
-
 		bdd = explain_choice(choice, list(decisions.keys()), states_vectors, labels, all_nodes)
-		bdds.append(bdd)
+		if bdd is not None:
+			bdds.append(bdd)
+		else:
+			print("No explanation found")
 
 	return bdds

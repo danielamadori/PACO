@@ -100,7 +100,8 @@ class Dag:
 
 			edge = (feature, threshold, lt)
 			changed = node.add_node(target_node, edge)
-	#print(node.transition_str(target_node, changed))
+			#print(node.transition_str(target_node, changed))
+
 
 
 	def compute_tree(self, node: DagNode):
@@ -123,7 +124,7 @@ class Dag:
 			node.visited = True
 
 	def explore(self, write=False):
-		if(not self.is_separable()):
+		if not self.is_separable():
 			return False
 
 		i = 1
@@ -140,9 +141,6 @@ class Dag:
 			if write:
 				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
 			i += 1
-
-			if len(open_leaves) <= len(self.get_splittable_leaves()):#Is not expanding (not separable)
-				return False
 
 		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
