@@ -52,3 +52,57 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 			impacts_labels.append(decision.id)
 
 	return impacts, impacts_labels
+
+
+def propagate_status(node: CNode, states: States):
+	print("ID: " + str(node.id))
+	if node in states:
+		print("propagate_status: " + str(states[node]))
+		return states[node]
+
+	if node.parent is None:
+		raise Exception("Node without parent")
+
+	propagated_status = propagate_status(node.parent, states)
+	states[node] = propagated_status
+
+	return propagated_status
+
+
+def get_full_states(all_states: list[dict[CNode, ActivityState]]):
+	all_nodes = set()
+	for states in all_states:
+		all_nodes.update(states.keys())
+
+	all_nodes = sorted(all_nodes)
+
+	vectors_states = []
+	vector_size = len(all_nodes)
+	for states in all_states:
+		vector_states = np.zeros(vector_size, dtype='int')
+		for i in range(vector_size):
+			if all_nodes[i] not in states:
+				print(f"Node ID:{str(all_nodes[i].id)} not in states")
+				propagate_status(all_nodes[i], states)
+			vector_states[i] = states[all_nodes[i]]
+
+		vectors_states.append(vector_states)
+
+	return all_nodes, vectors_states
+
+
+def stateful(decisions: dict[CNode, set[ExecutionTree]]):
+	states_vectors, labels = [], []
+	for decision, executionTrees in decisions.items():
+		for executionTree in executionTrees:
+			states_vectors.append(executionTree.root.states.activityState)
+			labels.append(decision.id)
+
+	all_nodes, states_vectors = get_full_states(states_vectors)
+	#print each state_vector with the corresponding label
+	for i in range(len(states_vectors)):
+		print(f"State vector: {states_vectors[i]}, label: {labels[i]}")
+
+	return all_nodes, states_vectors, labels
+
+

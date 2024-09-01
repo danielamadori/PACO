@@ -1,6 +1,6 @@
 import numpy as np
 from explainer.dag import Dag
-from explainer.impacts import current_impacts, unavoidable_impacts
+from explainer.impacts import current_impacts, unavoidable_impacts, stateful
 from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
@@ -54,5 +54,9 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 
 		#stateful stuff
 		print("Stateful impacts")
+		all_nodes, states_vectors, labels = stateful(decisions)
+
+		bdd = explain_choice(choice, list(decisions.keys()), states_vectors, labels, all_nodes)
+		bdds.append(bdd)
 
 	return bdds
