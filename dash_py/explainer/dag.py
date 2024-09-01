@@ -20,7 +20,6 @@ class Dag:
 			self.root = DagNode(df)
 			self.nodes = {self.root}
 		else:
-			self.df = None
 			self.root = None
 			self.nodes = None
 
@@ -36,6 +35,21 @@ class Dag:
 			for target_node in node.edges:
 				result += node.transition_str(target_node) + "\n"
 		return result
+
+	def is_separable(self):
+		if self.root is None:
+			return True
+
+		#Find duplicates based on all columns except 'class'
+		duplicated_vectors = self.root.df[self.root.df.duplicated(
+			subset=self.root.df.columns[:-1], keep=False
+		)]
+		#Group by all columns except 'class' and check for unique 'class' labels
+		grouped = duplicated_vectors.groupby(list(duplicated_vectors.columns[:-1]))['class'].nunique()
+		#Identify groups with more than one unique label
+		conflicting_vectors = grouped[grouped > 1]
+
+		return conflicting_vectors.empty
 
 	def get_splittable_leaves(self):
 		return [node for node in self.nodes if len(node.edges) == 0 and node.splittable]
@@ -109,6 +123,9 @@ class Dag:
 			node.visited = True
 
 	def explore(self, write=False):
+		if(not self.is_separable()):
+			return False
+
 		i = 1
 		while True:
 			open_leaves = self.get_splittable_leaves()
@@ -126,7 +143,6 @@ class Dag:
 
 			if len(open_leaves) <= len(self.get_splittable_leaves()):#Is not expanding (not separable)
 				return False
-
 
 		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)

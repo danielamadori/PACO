@@ -1,3 +1,4 @@
+import copy
 from random import choice
 
 import numpy as np
@@ -10,7 +11,7 @@ def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
 		for executionTree in executionTrees:
-			impacts.append(executionTree.root.impacts)
+			impacts.append(copy.deepcopy(executionTree.root.impacts))
 			impacts_labels.append(decision.id)
 
 	return impacts, impacts_labels
@@ -37,14 +38,14 @@ def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
 
 	return set()
 
-def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]], impacts_size:int) -> (list, list):
+def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
 		for executionTree in executionTrees:
-			unavoidableImpacts = np.zeros(impacts_size)
-			print("Unavoidable:\n" + states_info(executionTree.root.states))
+			unavoidableImpacts = copy.deepcopy(executionTree.root.impacts)
+			#print("Unavoidable:\n" + states_info(executionTree.root.states))
 			for unavoidableTask in unavoidable_tasks(region_tree.root, executionTree.root.states):
-				print("unavoidableTask " + node_info(unavoidableTask, executionTree.root.states))
+				#print("unavoidableTask " + node_info(unavoidableTask, executionTree.root.states))
 				unavoidableImpacts += np.array(unavoidableTask.impact)
 
 			impacts.append(unavoidableImpacts)
