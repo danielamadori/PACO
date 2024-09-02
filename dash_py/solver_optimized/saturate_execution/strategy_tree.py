@@ -2,6 +2,7 @@ import copy
 import os
 
 from explainer.dag import Dag
+from solver.tree_lib import CNode
 from solver_optimized.execution_tree import ExecutionTree, ExecutionViewPoint, write_image
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STRATEGY_TREE_STATE_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_DOT, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG, \
@@ -12,15 +13,31 @@ from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STR
 class StrategyTree(ExecutionTree):
 	def __init__(self, executionTree: ExecutionTree, bdds: list[Dag]):
 		self.root = copy.copy(executionTree.root)
-		self.bdds = []
+		self.choices = {CNode: Dag}
+		self.natures = []
 		sat_decisions = []
-		for choice in self.root.choices_natures:
+		s = ""
+		for node in self.root.choices_natures:
+			print("Node: ", node.id, node.type)
+			if node.type == "natural":
+				self.natures.append(node)
+				continue
+
 			for bdd in bdds:
-				if bdd.choice == choice:
-					self.bdds.append(bdd)
+				if bdd.choice == node:
+					self.choices[node] = bdd
 					sat_decisions.append(bdd.class_0)
 					if bdd.class_1 is not None:
 						sat_decisions.append(bdd.class_1)
+
+		#TODO print attribute choices, nature and sat_decisions on the edge
+
+
+		for nature in self.natures:
+			s += str(nature.id) + ", "
+		print("Natures: ", s)
+
+		isOnlyNatures = len(self.natures) == len(self.root.choices_natures)
 
 		s = ""
 		for decision in sat_decisions:
@@ -33,11 +50,13 @@ class StrategyTree(ExecutionTree):
 			for d in subTree.root.decisions:
 				s += str(d.id) + ", "
 			print("decisions: " + s[:-2])
-			if all(sat_decision not in subTree.root.decisions for sat_decision in sat_decisions):
+			# TODO: if there are just nature keep all the children
+			if all(sat_decision not in subTree.root.decisions for sat_decision in sat_decisions) and not isOnlyNatures:
 				print("Pruning node with ID: ", subTree.root.id)
 				continue
 
 			sat_transition[transition] = StrategyTree(subTree, bdds)
+
 		self.root.transitions = sat_transition
 
 
