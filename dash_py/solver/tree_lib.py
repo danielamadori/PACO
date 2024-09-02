@@ -57,6 +57,11 @@ class CNode:
             return self.id == other.id
         return False
 
+    def __lt__(self, other: 'CNode') -> bool:
+        if isinstance(other, CNode):
+            return self.id < other.id
+        return False
+
     def __hash__(self):
         return hash(self.id)
 

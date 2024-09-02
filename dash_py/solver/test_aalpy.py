@@ -208,7 +208,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         else:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
-            bdds = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
+
+            bdds = explain_strategy(custom_tree, strategy, bpmn[IMPACTS_NAMES])
             strategy_tree = StrategyTree(execution_tree, bdds)
             write_strategy_tree(strategy_tree)
 

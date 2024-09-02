@@ -9,18 +9,17 @@ from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Dag:
-	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, impacts_label:list, impacts_names):
+	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, label:list, features_names:list):
 		self.choice = choice
 		self.class_0 = class_0
 		self.class_1 = class_1
 
 		if class_1 is not None:
-			df = pd.DataFrame(impacts, columns=impacts_names)
-			df['class'] = impacts_label
+			df = pd.DataFrame(impacts, columns=features_names)
+			df['class'] = label
 			self.root = DagNode(df)
 			self.nodes = {self.root}
 		else:
-			self.df = None
 			self.root = None
 			self.nodes = None
 
@@ -36,6 +35,21 @@ class Dag:
 			for target_node in node.edges:
 				result += node.transition_str(target_node) + "\n"
 		return result
+
+	def is_separable(self):
+		if self.root is None:
+			return True
+
+		#Find duplicates based on all columns except 'class'
+		duplicated_vectors = self.root.df[self.root.df.duplicated(
+			subset=self.root.df.columns[:-1], keep=False
+		)]
+		#Group by all columns except 'class' and check for unique 'class' labels
+		grouped = duplicated_vectors.groupby(list(duplicated_vectors.columns[:-1]))['class'].nunique()
+		#Identify groups with more than one unique label
+		conflicting_vectors = grouped[grouped > 1]
+
+		return conflicting_vectors.empty
 
 	def get_splittable_leaves(self):
 		return [node for node in self.nodes if len(node.edges) == 0 and node.splittable]
@@ -86,15 +100,9 @@ class Dag:
 
 			edge = (feature, threshold, lt)
 			changed = node.add_node(target_node, edge)
-	#print(node.transition_str(target_node, changed))
+			#print(node.transition_str(target_node, changed))
 
-	def step(self):
-		open_leaves = self.get_splittable_leaves()
-		if len(open_leaves) == 0:
-			return True
-		for node in open_leaves:
-			self.expand(node)
-		return False
+
 
 	def compute_tree(self, node: DagNode):
 		if node.visited:
@@ -116,8 +124,18 @@ class Dag:
 			node.visited = True
 
 	def explore(self, write=False):
+		if not self.is_separable():
+			return False
+
 		i = 1
-		while not self.step():
+		while True:
+			open_leaves = self.get_splittable_leaves()
+			if len(open_leaves) == 0:
+				break
+
+			for node in open_leaves:
+				self.expand(node)
+
 			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
 			if write:
@@ -129,7 +147,7 @@ class Dag:
 		if write:
 			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
 
-		return self.root.best_test is not None # true if the classification worked
+		return True
 
 	def get_minimum_tree_nodes(self, node: DagNode):
 		nodes = []
@@ -228,3 +246,4 @@ class Dag:
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
 
 		return str(node)
+
