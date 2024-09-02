@@ -152,7 +152,9 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 
 
 #test_calc_strategy_paco(bpmn_ex)
+
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
 test_calc_strategy_paco(bpmn_ex, 1) #unavoidable_example
 
 #test_calc_strategy_paco(bpmn_ex, 7) # currents impacts
+
