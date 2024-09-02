@@ -69,7 +69,11 @@ def propagate_status(node: CNode, states: States):
 def get_full_states(all_states: list[dict[CNode, ActivityState]]):
 	all_nodes = set()
 	for states in all_states:
-		all_nodes.update(states.keys())
+		nodes = set()
+		for node in states.keys():
+			if node.parent is not None and (node.parent.type == 'choice' or node.parent.type == 'natural'):
+				nodes.add(node)
+		all_nodes.update(nodes)
 
 	all_nodes = sorted(all_nodes)
 
@@ -97,6 +101,10 @@ def stateful(decisions: dict[CNode, set[ExecutionTree]]):
 
 	all_nodes, states_vectors = get_full_states(states_vectors)
 	#print each state_vector with the corresponding label
+	s = ''
+	for node in all_nodes:
+		s += str(node.id) + ', '
+	print("\t\t  ID: ", s [:-2])
 	for i in range(len(states_vectors)):
 		print(f"State vector: {states_vectors[i]}, label: {labels[i]}")
 
