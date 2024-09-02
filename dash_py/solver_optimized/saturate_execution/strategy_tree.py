@@ -22,19 +22,22 @@ class StrategyTree(ExecutionTree):
 					if bdd.class_1 is not None:
 						sat_decisions.append(bdd.class_1)
 
-		#print each decision
+		s = ""
 		for decision in sat_decisions:
-			print("Decision: ", decision)
+			s += str(decision.id) + ", "
+		print("Sat Decisions: ", s[:-2])
 
 		sat_transition: dict[tuple, StrategyTree] = {}
 		for transition, subTree in self.root.transitions.items():
-			if transition not in sat_decisions:
+			s = ""
+			for d in subTree.root.decisions:
+				s += str(d.id) + ", "
+			print("decisions: " + s[:-2])
+			if all(sat_decision not in subTree.root.decisions for sat_decision in sat_decisions):
+				print("Pruning node with ID: ", subTree.root.id)
 				continue
 
-			print(f"transition: {transition}")
-			print("sat_decisions: ", sat_decisions)
 			sat_transition[transition] = StrategyTree(subTree, bdds)
-
 		self.root.transitions = sat_transition
 
 
