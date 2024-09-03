@@ -53,9 +53,9 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 
 
 def propagate_status(node: CNode, states: States):
-	print("ID: " + str(node.id))
+	#print("ID: " + str(node.id))
 	if node in states:
-		print("propagate status: " + str(states[node]))
+		#print("propagate status: " + str(states[node]))
 		return states[node]
 
 	if node.parent is None:
@@ -83,7 +83,7 @@ def get_full_states(all_states: list[dict[CNode, ActivityState]]):
 		vector_states = np.zeros(vector_size, dtype='int')
 		for i in range(vector_size):
 			if all_nodes[i] not in states:
-				print(f"Node ID:{str(all_nodes[i].id)} not in states")
+				#print(f"Node ID:{str(all_nodes[i].id)} not in states")
 				propagate_status(all_nodes[i], states)
 			vector_states[i] = states[all_nodes[i]]
 

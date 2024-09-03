@@ -16,9 +16,9 @@ class StrategyTree(ExecutionTree):
 		self.choices = {CNode: Dag}
 		self.natures = []
 		sat_decisions = []
-		s = ""
+		#s = ""
 		for node in self.root.choices_natures:
-			print("Node: ", node.id, node.type)
+			#print("Node: ", node.id, node.type)
 			if node.type == "natural":
 				self.natures.append(node)
 				continue
@@ -32,27 +32,26 @@ class StrategyTree(ExecutionTree):
 
 		#TODO print attribute choices, nature and sat_decisions on the edge
 
-
-		for nature in self.natures:
-			s += str(nature.id) + ", "
-		print("Natures: ", s)
+		#for nature in self.natures:
+		#	s += str(nature.id) + ", "
+		#print("Natures: ", s)
 
 		isOnlyNatures = len(self.natures) == len(self.root.choices_natures)
 
-		s = ""
-		for decision in sat_decisions:
-			s += str(decision.id) + ", "
-		print("Sat Decisions: ", s[:-2])
+		##s = ""
+		#for decision in sat_decisions:
+		#	s += str(decision.id) + ", "
+		#print("Sat Decisions: ", s[:-2])
 
 		sat_transition: dict[tuple, StrategyTree] = {}
 		for transition, subTree in self.root.transitions.items():
-			s = ""
-			for d in subTree.root.decisions:
-				s += str(d.id) + ", "
-			print("decisions: " + s[:-2])
+			#s = ""
+			#for d in subTree.root.decisions:
+			#	s += str(d.id) + ", "
+			#print("decisions: " + s[:-2])
 			# TODO: if there are just nature keep all the children
 			if all(sat_decision not in subTree.root.decisions for sat_decision in sat_decisions) and not isOnlyNatures:
-				print("Pruning node with ID: ", subTree.root.id)
+				#print("Pruning node with ID: ", subTree.root.id)
 				continue
 
 			sat_transition[transition] = StrategyTree(subTree, bdds)

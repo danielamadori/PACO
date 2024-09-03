@@ -25,28 +25,29 @@ bpmn_ex = {
          'choices_list': ['C1']
          }, [5, 6]
     ],
-    "natures of natures": [{"expression": "(Task1 ^ [N1] T2) ^[N] (T3 ^ [N2] T4)",
-                          "h": 0,
-                          "impacts": {"Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
-                          "durations": {"Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
-                          "impacts_names": ["cost", "hours"],
-                          "probabilities": {"N": 0.5, "N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob' : {}, 'loops_round': {}
-                          }, [23.3, 24.4]],
+    "natures of natures": [
+        {"expression": "(Task1 ^ [N1] T2) ^[N] (T3 ^ [N2] T4)",
+        "h": 0,
+        "impacts": {"Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
+        "durations": {"Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
+        "impacts_names": ["cost", "hours"],
+        "probabilities": {"N": 0.5, "N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob' : {}, 'loop_round': {}
+        }, [23.3, 24.4]],
 
     "just task, no strategy (no choice)": [{"expression": "T1, T2",
           "h": 0, 
           "impacts": {"T1": [11, 15], "T2": [4, 2]},
           "durations": {"T1": [0, 100], "T2": [0, 100]},
           "impacts_names": ["cost", "hours"], 
-          "probabilities": {}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+          "probabilities": {}, "names": {}, "delays": {}, 'loops_prob': {}, 'loop_round': {}
         }, [15, 17]],
 
-    "one choice, strategy with one decision (always True)": [{"expression": "SimpleTask1, (Task1 / [C1] T2)",
+    "one choice, strategy with one obligated decision (current impacts)": [{"expression": "SimpleTask1, (Task1 / [C1] T2)",
           "h": 0, 
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2] , "T2": [3, 3]},
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]}, 
           "impacts_names": ["cost", "hours"], 
-          "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 0},'loops_prob' : {}, 'loops_round': {}
+          "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 0},'loops_prob' : {}, 'loop_round': {}
         }, [14, 18]], #[15, 17]
     
     "only natures, no strategy (no choice)": [{"expression": "SimpleTask1, (Task1 ^ [N1] T2)",
@@ -54,7 +55,7 @@ bpmn_ex = {
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1]}, 
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]}, 
           "impacts_names": ["cost", "hours"], 
-          "probabilities": {"N1": 0.6}, "names": {'N1':'N1'}, "delays": {},'loops_prob' : {}, 'loops_round': {}
+          "probabilities": {"N1": 0.6}, "names": {'N1':'N1'}, "delays": {},'loops_prob' : {}, 'loop_round': {}
         }, [14.7, 16.7]],
     
     "sequential choices": [{"expression": "SimpleTask1,  (Task1 / [C1] T2),  (T3 / [C2] T4)",
@@ -62,7 +63,7 @@ bpmn_ex = {
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]}, 
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
           "impacts_names": ["cost", "hours"], 
-          "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loops_round': {}
+          "probabilities": {}, "names": {'C1':'C1', 'C2':'C2'}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loop_round': {}
         }, [23, 26]], #[23, 26], [25, 22], [22, 25], [24, 21]
 
     "bpmn_seq_natures": [{"expression": "SimpleTask1,  (Task1 ^ [N1] T2),  (T3 ^ [N2] T4)",
@@ -70,7 +71,7 @@ bpmn_ex = {
           "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]}, 
           "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
           "impacts_names": ["cost", "hours"], 
-          "probabilities": {"N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob' : {}, 'loops_round': {}
+          "probabilities": {"N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob' : {}, 'loop_round': {}
         }, [23.3, 24.4]],
 
     "bpmn_choices_natures": [{"expression": "(Cutting, ((HP ^ [N1]LP ) || ( FD / [C1] RD)), (HPHS / [C2] LPLS))",
@@ -78,7 +79,7 @@ bpmn_ex = {
           "impacts": {"Cutting": [11, 15], "HP": [4, 2], "LP": [3, 1] , "FD": [8, 9], "RD": [10, 5] , "HPHS": [4, 7], "LPLS": [3, 8]}, 
           "durations": {"Cutting": 1, "HP": 1, "LP": 1, "FD": 1, "RD":1 , "HPHS": 1, "LPLS": 1}, 
           "impacts_names": ["cost", "hours"], 
-          "probabilities": {"N1": 0.6}, "names": {"C1": "C1", "C2": "C2", "N1": "N1"}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loops_round': {}
+          "probabilities": {"N1": 0.6}, "names": {"C1": "C1", "C2": "C2", "N1": "N1"}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loop_round': {}
         }, [26, 33.3]],
 
     "bpmn_prof": [{"expression": "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3)",
@@ -97,7 +98,7 @@ bpmn_ex = {
         "impacts": {"TaskA": [10], "TaskB": [10], "Task2": [10]},
         "durations": {"TaskA": 100, "TaskB": 100, "Task2": 100},
         "impacts_names": ["cost"],
-        "probabilities": {"C1": 0.5}, "names": {"C1": "C1"}, "delays": {"C1": 0},'loops_prob' : {}, 'loops_round': {}
+        "probabilities": {"C1": 0.5}, "names": {"C1": "C1"}, "delays": {"C1": 0},'loops_prob' : {}, 'loop_round': {}
         }, [20]],
 
     "bpmn_unavoidable_tasks2": [{"expression": "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3), t4",
@@ -154,7 +155,19 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 #test_calc_strategy_paco(bpmn_ex)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
-test_calc_strategy_paco(bpmn_ex, 1) #unavoidable_example
+#test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
+#test_calc_strategy_paco(bpmn_ex, 4) #current impacts (one obligated decision)
 
-#test_calc_strategy_paco(bpmn_ex, 7) # currents impacts
+#test_calc_strategy_paco(bpmn_ex, 6)
+
+
+#Testing StrategyTree:
+test_calc_strategy_paco(bpmn_ex, 0) # Not pruned ask if okay, stateful example
+#test_calc_strategy_paco(bpmn_ex, 1) # Not pruned ask if okay, unavoidable example
+#test_calc_strategy_paco(bpmn_ex, 4) # Okay, current impacts (one obligated decision)
+#test_calc_strategy_paco(bpmn_ex, 6) # Okay, current impacts (two obligated decision)
+#test_calc_strategy_paco(bpmn_ex, 8) # Okay, current impacts
+#test_calc_strategy_paco(bpmn_ex, 9) # Not pruned ask if okay, all leaves in the frontier
+
+
 
