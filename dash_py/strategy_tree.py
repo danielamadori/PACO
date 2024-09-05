@@ -1,22 +1,29 @@
 import copy
+import math
 import os
 from itertools import product
 
+import numpy as np
+from graphviz import Source
+from sympy.stats.rv import probability
+
 from explainer.dag import Dag
 from explainer.explain_strategy import TypeStrategy
-from explainer.impacts import current_impacts, unavoidable_impacts, stateful, evaluate_unavoidable_impacts, \
-	evaluate_execution_path
+from explainer.strategy_type import current_impacts, unavoidable_impacts, stateful
+from evaluations.evaluate_execution_path import evaluate_execution_path
 from saturate_execution.next_state import next_state
 from saturate_execution.states import States, ActivityState, states_info
 from saturate_execution.step_to_saturation import steps_to_saturation
 from solver.tree_lib import CNode, CTree
-from solver_optimized.execution_tree import ExecutionTree, ExecutionViewPoint, write_image, evaluate_expected_impacts
+from solver_optimized.execution_tree import ExecutionTree, ExecutionViewPoint, write_image
+from evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STRATEGY_TREE_STATE_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_DOT, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_DOT, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_TIME_DOT, PATH_STRATEGY_TREE_TIME_IMAGE_SVG
 
-def saturate_execution(region_tree: CTree, states: States) -> States:
+
+def saturate_execution(region_tree: CTree, states: States) -> (States, bool, list[CNode], list[CNode]):
 	while states.activityState[region_tree.root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
 		#print("start:", states_info(states))
@@ -39,14 +46,12 @@ def saturate_execution(region_tree: CTree, states: States) -> States:
 					and states.executed_time[node] == node.max_delay
 					and states.activityState[node.childrens[0].root] == ActivityState.WAITING
 					and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
-
 				choices.append(node)
 
 			if (node.type == 'natural'
 					and states.activityState[node] == ActivityState.ACTIVE
 					and states.activityState[node.childrens[0].root] == ActivityState.WAITING
 					and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
-
 				natures.append(node)
 
 		if len(choices) > 0 or len(natures) > 0:
@@ -55,59 +60,248 @@ def saturate_execution(region_tree: CTree, states: States) -> States:
 	return states, True, [], []
 
 
+class StrategyViewPoint:
+	def __init__(self, bpmn_root: CNode, id: int, states: States, decisions: tuple[CNode], choices: tuple[CNode], natures: tuple[CNode],
+				 is_final_state: bool, probability:float, impacts: np.array, parent: 'StrategyViewPoint' = None):
+		self.id = id
+		self.states = states
+		s, _ = self.states.str()
+		self.state_id = s
+		self.decisions = decisions
+		self.choices = choices
+		self.natures = natures
+		self.choices_natures = choices + natures
+		self.parent = parent
+		self.is_final_state = is_final_state
+		self.transitions: dict[tuple, ExecutionTree] = {}
+		self.probability = probability
+		self.impacts = impacts
 
-def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: dict [CNode, Dag], impacts_size: int, states: States = None) -> set[States]:
+		self.executed_time = states.executed_time[bpmn_root]
+
+	def __str__(self) -> str:
+		return str(self.states)
+
+	def __hash__(self):
+		return hash(str(self))
+
+	@staticmethod
+	def text_format(text: str, line_length: int):
+		parts = []
+		current_part = ""
+		char_count = 0
+
+		for char in text:
+			current_part += char
+			char_count += 1
+			if char == ';' and char_count >= line_length:
+				parts.append(current_part)
+				current_part = ""
+				char_count = 0
+
+		if current_part:
+			parts.append(current_part)
+
+		return "\\n".join(parts)
+
+	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
+		result = str(self).replace('(', '').replace(')', '').replace(';', '_').replace(':', '_').replace('-',
+																										 "neg").replace(
+			' | ', '_')
+
+		if full:
+			result += f' [label=\"'
+
+			s, d = self.states.str(previous_node)
+			s = "q|s:{" + s + "}"
+			d = "q|delta:{" + d + "}"
+
+			label = f"ID: {self.id}\n"  # ""
+			if state:
+				label += s
+			if state and executed_time:
+				label += ",\n"
+			if executed_time:
+				label += d
+
+			line_length = int(1.3 * math.sqrt(len(label)))
+			result += self.text_format(label, line_length) + "\"];\n"
+
+		return result
+
+	def add_child(self, subTree: 'StrategyTree'):
+		transition = []
+		for i in range(len(self.choices_natures)):
+			transition.append((self.choices_natures[i], subTree.root.decisions[i],))
+
+		self.transitions[tuple(transition)] = subTree
+
+	def dot_cei_str(self):
+		return (self.dot_str(full=False) + "_impact",
+				f" [label=\"Probability: {self.probability}\nImpacts: {self.impacts}\nTime: {self.executed_time}\", shape=rect];\n")
+
+
+class StrategyTree:
+	def __init__(self, root: StrategyViewPoint):
+		self.root = root
+
+	def __str__(self) -> str:
+		result = self.create_dot_graph(self.root, True, True, False)
+		return result[0] + result[1]
+
+	def state_str(self):
+		return self.root.dot_str(state=True, executed_time=True, previous_node=None).split(' [')[0]
+
+	def save_dot(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
+		with open(path, 'w') as file:
+			file.write(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff))
+
+	def save_pdf(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
+		Source(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff),
+			   format='pdf').render(path, cleanup=True)
+
+	def init_dot_graph(self, state: bool, executed_time: bool, diff: bool):
+		result = "digraph automa {\n"
+
+		node, transition = self.create_dot_graph(self.root, state=state, executed_time=executed_time,
+												 diff=diff)
+
+		result += node
+		result += transition
+		result += "__start0 [label=\"\", shape=none];\n"
+
+		starting_node_ids = ""
+		for n in self.root.decisions:
+			starting_node_ids += str(n.id) + ";"
+
+		if len(self.root.choices_natures) > 0:  #Just if we don't have choice
+			starting_node_ids = starting_node_ids[:-1] + "->"
+			for n in self.root.choices_natures:
+				starting_node_ids += str(n.id) + ";"
+
+		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
+		return result
+
+	def create_dot_graph(self, root: ExecutionViewPoint, state: bool, executed_time: bool, diff: bool,
+						 previous_node: States = None):
+		if diff == False:  # print all nodes
+			previous_node = None
+
+		nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
+		transitions_id = ""
+
+		impact_id, impact_label = root.dot_cei_str()
+		transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" color=red];\n"  #style=invis
+		nodes_id += impact_id + impact_label
+
+		for transition in root.transitions.keys():
+			next_node = root.transitions[transition].root
+			x = ""
+			for t in transition:
+				x += str(t[0].id) + '->' + str(t[1].id) + ';'
+			#x += str(t)[1:-1].replace(',', '->') + ";"
+
+			transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
+
+			ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, diff=diff,
+										previous_node=root.states)
+			nodes_id += ids[0]
+			transitions_id += ids[1]
+
+		return nodes_id, transitions_id
+
+
+def tree_node_info(node: StrategyViewPoint) -> str:
+	result = f"ID:{node.id}:decisions:<"
+	for n in list(node.decisions):
+		result += str(n.id) + ";"
+	result = result[:-1]
+
+	if len(node.choices) > 0:
+		result += ">:choices:<"
+		tmp = ""
+		for n in node.choices:
+			tmp += str(n.id) + ";"
+		result += tmp[:-1]
+	if len(node.natures) > 0:
+		result += ">:natures:<"
+		tmp = ""
+		for n in node.natures:
+			tmp += str(n.id) + ";"
+		result += tmp[:-1]
+
+	return result + ">:status:\n" + states_info(node.states)
+
+
+def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: dict[CNode, Dag], impacts_size: int,
+				  states: States = None, decisions: tuple[CNode] = None, id: int = 0) -> StrategyTree:
 	if states is None:
 		states = States(region_tree.root, ActivityState.WAITING, 0)
+		decisions = (region_tree.root,)
 
 	states, is_final, choices, natures = saturate_execution(region_tree, states)
+	probability, impacts = evaluate_expected_impacts(states, impacts_size)
 
-	print(states_info(states))
+	strategyViewPoint = StrategyViewPoint(bpmn_root=region_tree.root, id=id, states=states,
+										  decisions=decisions, choices=choices, natures=natures,
+										  is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
+										  impacts=impacts, probability=probability)
+
+	strategyTree = StrategyTree(strategyViewPoint)
+	print(tree_node_info(strategyViewPoint), f"Current impacts: {impacts}\n")
+
 
 	if is_final:
-		return {states}
+		return strategyTree, id
 
-	print("typeStrategy: ", typeStrategy)
-	if typeStrategy <= TypeStrategy.UNAVOIDABLE_IMPACTS: # Current impacts
-		_, vector = evaluate_expected_impacts(states, impacts_size)
-		print("Current impacts: ", vector)
-		if typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
-			vector = evaluate_unavoidable_impacts(region_tree.root, states, vector)#TODO create function
-			print("Unavoidable impacts: ", vector)
-	elif typeStrategy == TypeStrategy.STATEFUL:
-		all_nodes, vectors = evaluate_execution_path([states.activityState])
-		vector = vectors[0]
-		print("Stateful impacts: ", vector)
-		#print("All nodes: ", all_nodes)
-	else:
-		raise Exception("TypeStrategy not implemented: " + str(typeStrategy))
+	chosen_states: States = copy.deepcopy(states)
+	next_decisions = []
 
-	choices_dict = {CNode: Dag}
-	chose_states = copy.deepcopy(states)
-	for choice in choices:
-		if choice not in explainers:
-			raise Exception("Choice not explained: " + str(choice))
+	if len(choices) > 0:
+		#print("typeStrategy: ", typeStrategy)
+		if typeStrategy <= TypeStrategy.UNAVOIDABLE_IMPACTS:
+			vector = impacts # Current impacts
+			if typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
+				vector = evaluate_unavoidable_impacts(region_tree.root, states, vector)
+				print("Unavoidable impacts: ", vector)
+		elif typeStrategy == TypeStrategy.STATEFUL:
+			vector = None
+		else:
+			raise Exception("TypeStrategy not implemented: " + str(typeStrategy))
 
-		explainer = explainers[choice]
-		choices_dict[choice] = explainer
-		print("Explaining choice: ", choice.id)
+		for choice in choices:
+			if choice not in explainers:
+				raise Exception("Choice not explained: " + str(choice))
 
-		decision_true = explainer.choose(vector)
-		decision_false = choice.childrens[1].root if decision_true == choice.childrens[0].root else choice.childrens[0].root
+			if vector is None: # Stateful
+				all_nodes, vectors = evaluate_execution_path([states.activityState], explainers[choice].root.df.columns[:-1])
+				vector = vectors[0]
+				s = 'All decisions:\t   ['
+				for n in all_nodes:
+					s += str(n.id) + ' '
+				print(s + "]")
+				print("Stateful impacts: ", vector)
 
-		print("Decision True: ", decision_true.id)
-		print("Decision False: ", decision_false.id)
-		chose_states.activityState[decision_true] = ActivityState.ACTIVE
-		chose_states.activityState[decision_false] = ActivityState.WILL_NOT_BE_EXECUTED
+			print("Explaining choice: ", choice.id)
 
-	branches_states = []
+			decision_true = explainers[choice].choose(vector)
+			next_decisions.append(decision_true)
+			decision_false = choice.childrens[1].root if decision_true == choice.childrens[0].root else choice.childrens[0].root
+
+			print("Decision True: ", decision_true.id)
+			print("Decision False: ", decision_false.id)
+			chosen_states.activityState[decision_true] = ActivityState.ACTIVE
+			chosen_states.activityState[decision_false] = ActivityState.WILL_NOT_BE_EXECUTED
+
+	branches = {}
 	if len(natures) == 0:
-		branches_states.append(chose_states)
+		branches[tuple(next_decisions)] = chosen_states
 	else:
 		branches_decisions = list(product([True, False], repeat=len(natures)))
 		#print(f"combinations:{branches_decisions}")
 		for branch_choices in branches_decisions:
-			branch_states = copy.deepcopy(chose_states)
+			branch_states = copy.deepcopy(chosen_states)
+			branch_decisions = copy.deepcopy(next_decisions)
 
 			for i in range(len(natures)):
 				node = natures[i]
@@ -122,70 +316,16 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 				branch_states.activityState[activeNode] = ActivityState.ACTIVE
 				branch_states.activityState[inactiveNode] = ActivityState.WILL_NOT_BE_EXECUTED
 
-			branches_states.append(branch_states)
+				branch_decisions.append(activeNode)
+
+			branches[tuple(branch_decisions)] = branch_states
 
 
-	full_strategy(region_tree, typeStrategy, explainers, impacts_size, branches_states[0])
+	for next_decisions, branch_states in branches.items():
+		sub_tree, id = full_strategy(region_tree, typeStrategy, explainers, impacts_size, branch_states, tuple(next_decisions), id + 1)
+		strategyViewPoint.add_child(sub_tree)
 
-
-
-
-
-
-
-
-
-
-
-
-
-class StrategyTree(ExecutionTree):
-	def __init__(self, executionTree: ExecutionTree, bdds: list[Dag]):
-		self.root = copy.copy(executionTree.root)
-		self.choices = {CNode: Dag}
-		self.natures = []
-		sat_decisions = []
-		#s = ""
-		for node in self.root.choices_natures:
-			#print("Node: ", node.id, node.type)
-			if node.type == "natural":
-				self.natures.append(node)
-				continue
-
-			for bdd in bdds:
-				if bdd.choice == node:
-					self.choices[node] = bdd
-					sat_decisions.append(bdd.class_0)
-					if bdd.class_1 is not None:
-						sat_decisions.append(bdd.class_1)
-
-		#TODO print attribute choices, nature and sat_decisions on the edge
-
-		#for nature in self.natures:
-		#	s += str(nature.id) + ", "
-		#print("Natures: ", s)
-
-		isOnlyNatures = len(self.natures) == len(self.root.choices_natures)
-
-		##s = ""
-		#for decision in sat_decisions:
-		#	s += str(decision.id) + ", "
-		#print("Sat Decisions: ", s[:-2])
-
-		sat_transition: dict[tuple, StrategyTree] = {}
-		for transition, subTree in self.root.transitions.items():
-			#s = ""
-			#for d in subTree.root.decisions:
-			#	s += str(d.id) + ", "
-			#print("decisions: " + s[:-2])
-			# TODO: if there are just nature keep all the children
-			if all(sat_decision not in subTree.root.decisions for sat_decision in sat_decisions) and not isOnlyNatures:
-				#print("Pruning node with ID: ", subTree.root.id)
-				continue
-
-			sat_transition[transition] = StrategyTree(subTree, bdds)
-
-		self.root.transitions = sat_transition
+	return strategyTree, id
 
 
 def write_strategy_tree(solution_tree: StrategyTree, frontier: list[StrategyTree] = []):
@@ -193,13 +333,17 @@ def write_strategy_tree(solution_tree: StrategyTree, frontier: list[StrategyTree
 		os.makedirs(PATH_STRATEGY_TREE)
 
 	solution_tree.save_dot(PATH_STRATEGY_TREE_STATE_DOT)
-	write_image(frontier, PATH_STRATEGY_TREE_STATE_DOT, svgPath=PATH_STRATEGY_TREE_STATE_IMAGE_SVG)#, PATH_STRATEGY_TREE_STATE_IMAGE_SVG)
+	write_image(frontier, PATH_STRATEGY_TREE_STATE_DOT,
+				svgPath=PATH_STRATEGY_TREE_STATE_IMAGE_SVG)  #, PATH_STRATEGY_TREE_STATE_IMAGE_SVG)
 
 	solution_tree.save_dot(PATH_STRATEGY_TREE_STATE_TIME_DOT, executed_time=True)
-	write_image(frontier, PATH_STRATEGY_TREE_STATE_TIME_DOT, svgPath=PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG)#, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG)
+	write_image(frontier, PATH_STRATEGY_TREE_STATE_TIME_DOT,
+				svgPath=PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG)  #, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG)
 
 	solution_tree.save_dot(PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_DOT, executed_time=True, diff=False)
-	write_image(frontier, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_DOT, svgPath=PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG)#, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG)
+	write_image(frontier, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_DOT,
+				svgPath=PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG)  #, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG)
 
 	solution_tree.save_dot(PATH_STRATEGY_TREE_TIME_DOT, state=False, executed_time=True)
-	write_image(frontier, PATH_STRATEGY_TREE_TIME_DOT, svgPath=PATH_STRATEGY_TREE_TIME_IMAGE_SVG)#, PATH_STRATEGY_TREE_TIME_IMAGE_SVG)
+	write_image(frontier, PATH_STRATEGY_TREE_TIME_DOT,
+				svgPath=PATH_STRATEGY_TREE_TIME_IMAGE_SVG)  #, PATH_STRATEGY_TREE_TIME_IMAGE_SVG)

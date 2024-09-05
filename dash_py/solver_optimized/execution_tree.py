@@ -5,6 +5,7 @@ import numpy as np
 import pydot
 from graphviz import Source
 
+from evaluations.evaluate_impacts import evaluate_expected_impacts
 from solver.tree_lib import CNode, CTree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
@@ -261,21 +262,3 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
 
 
-def evaluate_expected_impacts(states: States, impacts_size: int):
-	impacts = np.zeros(impacts_size, dtype=np.float64)
-	probability = 1.0
-
-	for node, state in states.activityState.items():
-		if (node.type == 'natural' and state > ActivityState.WAITING
-				and (states.activityState[node.childrens[0].root] > ActivityState.WAITING
-					 or states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
-
-			p = node.probability
-			if states.activityState[node.childrens[1].root] > 0:
-				p = 1 - p
-			probability *= p
-
-		elif node.type == 'task' and state > ActivityState.WAITING:
-			impacts += np.array(node.impact, dtype=np.float64)
-
-	return probability, impacts

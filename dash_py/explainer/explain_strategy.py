@@ -1,7 +1,7 @@
 import enum
 import numpy as np
 from explainer.dag import Dag
-from explainer.impacts import current_impacts, unavoidable_impacts, stateful
+from explainer.strategy_type import current_impacts, unavoidable_impacts, stateful
 from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 

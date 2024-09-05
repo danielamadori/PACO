@@ -211,22 +211,19 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         else:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
-
             type_strategy, bdds = explain_strategy(custom_tree, strategy, bpmn[IMPACTS_NAMES])
-            '''
-            for choice, explainer in bdds.items():
-                print(f"Testing explainer with choice: {choice}")
-                print(f"test true: {explainer.choose([1.9, 0])}")
-                print(f"test false: {explainer.choose([2.0, 0])}")
-            '''
+            t1 = datetime.now()
+            print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
+
+            print(f'{t1} StrategyTree: ')
+            t = datetime.now()
+            strategy_tree, _ = full_strategy(custom_tree, type_strategy, bdds, len(bpmn[IMPACTS_NAMES]))
+            t1 = datetime.now()
+            print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
+            write_strategy_tree(strategy_tree)
 
 
-            full_strategy(custom_tree, type_strategy, bdds, len(bpmn[IMPACTS_NAMES]))
-            print("OK")
-
-            #strategy_tree = StrategyTree(custom_tree, bdds, type_strategy)
-            #write_strategy_tree(strategy_tree)
-
+            print("TODO")
             list_choices = {}
             for bdd in bdds:
                 choice:CNode = bdd.choice
@@ -241,8 +238,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                     decision1_id = decision1.id
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)
-            t1 = datetime.now()
-            print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
+
             impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))
         return f"A strategy could be found, which has as an expected impact of : {impacts} ", list_choices, name_svg
 
