@@ -1,21 +1,11 @@
-import enum
 import numpy as np
-from explainer.dag import Dag
-from explainer.strategy_type import current_impacts, unavoidable_impacts, stateful
+from explainer.bdd import Bdd
+from explainer.strategy_type import current_impacts, unavoidable_impacts, stateful, TypeStrategy
 from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
 
-class TypeStrategy(enum.IntEnum):
-	CURRENT_IMPACTS = 0
-	UNAVOIDABLE_IMPACTS = 1
-	STATEFUL = 2
-
-	def __str__(self):
-		return str(self.value)
-
-
-def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], labels:list, features_names:list) -> Dag:
+def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], labels:list, features_names:list) -> Bdd:
 	decisions = list(decisions)
 	decision_0 = decisions[0]
 	decision_1 = None
@@ -23,21 +13,22 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], 
 	if not is_unavoidable_decision:
 		decision_1 = decisions[1]
 
-	dag = Dag(choice, decision_0, decision_1, impacts, labels, features_names)
+	bdd = Bdd(choice, decision_0, decision_1, impacts, labels, features_names)
 
 	success = True
 	if not is_unavoidable_decision:
-		success = dag.build(write=True)
+		success = bdd.build(write=True)
 	if success:
-		dag.bdd_to_file()
+		bdd.bdd_to_file()
 	else:
-		dag = None
+		bdd = None
 
-	return dag
+	return bdd
 
 
-def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (TypeStrategy, dict[CNode, Dag]):
-	bdds = dict[CNode, Dag]()
+def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (
+TypeStrategy, dict[CNode, Bdd]):
+	bdds = dict[CNode, Bdd]()
 	for choice, decisions in strategy.items():
 		print("Explaining: choice", choice)
 

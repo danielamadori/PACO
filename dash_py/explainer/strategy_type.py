@@ -1,9 +1,18 @@
 import copy
+import enum
 
 from evaluations.evaluate_execution_path import evaluate_execution_path
 from evaluations.evaluate_impacts import evaluate_unavoidable_impacts
 from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
+
+class TypeStrategy(enum.IntEnum):
+	CURRENT_IMPACTS = 0
+	UNAVOIDABLE_IMPACTS = 1
+	STATEFUL = 2
+
+	def __str__(self):
+		return str(self.value)
 
 
 def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
@@ -14,7 +23,6 @@ def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 			impacts_labels.append(decision.id)
 
 	return impacts, impacts_labels
-
 
 def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
@@ -28,7 +36,6 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 			impacts_labels.append(decision.id)
 
 	return impacts, impacts_labels
-
 
 def stateful(decisions: dict[CNode, set[ExecutionTree]]):
 	states_vectors, labels = [], []

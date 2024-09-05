@@ -1,7 +1,6 @@
 import math
 import os
 import graphviz
-import numpy as np
 import pandas as pd
 
 from explainer.dag_node import DagNode
@@ -9,7 +8,7 @@ from solver.tree_lib import CNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
-class Dag:
+class Bdd:
 	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list):
 		self.choice = choice
 		self.class_0 = class_0 # in case is not splittable is the true class
@@ -267,7 +266,7 @@ class Dag:
 		elif decision.type == 'task':
 			color = 'lightblue'
 		elif decision.type == 'sequential':
-			return Dag.get_decision(decision.childrens[0].root)
+			return Bdd.get_decision(decision.childrens[0].root)
 		else:
 			raise Exception(f"Decision type {decision.type} not recognized")
 
@@ -276,7 +275,7 @@ class Dag:
 
 	def bdd_to_file_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			label, color = Dag.get_decision(node.class_0)
+			label, color = Bdd.get_decision(node.class_0)
 			dot.node(str(node), label=label, shape="box", style="filled", color=color)
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")

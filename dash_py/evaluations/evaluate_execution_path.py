@@ -1,6 +1,5 @@
 import numpy as np
-
-from saturate_execution.states import ActivityState, States
+from saturate_execution.states import ActivityState
 from solver.tree_lib import CNode
 
 
@@ -31,7 +30,7 @@ def evaluate_execution_path(all_states: list[ActivityState], all_nodes = set()):
 	return all_nodes, vectors_states
 
 
-def propagate_status(node: CNode, states: States):
+def propagate_status(node: CNode, states: ActivityState):
 	#print("ID: " + str(node.id))
 	if node in states:
 		#print("propagate status: " + str(states[node]))
