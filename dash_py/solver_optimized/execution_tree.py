@@ -4,6 +4,7 @@ import os
 import numpy as np
 import pydot
 from graphviz import Source
+
 from solver.tree_lib import CNode, CTree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
@@ -25,7 +26,7 @@ class ExecutionViewPoint:
 		self.parent = parent
 		self.is_final_state = is_final_state
 		self.transitions: dict[tuple, ExecutionTree] = {}
-		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states, len(impacts_names))
+		self.probability, self.impacts = evaluate_expected_impacts(states, len(impacts_names))
 		self.cei_top_down = self.probability * self.impacts
 		self.cei_bottom_up = np.zeros(len(impacts_names), dtype=np.float64)
 
@@ -85,26 +86,6 @@ class ExecutionViewPoint:
 			transition.append((self.choices_natures[i], subTree.root.decisions[i],))
 
 		self.transitions[tuple(transition)] = subTree
-
-	@staticmethod
-	def expected_impacts_evaluation(states: States, impacts_size: int):
-		impacts = np.zeros(impacts_size, dtype=np.float64)
-		probability = 1.0
-
-		for node, state in states.activityState.items():
-			if (node.type == 'natural' and state > ActivityState.WAITING
-					and (states.activityState[node.childrens[0].root] > ActivityState.WAITING
-						 or states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
-
-				p = node.probability
-				if states.activityState[node.childrens[1].root] > 0:
-					p = 1 - p
-				probability *= p
-
-			elif node.type == 'task' and state > ActivityState.WAITING:
-					impacts += np.array(node.impact, dtype=np.float64)
-
-		return probability, impacts
 
 	def dot_cei_str(self):
 		return (self.dot_str(full=False) + "_impact",
@@ -280,6 +261,21 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
 
 
+def evaluate_expected_impacts(states: States, impacts_size: int):
+	impacts = np.zeros(impacts_size, dtype=np.float64)
+	probability = 1.0
 
+	for node, state in states.activityState.items():
+		if (node.type == 'natural' and state > ActivityState.WAITING
+				and (states.activityState[node.childrens[0].root] > ActivityState.WAITING
+					 or states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
 
+			p = node.probability
+			if states.activityState[node.childrens[1].root] > 0:
+				p = 1 - p
+			probability *= p
 
+		elif node.type == 'task' and state > ActivityState.WAITING:
+			impacts += np.array(node.impact, dtype=np.float64)
+
+	return probability, impacts

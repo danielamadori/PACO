@@ -2,17 +2,21 @@ import math
 
 import pandas as pd
 
+from solver.tree_lib import CNode
+
 
 class DagNode:
 	# root ---- {('a', 2.5, True), ('b', 3.5, True)} ---->  index = {0,1,2}
-	def __init__(self, df: pd.DataFrame):
+	def __init__(self, df: pd.DataFrame, class_0: CNode, class_1: CNode):
 		self.df = df
 		self.index = frozenset(sorted(df.index.to_list()))# Needed for hashing
 		# edge: n --{(feature, threshold, lt),('a', 3.5, True)}--> n'
 		self.edges = {} # target_node -> edge
-
 		self.tests = set()
-		self.splittable = len(set(df['class'])) > 1
+
+		self.class_0 = class_0 # in case is not splittable is the true class
+		self.class_1 = class_1
+		self.splittable = class_1 is not None
 		self.best_test = None
 		self.best_height = math.inf
 		self.visited = False
@@ -65,8 +69,7 @@ class DagNode:
 		return f'{("*" if changed else "")}{self} --{self.edge_str(self.edges[target_node])}--> {target_node}'
 
 	def add_node(self, target_node: 'DagNode', test: tuple):
-		feature, threshold, lt = test
-		self.tests.add((feature, threshold))
+		self.tests.add(test)
 		# The edge is a set of tests
 		edge = self.edges.get(target_node, None)
 		changed = False
@@ -79,14 +82,18 @@ class DagNode:
 		return changed
 
 	def get_targets(self, test: tuple):
-		feature, threshold = test
+		feature, threshold, lt = test
 		target_t, target_f = None, None
 		for target_node, edge in self.edges.items():
-			if (feature, threshold) in [(f, t) for f, t, _ in edge]:
-				if target_t is None:
-					target_t = target_node
-				else:
-					target_f = target_node
-					return target_t, target_f
+			for f, t, lt_ in edge:
+				if (feature, threshold) == (f, t):
+					if lt == lt_:
+						target_t = target_node
+					else:
+						target_f = target_node
+					break
 
-		raise ValueError("Two children expected but not found")
+			if target_t is not None and target_f is not None:
+				break
+
+		return target_t, target_f

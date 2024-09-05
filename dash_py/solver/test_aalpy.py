@@ -1,9 +1,12 @@
 from random import seed
 
-from solver_optimized.saturate_execution.strategy_tree import StrategyTree, write_strategy_tree
+import numpy as np
+
+from saturate_execution.states import ActivityState, States, states_info
+from strategy_tree import StrategyTree, write_strategy_tree, saturate_execution, full_strategy
 from utils.print_sese_diagram import print_sese_diagram
 from solver_optimized.build_strategy import build_strategy
-from explainer.explain_strategy import explain_strategy
+from explainer.explain_strategy import explain_strategy, TypeStrategy
 from solver_optimized.evaluate_impacts import evaluate_cumulative_expected_impacts
 from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
 from solver_optimized.found_strategy import found_strategy
@@ -38,9 +41,9 @@ os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin/'
 #     | parallel "||" sequential  -> parallel
 
 # ?sequential: region
-#     | sequential "," region -> sequential    
+#     | sequential "," region -> sequential
 
-# ?region: 
+# ?region:
 #      | NAME   -> task
 #      | "(@" xor "@)" -> loop
 #      | "(@" "[" NAME "]"  xor "@)" -> loop_probability
@@ -145,15 +148,15 @@ args = {
 
 def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
     """
-    This function takes a BPMN diagram and a bound as input, and returns a strategy for the automaton.
-    
-    Parameters:
-    bpmn (dict): The BPMN diagram represented as a dictionary.
-    bound (list[int]): The bound for the automaton.
+	This function takes a BPMN diagram and a bound as input, and returns a strategy for the automaton.
 
-    Returns:
-    str: A string representing the strategy for the automaton.
-    """
+	Parameters:
+	bpmn (dict): The BPMN diagram represented as a dictionary.
+	bound (list[int]): The bound for the automaton.
+
+	Returns:
+	str: A string representing the strategy for the automaton.
+	"""
     try:
         # Parse the task sequence from the BPMN diagram
         tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
@@ -161,8 +164,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(f'{datetime.now()} Bound {bound}')
         # Convert the parsed tree into a custom tree and get the last ID
         custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
-                                            bpmn[IMPACTS], bpmn[DURATIONS],
-                                            bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
+                                             bpmn[IMPACTS], bpmn[DURATIONS],
+                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
 
         print_sese_custom_tree(custom_tree)
 
@@ -209,11 +212,22 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
 
-            bdds = explain_strategy(custom_tree, strategy, bpmn[IMPACTS_NAMES])
-            strategy_tree = StrategyTree(execution_tree, bdds)
-            write_strategy_tree(strategy_tree)
+            type_strategy, bdds = explain_strategy(custom_tree, strategy, bpmn[IMPACTS_NAMES])
+            '''
+            for choice, explainer in bdds.items():
+                print(f"Testing explainer with choice: {choice}")
+                print(f"test true: {explainer.choose([1.9, 0])}")
+                print(f"test false: {explainer.choose([2.0, 0])}")
+            '''
 
-            list_choices = {}   
+
+            full_strategy(custom_tree, type_strategy, bdds, len(bpmn[IMPACTS_NAMES]))
+            print("OK")
+
+            #strategy_tree = StrategyTree(custom_tree, bdds, type_strategy)
+            #write_strategy_tree(strategy_tree)
+
+            list_choices = {}
             for bdd in bdds:
                 choice:CNode = bdd.choice
                 choice_name = choice.name
@@ -226,7 +240,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                     decision1:CNode = bdd.class_1 # normal line
                     decision1_id = decision1.id
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-            print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)             
+            print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)
             t1 = datetime.now()
             print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
             impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))

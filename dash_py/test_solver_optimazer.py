@@ -157,12 +157,14 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
 #test_calc_strategy_paco(bpmn_ex, 4) #current impacts (one obligated decision)
+#test_calc_strategy_paco(bpmn_ex, 8) #current impacts
 
-#test_calc_strategy_paco(bpmn_ex, 6)
+
+test_calc_strategy_paco(bpmn_ex, 9)
 
 
 #Testing StrategyTree:
-test_calc_strategy_paco(bpmn_ex, 0) # Not pruned ask if okay, stateful example
+#test_calc_strategy_paco(bpmn_ex, 0) # Not pruned ask if okay, stateful example
 #test_calc_strategy_paco(bpmn_ex, 1) # Not pruned ask if okay, unavoidable example
 #test_calc_strategy_paco(bpmn_ex, 4) # Okay, current impacts (one obligated decision)
 #test_calc_strategy_paco(bpmn_ex, 6) # Okay, current impacts (two obligated decision)

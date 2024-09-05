@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from saturate_execution.states import States, ActivityState, node_info, states_info
+from saturate_execution.states import States, ActivityState, states_info, node_info
 from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
@@ -36,17 +36,25 @@ def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
 
 	return set()
 
+
+def evaluate_unavoidable_impacts(root: CNode, states: States, current_impacts: np.array) -> np.array:
+	unavoidableImpacts = copy.deepcopy(current_impacts)
+	print("Unavoidable:\n" + states_info(states))
+	for unavoidableTask in unavoidable_tasks(root, states):
+		print("unavoidableTask: " + node_info(unavoidableTask, states))
+		unavoidableImpacts += np.array(unavoidableTask.impact)
+
+	return unavoidableImpacts
+
 def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
 		for executionTree in executionTrees:
-			unavoidableImpacts = copy.deepcopy(executionTree.root.impacts)
-			#print("Unavoidable:\n" + states_info(executionTree.root.states))
-			for unavoidableTask in unavoidable_tasks(region_tree.root, executionTree.root.states):
-				#print("unavoidableTask " + node_info(unavoidableTask, executionTree.root.states))
-				unavoidableImpacts += np.array(unavoidableTask.impact)
-
-			impacts.append(unavoidableImpacts)
+			impacts.append(
+				evaluate_unavoidable_impacts(region_tree.root,
+											 executionTree.root.states,
+											 executionTree.root.impacts)
+			)
 			impacts_labels.append(decision.id)
 
 	return impacts, impacts_labels
@@ -66,7 +74,7 @@ def propagate_status(node: CNode, states: States):
 	return states[node]
 
 
-def get_full_states(all_states: list[dict[CNode, ActivityState]]):
+def evaluate_execution_path(all_states: list[ActivityState]):
 	all_nodes = set()
 	for states in all_states:
 		nodes = set()
@@ -99,7 +107,7 @@ def stateful(decisions: dict[CNode, set[ExecutionTree]]):
 			states_vectors.append(executionTree.root.states.activityState)
 			labels.append(decision.id)
 
-	all_nodes, states_vectors = get_full_states(states_vectors)
+	all_nodes, states_vectors = evaluate_execution_path(states_vectors)
 	#print each state_vector with the corresponding label
 	s = ''
 	for node in all_nodes:
