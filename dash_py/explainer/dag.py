@@ -1,6 +1,7 @@
 import math
 import os
 import graphviz
+import numpy as np
 import pandas as pd
 
 from explainer.dag_node import DagNode
@@ -9,15 +10,15 @@ from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Dag:
-	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, label:list, features_names:list):
+	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list):
 		self.choice = choice
-		self.class_0 = class_0
+		self.class_0 = class_0 # in case is not splittable is the true class
 		self.class_1 = class_1
 
 		if class_1 is not None:
 			df = pd.DataFrame(impacts, columns=features_names)
-			df['class'] = label
-			self.root = DagNode(df)
+			df['class'] = labels
+			self.root = DagNode(df, class_0, class_1)
 			self.nodes = {self.root}
 		else:
 			self.root = None
@@ -25,8 +26,9 @@ class Dag:
 
 	def __str__(self):
 		result = ""
-		for node in self.nodes:
-			result += str(node) + ", "
+		if self.nodes is not None:
+			for node in self.nodes:
+				result += str(node) + ", "
 		return "{" + result[:-2] + "}"
 
 	def transitions_str(self):
@@ -94,15 +96,20 @@ class Dag:
 					break
 
 			if target_node is None:
-				target_node = DagNode(df)
+				#get the unique labels in the new node
+				unique_labels = sorted(set(df['class']))
+
+				class_0, class_1 = (self.class_0, self.class_1) if unique_labels[0] == self.class_0.id else (self.class_1, self.class_0)
+				if len(unique_labels) == 1:
+					class_1 = None
+
+				target_node = DagNode(df, class_0, class_1)
 				self.nodes.add(target_node)
 				target_node.min_distances_from_root = distances_from_root
 
 			edge = (feature, threshold, lt)
 			changed = node.add_node(target_node, edge)
 			#print(node.transition_str(target_node, changed))
-
-
 
 	def compute_tree(self, node: DagNode):
 		if node.visited:
@@ -123,7 +130,7 @@ class Dag:
 					node.best_test = test
 			node.visited = True
 
-	def explore(self, write=False):
+	def build(self, write=False):
 		if not self.is_separable():
 			return False
 
@@ -158,21 +165,50 @@ class Dag:
 			nodes.extend(self.get_minimum_tree_nodes(target_f))
 		return nodes
 
+	def choose(self, vector: list):
+		if self.root is None:# forced decision give always the same decision
+			return self.class_0
+
+		if len(vector) != len(self.root.df.columns[:-1]):
+			raise Exception("Different columns size")
+
+		df = pd.DataFrame([vector], columns=self.root.df.columns[:-1])
+		#print("df:", df)
+
+		node:DagNode = self.root
+		while node.splittable:
+			feature, threshold, lt = node.best_test
+			#print(f"node: {node}, feature: {feature}")
+			true_node, false_node = node.get_targets(node.best_test)
+			#print("true_node: ", true_node)
+			#print("false_node: ", false_node)
+
+			#print(f"value: {df.loc[0, feature]} {'<' if lt else '>='} threshold: {threshold}")
+			result = df.loc[0, feature] < threshold if lt else df.loc[0, feature] >= threshold
+			#print("Result: ", result)
+			node = true_node if result else false_node
+
+		return node.class_0
+
 	def dag_to_file(self, file_path: str):
 		dot = graphviz.Digraph()
 
 		minimum_tree_nodes = self.get_minimum_tree_nodes(self.root)
 		for node in self.nodes:
 			node_name = str(node)
-			label = f"{node_name}\nmin_delta(root): {node.min_distances_from_root}\nBest Height: {node.best_height}"
+			label = f"{node_name}\nmin depth: {node.min_distances_from_root}\nBest Height: {node.best_height}\n"
 
 			color = 'white'
 			if node.best_test is not None:
-				label += f"\nTest: {node.best_test[0]} < {node.best_test[1]}\n"
+				label += f"Test: {node.best_test[0]} < {node.best_test[1]}\n"
 			if node in minimum_tree_nodes:
 				color = 'lightblue'
-			elif not node.splittable:
+
+			if not node.splittable:
 				color = 'green'
+				label += f"Class: {node.class_0}"
+			else:
+				label += f"Classes: {node.class_0}, {node.class_1}"
 
 			dot.node(node_name, label=label, style='filled', fillcolor=color)
 
@@ -188,10 +224,16 @@ class Dag:
 
 	def get_bdd_recursively(self, node: DagNode):
 		if not node.splittable:
-			return f"Class: {list(node.df['class'])[0]}"
+			return f"Class: {node.class_0}"
 		if node.best_test is None:
 			return "Undetermined"
 		left_child, right_child = node.get_targets(node.best_test)
+		#The left is always the true condition
+		if not node.best_test[2]: # Swap to keep always < instead of >=
+			tmp = left_child
+			left_child = right_child
+			right_child = tmp
+
 		left_bdd = self.get_bdd_recursively(left_child)
 		right_bdd = self.get_bdd_recursively(right_child)
 
@@ -234,7 +276,7 @@ class Dag:
 
 	def bdd_to_file_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			label, color = Dag.get_decision(self.class_0 if list(node.df['class'])[0] == self.class_0.id else self.class_1)
+			label, color = Dag.get_decision(node.class_0)
 			dot.node(str(node), label=label, shape="box", style="filled", color=color)
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
@@ -242,6 +284,12 @@ class Dag:
 			dot.node(str(node), label=f"{node.best_test[0]} < {node.best_test[1]}", shape="ellipse")
 
 			left_child, right_child = node.get_targets(node.best_test)
+			#The left is always the true condition
+			if not node.best_test[2]: # Swap to keep always < instead of >=
+				tmp = left_child
+				left_child = right_child
+				right_child = tmp
+
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True", style="dashed")
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
 
