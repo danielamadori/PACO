@@ -8,7 +8,8 @@ from saturate_execution.next_state import next_state
 from saturate_execution.states import States, ActivityState, states_info
 from saturate_execution.step_to_saturation import steps_to_saturation
 from solver.tree_lib import CNode, CTree
-from solver_optimized.execution_tree import ExecutionTree, ExecutionViewPoint, write_image
+from solver_optimized.execution_tree import write_image
+from explainer.bdd import Bdd
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STRATEGY_TREE_STATE_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_DOT, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_DOT, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG, \
@@ -53,22 +54,21 @@ def saturate_execution(region_tree: CTree, states: States) -> (States, bool, lis
 
 
 class StrategyViewPoint:
-	def __init__(self, bpmn_root: CNode, id: int, states: States, decisions: tuple[CNode], choices: tuple[CNode], natures: tuple[CNode],
+	def __init__(self, bpmn_root: CNode, id: int, states: States, decisions: tuple[CNode], choices: dict[CNode:Bdd], natures: list[CNode],
 				 is_final_state: bool, probability:float, impacts: np.array, parent: 'StrategyViewPoint' = None):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()
 		self.state_id = s
 		self.decisions = decisions
-		self.choices = choices
+		self.choices = choices # dict with choices and the bdd (None if arbitrary)
 		self.natures = natures
-		self.choices_natures = choices + natures
+		self.choices_natures = list(choices.keys()) + natures
 		self.parent = parent
 		self.is_final_state = is_final_state
-		self.transitions: dict[tuple, ExecutionTree] = {}
+		self.transitions: dict[tuple, StrategyTree] = {}
 		self.probability = probability
 		self.impacts = impacts
-
 		self.executed_time = states.executed_time[bpmn_root]
 
 	def __str__(self) -> str:
@@ -117,7 +117,18 @@ class StrategyViewPoint:
 				label += d
 
 			line_length = int(1.3 * math.sqrt(len(label)))
-			result += self.text_format(label, line_length) + "\"];\n"
+			result += (self.text_format(label, line_length)) + "\", "
+			#print(f"ID: {self.id}, choice: ", len(self.choices), "natures: ", len(self.natures))
+			choices_number = len(self.choices)
+			natures_number = len(self.natures)
+			if choices_number > 0 and natures_number == 0:
+				result += "style=filled, fillcolor=\"orange\""
+			elif choices_number == 0 and natures_number > 0:
+				result += "style=filled, fillcolor=\"green\""
+			elif choices_number > 0 and natures_number > 0:
+				result += "style=wedged, fillcolor=\"green;0.5:orange\""
+
+			result += "];\n"
 
 		return result
 
@@ -128,9 +139,23 @@ class StrategyViewPoint:
 
 		self.transitions[tuple(transition)] = subTree
 
-	def dot_cei_str(self):
-		return (self.dot_str(full=False) + "_impact",
-				f" [label=\"Probability: {self.probability}\nImpacts: {self.impacts}\nTime: {self.executed_time}\", shape=rect];\n")
+	def dot_info_str(self):
+		label = f" [label=\"Probability: {self.probability}\nImpacts: {self.impacts}\n"
+		label += f"Time: {self.executed_time}\n"
+
+		if len(self.choices) > 0:
+			label += "Choice: "
+			for choice, bdd in self.choices.items():
+				label += f"{choice.name}{'*' if bdd is None else''}, "
+			label = label[:-2] + "\n"
+		if len(self.natures) > 0:
+			label += "Nature ID: "
+			for nature in list(self.natures):
+				label += f"{nature.id}, "
+			label = label[:-2]
+
+		label += "\", shape=rect];\n"
+		return (self.dot_str(full=False) + "_impact", label)
 
 
 class StrategyTree:
@@ -174,7 +199,7 @@ class StrategyTree:
 		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
 		return result
 
-	def create_dot_graph(self, root: ExecutionViewPoint, state: bool, executed_time: bool, diff: bool,
+	def create_dot_graph(self, root: StrategyViewPoint, state: bool, executed_time: bool, diff: bool,
 						 previous_node: States = None):
 		if diff == False:  # print all nodes
 			previous_node = None
@@ -182,7 +207,8 @@ class StrategyTree:
 		nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
 		transitions_id = ""
 
-		impact_id, impact_label = root.dot_cei_str()
+
+		impact_id, impact_label = root.dot_info_str()
 		transitions_id += f"{root.dot_str(full=False)} -> {impact_id} [label=\"\" color=red];\n"  #style=invis
 		nodes_id += impact_id + impact_label
 

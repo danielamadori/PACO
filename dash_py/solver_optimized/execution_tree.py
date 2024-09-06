@@ -77,7 +77,8 @@ class ExecutionViewPoint:
 				label += d
 
 			line_length = int(1.3 * math.sqrt(len(label)))
-			result += self.text_format(label, line_length) + "\"];\n"
+			result += (self.text_format(label, line_length)) + "\""
+			result += "];\n"
 
 		return result
 

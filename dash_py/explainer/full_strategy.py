@@ -1,4 +1,5 @@
 import copy
+import random
 from itertools import product
 from evaluations.evaluate_execution_path import evaluate_execution_path
 from evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
@@ -19,8 +20,9 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 	probability, impacts = evaluate_expected_impacts(states, impacts_size)
 
 	strategyViewPoint = StrategyViewPoint(bpmn_root=region_tree.root, id=id, states=states,
-										  decisions=decisions, choices=choices, natures=natures,
-										  is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
+										  decisions=decisions,
+										  choices={choice: None for choice in choices},# Each choice is a key and the value is the bdd,
+										  natures=natures, is_final_state=is_final,
 										  impacts=impacts, probability=probability)
 
 	strategyTree = StrategyTree(strategyViewPoint)
@@ -33,7 +35,7 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 	chosen_states: States = copy.deepcopy(states)
 	next_decisions = []
 
-	if len(choices) > 0:
+	if len(strategyViewPoint.choices) > 0:
 		#print("typeStrategy: ", typeStrategy)
 		if typeStrategy <= TypeStrategy.UNAVOIDABLE_IMPACTS:
 			vector = impacts # Current impacts
@@ -45,25 +47,35 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 		else:
 			raise Exception("TypeStrategy not implemented: " + str(typeStrategy))
 
-		for choice in choices:
-			if choice not in explainers:
-				raise Exception("Choice not explained: " + str(choice))
+		for choice in strategyViewPoint.choices.keys():
+			arbitrary = choice not in explainers
 
-			if vector is None: # Stateful
-				all_nodes, vectors = evaluate_execution_path([states.activityState], explainers[choice].root.df.columns[:-1])
-				vector = vectors[0]
-				s = 'All decisions:\t   ['
-				for n in all_nodes:
-					s += str(n.id) + ' '
-				print(s + "]")
-				print("Stateful impacts: ", vector)
+			if arbitrary:
+				print(f"Choice not explained: {str(choice)}, random decision")
+				random.seed()
+				random_decision = random.choice([0, 1])
+				opposite_decision = 1 - random_decision
 
-			print("Explaining choice: ", choice.id)
+				decision_true = choice.childrens[random_decision].root
+				decision_false = choice.childrens[opposite_decision].root
+			else:
+				print("Explaining choice: ", choice.id)
+				bdd = explainers[choice]
+				strategyViewPoint.choices[choice] = bdd
 
-			decision_true = explainers[choice].choose(vector)
+				if vector is None: # Stateful
+					all_nodes, vectors = evaluate_execution_path([states.activityState], explainers[choice].root.df.columns[:-1])
+					vector = vectors[0]
+					s = 'All decisions:\t   ['
+					for n in all_nodes:
+						s += str(n.id) + ' '
+					print(s + "]")
+					print("Stateful impacts: ", vector)
+
+				decision_true = bdd.choose(vector)
+				decision_false = choice.childrens[1].root if decision_true == choice.childrens[0].root else choice.childrens[0].root
+
 			next_decisions.append(decision_true)
-			decision_false = choice.childrens[1].root if decision_true == choice.childrens[0].root else choice.childrens[0].root
-
 			print("Decision True: ", decision_true.id)
 			print("Decision False: ", decision_false.id)
 			chosen_states.activityState[decision_true] = ActivityState.ACTIVE
