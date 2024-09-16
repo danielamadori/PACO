@@ -1,5 +1,5 @@
 from random import seed
-
+import numpy as np
 from explainer.strategy_tree import write_strategy_tree
 from explainer.full_strategy import full_strategy
 from utils.print_sese_diagram import print_sese_diagram
@@ -178,7 +178,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
         print(f"{t1} FoundStrategy:")
         t = datetime.now()
-        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
+        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], np.array(bound, dtype=np.float64))
         t1 = datetime.now()
         print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
         write_execution_tree(execution_tree, frontier_solution)
