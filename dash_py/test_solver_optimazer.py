@@ -175,6 +175,20 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
         test(problem[0], problem[1])
 
 
+
+bpmn_paper_example = {
+    "Figure 1": [{
+        "expression": "(Cutting, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))), (HPHS / [C2] LPLS))",
+        "h": 0,
+        "impacts": {"Cutting": [10, 1], "Bending": [20, 1], "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1], "FD": [30, 1], "RD": [10, 1], "HPHS": [40, 1], "LPLS": [20, 3]},
+        "durations": {"Cutting": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1], "HPHS": [0, 1], "LPLS": [0, 2]},
+        "impacts_names": ["electric energy", "worker hours"],
+        "probabilities": {"N1": 0.2}, "names": {"C1": "C1", "C2": "C2", "N1": "N1"}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loop_round': {}
+        }, [135, 7]],
+}
+
+test_calc_strategy_paco(bpmn_paper_example, 0)
+
 #test_calc_strategy_paco(bpmn_ex)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
@@ -183,7 +197,7 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 #test_calc_strategy_paco(bpmn_ex, 8) #current impacts
 
 
-test_calc_strategy_paco(bpmn_ex, 14)
+#test_calc_strategy_paco(bpmn_ex, 14)
 
 
 #Testing StrategyTree:
@@ -193,6 +207,8 @@ test_calc_strategy_paco(bpmn_ex, 14)
 #test_calc_strategy_paco(bpmn_ex, 6) # Okay, current impacts (two obligated decision)
 #test_calc_strategy_paco(bpmn_ex, 8) # Okay, current impacts
 #test_calc_strategy_paco(bpmn_ex, 9) # Not pruned ask if okay, all leaves in the frontier
+
+
 
 
 
