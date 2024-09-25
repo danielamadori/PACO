@@ -266,7 +266,7 @@ class Bdd:
 		elif decision.type == 'task':
 			color = 'lightblue'
 		elif decision.type == 'sequential':
-			return Bdd.get_decision(decision.childrens[0].root)
+			return Bdd.get_decision(decision.children[0].root)
 		else:
 			raise Exception(f"Decision type {decision.type} not recognized")
 

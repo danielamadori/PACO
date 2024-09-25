@@ -37,14 +37,14 @@ def saturate_execution(region_tree: CTree, states: States) -> (States, bool, lis
 			if (node.type == 'choice'
 					and states.activityState[node] == ActivityState.ACTIVE
 					and states.executed_time[node] == node.max_delay
-					and states.activityState[node.childrens[0].root] == ActivityState.WAITING
-					and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
+					and states.activityState[node.children[0].root] == ActivityState.WAITING
+					and states.activityState[node.children[1].root] == ActivityState.WAITING):
 				choices.append(node)
 
 			if (node.type == 'natural'
 					and states.activityState[node] == ActivityState.ACTIVE
-					and states.activityState[node.childrens[0].root] == ActivityState.WAITING
-					and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
+					and states.activityState[node.children[0].root] == ActivityState.WAITING
+					and states.activityState[node.children[1].root] == ActivityState.WAITING):
 				natures.append(node)
 
 		if len(choices) > 0 or len(natures) > 0:

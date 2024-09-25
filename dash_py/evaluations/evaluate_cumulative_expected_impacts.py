@@ -71,7 +71,7 @@ def worst_impacts(tree: CTree, states: States):
 
 	if root.type in ['sequential', 'parallel']:
 		result = States()
-		for child in root.childrens:
+		for child in root.children:
 			result.update(worst_impacts(child, states))
 		return result
 

@@ -35,12 +35,12 @@ def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
 		return set()
 	if root.type in ['sequential', 'parallel']:
 		result = set[CNode]()
-		for child in root.childrens:
+		for child in root.children:
 			result = result.union(unavoidable_tasks(child.root, states))
 		return result
 
 	if root.type in ['choice', 'natural'] and root in states.activityState and states.activityState[root] == ActivityState.ACTIVE:
-		for child in root.childrens:
+		for child in root.children:
 			if child.root in states.activityState and states.activityState[child.root] == ActivityState.ACTIVE:
 				return unavoidable_tasks(child.root, states)
 
