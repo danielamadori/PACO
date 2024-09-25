@@ -144,13 +144,13 @@ args = {
 #                 impact = array_operations.sum(impact, array_operations.product(sul.taskDict[t]["impact"], sul.taskDict[t]["probability"]))
 #             print(s.state_id, k, impact)
 
-def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
+def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
     """
 	This function takes a BPMN diagram and a bound as input, and returns a strategy for the automaton.
 
 	Parameters:
 	bpmn (dict): The BPMN diagram represented as a dictionary.
-	bound (list[int]): The bound for the automaton.
+	bound (bound: np.ndarray): The bound for the automaton.
 
 	Returns:
 	str: A string representing the strategy for the automaton.
@@ -178,7 +178,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
         print(f"{t1} FoundStrategy:")
         t = datetime.now()
-        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], np.array(bound, dtype=np.float64))
+        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
         t1 = datetime.now()
         print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
         write_execution_tree(execution_tree, frontier_solution)

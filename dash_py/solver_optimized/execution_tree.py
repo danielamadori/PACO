@@ -28,8 +28,8 @@ class ExecutionViewPoint:
 		self.is_final_state = is_final_state
 		self.transitions: dict[tuple, ExecutionTree] = {}
 		self.probability, self.impacts = evaluate_expected_impacts(states, len(impacts_names))
-		self.cei_top_down = self.probability * self.impacts
-		self.cei_bottom_up = np.zeros(len(impacts_names), dtype=np.float64)
+		self.cei_top_down:np.ndarray = self.probability * self.impacts
+		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
 
 	def __str__(self) -> str:
 		return str(self.states)

@@ -4,9 +4,9 @@ from saturate_execution.states import States, ActivityState
 from solver.tree_lib import CNode
 
 
-def evaluate_expected_impacts(states: States, impacts_size: int):
+def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64, np.ndarray):
 	impacts = np.zeros(impacts_size, dtype=np.float64)
-	probability = 1.0
+	probability = np.float64(1.0)
 
 	for node, state in states.activityState.items():
 		if (node.type == 'natural' and state > ActivityState.WAITING
@@ -47,11 +47,11 @@ def unavoidable_tasks(root: CNode, states: States) -> set[CNode]:
 	return set()
 
 
-def evaluate_unavoidable_impacts(root: CNode, states: States, current_impacts: np.array) -> np.array:
+def evaluate_unavoidable_impacts(root: CNode, states: States, current_impacts: np.ndarray) -> np.ndarray:
 	unavoidableImpacts = copy.deepcopy(current_impacts)
 	#print("Unavoidable:\n" + states_info(states))
 	for unavoidableTask in unavoidable_tasks(root, states):
 		#print("unavoidableTask: " + node_info(unavoidableTask, states))
-		unavoidableImpacts += np.array(unavoidableTask.impact)
+		unavoidableImpacts += np.array(unavoidableTask.impact, dtype=np.float64)
 
 	return unavoidableImpacts

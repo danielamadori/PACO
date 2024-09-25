@@ -55,7 +55,7 @@ def saturate_execution(region_tree: CTree, states: States) -> (States, bool, lis
 
 class StrategyViewPoint:
 	def __init__(self, bpmn_root: CNode, id: int, states: States, decisions: tuple[CNode], choices: dict[CNode:Bdd], natures: list[CNode],
-				 is_final_state: bool, probability:float, impacts: np.array, parent: 'StrategyViewPoint' = None):
+				 is_final_state: bool, probability:float, impacts: np.ndarray, parent: 'StrategyViewPoint' = None):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()

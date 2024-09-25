@@ -5,7 +5,7 @@ from solver.tree_lib import CNode, CTree
 from solver_optimized.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.array], labels:list, features_names:list) -> Bdd:
+def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray], labels:list, features_names:list) -> Bdd:
 	decisions = list(decisions)
 	decision_0 = decisions[0]
 	decision_1 = None

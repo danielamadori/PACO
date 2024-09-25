@@ -3,12 +3,15 @@ import numpy as np
 from solver_optimized.execution_tree import ExecutionTree
 
 '''
-def compare_bound(cei: np.array, bound: np.array):
+def compare_bound(cei: np.ndarray, bound: np.ndarray):
 	print(cei, bound, [-1 if v1 < v2 else 0 if v1 == v2 else 1 for v1, v2 in zip(cei, bound)])
 	return [-1 if v1 < v2 else 0 if v1 == v2 else 1 for v1, v2 in zip(cei, bound)]
 '''
 
-def compare_bound(cei: np.array, bound: np.array):
+def compare_bound(cei: np.ndarray, bound: np.ndarray):
+	#print("CEI: ", cei, " bound: ", bound, "res: ", np.where(cei <= bound, 0, 1))
+	#print("type cei:", cei.dtype, "type bound:", bound.dtype)
+	#return np.where(cei <= bound, 0, 1)
 	return np.where(cei <= bound + np.finfo(np.float64).eps*10, 0, 1) #TODO fix eps value
 
 
@@ -59,15 +62,15 @@ def frontier_info(frontier: list[ExecutionTree]) -> str:
 	return "[" + result[:-2] + "]"
 
 
-def found_strategy(frontier: list[ExecutionTree], bound: list) -> (list[ExecutionTree], list[np.array]):
+def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray) -> (list[ExecutionTree], list[np.ndarray]):
 	print("frontier: ", frontier_info(frontier))
 
-	frontier_value_bottom_up = np.sum([tree.root.cei_bottom_up for tree in frontier], axis=0)
+	frontier_value_bottom_up:np.ndarray = np.sum([tree.root.cei_bottom_up for tree in frontier], axis=0)
 
 	if np.all(compare_bound(frontier_value_bottom_up, bound) <= 0):
 		return frontier, [frontier_value_bottom_up]
 
-	frontier_value_top_down = np.sum([tree.root.cei_top_down for tree in frontier], axis=0)
+	frontier_value_top_down:np.ndarray = np.sum([tree.root.cei_top_down for tree in frontier], axis=0)
 
 	if np.all(compare_bound(frontier_value_top_down, bound) > 0) or all(tree.root.is_final_state for tree in frontier):
 		#print("Failed top_down: not a valid choose")
