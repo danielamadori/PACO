@@ -236,7 +236,7 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 		for el in frontier:
 			node = graph.get_node('"' + el.state_str() + '"')[0]
 			node.set_style('filled')
-			node.set_fillcolor('green')
+			node.set_fillcolor('lightblue')
 
 	# if svgPath not ""
 	if svgPath != "":

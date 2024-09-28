@@ -185,9 +185,18 @@ bpmn_paper_example = {
         "impacts_names": ["electric energy", "worker hours"],
         "probabilities": {"N1": 0.2}, "names": {"C1": "C1", "C2": "C2", "N1": "N1"}, "delays": {"C1": 0, "C2": 0},'loops_prob' : {}, 'loop_round': {}
         }, [135, 7]],
+    #TODO loops
+    "loop": [{
+        "expression": "(T1, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))))",
+        "h": 0,
+        "impacts": {"T1": [10, 1], "Bending": [20, 1], "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1], "FD": [30, 1], "RD": [10, 1]},
+        "durations": {"T1": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1]},
+        "impacts_names": ["electric energy", "worker hours"],
+        "probabilities": {"N1": 0.2}, "names": {"C1": "C1", "N1": "N1"}, "delays": {"C1": 0},'loops_prob' : {}, 'loop_round': {}
+    }, [100, 7]],
 }
 
-test_calc_strategy_paco(bpmn_paper_example, 0)
+#test_calc_strategy_paco(bpmn_paper_example, 1)
 
 #test_calc_strategy_paco(bpmn_ex)
 

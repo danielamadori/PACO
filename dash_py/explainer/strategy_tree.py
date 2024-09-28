@@ -124,9 +124,9 @@ class StrategyViewPoint:
 			if choices_number > 0 and natures_number == 0:
 				result += "style=filled, fillcolor=\"orange\""
 			elif choices_number == 0 and natures_number > 0:
-				result += "style=filled, fillcolor=\"green\""
+				result += "style=filled, fillcolor=\"yellowgreen\""
 			elif choices_number > 0 and natures_number > 0:
-				result += "style=wedged, fillcolor=\"green;0.5:orange\""
+				result += "style=wedged, fillcolor=\"yellowgreen;0.5:orange\""
 
 			result += "];\n"
 

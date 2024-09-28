@@ -288,7 +288,7 @@ class Bdd:
 				tmp = left_child
 				left_child = right_child
 				right_child = tmp
-
+			#TODO! daniel
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True", style="dashed")
 			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
 
