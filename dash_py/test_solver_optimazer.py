@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+from utils.env import *
 from utils.print_sese_diagram import print_sese_diagram
 from utils.automa import calc_strategy_paco
 
@@ -134,4 +135,19 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
 
 
 #test_calc_strategy_paco(bpmn_ex)
-test_calc_strategy_paco(bpmn_ex, 1)
+#test_calc_strategy_paco(bpmn_ex, 1)
+
+from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
+from utils.print_sese_diagram_explainer import print_sese_custom_tree_explainer
+bpmn = bpmn_ex["bpmn_choices_natures"][0]
+tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
+# Convert the parsed tree into a custom tree and get the last ID
+custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
+                                    bpmn[IMPACTS], bpmn[DURATIONS],
+                                    bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
+
+print_sese_custom_tree_explainer(
+    tree=custom_tree, 
+    imp_names=bpmn[IMPACTS_NAMES], 
+    probabilities=bpmn[PROBABILITIES],
+    impacts=bpmn[IMPACTS])

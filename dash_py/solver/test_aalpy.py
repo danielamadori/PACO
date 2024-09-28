@@ -216,7 +216,7 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
                 decision0:CNode = bdd.class_0  # dashed line
                 decision0_id = decision0.id
                 print(choice_name,choice_id, decision0_id, decision0.name)
-                list_choices[choice_name]= [choice_id, decision0_id]
+                list_choices[choice_name]= [choice_id, decision0.name]
                 if bdd.class_1 is not None:
                     decision1:CNode = bdd.class_1 # normal line
                     decision1_id = decision1.id

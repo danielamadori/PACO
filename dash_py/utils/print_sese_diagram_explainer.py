@@ -1,14 +1,15 @@
 from lark import Tree, Token
+import numpy as np
 import pydot
 from pydot import *
 from PIL import Image
 from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, SESE_PARSER, RESOLUTION
+from solver.tree_lib import CTree, from_lark_parsed_to_custom_tree as Lark_to_CTree
 """
     funzioni prese dal notebook
 """
-def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_LARK, outfile_svg = PATH_IMAGE_BPMN_LARK_SVG,
-                        graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={}, explainer= False, choices_list =[]):
-    tree = SESE_PARSER.parse(expression)
+def print_sese_diagram_explainer(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_LARK, outfile_svg = PATH_IMAGE_BPMN_LARK_SVG,
+                        graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={}, explainer= False, choices_list =[]):  
     diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names, explainer = explainer, choices_list=choices_list)
     global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'
     dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
@@ -22,32 +23,30 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     graph.write_png(outfile)    
     return  Image.open(outfile)   
 
-def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
+def dot_sese_diagram(t:CTree, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
     exit_label = ''
-    if type(t) == Token:
-        label = t.value        
+    r = t.root
+    if r.type == 'Task':
+        label = r.name     
+        if explainer and label in [choices_list[k][1] for k in list(choices_list.keys())]:
+            #adj value id
+            choices_list[str(t.children[1])][-1] = id
         return dot_task(id, label, h, imp[label] if label in imp else None, dur[label] if label in dur else None, imp_names), id, id, exit_label
-    if type(t) == Tree:
-        label = t.data
-        if label == 'task':
-            return dot_sese_diagram(t.children[0], id, h, prob, imp, loops, dur, imp_names)
+    else:
+        label = (r.type)
         code = ""
-        id_enter = id
-        last_id = id_enter + 1
         child_ids = []
-        exit_labels = []
-        for i, c in enumerate(t.children):
+        for i, c in enumerate(r.childrens):
             if (label != 'natural' or i != 1) and (label != 'choice' or i != 1) and (label != 'loop_probability' or i !=0 ):
                 dot_code, enid, exid, tmp_exit_label = dot_sese_diagram(c, last_id, h, prob, imp, loops, dur, imp_names)
-                exit_labels.append(tmp_exit_label)
                 code += f'\n {dot_code}'
-                child_ids.append((enid, exid))
+                child_ids.append(c.root.id)
                 last_id = exid + 1
         if label != "sequential":    
             id_exit = last_id
             if label == "choice":
-                code += dot_exclusive_gateway(id_enter, label=t.children[1])
-                code += dot_exclusive_gateway(id_exit, label=t.children[1])
+                code += dot_exclusive_gateway(id_enter, label=r.children[1])
+                code += dot_exclusive_gateway(id_exit, label=r.children[1])
             elif label == 'natural':
                 code += dot_probabilistic_gateway(id_enter)
                 code += dot_probabilistic_gateway(id_exit)
@@ -138,3 +137,78 @@ def dot_parallel_gateway(id, label="+"):
 
 def dot_rectangle_node(id, label):
     return f'\n node_{id}[shape=rectangle label={label}];'  
+
+
+
+def print_sese_custom_tree_explainer(tree:CTree,imp_names, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile="assets/outTree.png", graph_options = {},):
+    tree_nt = tree
+    tree, end_id = dot_tree(tree,imp_names, h, probabilities, impacts, loop_thresholds)
+    tree = '\n start[label="" style="filled" shape=circle fillcolor=palegreen1]' +   '\n end[label="" style="filled" shape=doublecircle fillcolor=orangered] \n' + tree
+    tree += f'\n start -> node_{tree_nt.root.id};'
+    tree += f'\n node_{end_id} -> end [label="end"];'
+    global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'    
+    dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + tree +"}"
+    print(dot_string)
+    graph = pydot.graph_from_dot_data(dot_string)
+    print(graph)
+    if graph:
+        graph.write_png(outfile)
+        graph.write_svg('assets/treeDiagram.svg')
+
+def dot_task(id, name, duration, imp_names, h=0, imp=[]):
+    label = name
+    if imp is not None: 
+        if h < 1:
+            imp =  ", ".join(f"{key}: {value}" for key, value in zip(imp_names, imp))
+            label += f", impacts: {imp}"
+            label += f", dur: {str(duration)}"  
+        else: 
+            label += str(imp[0:-h])
+            label += str(imp[-h:])             
+            label += f", dur:{str(duration)}" 
+    return f'node_{id} [label="{label}", shape=rectanble style="rounded,filled" fillcolor="lightblue"];'
+
+def dot_tree(t: CTree,imp_names, h=0, prob={}, imp={}, loops={}, token_is_task=True):
+    r = t.root
+    if r.type == 'task':
+        label = (r.name)
+        impact = r.impact
+        duration = r.duration
+        impact.extend(r.non_cumulative_impact)
+        code = dot_task(id=r.id, name=label, duration=duration,imp_names=imp_names, h=h, imp=impact) #if token_is_task else dot_rectangle_node(r.id, label)
+        return code, r.id
+    else:
+        label = (r.type)
+        code = ""
+        child_ids = []
+        for i, c in enumerate(r.childrens):
+            dot_code = dot_tree(t=c, h=h, prob=prob, imp=imp,loops= loops, imp_names=imp_names)
+            code += f'\n {dot_code}'
+            child_ids.append(c.root.id)
+        if label == 'choice':
+            # if r.max_delay == np.inf: dly_str = 'inf'
+            # else: dly_str = str(r.max_delay)
+            code += dot_exclusive_gateway(r.id, r.name) #+ ' dly:' + dly_str
+            code += dot_exclusive_gateway(r.childrens[1], r.name)
+        elif label == 'natural':
+            code += dot_probabilistic_gateway(r.id)
+        elif label == 'loop_probability':
+            code += dot_loop_gateway(r.id, label )
+        elif label == 'parallel':
+            code += dot_parallel_gateway(r.id)        
+        else:    
+            code += f'\n node_{r.id} [label="{label}"];'
+        edge_labels = ['','', ''] 
+        if label == "natural":
+            prob_key = r.probability
+            edge_labels = edge_labels = [f'{prob[prob_key] if prob_key  in prob else 0.5 }',
+                           f'{round(1 - prob[prob_key], 2) if prob_key  in prob else 0.5 }'] 
+        if label == "loop_probability":
+            prob_key = r.probability
+            proba = loops[prob_key] if prob_key in loops else 0.5
+            edge_labels = ['',f'{proba}']
+            exit_label = f'{1-proba}'
+        for ei,i in enumerate(child_ids):
+            edge_label = edge_labels[ei]
+            code += f'\n node_{r.id} -> node_{i} [label="{edge_label}"];' 
+        return code, np.argmax(child_ids)
