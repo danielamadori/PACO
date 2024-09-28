@@ -49,8 +49,8 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
                 code += dot_exclusive_gateway(id_enter, label=t.children[1])
                 code += dot_exclusive_gateway(id_exit, label=t.children[1])
             elif label == 'natural':
-                code += dot_probabilistic_gateway(id_enter)
-                code += dot_probabilistic_gateway(id_exit)
+                code += dot_probabilistic_gateway(id_enter, label=t.children[1])
+                code += dot_probabilistic_gateway(id_exit, label=t.children[1])
             elif label in {'loop', 'loop_probability'}: 
                 code += dot_loop_gateway(id_enter)
                 if label == 'loop':
