@@ -156,6 +156,9 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
     try:
         # Parse the task sequence from the BPMN diagram
         tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
+        name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+        print(name_svg)
+        print_sese_diagram(**bpmn, outfile_svg=name_svg) 
         print(tree.pretty)
         print(f'{datetime.now()} Bound {bound}')
         # Convert the parsed tree into a custom tree and get the last ID
@@ -193,7 +196,8 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
 
             s = "For this specific instance a strategy does not exist"
             print(str(datetime.now()) + " " + s)
-            return '\n\n' + s + '\n'
+            s = f'Error! Finding the strategy failed in PACO execution : s {s}'
+            return {}, {}, name_svg
 
         print(f"Success:\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_solution_value_bottom_up[0]}")
 
@@ -203,32 +207,38 @@ def automata_search_strategy(bpmn: dict, bound: list[int]) -> str:
         t1 = datetime.now()
         print(f"{t1} Build Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
         if len(strategy) == 0:
-            print("For this specific instance, a strategy isn't needed (choices not found)")
+            print("For this specific instance, an explainer isn't needed (choices not found)")
+            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in frontier_solution_value_bottom_up[0]]))
+            print(impacts)            
+            return f"A strategy could be found, for this specific instance any choice taken will provide a winning strategy with an expected impact of: {impacts}", {}, name_svg
         else:
             print(f'{t1} Explain Strategy: ')
             t = datetime.now()
             bdds = explain_strategy(strategy, bpmn[IMPACTS_NAMES])
-            list_choices = {}   
-            for bdd in bdds:
-                choice:CNode = bdd.choice
-                choice_name = choice.name
-                choice_id = choice.id
-                decision0:CNode = bdd.class_0  # dashed line
-                decision0_id = decision0.id
-                print(choice_name,choice_id, decision0_id, decision0.name)
-                list_choices[choice_name]= [choice_id, decision0.name]
-                if bdd.class_1 is not None:
-                    decision1:CNode = bdd.class_1 # normal line
-                    decision1_id = decision1.id
-            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-            print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)             
+            list_choices = {}  
+            if bdds: 
+                for bdd in bdds:
+                    choice:CNode = bdd.choice
+                    choice_name = choice.name
+                    choice_id = choice.id
+                    decision0:CNode = bdd.class_0  # dashed line
+                    decision0_id = decision0.id
+                    print(choice_name,choice_id, decision0_id, decision0.name)
+                    list_choices[choice_name]= [choice_id, decision0.name]
+                    if bdd.class_1 is not None:
+                        decision1:CNode = bdd.class_1 # normal line
+                        decision1_id = decision1.id
+                        list_choices[choice_name]= [choice_id, decision1_id]            
             t1 = datetime.now()
             print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
-            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))
-        return f"A strategy could be found, which has as an expected impact of : {impacts} ", list_choices, name_svg
+            # impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))
+            
+            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in frontier_solution_value_bottom_up[0]]))
+            print(impacts)
+            return f"A strategy could be found, which has as an expected impact of : {impacts} ", list_choices, name_svg
 
     except Exception as e:
         # If an error occurs, print the error and return a message indicating that an error occurred
         print(f'test failed in PACO execution : {e}')
         s = f'Error! Finding the strategy failed in PACO execution : {e}'
-        return s
+        return s, {}, name_svg

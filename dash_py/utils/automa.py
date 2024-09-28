@@ -25,13 +25,13 @@ def calc_strat(bpmn:dict, bound:dict, algo:str) -> dict:
         return strategies
     # calculate strategies
     if algo == list(ALGORITHMS.keys())[0]:
-        strategies = calc_strategy_paco(bpmn, bound_list)
+        strategies, list_choices, name_svg = calc_strategy_paco(bpmn, bound_list)
     elif algo == list(ALGORITHMS.keys())[1]:
         strategies = calc_strategy_algo1(bpmn, bound_list)
     elif algo == list(ALGORITHMS.keys())[2]:
         strategies = calc_strategy_algo2(bpmn, bound_list)
         
-    return strategies
+    return strategies, list_choices, name_svg
 
 
 
@@ -43,16 +43,18 @@ def calc_strategy_paco(bpmn:dict, bound:list[int]) -> dict:
         bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])         
         print(f'{datetime.now()} bpmn + cpi {bpmn}')
         strat, list_choices, name_svg = automata_search_strategy(bpmn, bound)
-        if strat.startswith("A strategy") :
-            strategies['strat1'] = strat
-        elif strat.startswith("Error"):
-            strategies['error'] = strat
-        else:            
-            return strategies
+        if strat:
+            if strat.startswith("A strategy") :
+                strategies['strat1'] = strat
+            elif strat.startswith("Error"):
+                strategies['error'] = strat
+            if list_choices:
+                return strategies, list(list_choices.keys()), name_svg       
     except Exception as e:
         print(f'test failed for Paco: {e}')
         strategies['error'] = f'Error while calculating the strategy: {e}'
-    return strategies, list(list_choices.keys()), name_svg
+        return strategies, [], ''
+    return strategies, [], name_svg
 
 def calc_strategy_algo1(bpmn:dict, bound:list[int]) -> dict:
     strategies = {}

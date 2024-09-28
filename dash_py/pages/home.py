@@ -385,20 +385,31 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
             ]
         else:
             strategy_d[STRATEGY] = finded_strategies['strat1']
-            
-            navigate_tabs('go-to-show-strategy')
-            return [
-                html.Div([
-                    html.P(f"Strategies: {finded_strategies['strat1']}"),
-                    html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
-                    # download diagram as svg
-                    html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
-                    dcc.Tabs(
-                        children=[
-                            dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in list_choises
-                        ]
-                    )
-                ]), None, 'tab-7']
+            if list_choises:
+                navigate_tabs('go-to-show-strategy')
+                list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(list_choises))
+                return [
+                    html.Div([
+                        html.P(f"Strategies: {finded_strategies['strat1']}"),
+                        html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
+                        # download diagram as svg
+                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
+                        dcc.Tabs(
+                            children=[
+                                dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in list_choises
+                            ]
+                        ),
+                        dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'), 
+                    ]), None, 'tab-7']
+            else:
+                return [
+                    html.Div([
+                        html.P(f"Strategies: {finded_strategies['strat1']}"),
+                        html.Iframe(src=name_svg, style={"height": "60vh", "width": "95vw", 'border':'none'}),
+                        # download diagram as svg
+                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
+                        dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'),    
+                    ]), None, 'tab-7']
     else:
         return [None,
                 dbc.Modal(

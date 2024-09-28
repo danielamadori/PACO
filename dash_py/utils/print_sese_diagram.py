@@ -7,9 +7,9 @@ from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, SESE_PARSE
     funzioni prese dal notebook
 """
 def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_LARK, outfile_svg = PATH_IMAGE_BPMN_LARK_SVG,
-                        graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={}, explainer= False, choices_list =[]):
+                        graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={},):
     tree = SESE_PARSER.parse(expression)
-    diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names, explainer = explainer, choices_list=choices_list)
+    diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names)
     global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'
     dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
     graphs = pydot.graph_from_dot_data(dot_string)    
@@ -59,7 +59,7 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
                     code += dot_loop_gateway(id_exit)
             else: 
                 label_sym = '+'    
-                node_label = f'[shape=diamond label="{label_sym}" style="filled" fillcolor=yellowgreen]'
+                node_label = f'[shape=diamond label="{label_sym}"]'
                 code += f'\n node_{id_enter}{node_label};'
                 id_exit = last_id
                 code += f'\n node_{id_exit}{node_label};'
@@ -77,11 +77,13 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
             edge_labels = ['',f'{proba}']
             exit_label = f'{1-proba}'
         if label != "sequential":
+            min_id = min(child_ids)
             for ei,i in enumerate(child_ids):
+                print('ei ' , ei)
                 edge_label = edge_labels[ei]
                 edge_style = ''                
-                if label in {'choice'} and explainer and choices_list != {} and str(t.children[1]) in list(choices_list.keys()) and i[0] == choices_list[str(t.children[1])][-1]+2:
-                    print(f' ids = {i[0]} { choices_list[str(t.children[1])][-1]}')   
+                if i == min_id and label == 'choice':
+                    print('min')
                     edge_style = ', style="dashed"'
                 code += f'\n node_{id_enter} -> node_{i[0]} [label="{edge_label}" {edge_style}];'
                 code += f'\n node_{i[1]} -> node_{id_exit};'
@@ -116,8 +118,8 @@ def dot_task(id, name, h=0, imp=None, dur=None, imp_names = []):
     if imp is not None: # modifica per aggiungere impatti e durate in modo leggibile 
         if h == 0:
             imp =  ", ".join(f"{key}: {value}" for key, value in zip(imp_names, imp))
-            label += f", impacts: {imp}"
-            label += f", dur: {str(dur)}"  
+            label += f", \n impacts: {imp}"
+            label += f", \n dur: {str(dur)}"  
         else: 
             label += str(imp[0:-h])
             label += str(imp[-h:]) 
@@ -128,13 +130,13 @@ def dot_exclusive_gateway(id, label="X"):
     return f'\n node_{id}[shape=diamond label={label} style="filled" fillcolor=orange];'
 
 def dot_probabilistic_gateway(id, label="N"):
-    return f'\n node_{id}[shape=diamond label={label} style="filled" fillcolor=orange];' 
+    return f'\n node_{id}[shape=diamond label={label} style="filled" fillcolor=yellowgreen];' 
 
-def dot_loop_gateway(id, label="X"):
-    return f'\n node_{id}[shape=diamond label={label} style="filled" fillcolor=yellow];' 
+def dot_loop_gateway(id, label="N"):
+    return f'\n node_{id}[shape=diamond label={label} style="filled" fillcolor=yellowgreen];' 
 
 def dot_parallel_gateway(id, label="+"):
-    return f'\n node_{id}[shape=diamond label={label} style="filled" fillcolor=yellowgreen];'
+    return f'\n node_{id}[shape=diamond label={label}];'
 
 def dot_rectangle_node(id, label):
     return f'\n node_{id}[shape=rectangle label={label}];'  
