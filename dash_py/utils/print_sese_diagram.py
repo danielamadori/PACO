@@ -109,7 +109,7 @@ def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds
 
 def get_tasks(t):
     trees = [subtree for subtree in t.iter_subtrees()]
-    v = {subtree.children[0].value for subtree in   filter(lambda x: x.data == 'task', trees)}
+    v = {subtree.children[0].value for subtree in filter(lambda x: x.data == 'task', trees)}
     return v
 
 def dot_task(id, name, h=0, imp=None, dur=None, imp_names = []):

@@ -12,8 +12,8 @@ def steps_to_saturation(tree: CTree, states: States):
 		#print("step_to_saturation:Task:remaining_time: ", remaining_time)
 		return remaining_time
 
-	leftSubTree = root.childrens[0]
-	rightSubTree = root.childrens[1]
+	leftSubTree = root.children[0]
+	rightSubTree = root.children[1]
 
 	if root.type == 'natural' or root.type == 'choice':
 		# print("step_to_saturation:Natural/Choice: " + node_info(root, states))

@@ -1,7 +1,7 @@
 import copy
 from solver.tree_lib import CNode
-from solver_optimized.execution_tree import ExecutionTree
-from solver_optimized.found_strategy import frontier_info
+from solver.execution_tree import ExecutionTree
+from solver.found_strategy import frontier_info
 
 
 def build_strategy(frontier: list[ExecutionTree], strategy: dict[CNode, dict[CNode, set[ExecutionTree]]] = {}) -> (set[ExecutionTree], dict[CNode, dict[CNode, set[ExecutionTree]]]):

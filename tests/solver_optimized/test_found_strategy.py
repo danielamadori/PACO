@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from solver_optimized.found_strategy import compare_bound
+from solver.found_strategy import compare_bound
 
 
 class TestFoundStrategy(unittest.TestCase):

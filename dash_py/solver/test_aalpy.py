@@ -3,12 +3,12 @@ import numpy as np
 from explainer.strategy_tree import write_strategy_tree
 from explainer.full_strategy import full_strategy
 from utils.print_sese_diagram import print_sese_diagram
-from solver_optimized.build_strategy import build_strategy
+from solver.build_strategy import build_strategy
 from explainer.explain_strategy import explain_strategy
 from evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
-from solver_optimized.execution_tree import create_execution_tree, write_execution_tree
-from solver_optimized.found_strategy import found_strategy
-from solver_optimized.pareto import get_non_dominated_impacts
+from solver.execution_tree import create_execution_tree, write_execution_tree
+from solver.found_strategy import found_strategy
+from solver.pareto import get_non_dominated_impacts
 
 seed(42)
 #############
@@ -17,7 +17,7 @@ seed(42)
 
 import os, sys
 from datetime import datetime
-from solver.tree_lib import print_sese_custom_tree, CNode
+from solver.tree_lib import print_sese_custom_tree
 from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from utils.env import LOOPS_PROB, SESE_PARSER, TASK_SEQ, \
     IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, IMPACTS_NAMES
@@ -227,7 +227,7 @@ def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
             print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
             write_strategy_tree(strategy_tree)
 
-            list_choices = [bdd.choice.name for bdd in bdds.keys()]
+            list_choices = [choice.name for choice in bdds.keys()]
 
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn, outfile_svg=name_svg)

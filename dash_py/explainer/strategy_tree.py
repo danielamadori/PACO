@@ -8,7 +8,7 @@ from saturate_execution.next_state import next_state
 from saturate_execution.states import States, ActivityState, states_info
 from saturate_execution.step_to_saturation import steps_to_saturation
 from solver.tree_lib import CNode, CTree
-from solver_optimized.execution_tree import write_image
+from solver.execution_tree import write_image
 from explainer.bdd import Bdd
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STRATEGY_TREE_STATE_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_DOT, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG, \

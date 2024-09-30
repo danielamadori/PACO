@@ -1,5 +1,5 @@
 import copy
-from solver_optimized.execution_tree import ExecutionTree
+from solver.execution_tree import ExecutionTree
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
@@ -76,7 +76,7 @@ def worst_impacts(tree: CTree, states: States):
 		return result
 
 	if root.type in ['choice', 'natural']:
-		for child in root.childrens:
+		for child in root.children:
 			#print(node_info(child.root, states))
 			if child.root in states.activityState and states.activityState[child.root] >= ActivityState.ACTIVE:
 				return worst_impacts(child, states)
