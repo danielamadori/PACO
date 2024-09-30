@@ -1,21 +1,5 @@
 import copy
-import numpy as np
 from solver_optimized.execution_tree import ExecutionTree
-
-'''
-def evaluate_cumulative_expected_impacts(solution_tree: SolutionTree):
-	solution_tree.root.cei_top_down = solution_tree.root.probability * np.array(solution_tree.root.impacts)
-	# solution_tree.root.cei_bottom_up = np.zeros(len(solution_tree.root.impacts))
-	# Useless, already done in the constructor
-
-	if solution_tree.root.is_final_state:
-		solution_tree.root.cei_bottom_up = solution_tree.root.cei_top_down
-		return
-
-	for sub_tree in solution_tree.root.transitions.values():
-		evaluate_cumulative_expected_impacts(sub_tree)
-		solution_tree.root.cei_bottom_up += sub_tree.root.child.bottom_up
-'''
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
@@ -87,7 +71,7 @@ def worst_impacts(tree: CTree, states: States):
 
 	if root.type in ['sequential', 'parallel']:
 		result = States()
-		for child in root.childrens:
+		for child in root.children:
 			result.update(worst_impacts(child, states))
 		return result
 

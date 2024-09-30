@@ -5,9 +5,10 @@ from solver_optimized.found_strategy import frontier_info
 
 
 def build_strategy(frontier: list[ExecutionTree], strategy: dict[CNode, dict[CNode, set[ExecutionTree]]] = {}) -> (set[ExecutionTree], dict[CNode, dict[CNode, set[ExecutionTree]]]):
-	print("building_strategy:frontier: ", frontier_info(frontier))
 	if len(frontier) == 0:
 		return frontier, strategy
+
+	print("building_strategy:frontier: ", frontier_info(frontier))
 
 	newFrontier = []
 	newStrategy = copy.deepcopy(strategy)

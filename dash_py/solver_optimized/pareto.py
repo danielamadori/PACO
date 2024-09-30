@@ -16,4 +16,4 @@ def get_non_dominated_impacts(frontier):
 			if not any(np.array_equal(arr, x) for x in non_dominated_impacts):
 				non_dominated_impacts.append(arr)
 
-	return np.array(non_dominated_impacts)
+	return non_dominated_impacts
