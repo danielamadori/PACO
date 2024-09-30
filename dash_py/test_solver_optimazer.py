@@ -150,7 +150,7 @@ bpmn_ex = {
 }
 
 
-def test(name, bpmn):
+def test(name, bpmn, bound):
     print(f' type bpmn: {name}')
 
     bpmn_svg_folder = "assets/bpmnTest/"
@@ -159,23 +159,24 @@ def test(name, bpmn):
     # Create a new SESE Diagram from the input
     name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
     print(name_svg)
-    print_sese_diagram(**bpmn[0], outfile=name_svg)
+    print_sese_diagram(**bpmn, outfile=name_svg)
 
-    strategies = calc_strategy_paco(bpmn[0], bpmn[1])
+    strategies = calc_strategy_paco(bpmn, bound)
     print(f'Type bpmn: {name}, strategy {strategies}')
 
 
 def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
     if selected == -1:
-        for name, bpmn in bpmn_ex_dicts.items():
-            test(name, bpmn)
+        for name, example in bpmn_ex_dicts.items():
+            print(name, example[0], example[1])
+            test(name, example[0], example[1])
             #ask a string in input if the string is not yes exit
             answer = input("Do you want to continue? (yes/no): ")
             if answer != "yes" and answer != "y":
                 break
     else:
-        problem = list(bpmn_ex_dicts.items())[selected]
-        test(problem[0], problem[1])
+        name , example = list(bpmn_ex_dicts.items())[selected]
+        test(name, example[0], example[1])
 
 
 
@@ -199,9 +200,9 @@ bpmn_paper_example = {
     }, [100, 7]],
 }
 
-test_calc_strategy_paco(bpmn_paper_example, 1)
+#test_calc_strategy_paco(bpmn_paper_example, 0)
 
-#test_calc_strategy_paco(bpmn_ex)
+test_calc_strategy_paco(bpmn_ex, -1)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example

@@ -220,8 +220,6 @@ def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
             t1 = datetime.now()
             print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
 
-            print(type_strategy, bdds)
-
             print(f'{t1} StrategyTree: ')
             t = datetime.now()
             strategy_tree, _ = full_strategy(custom_tree, type_strategy, bdds, len(bpmn[IMPACTS_NAMES]))
@@ -229,7 +227,7 @@ def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
             print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
             write_strategy_tree(strategy_tree)
 
-            list_choices = [bdd.choice.name for bdd in bdds.keys()]
+            list_choices = [choice.name for choice in bdds.keys()]
 
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn, outfile_svg=name_svg)
