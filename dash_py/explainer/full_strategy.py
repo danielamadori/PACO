@@ -56,8 +56,8 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 				random_decision = random.choice([0, 1])
 				opposite_decision = 1 - random_decision
 
-				decision_true = choice.childrens[random_decision].root
-				decision_false = choice.childrens[opposite_decision].root
+				decision_true = choice.children[random_decision].root
+				decision_false = choice.children[opposite_decision].root
 			else:
 				print("Explaining choice: ", choice.id)
 				bdd = explainers[choice]
@@ -73,7 +73,7 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 					print("Stateful impacts: ", vector)
 
 				decision_true = bdd.choose(vector)
-				decision_false = choice.childrens[1].root if decision_true == choice.childrens[0].root else choice.childrens[0].root
+				decision_false = choice.children[1].root if decision_true == choice.children[0].root else choice.children[0].root
 
 			next_decisions.append(decision_true)
 			print("Decision True: ", decision_true.id)
@@ -95,11 +95,11 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 				node = natures[i]
 
 				if branch_choices[i]:
-					activeNode = node.childrens[0].root
-					inactiveNode = node.childrens[1].root
+					activeNode = node.children[0].root
+					inactiveNode = node.children[1].root
 				else:
-					activeNode = node.childrens[1].root
-					inactiveNode = node.childrens[0].root
+					activeNode = node.children[1].root
+					inactiveNode = node.children[0].root
 
 				branch_states.activityState[activeNode] = ActivityState.ACTIVE
 				branch_states.activityState[inactiveNode] = ActivityState.WILL_NOT_BE_EXECUTED

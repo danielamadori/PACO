@@ -10,8 +10,8 @@ def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]
 		if ((node.type == 'choice' or node.type == 'natural')
 				and states.activityState[node] == ActivityState.ACTIVE
 				and states.executed_time[node] == node.max_delay
-				and states.activityState[node.childrens[0].root] == ActivityState.WAITING
-				and states.activityState[node.childrens[1].root] == ActivityState.WAITING):
+				and states.activityState[node.children[0].root] == ActivityState.WAITING
+				and states.activityState[node.children[1].root] == ActivityState.WAITING):
 
 
 			choices_natures.append(node)
@@ -30,11 +30,11 @@ def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]
 			node = choices_natures[i]
 
 			if branch_choices[i]:
-				activeNode = node.childrens[0].root
-				inactiveNode = node.childrens[1].root
+				activeNode = node.children[0].root
+				inactiveNode = node.children[1].root
 			else:
-				activeNode = node.childrens[1].root
-				inactiveNode = node.childrens[0].root
+				activeNode = node.children[1].root
+				inactiveNode = node.children[0].root
 
 			decisions.append(activeNode)
 			branch_states.activityState[activeNode] = ActivityState.ACTIVE

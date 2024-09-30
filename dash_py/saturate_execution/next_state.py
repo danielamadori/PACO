@@ -23,8 +23,8 @@ def next_state(tree: CTree, states: States, k: int) -> (States, int):
 		return (States(root, ActivityState.COMPLETED, root.duration),
 				states.executed_time[root] + k - root.duration)
 
-	leftSubTree = root.childrens[0]
-	rightSubTree = root.childrens[1]
+	leftSubTree = root.children[0]
+	rightSubTree = root.children[1]
 
 	if root.type == 'choice' or root.type == 'natural':
 		childSx = states.activityState[leftSubTree.root] >= ActivityState.ACTIVE
