@@ -14,7 +14,7 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
     graphs = pydot.graph_from_dot_data(dot_string)    
     graph = graphs[0]  
-    print(graph)
+    #print(graph)
     graph.write_svg(outfile_svg)
     graph.write_svg(PATH_IMAGE_BPMN_LARK_SVG)
     #print(graph)  
@@ -79,11 +79,11 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
         if label != "sequential":
             min_id = min(child_ids)
             for ei,i in enumerate(child_ids):
-                print('ei ' , ei)
+                #print('ei ' , ei)
                 edge_label = edge_labels[ei]
                 edge_style = ''                
                 if i == min_id and label == 'choice':
-                    print('min')
+                    #print('min')
                     edge_style = ', style="dashed"'
                 code += f'\n node_{id_enter} -> node_{i[0]} [label="{edge_label}" {edge_style}];'
                 code += f'\n node_{i[1]} -> node_{id_exit};'
