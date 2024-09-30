@@ -230,7 +230,7 @@ def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
             list_choices = [bdd.choice.name for bdd in bdds.keys()]
 
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-            print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)
+            print_sese_diagram(**bpmn, outfile_svg=name_svg)
 
             impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))
         return f"A strategy could be found, which has as an expected impact of : {impacts} ", list_choices, name_svg

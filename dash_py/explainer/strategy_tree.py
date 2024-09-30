@@ -149,9 +149,9 @@ class StrategyViewPoint:
 				label += f"{choice.name}{'*' if bdd is None else''}, "
 			label = label[:-2] + "\n"
 		if len(self.natures) > 0:
-			label += "Nature ID: "
+			label += "Nature: "
 			for nature in list(self.natures):
-				label += f"{nature.id}, "
+				label += f"{nature.name}, "
 			label = label[:-2]
 
 		label += "\", shape=rect];\n"

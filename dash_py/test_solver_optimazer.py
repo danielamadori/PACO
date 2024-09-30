@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import os
 from utils.env import *
 from utils.print_sese_diagram import print_sese_diagram
@@ -277,9 +277,9 @@ if not error:
         if not os.path.exists(bpmn_svg_folder):
             os.makedirs(bpmn_svg_folder)
         # Create a new SESE Diagram from the input
-        # name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
-        # print(name_svg)
-        # print_sese_diagram(**bpmn_ex_article, outfile=name_svg)
+        name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
+        print(name_svg)
+        print_sese_diagram(**bpmn_ex_article, outfile=name_svg)
         strategies = calc_strategy_paco(bpmn_ex_article, [280, 130])
         print(f'Type bpmn strategy {strategies}')
     except Exception as e:

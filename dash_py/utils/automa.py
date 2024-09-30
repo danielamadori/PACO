@@ -53,7 +53,7 @@ def calc_strategy_paco(bpmn:dict, bound:list[int]) -> dict:
             elif strat.startswith("Error"):
                 strategies['error'] = strat
             if list_choices:
-                return strategies, list(list_choices.keys()), name_svg       
+                return strategies, list_choices, name_svg
     except Exception as e:
         print(f'test failed for Paco: {e}')
         strategies['error'] = f'Error while calculating the strategy: {e}'
