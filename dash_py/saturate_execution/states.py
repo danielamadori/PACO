@@ -1,5 +1,5 @@
 import enum
-from solver.tree_lib import CNode
+from parser.tree_lib import CNode
 from collections import defaultdict
 
 

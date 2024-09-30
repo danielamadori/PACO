@@ -4,7 +4,7 @@ import os
 
 from utils.env import SESE_PARSER
 from utils.print_sese_diagram import print_sese_diagram
-from utils.automa import calc_strategy_paco
+from solver.test_aalpy import paco_solver
 
 # Define tasks and choices from the expression
 tasks = ["T" + str(i) for i in range(1, 39)]
@@ -64,7 +64,7 @@ if not error:
         print(name_svg)
         '''
         print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
-        strategies = calc_strategy_paco(bpmn_ex_article, [280, 130])
+        strategies = paco_solver(bpmn_ex_article, [280, 130])
         print(f'Type bpmn strategy {strategies}')
     except Exception as e:
         print(f'Error: {e}')

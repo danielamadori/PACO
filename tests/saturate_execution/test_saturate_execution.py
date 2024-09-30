@@ -3,12 +3,12 @@ import os
 from utils.create_custom_tree import create_custom_tree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
-from solver.tree_lib import CTree, CNode, print_sese_custom_tree
+from parser.tree_lib import CTree, CNode, print_parse_tree
 
 
 class TestSaturateExecution(unittest.TestCase):
     def info(self, custom_tree, states, name):
-        print_sese_custom_tree(custom_tree, outfile=self.directory + name + ".png")
+        print_parse_tree(custom_tree, outfile=self.directory + name + ".png")
         print(f"{name}:\n{states_info(states)}")
 
     def setUp(self):

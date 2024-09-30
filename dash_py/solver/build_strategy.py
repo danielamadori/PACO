@@ -1,5 +1,5 @@
 import copy
-from solver.tree_lib import CNode
+from parser.tree_lib import CNode
 from solver.execution_tree import ExecutionTree
 from solver.found_strategy import frontier_info
 

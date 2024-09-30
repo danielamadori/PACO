@@ -2,7 +2,7 @@ import math
 
 import pandas as pd
 
-from solver.tree_lib import CNode
+from parser.tree_lib import CNode
 
 
 class DagNode:

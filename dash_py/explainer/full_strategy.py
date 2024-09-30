@@ -7,7 +7,7 @@ from explainer.bdd import Bdd
 from explainer.strategy_tree import StrategyTree, saturate_execution, StrategyViewPoint, tree_node_info
 from explainer.strategy_type import TypeStrategy
 from saturate_execution.states import States, ActivityState
-from solver.tree_lib import CTree, CNode
+from parser.tree_lib import CTree, CNode
 
 
 def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: dict[CNode, Bdd], impacts_size: int,

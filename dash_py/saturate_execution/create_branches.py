@@ -1,4 +1,4 @@
-from solver.tree_lib import CNode
+from parser.tree_lib import CNode
 from saturate_execution.states import States, ActivityState
 from itertools import product
 

@@ -1,6 +1,6 @@
 import numpy as np
 from saturate_execution.states import ActivityState
-from solver.tree_lib import CNode
+from parser.tree_lib import CNode
 
 
 def evaluate_execution_path(all_states: list[ActivityState], all_nodes = set()):

@@ -1,117 +1,27 @@
-from random import seed
+import os
+
 import numpy as np
 from explainer.strategy_tree import write_strategy_tree
 from explainer.full_strategy import full_strategy
-from utils.print_sese_diagram import print_sese_diagram
+from parser.parse_tree import create_parse_tree
 from solver.build_strategy import build_strategy
 from explainer.explain_strategy import explain_strategy
 from evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
 from solver.execution_tree import create_execution_tree, write_execution_tree
 from solver.found_strategy import found_strategy
 from solver.pareto import get_non_dominated_impacts
-
-seed(42)
-
-import os, sys
+from utils import check_syntax as cs
+from utils.env import IMPACTS_NAMES, DURATIONS
 from datetime import datetime
-from solver.tree_lib import print_sese_custom_tree
-from solver.tree_lib import from_lark_parsed_to_custom_tree as Lark_to_CTree
-from utils.env import LOOPS_PROB, SESE_PARSER, TASK_SEQ, \
-    IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, IMPACTS_NAMES
-
-current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
-# Add the current directory to the Python path
-sys.path.append(current_directory)
-
-os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin/'
-
-# sese_diagram_grammar = r"""
-# ?start: xor
-
-# ?xor: parallel
-#     | xor "/" "[" NAME "]" parallel -> choice
-#     | xor "^" "[" NAME "]" parallel -> natural
-
-# ?parallel: sequential
-#     | parallel "||" sequential  -> parallel
-
-# ?sequential: region
-#     | sequential "," region -> sequential
-
-# ?region:
-#      | NAME   -> task
-#      | "(@" xor "@)" -> loop
-#      | "(@" "[" NAME "]"  xor "@)" -> loop_probability
-#      | "(" xor ")"
-
-# %import common.CNAME -> NAME
-# %import common.NUMBER
-# %import common.WS_INLINE
-
-# %ignore WS_INLINE
-# """
-
-#SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
-
-# ex = "((Task8 ^ [N1] Task3), (Task1 / [C3] Task2),(Task6 / [C1] Task7))|| (Task9, (Task4 / [C2] Task5))"
-# exi = {"Task1": [0,1], "Task2": [0,2], "Task3": [3,3], "Task4": [1,2], "Task5": [2,1], "Task6": [1,0], "Task7": [1,5], "Task8": [0,3], "Task9": [0,3]}
-# exd = {"Task1": 1, "Task2": 1,"Task4": 1, "Task3": 1, "Task5": 1, "Task6": 1, "Task7": 1, "Task8": 3, "Task9": 2}
-# exn = {"C1": 'Choice1', "C2": 'Choice2', "C3": 'Choice3'}
-# exdl = {"C1": np.Inf, "C2": 0, "C3": 0} #maximum delays for the choices
-# exp = {"N1": 0.2}
-
-# ex = "(Task1, Task2), (Task3, Task4)"
-# exi = {"Task1": [0,1], "Task2": [0,1], "Task3": [0,1], "Task4": [0,1]}
-# exd = {"Task1": 1, "Task2": 1, "Task3": 1, "Task4": 1}
-# exn = {}
-# exdl = {} #maximum delays for the choices
-# exp = {}
-
-ex = "(Task1 ^ [N1] Task2) || (Task3 / [C1] Task4)"
-exi = {"Task1": [1,1], "Task2": [0,1], "Task3": [2,1], "Task4": [0,1]}
-exd = {"Task1": 3, "Task2": 1, "Task3": 3, "Task4": 4}
-exn = {"C1": 'Choice1'}
-exdl = {"C1": 2} #maximum delays for the choices
-exp = {"N1":0.3}
-
-# ex = "Task1 || (Task2, (Task3 / [C1] Task4))"
-# exi = {"Task1": [0,1], "Task2": [0,2], "Task3": [3,3], "Task4": [1,2]}
-# exd = {"Task1": 1, "Task2": 1,"Task4": 1, "Task3": 1}
-# exn = {"C1": 'Choice1'}
-# exdl = {"C1": 5} #maximum delays for the choices
-# exp = {}
-
-# ex = "(T1 ^ [N1] T2),((T3 / [C1] T4)||(T5 / [C2] T6))"
-# exi = {"T1": [2,3], "T2": [4,1], "T3": [2,3], "T4": [3,1], "T5": [2,1], "T6": [1,2]}
-# exd = {"T1": 1, "T2": 1,"T4": 1, "T3": 1, "T5":4, "T6":2}
-# exn = {"C1": 'Choice1', "C2": 'Choice2'}
-# exdl = {"C1": 5, "C2": 2} #maximum delays for the choices
-# exp = {"N1": 0.3}
-
-args = {
-    'expression': ex,
-    'impacts': exi,
-    'names': exn,
-    'probabilities': exp,
-    'loop_thresholds': {},
-    'durations': exd,
-    'delays': exdl,
-    'h': 0
-}
-
-# tree = SESE_PARSER.parse(args['expression'])
-# custom_tree, last_id = Lark_to_CTree(tree, args['probabilities'], args['impacts'], args['durations'], args['names'], args['delays'], h=args['h'])
-# number_of_nodes = last_id + 1
+from utils.print_sese_diagram import print_sese_diagram
 
 
-def automata_search_strategy(bpmn: dict, bound: np.ndarray, name_svg: str) -> str:
-    # Parse the task sequence from the BPMN diagram
-    tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
-    print(tree.pretty)
-
-    # Convert the parsed tree into a custom tree and get the last ID
-    parse_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
-    print_sese_custom_tree(parse_tree, outfile='parsed_tree.png')
+def solve(bpmn: dict, bound: np.ndarray, name_svg: str):
+    print(f"{datetime.now()} CreateParseTree:")
+    t = datetime.now()
+    parse_tree = create_parse_tree(bpmn)
+    t1 = datetime.now()
+    print(f"{t1} CreateParseTree:completed: {(t1 - t).total_seconds()*1000} ms")
 
     print(f"{datetime.now()} CreateExecutionTree:")
     t = datetime.now()
@@ -162,3 +72,35 @@ def automata_search_strategy(bpmn: dict, bound: np.ndarray, name_svg: str) -> st
     #print_sese_diagram(**bpmn, outfile_svg=name_svg)
 
     return True, frontier_solution_value_bottom_up, choices, name_svg
+
+
+def paco_solver(bpmn:dict, bound:np.ndarray):
+    print(f'{datetime.now()} Testing PACO...')
+    print(f'{datetime.now()} Bound {bound}')
+    bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
+    print(f'{datetime.now()} bpmn + cpi {bpmn}')
+
+    directory = "assets/bpmnSvg/"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    name_svg =  directory + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+    print_sese_diagram(**bpmn, outfile_svg=name_svg)
+
+    found, expected_impacts, choices, name_svg = solve(bpmn, bound, name_svg)
+
+    if not found:
+        text_result = ""
+        for i in range(len(expected_impacts)):
+            text_result += f"Exp. Impacts {i}:\t{expected_impacts[i]}\n"
+        print(f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\n" + text_result)
+    else:
+        expected_impact = expected_impacts[0]
+        impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impact]))
+        if len(choices) == 0:
+            text_result = f"Any choice taken will provide a winning strategy with an expected impact of: {impacts}"
+        else:
+            text_result = f"This is the strategy, which has as an expected impact of : {impacts}"
+        print(str(datetime.now()) + " " + text_result)
+
+    return text_result, found, choices, name_svg

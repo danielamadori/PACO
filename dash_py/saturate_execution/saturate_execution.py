@@ -1,4 +1,4 @@
-from solver.tree_lib import CTree, CNode
+from parser.tree_lib import CTree, CNode
 from saturate_execution.create_branches import create_branches
 from saturate_execution.next_state import next_state
 from saturate_execution.states import States, ActivityState

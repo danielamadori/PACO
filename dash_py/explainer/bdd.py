@@ -4,7 +4,7 @@ import graphviz
 import pandas as pd
 
 from explainer.dag_node import DagNode
-from solver.tree_lib import CNode
+from parser.tree_lib import CNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 

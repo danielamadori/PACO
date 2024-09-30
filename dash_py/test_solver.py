@@ -1,8 +1,7 @@
 from datetime import datetime
 import os
 from utils.print_sese_diagram import print_sese_diagram
-from utils.automa import calc_strategy_paco
-
+from solver.test_aalpy import paco_solver
 
 bpmn_ex = {
     "stateful_example" : [
@@ -149,7 +148,7 @@ bpmn_ex = {
 
 def test(name, bpmn, bound):
     print(f' type bpmn: {name}')
-    strategies = calc_strategy_paco(bpmn, bound)
+    strategies = paco_solver(bpmn, bound)
     print(f'Type bpmn: {name}, strategy {strategies}')
 
 

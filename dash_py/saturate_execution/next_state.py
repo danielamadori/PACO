@@ -1,5 +1,5 @@
 import math
-from solver.tree_lib import CTree, CNode
+from parser.tree_lib import CTree, CNode
 from saturate_execution.states import States, ActivityState
 
 
