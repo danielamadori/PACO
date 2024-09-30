@@ -1,6 +1,5 @@
 from datetime import datetime
 import os
-from utils.env import *
 from utils.print_sese_diagram import print_sese_diagram
 from utils.automa import calc_strategy_paco
 

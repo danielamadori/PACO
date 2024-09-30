@@ -2,7 +2,7 @@ import numpy as np
 from explainer.bdd import Bdd
 from explainer.strategy_type import current_impacts, unavoidable_impacts, stateful, TypeStrategy
 from solver.tree_lib import CNode, CTree
-from solver_optimized.execution_tree import ExecutionTree
+from solver.execution_tree import ExecutionTree
 
 
 def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray], labels:list, features_names:list) -> Bdd:

@@ -1,5 +1,5 @@
 import copy
-from solver_optimized.execution_tree import ExecutionTree
+from solver.execution_tree import ExecutionTree
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):

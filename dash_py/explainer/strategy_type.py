@@ -4,7 +4,7 @@ import enum
 from evaluations.evaluate_execution_path import evaluate_execution_path
 from evaluations.evaluate_impacts import evaluate_unavoidable_impacts
 from solver.tree_lib import CNode, CTree
-from solver_optimized.execution_tree import ExecutionTree
+from solver.execution_tree import ExecutionTree
 
 class TypeStrategy(enum.IntEnum):
 	CURRENT_IMPACTS = 0

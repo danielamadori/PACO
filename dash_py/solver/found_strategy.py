@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from solver_optimized.execution_tree import ExecutionTree
+from solver.execution_tree import ExecutionTree
 
 '''
 def compare_bound(cei: np.ndarray, bound: np.ndarray):
