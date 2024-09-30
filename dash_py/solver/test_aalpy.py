@@ -227,7 +227,7 @@ def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
             print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
             write_strategy_tree(strategy_tree)
 
-            list_choices = [bdd.choice.name for bdd.choice in bdds.keys()] # TODO check
+            list_choices = [bdd.choice.name for bdd in bdds.keys()]
 
             name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             print_sese_diagram(**bpmn, outfile_svg=name_svg, explainer = True, choices_list = list_choices)
