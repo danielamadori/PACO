@@ -4,10 +4,13 @@ import os
 import numpy as np
 import pydot
 from graphviz import Source
+
+from evaluations.evaluate_impacts import evaluate_expected_impacts
 from solver.tree_lib import CNode, CTree
 from saturate_execution.saturate_execution import saturate_execution
 from saturate_execution.states import States, states_info, ActivityState
-from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_DOT, \
+from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, \
+	PATH_AUTOMA_STATE_TIME_DOT, \
 	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, \
 	PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_DOT
 
@@ -24,9 +27,9 @@ class ExecutionViewPoint:
 		self.parent = parent
 		self.is_final_state = is_final_state
 		self.transitions: dict[tuple, ExecutionTree] = {}
-		self.probability, self.impacts = ExecutionViewPoint.expected_impacts_evaluation(states, len(impacts_names))
-		self.cei_top_down = self.probability * self.impacts
-		self.cei_bottom_up = np.zeros(len(impacts_names), dtype=np.float64)
+		self.probability, self.impacts = evaluate_expected_impacts(states, len(impacts_names))
+		self.cei_top_down:np.ndarray = self.probability * self.impacts
+		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
 
 	def __str__(self) -> str:
 		return str(self.states)
@@ -74,7 +77,8 @@ class ExecutionViewPoint:
 				label += d
 
 			line_length = int(1.3 * math.sqrt(len(label)))
-			result += self.text_format(label, line_length) + "\"];\n"
+			result += (self.text_format(label, line_length)) + "\""
+			result += "];\n"
 
 		return result
 
@@ -84,26 +88,6 @@ class ExecutionViewPoint:
 			transition.append((self.choices_natures[i], subTree.root.decisions[i],))
 
 		self.transitions[tuple(transition)] = subTree
-
-	@staticmethod
-	def expected_impacts_evaluation(states: States, impacts_size: int):
-		impacts = np.zeros(impacts_size, dtype=np.float64)
-		probability = 1.0
-
-		for node, state in states.activityState.items():
-			if (node.type == 'natural' and state > ActivityState.WAITING
-					and (states.activityState[node.childrens[0].root] > ActivityState.WAITING
-						 or states.activityState[node.childrens[1].root] > ActivityState.WAITING)):
-
-				p = node.probability
-				if states.activityState[node.childrens[1].root] > 0:
-					p = 1 - p
-				probability *= p
-
-			elif node.type == 'task' and state > ActivityState.WAITING:
-					impacts += np.array(node.impact, dtype=np.float64)
-
-		return probability, impacts
 
 	def dot_cei_str(self):
 		return (self.dot_str(full=False) + "_impact",
@@ -185,13 +169,16 @@ def tree_node_info(node: ExecutionViewPoint) -> str:
 	result = f"ID:{node.id}:decisions:<"
 	for n in node.decisions:
 		result += str(n.id) + ";"
+	result = result[:-1]
 
-	result = result[:-1] + ">:choices_natures:<"
-	tmp = ""
-	for n in node.choices_natures:
-		tmp += str(n.id) + ";"
+	if len(node.choices_natures) > 0:
+		result += ">:choices_natures:<"
+		tmp = ""
+		for n in node.choices_natures:
+			tmp += str(n.id) + ";"
+		result += tmp[:-1]
 
-	return result + tmp[:-1] + ">:status:\n" + states_info(node.states)
+	return result + ">:status:\n" + states_info(node.states)
 
 
 def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
@@ -249,7 +236,7 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 		for el in frontier:
 			node = graph.get_node('"' + el.state_str() + '"')[0]
 			node.set_style('filled')
-			node.set_fillcolor('green')
+			node.set_fillcolor('lightblue')
 
 	# if svgPath not ""
 	if svgPath != "":
@@ -274,3 +261,5 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 
 	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, state=False, executed_time=True)
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
+
+
