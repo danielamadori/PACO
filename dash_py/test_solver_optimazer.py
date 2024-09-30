@@ -13,7 +13,6 @@ bpmn_ex = {
          'loops_prob': {},
          'names': {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
          'delays': {'C1': 1}, 'loop_round': {}, 'h': 0,
-         'choices_list': ['C1']
          }, [5, 6]
     ],
     "unavoidable_example" : [
@@ -24,7 +23,6 @@ bpmn_ex = {
          'loops_prob': {},
          'names': {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
          'delays': {'C1': 1}, 'loop_round': {}, 'h': 0,
-         'choices_list': ['C1']
          }, [5, 6]
     ],
     "natures of natures": [
