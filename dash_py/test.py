@@ -54,14 +54,16 @@ except Exception as e:
     print(f'Error: {e}')
     error = True
 if not error:
-    try: 
+    try:
+        '''
         bpmn_svg_folder = "assets/bpmnTest/"
         if not os.path.exists(bpmn_svg_folder):
             os.makedirs(bpmn_svg_folder)
         # Create a new SESE Diagram from the input
-        name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
+        #name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
         print(name_svg)
-        print_sese_diagram(**bpmn_ex_article, outfile=name_svg)
+        '''
+        print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
         strategies = calc_strategy_paco(bpmn_ex_article, [280, 130])
         print(f'Type bpmn strategy {strategies}')
     except Exception as e:

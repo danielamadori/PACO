@@ -11,9 +11,6 @@ from solver.found_strategy import found_strategy
 from solver.pareto import get_non_dominated_impacts
 
 seed(42)
-#############
-# https://github.com/DES-Lab/AALpy/wiki/SUL-Interface,-or-How-to-Learn-Your-Systems
-#############
 
 import os, sys
 from datetime import datetime
@@ -106,137 +103,62 @@ args = {
 # custom_tree, last_id = Lark_to_CTree(tree, args['probabilities'], args['impacts'], args['durations'], args['names'], args['delays'], h=args['h'])
 # number_of_nodes = last_id + 1
 
-# print_sese_CTree(custom_tree, h=args['h']).show()
 
-# sul = VPChecker(custom_tree, number_of_nodes) #system under learning, with step, pre and post methods defined
-# input_al = sul.accepted_alphabet
+def automata_search_strategy(bpmn: dict, bound: np.ndarray, name_svg: str) -> str:
+    # Parse the task sequence from the BPMN diagram
+    tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
+    print(tree.pretty)
 
-# eq_oracle = RandomWalkEqOracle(input_al, sul, num_steps=100, reset_after_cex=True, reset_prob=0.01)
-# eq_oracle_2 = StatePrefixEqOracle(input_al, sul, walks_per_state=100, walk_len=100, depth_first=True)
+    # Convert the parsed tree into a custom tree and get the last ID
+    parse_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
+    print_sese_custom_tree(parse_tree, outfile='parsed_tree.png')
 
-# learned_automaton= run_Lstar(input_al, sul, eq_oracle=eq_oracle, automaton_type=AUTOMATON_TYPE, cache_and_non_det_check=False,
-#                   print_level=1, max_learning_rounds=20)
-# #learned_automaton = run_KV(input_al, sul, eq_oracle,automaton_type=AUTOMATON_TYPE, cache_and_non_det_check=True, print_level=2)#, max_learning_rounds=100)
+    print(f"{datetime.now()} CreateExecutionTree:")
+    t = datetime.now()
+    execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES])
+    t1 = datetime.now()
+    print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
+    t = datetime.now()
+    evaluate_cumulative_expected_impacts(execution_tree)
+    t1 = datetime.now()
+    print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
+    print(f"{t1} FoundStrategy:")
+    t = datetime.now()
+    frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
+    t1 = datetime.now()
+    print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
+    write_execution_tree(execution_tree, frontier_solution)
 
-# #visualize_automaton(learned_automaton)
-# learned_automaton.save("automaton.dot")
+    if frontier_solution is None:
+        non_dominated_impacts = get_non_dominated_impacts(frontier_solution_value_bottom_up)
+        #TODO plot_pareto_frontier
+        return False, non_dominated_impacts, [], name_svg
 
-# cleaner = gCleaner("automaton.dot")
-# cleaner.save_cleaned_dot_graph("automaton_cleaned.dot")
-# cleaner.save_cleaned_pdf_graph("automaton_cleaned")
+    print(f"Success:\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_solution_value_bottom_up[0]}")
 
-# mealy = load_automaton_from_file(path='automaton_cleaned.dot', automaton_type=AUTOMATON_TYPE, compute_prefixes=True)
-# ag = AutomatonGraph(mealy, sul)
+    print(f'{datetime.now()} BuildStrategy:')
+    t = datetime.now()
+    _, strategy = build_strategy(frontier_solution)
+    t1 = datetime.now()
+    print(f"{t1} Build Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
+    if len(strategy) == 0:
+        return True, frontier_solution_value_bottom_up, [], name_svg
 
-# goal = [7,6]
-# solver = GameSolver(ag, goal)
-# winning_set = solver.compute_winning_final_set()
-# if winning_set != None: print("\n\nA strategy could be found\n")
-# else: print("\n\nFor this specific instance a strategy does not exist\n")
-# for s in states:
-#     for k in s.output_fun.keys():
-#         if s.output_fun[k] == 1:
-#             k = k.replace(" ", "")
-#             k_tuple = tuple(map(int, k[1:-1].split(',')))
-#             executed_tasks = [i for i in range(number_of_nodes) if k_tuple[i] == 2 and sul.types[i] == sul.TASK]
-#             impact = []
-#             for t in executed_tasks:
-#                 impact = array_operations.sum(impact, array_operations.product(sul.taskDict[t]["impact"], sul.taskDict[t]["probability"]))
-#             print(s.state_id, k, impact)
+    print(f'{t1} Explain Strategy: ')
+    t = datetime.now()
+    type_strategy, bdds = explain_strategy(parse_tree, strategy, bpmn[IMPACTS_NAMES])
+    t1 = datetime.now()
+    print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
+    choices = [choice.name for choice in bdds.keys()]
+    print(f"{t1} Strategy: {choices}")
 
-def automata_search_strategy(bpmn: dict, bound: np.ndarray) -> str:
-    """
-	This function takes a BPMN diagram and a bound as input, and returns a strategy for the automaton.
+    print(f'{t1} StrategyTree: ')
+    t = datetime.now()
+    strategy_tree, _ = full_strategy(parse_tree, type_strategy, bdds, len(bpmn[IMPACTS_NAMES]))
+    t1 = datetime.now()
+    print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
+    write_strategy_tree(strategy_tree)
+    #name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+    #print_sese_diagram(**bpmn, outfile_svg=name_svg)
 
-	Parameters:
-	bpmn (dict): The BPMN diagram represented as a dictionary.
-	bound (bound: np.ndarray): The bound for the automaton.
-
-	Returns:
-	str: A string representing the strategy for the automaton.
-	"""
-    try:
-        # Parse the task sequence from the BPMN diagram
-        tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
-        name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-        print(name_svg)
-        print_sese_diagram(**bpmn, outfile_svg=name_svg) 
-        print(tree.pretty)
-        print(f'{datetime.now()} Bound {bound}')
-        # Convert the parsed tree into a custom tree and get the last ID
-        custom_tree, last_id = Lark_to_CTree(tree, bpmn[PROBABILITIES],
-                                             bpmn[IMPACTS], bpmn[DURATIONS],
-                                             bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
-
-        print_sese_custom_tree(custom_tree)
-
-        print(f"{datetime.now()} CreateExecutionTree:")
-        t = datetime.now()
-        execution_tree = create_execution_tree(custom_tree, bpmn[IMPACTS_NAMES])
-        t1 = datetime.now()
-        print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
-        t = datetime.now()
-        evaluate_cumulative_expected_impacts(execution_tree)
-        t1 = datetime.now()
-        print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
-        print(f"{t1} FoundStrategy:")
-        t = datetime.now()
-        frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
-        t1 = datetime.now()
-        print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
-        write_execution_tree(execution_tree, frontier_solution)
-
-        if frontier_solution is None:
-            non_dominated_impacts = get_non_dominated_impacts(frontier_solution_value_bottom_up)
-
-            s = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\n"
-            for i in range(len(non_dominated_impacts)):
-                s += f"Exp. Impacts {i}:\t{non_dominated_impacts[i]}\n"
-            print(s)
-
-            #TODO plot_pareto_frontier
-
-            s = "For this specific instance a strategy does not exist"
-            print(str(datetime.now()) + " " + s)
-            s = f'Error! Finding the strategy failed in PACO execution : s {s}'
-            return {}, {}, name_svg
-
-        print(f"Success:\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_solution_value_bottom_up[0]}")
-
-        print(f'{datetime.now()} BuildStrategy:')
-        t = datetime.now()
-        _, strategy = build_strategy(frontier_solution)
-        t1 = datetime.now()
-        print(f"{t1} Build Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
-        if len(strategy) == 0:
-            print("For this specific instance, an explainer isn't needed (choices not found)")
-            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in frontier_solution_value_bottom_up[0]]))
-            print(impacts)            
-            return f"A strategy could be found, for this specific instance any choice taken will provide a winning strategy with an expected impact of: {impacts}", {}, name_svg
-        else:
-            print(f'{t1} Explain Strategy: ')
-            t = datetime.now()
-            type_strategy, bdds = explain_strategy(custom_tree, strategy, bpmn[IMPACTS_NAMES])
-            t1 = datetime.now()
-            print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
-
-            print(f'{t1} StrategyTree: ')
-            t = datetime.now()
-            strategy_tree, _ = full_strategy(custom_tree, type_strategy, bdds, len(bpmn[IMPACTS_NAMES]))
-            t1 = datetime.now()
-            print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
-            write_strategy_tree(strategy_tree)
-
-            list_choices = [choice.name for choice in bdds.keys()]
-
-            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-            print_sese_diagram(**bpmn, outfile_svg=name_svg)
-
-            impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for sublist in frontier_solution_value_bottom_up for item in sublist]))
-        return f"A strategy could be found, which has as an expected impact of : {impacts} ", list_choices, name_svg
-
-    except Exception as e:
-        # If an error occurs, print the error and return a message indicating that an error occurred
-        print(f'test failed in PACO execution : {e}')
-        s = f'Error! Finding the strategy failed in PACO execution : {e}'
-        return s, {}, name_svg
+    return True, frontier_solution_value_bottom_up, choices, name_svg

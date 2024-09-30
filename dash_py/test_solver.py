@@ -149,15 +149,6 @@ bpmn_ex = {
 
 def test(name, bpmn, bound):
     print(f' type bpmn: {name}')
-
-    bpmn_svg_folder = "assets/bpmnTest/"
-    if not os.path.exists(bpmn_svg_folder):
-        os.makedirs(bpmn_svg_folder)
-    # Create a new SESE Diagram from the input
-    name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
-    print(name_svg)
-    print_sese_diagram(**bpmn, outfile=name_svg)
-
     strategies = calc_strategy_paco(bpmn, bound)
     print(f'Type bpmn: {name}, strategy {strategies}')
 
@@ -199,7 +190,7 @@ bpmn_paper_example = {
 
 #test_calc_strategy_paco(bpmn_paper_example, 0)
 
-test_calc_strategy_paco(bpmn_ex, -1)
+test_calc_strategy_paco(bpmn_ex, 0)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
