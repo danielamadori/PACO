@@ -28,7 +28,7 @@ def calc_strat(bpmn:dict, bound:list, algo:str) -> dict:
     # TODO ask emanuele
     if algo == list(ALGORITHMS.keys())[0]:
         bound = np.array(bound, dtype=np.float64)
-        text_result, found, choices, name_svg = paco_solver(bpmn, bound)
+        text_result, found, expected_impacts, choices, name_svg = paco_solver(bpmn, bound)
     elif algo == list(ALGORITHMS.keys())[1]:
         text_result, found, choices, name_svg = calc_strategy_algo1(bpmn, bound)
     elif algo == list(ALGORITHMS.keys())[2]:

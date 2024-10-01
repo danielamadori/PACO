@@ -31,6 +31,7 @@ def solve(bpmn: dict, bound: np.ndarray, name_svg: str):
     evaluate_cumulative_expected_impacts(execution_tree)
     t1 = datetime.now()
     print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
+    write_execution_tree(execution_tree)
     print(f"{t1} FoundStrategy:")
     t = datetime.now()
     frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
@@ -102,4 +103,4 @@ def paco_solver(bpmn:dict, bound:np.ndarray):
             text_result = f"This is the strategy, with an expected impact of: {impacts}"
         print(str(datetime.now()) + " " + text_result)
 
-    return text_result, found, choices, name_svg
+    return text_result, found, expected_impacts, choices, name_svg
