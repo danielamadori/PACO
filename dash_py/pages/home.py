@@ -4,19 +4,14 @@ import os
 import dash
 from dash import html, dcc, Input, Output,State, callback
 import dash_bootstrap_components as dbc
-import dash_svg as svg
-import pandas as pd
-import plotly.express as px
-
 from utils.automa import check_input
 from utils.utils_preparing_diagram import *
 from utils import check_syntax as cs
 from utils import automa as at
 import json
-from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, PATH_AUTOMATON_IMAGE_SVG, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION, STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS
+from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION, \
+    STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, PATH_STRATEGY_TREE_TIME_IMAGE_SVG
 from utils.print_sese_diagram import print_sese_diagram
-#from solver.tree_lib import print_sese_custom_tree
-
 
 
 ##### AGGIUNGERE TABS dove una si mette tutto e l'altra si usa come visualizzatore
@@ -82,7 +77,7 @@ def layout():
                     ),
                     html.Div(id='output-data-upload'),
                     html.Br(),
-                    html.P("""Here is an example of a BPMN complete diagram: Task0, (Task1 || Task4), (Task3 ^ [C1] Task9, Task8 / [C2] Task2)"""),
+                    html.P("""Here is an example of a BPMN complete diagram: Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)"""),
                     html.Br(),
                     html.Div(id='loaded-bpmn-file'),
                     html.Br(),
@@ -396,19 +391,18 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     id="modal", is_open=True,
                 ),'tab-6']
 
-        else:
-            # TODO save the strategy for the download
-            #strategy_d[STRATEGY] = ....
+        # TODO save the strategy for the download
+        #strategy_d[STRATEGY] = ....
 
-            if choices:
-                navigate_tabs('go-to-show-strategy')
-                list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
-                return [
+        if choices:
+            navigate_tabs('go-to-show-strategy')
+            list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+            return [
                     html.Div([
                         html.P(text_result),
                         html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
                         # download diagram as svg
-                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
+                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME_IMAGE_SVG, target='_blank'),
                         dcc.Tabs(
                             children=[
                                 dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices
@@ -416,15 +410,15 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                         ),
                         dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'), 
                     ]), None, 'tab-7']
-            else:
-                return [
-                    html.Div([
-                        html.P(text_result),
-                        html.Iframe(src=name_svg, style={"height": "60vh", "width": "95vw", 'border':'none'}),
-                        # download diagram as svg
-                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
-                        dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'),    
-                    ]), None, 'tab-7']
+
+        return [
+            html.Div([
+                html.P(text_result),
+                html.Iframe(src=name_svg, style={"height": "60vh", "width": "95vw", 'border':'none'}),
+                # download diagram as svg
+                html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME_IMAGE_SVG, target='_blank'),                        dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'),
+            ]), None, 'tab-7']
+
     else:
         return [None,
                 dbc.Modal(
