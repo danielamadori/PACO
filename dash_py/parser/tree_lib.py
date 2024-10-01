@@ -124,7 +124,7 @@ def dot_tree(t: CTree, h=0, prob={}, imp={}, loops={}, token_is_task=True):
             else: dly_str = str(r.max_delay)
             code += dot_choice_gateway(r.id, r.name + ' id:' + str(r.id) + ' dly:' + dly_str)
         elif label == 'natural':
-            code += dot_nature_gateway(r.id, label + ' id:' + str(r.id))
+            code += dot_nature_gateway(r.id, r.name + ' id:' + str(r.id))
         elif label == 'loops_prob':
             code += dot_loop_gateway(r.id, label + ' id:' + str(r.id))
         elif label == 'parallel':
