@@ -86,14 +86,18 @@ def dot_task(id, name, duration, h=0, imp=None):
     label += str(id)
     return f'node_{id}[label="{label}", shape=rectanble style="rounded,filled" fillcolor="lightblue"];'
 
-def dot_exclusive_gateway(id, label="X"):
-    return f'\n node_{id}[shape=diamond label="{label}" style="filled" fillcolor=orange];'    
+
+def dot_choice_gateway(id, label="X"):
+    return f'\n node_{id}[shape=diamond label="{label}" style="filled" fillcolor=orange];'
+
+def dot_nature_gateway(id, label="X"):
+    return f'\n node_{id}[shape=diamond label="{label}" style="filled" fillcolor=yellowgreen];'
 
 def dot_loop_gateway(id, label="X"):
     return f'\n node_{id}[shape=diamond label="{label}" style="filled" fillcolor=yellow];' 
 
 def dot_parallel_gateway(id, label="+"):
-    return f'\n node_{id}[shape=diamond label="{label}" style="filled" fillcolor=yellowgreen];'
+    return f'\n node_{id}[shape=diamond label="{label}"];'
 
 def dot_rectangle_node(id, label):
     return f'\n node_{id}[shape=rectangle label="{label}"];'
@@ -118,9 +122,9 @@ def dot_tree(t: CTree, h=0, prob={}, imp={}, loops={}, token_is_task=True):
         if label == 'choice':
             if r.max_delay == np.inf: dly_str = 'inf'
             else: dly_str = str(r.max_delay)
-            code += dot_exclusive_gateway(r.id, r.name + ' id:' + str(r.id) + ' dly:' + dly_str)
+            code += dot_choice_gateway(r.id, r.name + ' id:' + str(r.id) + ' dly:' + dly_str)
         elif label == 'natural':
-            code += dot_exclusive_gateway(r.id, label + ' id:' + str(r.id))
+            code += dot_nature_gateway(r.id, label + ' id:' + str(r.id))
         elif label == 'loops_prob':
             code += dot_loop_gateway(r.id, label + ' id:' + str(r.id))
         elif label == 'parallel':
