@@ -54,7 +54,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             "durations": {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2]},
             "impacts_names": ["cost", "hours"],
-            "probabilities": {"N1": 0.6}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "sequential_nature_task")
@@ -113,7 +113,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             "durations": {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2]},
             "impacts_names": ["cost", "hours"],
-            "probabilities": {"N1": 0.6}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "sequential_task_nature")
@@ -293,7 +293,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             "durations": {"T1": [0, 0], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             "impacts_names": ["a", "b"],
-            "probabilities": {"N1": 0.6}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "sequential_sequential_nature")
@@ -706,7 +706,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             "impacts_names": ["cost", "hours"],
-            "probabilities": {"N1": 0.6, "N2": 0.7}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6, "N2": 0.7}, "names": {"N1":"N1", "N2":"N2"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "parallel_natures")
@@ -1019,7 +1019,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             "impacts_names": ["cost", "hours"],
-            "probabilities": {"N1": 0.6}, "names": {'C2':'C2'}, "delays": {"C2": 0}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1", 'C2':'C2'}, "delays": {"C2": 0}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "parallel_nature_eq_choice")
@@ -1177,7 +1177,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4], "T3A": [0, 5], "T3B": [0, 6]},
             "durations": {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4], "T3A": [0, 5], "T3B": [0, 6]},
             "impacts_names": ["cost", "hours"],
-            "probabilities": {"N2": 0.6, "N3": 0.7}, "names": {'C1':'C1'}, "delays": {"C1": 0}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N2": 0.6, "N3": 0.7}, "names": {'C1':'C1', "N2":"N2", "N3":"N3"}, "delays": {"C1": 0}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_nature_eq_nature")
@@ -1358,7 +1358,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             "durations": {"T1": [0, 1], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             "impacts_names": ["a", "b"],
-            "probabilities": {"N1": 0.6}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
@@ -1413,7 +1413,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             "durations": {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2], "T4": [0, 3]},
             "impacts_names": ["a", "b"],
-            "probabilities": {"N1": 0.6}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
@@ -1461,7 +1461,7 @@ class TestSaturateExecution(unittest.TestCase):
             "impacts": {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             "durations": {"T1": [0, 2], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             "impacts_names": ["a", "b"],
-            "probabilities": {"N1": 0.6}, "names": {}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
+            "probabilities": {"N1": 0.6}, "names": {"N1":"N1"}, "delays": {}, 'loops_prob': {}, 'loops_round': {}
         })
         states, choices_natures, branches = saturate_execution(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
