@@ -17,7 +17,7 @@ natures = ["N" + str(i) for i in range(1, 8)]
 impacts = {task: [random.randint(1, 50), random.randint(1, 20)] for task in tasks}
 
 # Generate durations
-durations = {task: random.randint(1, 100) for task in tasks}
+durations = {task: [1, random.randint(1, 100)] for task in tasks}
 
 # Generate probabilities
 probabilities = {nature: round(random.uniform(0.1, 0.9), 2) for nature in natures}
@@ -65,7 +65,7 @@ if not error:
         #name_svg =  bpmn_svg_folder + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".png"
         print(name_svg)
         '''
-        print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
+        #print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
         text_result, found, choices, name_svg = paco_solver(bpmn_ex_article, np.array([280, 130], dtype=np.float64))
 
         print(f'Type bpmn strategy {text_result}')

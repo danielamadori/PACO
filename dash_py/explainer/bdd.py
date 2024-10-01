@@ -217,6 +217,7 @@ class Bdd:
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)  # tmp dot file
+		#os.remove(file_path + '.dot')  # tmp dot file
 
 	def get_bdd(self):
 		return self.get_bdd_recursively(self.root)
@@ -249,12 +250,15 @@ class Bdd:
 			label, color = self.get_decision(self.class_0)
 			node = str(self.class_0)
 			dot.node(node, label=label, shape="box", style="filled", color=color)
-			dot.edge(str(self.choice), node, label="True", style="dashed")
+			#TODO! check daniel
+			dot.edge(str(self.choice), node, label="True",
+					 style='' if self.choice.children[1].root == self.class_0 else "dashed")
 
 		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice.name)
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)# tmp file
+		#os.remove(file_path + '.dot')  # tmp dot file
 
 
 	@staticmethod
@@ -268,7 +272,7 @@ class Bdd:
 		elif decision.type == 'sequential':
 			return Bdd.get_decision(decision.children[0].root)
 		else:
-			raise Exception(f"Decision type {decision.type} not recognized")
+			raise Exception(f"bdd:get_decision: decision type {decision.type} not recognized")
 
 		return "ID:" + str(decision.id), color
 
@@ -288,9 +292,16 @@ class Bdd:
 				tmp = left_child
 				left_child = right_child
 				right_child = tmp
-			#TODO! daniel
-			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True", style="dashed")
-			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False")
+			#TODO! check daniel
+
+			left_style = ""
+			if not left_child.splittable and left_child.class_0 == self.choice.children[0].root:
+				left_style = "dashed"
+			right_style = ""
+			if not right_child.splittable and right_child.class_0 == self.choice.children[0].root:
+				right_style = "dashed"
+
+			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True", style=left_style)
+			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False", style=right_style)
 
 		return str(node)
-

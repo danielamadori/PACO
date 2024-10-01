@@ -43,10 +43,10 @@ bpmn_ex = {
           "probabilities": {}, "names": {}, "delays": {}, 'loops_prob': {}, 'loop_round': {}
         }, [15, 17]],
 
-    "one choice, strategy with one obligated decision (current impacts)": [{"expression": "SimpleTask1, (Task1 / [C1] T2)",
+    "one choice, strategy with one obligated decision (current impacts)": [{"expression": "T0, (T1 / [C1] T2)",
           "h": 0, 
-          "impacts": {"SimpleTask1": [11, 15], "Task1": [4, 2] , "T2": [3, 3]},
-          "durations": {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]}, 
+          "impacts": {"T0": [11, 15], "T1": [4, 2] , "T2": [3, 3]},
+          "durations": {"T0": [0, 100], "T1": [0, 100], "T2":[0, 100]},
           "impacts_names": ["cost", "hours"], 
           "probabilities": {}, "names": {'C1':'C1'}, "delays": {"C1": 0},'loops_prob' : {}, 'loop_round': {}
         }, [14, 18]], #[15, 17]
@@ -150,9 +150,9 @@ bpmn_ex = {
 
 
 def test(name, bpmn, bound):
-    print(f'Type bpmn: {name}')
+    print('Type bpmn: ', name)
     text_result, found, choices, name_svg = paco_solver(bpmn, np.array(bound, dtype=np.float64))
-    print(f'Type bpmn: {name}\n', text_result)
+    print('Type bpmn: ', name)
 
 
 def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
@@ -165,7 +165,7 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
             if answer != "yes" and answer != "y":
                 break
     else:
-        name , example = list(bpmn_ex_dicts.items())[selected]
+        name, example = list(bpmn_ex_dicts.items())[selected]
         test(name, example[0], example[1])
 
 
@@ -192,7 +192,7 @@ bpmn_paper_example = {
 
 #test_calc_strategy_paco(bpmn_paper_example, 0)
 
-test_calc_strategy_paco(bpmn_ex, 0)
+test_calc_strategy_paco(bpmn_ex, 14)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #statefull example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
