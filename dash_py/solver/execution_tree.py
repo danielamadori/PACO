@@ -262,4 +262,7 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, state=False, executed_time=True)
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
 
-
+	os.remove(PATH_AUTOMA_STATE_DOT)
+	os.remove(PATH_AUTOMA_STATE_TIME_DOT)
+	os.remove(PATH_AUTOMA_TIME_DOT)
+	os.remove(PATH_AUTOMA_STATE_TIME_EXTENDED_DOT)

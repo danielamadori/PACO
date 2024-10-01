@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 from explainer.strategy_tree import write_strategy_tree
 from explainer.full_strategy import full_strategy
@@ -96,11 +95,11 @@ def paco_solver(bpmn:dict, bound:np.ndarray):
         print(f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\n" + text_result)
     else:
         expected_impact = expected_impacts[0]
-        impacts = "\n".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impact]))
+        impacts = " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impact]))
         if len(choices) == 0:
             text_result = f"Any choice taken will provide a winning strategy with an expected impact of: {impacts}"
         else:
-            text_result = f"This is the strategy, which has as an expected impact of : {impacts}"
+            text_result = f"This is the strategy, with an expected impact of: {impacts}"
         print(str(datetime.now()) + " " + text_result)
 
     return text_result, found, choices, name_svg

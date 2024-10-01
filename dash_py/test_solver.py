@@ -1,7 +1,10 @@
 from datetime import datetime
 import os
+
+import numpy as np
+
 from utils.print_sese_diagram import print_sese_diagram
-from solver.test_aalpy import paco_solver
+from solver.solver import paco_solver
 
 bpmn_ex = {
     "stateful_example" : [
@@ -147,9 +150,9 @@ bpmn_ex = {
 
 
 def test(name, bpmn, bound):
-    print(f' type bpmn: {name}')
-    strategies = paco_solver(bpmn, bound)
-    print(f'Type bpmn: {name}, strategy {strategies}')
+    print(f'Type bpmn: {name}')
+    text_result, found, choices, name_svg = paco_solver(bpmn, np.array(bound, dtype=np.float64))
+    print(f'Type bpmn: {name}\n', text_result)
 
 
 def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):

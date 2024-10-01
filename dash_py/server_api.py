@@ -5,7 +5,7 @@ from typing import List, Dict, Optional
 from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
 from utils.print_sese_diagram import print_sese_diagram
 from utils.automa import calc_strat
-from solver.test_aalpy import paco_solver
+from solver.solver import paco_solver
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -85,6 +85,7 @@ async def calc_strategy_paco_api(request: StrategyFounderAlgo):
         # if not check_algo_is_usable(request.bpmn, request.algo):
         #     return HTTPException(status_code=400, detail="The algorithm is not usable")
         print(request.bpmn, request.bound)
+        #TODO ask emanuele
         result = paco_solver(dict(request.bpmn), request.bound)# calc_strat(bpmn = request.bpmn, bound = request.bound, algo = request.algo)
         if result.get('error') != None:
             return HTTPException(status_code=400, detail=result.get('error'))

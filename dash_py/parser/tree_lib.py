@@ -1,6 +1,7 @@
 import pydot
 from PIL import Image
 import numpy as np
+from utils.env import PATH_PARSE_TREE
 
 
 class CTree:
@@ -64,7 +65,7 @@ class CNode:
         return str(self.id)
 
 
-def print_parse_tree(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile="assets/out.png"):
+def print_parse_tree(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_PARSE_TREE):
     tree = dot_tree(tree, h, probabilities, impacts, loop_thresholds)
     dot_string = "digraph my_graph{"+ tree +"}"
     graph = pydot.graph_from_dot_data(dot_string)[0]

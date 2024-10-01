@@ -133,13 +133,12 @@ def from_lark_parsed_to_custom_tree(lark_tree, probabilities, impacts, durations
 
 
 def create_parse_tree(bpmn: dict):
-	# Parse the task sequence from the BPMN diagram
-	tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
-	print(tree.pretty)
+	tree = SESE_PARSER.parse(bpmn[TASK_SEQ]) # Parse the task sequence from the BPMN diagram
+	#print(tree.pretty)
 
 	# Convert the parsed tree into a custom tree and get the last ID
 	parse_tree, last_id = from_lark_parsed_to_custom_tree(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
-	print_parse_tree(parse_tree, outfile='parsed_tree.png')
+	print_parse_tree(parse_tree)
 	return parse_tree
 
 

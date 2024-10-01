@@ -2,9 +2,11 @@ from datetime import datetime
 import random
 import os
 
+import numpy as np
+
 from utils.env import SESE_PARSER
 from utils.print_sese_diagram import print_sese_diagram
-from solver.test_aalpy import paco_solver
+from solver.solver import paco_solver
 
 # Define tasks and choices from the expression
 tasks = ["T" + str(i) for i in range(1, 39)]
@@ -64,8 +66,9 @@ if not error:
         print(name_svg)
         '''
         print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
-        strategies = paco_solver(bpmn_ex_article, [280, 130])
-        print(f'Type bpmn strategy {strategies}')
+        text_result, found, choices, name_svg = paco_solver(bpmn_ex_article, np.array([280, 130], dtype=np.float64))
+
+        print(f'Type bpmn strategy {text_result}')
     except Exception as e:
         print(f'Error: {e}')
 

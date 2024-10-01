@@ -2,11 +2,11 @@
 """
    File that checks things and useful things 
 """
-from utils.print_sese_tree import print_sese_tree
 from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, ALL_SYNTAX, DURATIONS, IMPACTS, SESE_PARSER, TASK_SEQ
 import re
 import json
 from datetime import datetime
+
 def checkCorrectSyntax(bpmn:dict) -> bool:
     """
     Check if the syntax of the BPMN file is correct.

@@ -1,6 +1,6 @@
 import numpy as np
-from utils.env import ALGORITHMS  # , DELAYS, NAMES, PROBABILITIES
-from solver.test_aalpy import paco_solver
+from utils.env import ALGORITHMS
+from solver.solver import paco_solver
 from utils import check_syntax as cs
 
 
