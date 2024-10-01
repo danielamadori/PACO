@@ -26,7 +26,7 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 										  impacts=impacts, probability=probability)
 
 	strategyTree = StrategyTree(strategyViewPoint)
-	print(tree_node_info(strategyViewPoint), f"Current impacts: {impacts}\n")
+	#print(tree_node_info(strategyViewPoint), f"Current impacts: {impacts}\n")
 
 
 	if is_final:
@@ -41,8 +41,8 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 			vector = impacts # Current impacts
 			if typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
 				vector = evaluate_unavoidable_impacts(region_tree.root, states, vector)
-				print("Unavoidable impacts: ", vector)
-		elif typeStrategy == TypeStrategy.STATEFUL:
+				#print("Unavoidable impacts: ", vector)
+		elif typeStrategy == TypeStrategy.DECISION_BASED:
 			vector = None
 		else:
 			raise Exception("TypeStrategy not implemented: " + str(typeStrategy))
@@ -51,7 +51,7 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 			arbitrary = choice not in explainers
 
 			if arbitrary:
-				print(f"Choice not explained: {str(choice)}, random decision")
+				#print(f"Choice not explained: {str(choice)}, random decision")
 				random.seed()
 				random_decision = random.choice([0, 1])
 				opposite_decision = 1 - random_decision
@@ -59,7 +59,7 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 				decision_true = choice.children[random_decision].root
 				decision_false = choice.children[opposite_decision].root
 			else:
-				print("Explaining choice: ", choice.id)
+				#print("Explaining choice: ", choice.id)
 				bdd = explainers[choice]
 				strategyViewPoint.choices[choice] = bdd
 
@@ -69,15 +69,15 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 					s = 'All decisions:\t   ['
 					for n in all_nodes:
 						s += str(n.id) + ' '
-					print(s + "]")
-					print("Stateful impacts: ", vector)
+					#print(s + "]")
+					#print("Stateful impacts: ", vector)
 
 				decision_true = bdd.choose(vector)
 				decision_false = choice.children[1].root if decision_true == choice.children[0].root else choice.children[0].root
 
 			next_decisions.append(decision_true)
-			print("Decision True: ", decision_true.id)
-			print("Decision False: ", decision_false.id)
+			#print("Decision True: ", decision_true.id)
+			#print("Decision False: ", decision_false.id)
 			chosen_states.activityState[decision_true] = ActivityState.ACTIVE
 			chosen_states.activityState[decision_false] = ActivityState.WILL_NOT_BE_EXECUTED
 

@@ -1,6 +1,6 @@
 import numpy as np
 from explainer.bdd import Bdd
-from explainer.strategy_type import current_impacts, unavoidable_impacts, stateful, TypeStrategy
+from explainer.strategy_type import current_impacts, unavoidable_impacts, decision_based, TypeStrategy
 from parser.tree_lib import CNode, CTree
 from solver.execution_tree import ExecutionTree
 
@@ -26,8 +26,7 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 	return bdd
 
 
-def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (
-TypeStrategy, dict[CNode, Bdd]):
+def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (TypeStrategy, dict[CNode, Bdd]):
 	bdds = dict[CNode, Bdd]()
 	for choice, decisions in strategy.items():
 		print("Explaining: choice", choice)
@@ -57,11 +56,11 @@ TypeStrategy, dict[CNode, Bdd]):
 				bdds[choice] = bdd
 				continue
 
-			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.STATEFUL)
+			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.DECISION_BASED)
 
 		# if typeStrategy == TypeStrategy.STATEFUL:
 		print("Stateful impacts")
-		all_nodes, states_vectors, labels = stateful(decisions)
+		all_nodes, states_vectors, labels = decision_based(decisions)
 		bdd = explain_choice(choice, list(decisions.keys()), states_vectors, labels, all_nodes)
 
 		if bdd is not None:

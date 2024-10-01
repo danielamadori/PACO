@@ -9,7 +9,7 @@ from solver.execution_tree import ExecutionTree
 class TypeStrategy(enum.IntEnum):
 	CURRENT_IMPACTS = 0
 	UNAVOIDABLE_IMPACTS = 1
-	STATEFUL = 2
+	DECISION_BASED = 2
 
 	def __str__(self):
 		return str(self.value)
@@ -37,7 +37,7 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 
 	return impacts, impacts_labels
 
-def stateful(decisions: dict[CNode, set[ExecutionTree]]):
+def decision_based(decisions: dict[CNode, set[ExecutionTree]]):
 	states_vectors, labels = [], []
 	for decision, executionTrees in decisions.items():
 		for executionTree in executionTrees:
