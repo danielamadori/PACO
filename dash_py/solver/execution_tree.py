@@ -193,7 +193,7 @@ def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionT
 		impacts_names=impacts_names)
 	)
 
-	print("create_tree:", tree_node_info(solution_tree.root))
+	#print("create_tree:", tree_node_info(solution_tree.root))
 
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
@@ -217,7 +217,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 		parent=solution_tree)
 	)
 
-	print("create_tree_node:", tree_node_info(next_node.root))
+	#print("create_tree_node:", tree_node_info(next_node.root))
 
 	solution_tree.root.add_child(next_node)
 	for decisions, branch_states in branches.items():

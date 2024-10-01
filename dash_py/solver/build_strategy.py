@@ -8,7 +8,7 @@ def build_strategy(frontier: list[ExecutionTree], strategy: dict[CNode, dict[CNo
 	if len(frontier) == 0:
 		return frontier, strategy
 
-	print("building_strategy:frontier: ", frontier_info(frontier))
+	#print("building_strategy:frontier: ", frontier_info(frontier))
 
 	newFrontier = []
 	newStrategy = copy.deepcopy(strategy)

@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from utils.print_sese_diagram import print_sese_diagram
-from solver.solver import paco_solver
+from solver.solver import paco
 
 bpmn_ex = {
     "stateful_example" : [
@@ -151,7 +151,7 @@ bpmn_ex = {
 
 def test(name, bpmn, bound):
     print('Type bpmn: ', name)
-    text_result, found, choices, name_svg = paco_solver(bpmn, np.array(bound, dtype=np.float64))
+    text_result, parse_tree, execution_tree, found, expected_impacts, choices, name_svg = paco(bpmn, np.array(bound, dtype=np.float64))
     print('Type bpmn: ', name)
 
 

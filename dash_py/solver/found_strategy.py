@@ -63,7 +63,7 @@ def frontier_info(frontier: list[ExecutionTree]) -> str:
 
 
 def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray) -> (list[ExecutionTree], list[np.ndarray]):
-	print("frontier: ", frontier_info(frontier))
+	#print("frontier: ", frontier_info(frontier))
 
 	frontier_value_bottom_up:np.ndarray = np.sum([tree.root.cei_bottom_up for tree in frontier], axis=0)
 
@@ -101,5 +101,5 @@ def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray) -> (list[Ex
 			return frontier_solution, frontier_solution_value_bottom_up
 
 		#print("tested_frontier_solution", frontier_info(tested_frontier_solution))
-	print("Failed: No choose left")
+	#print("Failed: No choose left")
 	return None, failed_frontier_solution_value_bottom_up

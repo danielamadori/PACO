@@ -1,9 +1,8 @@
 from datetime import datetime
 import random
 import re
-import numpy as np
-from utils.print_sese_diagram import print_sese_diagram
-from solver.solver import paco_solver
+from optimizer.pareto_optimizer import pareto_optimal_impacts
+
 
 #fare replacement di ^ con nature o choice
 
@@ -36,6 +35,7 @@ bpmn = {
     "loop_round": {}
 }
 
+
 try:
     '''
     bpmn_svg_folder = "assets/bpmnTest/"
@@ -46,7 +46,8 @@ try:
     print(name_svg)
     '''
     #print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
-    text_result, found, expected_impacts, choices, name_svg = paco_solver(bpmn, np.array([280, 130], dtype=np.float64))
+    bound, pareto_frontier_impacts, parse_tree, execution_tree, choices = pareto_optimal_impacts(bpmn)
+
 
 except Exception as e:
     print(f'Error: {e}')
