@@ -15,19 +15,19 @@ def evaluate_execution_path(all_states: list[ActivityState], all_nodes = set()):
 
 		all_nodes = sorted(all_nodes)
 
-	vectors_states = []
+	decisions_states = []
 	vector_size = len(all_nodes)
 	for states in all_states:
-		vector_states = np.zeros(vector_size, dtype='int')
+		decision_vector = np.zeros(vector_size, dtype='int')
 		for i in range(vector_size):
 			if all_nodes[i] not in states:
 				#print(f"Node ID:{str(all_nodes[i].id)} not in states")
 				propagate_status(all_nodes[i], states)
-			vector_states[i] = states[all_nodes[i]]
+			decision_vector[i] = 0 if states[all_nodes[i]] < ActivityState.ACTIVE else 1 #TODO check
 
-		vectors_states.append(vector_states)
+		decisions_states.append(decision_vector)
 
-	return all_nodes, vectors_states
+	return all_nodes, decisions_states
 
 
 def propagate_status(node: CNode, states: ActivityState):

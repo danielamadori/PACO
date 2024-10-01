@@ -38,19 +38,19 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 	return impacts, impacts_labels
 
 def decision_based(decisions: dict[CNode, set[ExecutionTree]]):
-	states_vectors, labels = [], []
+	decision_vectors, labels = [], []
 	for decision, executionTrees in decisions.items():
 		for executionTree in executionTrees:
-			states_vectors.append(executionTree.root.states.activityState)
+			decision_vectors.append(executionTree.root.states.activityState)
 			labels.append(decision.id)
 
-	all_nodes, states_vectors = evaluate_execution_path(states_vectors)
-	#print each state_vector with the corresponding label
+	all_nodes, decision_vectors = evaluate_execution_path(decision_vectors)
+	
 	s = ''
 	for node in all_nodes:
 		s += str(node.id) + ', '
 	print("\t\t  ID: ", s [:-2])
-	for i in range(len(states_vectors)):
-		print(f"State vector: {states_vectors[i]}, label: {labels[i]}")
+	for i in range(len(decision_vectors)):
+		print(f"Decision vector: {decision_vectors[i]}, label: {labels[i]}")
 
-	return all_nodes, states_vectors, labels
+	return all_nodes, decision_vectors, labels

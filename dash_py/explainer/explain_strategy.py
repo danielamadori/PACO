@@ -58,10 +58,9 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 
 			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.DECISION_BASED)
 
-		# if typeStrategy == TypeStrategy.STATEFUL:
-		print("Stateful impacts")
-		all_nodes, states_vectors, labels = decision_based(decisions)
-		bdd = explain_choice(choice, list(decisions.keys()), states_vectors, labels, all_nodes)
+		print("Decision based:")
+		all_nodes, decision_vectors, labels = decision_based(decisions)
+		bdd = explain_choice(choice, list(decisions.keys()), decision_vectors, labels, all_nodes)
 
 		if bdd is not None:
 			bdds[choice] = bdd

@@ -63,14 +63,14 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 				bdd = explainers[choice]
 				strategyViewPoint.choices[choice] = bdd
 
-				if vector is None: # Stateful
+				if vector is None: # Decision Based
 					all_nodes, vectors = evaluate_execution_path([states.activityState], explainers[choice].root.df.columns[:-1])
 					vector = vectors[0]
 					s = 'All decisions:\t   ['
 					for n in all_nodes:
 						s += str(n.id) + ' '
 					#print(s + "]")
-					#print("Stateful impacts: ", vector)
+					#print("Decision based impacts: ", vector)
 
 				decision_true = bdd.choose(vector)
 				decision_false = choice.children[1].root if decision_true == choice.children[0].root else choice.children[0].root

@@ -7,7 +7,7 @@ from utils.print_sese_diagram import print_sese_diagram
 from solver.solver import paco
 
 bpmn_ex = {
-    "stateful_example" : [
+    "decision_based_example" : [
         {'impacts_names': ['a', 'b'],
          'expression': '((T1 /[C1] T2) || (( (T3 ^[N2] T4), TU1) ^[N1] ( (T5 ^[N3] T6), TU2)))',
          'impacts': {'T1': [3, 1], 'T2': [1, 3], 'T3': [2, 0], 'T4': [0, 2], 'TU1': [3, 1], 'T5': [2, 0], 'T6': [0, 2], 'TU2': [1, 3]}, 'durations': {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1]}, 'probabilities': {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
@@ -194,7 +194,7 @@ bpmn_paper_example = {
 
 test_calc_strategy_paco(bpmn_ex, 14)
 
-#test_calc_strategy_paco(bpmn_ex, 0) #statefull example
+#test_calc_strategy_paco(bpmn_ex, 0) #decision_based example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
 #test_calc_strategy_paco(bpmn_ex, 4) #current impacts (one obligated decision)
 #test_calc_strategy_paco(bpmn_ex, 8) #current impacts
@@ -204,7 +204,7 @@ test_calc_strategy_paco(bpmn_ex, 14)
 
 
 #Testing StrategyTree:
-#test_calc_strategy_paco(bpmn_ex, 0) # Not pruned ask if okay, stateful example
+#test_calc_strategy_paco(bpmn_ex, 0) # Not pruned ask if okay, decision_based example
 #test_calc_strategy_paco(bpmn_ex, 1) # Not pruned ask if okay, unavoidable example
 #test_calc_strategy_paco(bpmn_ex, 4) # Okay, current impacts (one obligated decision)
 #test_calc_strategy_paco(bpmn_ex, 6) # Okay, current impacts (two obligated decision)
