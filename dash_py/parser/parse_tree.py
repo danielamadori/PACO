@@ -111,7 +111,7 @@ def from_lark_parsed_to_custom_tree(lark_tree, probabilities, impacts, durations
 		tmp_node.set_children(children)
 		return CTree(tmp_node), last_id
 	elif (lark_tree.data == 'natural'):
-		tmp_node = CNode(parent, index_in_parent, lark_tree.data, id = id, probability=probabilities[lark_tree.children[1].value] if lark_tree.children[1].value in probabilities else 0.5)
+		tmp_node = CNode(parent, index_in_parent, lark_tree.data, id = id, name=names[lark_tree.children[1].value], probability=probabilities[lark_tree.children[1].value] if lark_tree.children[1].value in probabilities else 0.5)
 		left_children, last_id = from_lark_parsed_to_custom_tree(lark_tree.children[0], probabilities, impacts, durations, names, delays, loops_prob, loop_round, id =id + 1, h=h, loop_thresholds=loop_thresholds, parent=tmp_node, index_in_parent=0)
 		right_children, last_id = from_lark_parsed_to_custom_tree(lark_tree.children[2], probabilities, impacts, durations, names, delays, loops_prob, loop_round, id =last_id + 1, h=h, loop_thresholds=loop_thresholds, parent=tmp_node, index_in_parent=1)
 		children = [left_children, right_children]
