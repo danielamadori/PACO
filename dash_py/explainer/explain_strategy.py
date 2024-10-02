@@ -28,16 +28,16 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 
 def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (TypeStrategy, dict[CNode, Bdd]):
 	bdds = dict[CNode, Bdd]()
-	for choice, decisions in strategy.items():
+	for choice, decisions_taken in strategy.items():
 		print("Explaining: choice", choice)
 
 		if typeStrategy == TypeStrategy.CURRENT_IMPACTS:
 			print("Current impacts:")
-			impacts, impacts_labels = current_impacts(decisions)
+			impacts, impacts_labels = current_impacts(decisions_taken)
 			for i in range(len(impacts)):
 				print(f"I({impacts_labels[i]}): {impacts[i]}")
 
-			bdd = explain_choice(choice, list(decisions.keys()), impacts, impacts_labels, impacts_names)
+			bdd = explain_choice(choice, list(decisions_taken.keys()), impacts, impacts_labels, impacts_names)
 			if bdd is not None:
 				bdds[choice] = bdd
 				continue
@@ -46,11 +46,11 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 
 		elif typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
 			print("Unavoidable impacts:")
-			unavoidableImpacts, unavoidableImpacts_labels = unavoidable_impacts(region_tree, decisions)
+			unavoidableImpacts, unavoidableImpacts_labels = unavoidable_impacts(region_tree, decisions_taken)
 			for i in range(len(unavoidableImpacts)):
 				print(f"I({unavoidableImpacts_labels[i]}): {unavoidableImpacts[i]}")
 
-			bdd = explain_choice(choice, list(decisions.keys()), unavoidableImpacts, unavoidableImpacts_labels, impacts_names)
+			bdd = explain_choice(choice, list(decisions_taken.keys()), unavoidableImpacts, unavoidableImpacts_labels, impacts_names)
 
 			if bdd is not None:
 				bdds[choice] = bdd
@@ -59,8 +59,12 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.DECISION_BASED)
 
 		print("Decision based:")
-		all_nodes, decision_vectors, labels = decision_based(decisions)
-		bdd = explain_choice(choice, list(decisions.keys()), decision_vectors, labels, all_nodes)
+		decisions, decision_vectors, labels = decision_based(region_tree, decisions_taken)
+		print("Decisions:", decisions)
+		for i in range(len(decision_vectors)):
+			print(f"{labels[i]}: {decision_vectors[i]}")
+
+		bdd = explain_choice(choice, list(decisions_taken.keys()), decision_vectors, labels, decisions)
 
 		if bdd is not None:
 			bdds[choice] = bdd
