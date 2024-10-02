@@ -1,6 +1,5 @@
 import math
 import os
-
 import numpy as np
 from graphviz import Source
 
@@ -145,7 +144,7 @@ class StrategyViewPoint:
 
 		if len(self.choices) > 0:
 			label += "Choice: "
-			for choice, bddw in self.choices.items():
+			for choice, bdd in self.choices.items():
 				label += f"{choice.name}{'*' if bdd is None else''}, "
 			label = label[:-2] + "\n"
 		if len(self.natures) > 0:

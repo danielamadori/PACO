@@ -21,9 +21,9 @@ def pareto_optimal_impacts(bpmn: dict, bound: np.ndarray = None, decimal_number:
 	while True:
 		min_bound = np.minimum.reduce(min_frontier_expected_impacts)
 		if found:
-			if np.all(compare_bound(mean_bound, bound) <= 0) or i >= 10:
-				break
-
+			#if np.all(compare_bound(mean_bound, bound) <= 0) or i >= 10:
+			#	break
+			max_frontier_expected_impacts.append(mean_bound)
 			max_bound = mean_bound
 		else:
 			max_bound = np.maximum.reduce(max_frontier_expected_impacts)
