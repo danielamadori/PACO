@@ -13,13 +13,21 @@ def pareto_optimal_impacts(bpmn: dict, bound: np.ndarray = None, decimal_number:
 	if bound is None:
 		bound = np.zeros(len(bpmn[IMPACTS_NAMES]))
 
-	text_result, parse_tree, execution_tree, found, min_frontier_expected_impacts, choices, name_svg = paco(bpmn, bound, parse_tree, execution_tree)
+	mean_bound = bound
+	text_result, parse_tree, execution_tree, found, min_frontier_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
 	max_frontier_expected_impacts = [execution_tree.root.cei_bottom_up]
 
 	i = 0
 	while True:
 		min_bound = np.minimum.reduce(min_frontier_expected_impacts)
-		max_bound = np.maximum.reduce(max_frontier_expected_impacts)
+		if found:
+			if np.all(compare_bound(mean_bound, bound) <= 0) or i >= 10:
+				break
+
+			max_bound = mean_bound
+		else:
+			max_bound = np.maximum.reduce(max_frontier_expected_impacts)
+
 		mean_bound = (min_bound + max_bound) / 2
 
 		#min_bound = min_frontier_expected_impacts.pop(random.randint(0, len(min_frontier_expected_impacts)-1))
@@ -39,9 +47,6 @@ def pareto_optimal_impacts(bpmn: dict, bound: np.ndarray = None, decimal_number:
 		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{mean_bound}\n" + s)
 
 		i += 1
-
-		if found: #and np.all(compare_bound(min_frontier_expected_impacts[0], bound) <= 0)
-			break
 
 	return bound, min_frontier_expected_impacts, parse_tree, execution_tree, choices
 
