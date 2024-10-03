@@ -19,25 +19,16 @@ def pareto_optimal_impacts(bpmn: dict, bound: np.ndarray = None, decimal_number:
 
 	i = 0
 	while True:
-		min_bound = np.minimum.reduce(min_frontier_expected_impacts)
 		if found:
-			#if np.all(compare_bound(mean_bound, bound) <= 0) or i >= 10:
-			#	break
-			max_frontier_expected_impacts.append(mean_bound)
-			max_bound = mean_bound
-		else:
-			max_bound = np.maximum.reduce(max_frontier_expected_impacts)
+			break
 
-		mean_bound = (min_bound + max_bound) / 2
+		min_bound = min_frontier_expected_impacts.pop(random.randint(0, len(min_frontier_expected_impacts)-1))
+		max_bound = np.maximum.reduce(max_frontier_expected_impacts)
 
-		#min_bound = min_frontier_expected_impacts.pop(random.randint(0, len(min_frontier_expected_impacts)-1))
+		mean_bound = np.round((min_bound + max_bound) / 2, decimal_number)
 
 		text_result, parse_tree, execution_tree, found, min_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
 
-		'''
-		max_frontier_expected_impacts.extend([np.round(ei, decimal_number) for ei in max_expected_impacts])
-		max_frontier_expected_impacts = get_dominated_impacts(max_frontier_expected_impacts)
-		'''
 		min_frontier_expected_impacts.extend([np.round(ei, decimal_number) for ei in min_expected_impacts])
 		min_frontier_expected_impacts = get_non_dominated_impacts(min_frontier_expected_impacts)
 

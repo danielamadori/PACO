@@ -18,6 +18,7 @@ class TypeStrategy(enum.IntEnum):
 def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
+		print(f"Decision: {decision.id} has {len(executionTrees)} execution trees")
 		for executionTree in executionTrees:
 			impacts.append(copy.deepcopy(executionTree.root.impacts))
 			impacts_labels.append(decision.id)

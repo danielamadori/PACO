@@ -29,7 +29,7 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (TypeStrategy, dict[CNode, Bdd]):
 	bdds = dict[CNode, Bdd]()
 	for choice, decisions in strategy.items():
-		print("Explaining: choice", choice)
+		print("Explaining choice: ", choice.name)
 
 		if typeStrategy == TypeStrategy.CURRENT_IMPACTS:
 			print("Current impacts:")
@@ -41,7 +41,7 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 			if bdd is not None:
 				bdds[choice] = bdd
 				continue
-
+			print("No explanation found, trying with unavoidable impacts")
 			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.UNAVOIDABLE_IMPACTS)
 
 		elif typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:

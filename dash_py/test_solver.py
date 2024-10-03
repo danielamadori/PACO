@@ -199,11 +199,20 @@ bpmn_paper_example = {
         IMPACTS_NAMES: ["electric energy", "worker hours"],
         PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "N1": "N1"}, DELAYS: {"C1": 0},LOOPS_PROB : {}, LOOP: {}
     }, [100, 7]],
+    "Explainer Figure": [{
+        TASK_SEQ: "((t0p0 ^[p0] t1p0), (t0p5 /[p5] t1p5), tp11, ((t0p13 /[p13] t1p13),(t0p24 /[p24] t1p24) || (t0p12, tp20, (t0p22 ^[p22] t1p22) ^[p12] t1p12, tp21, (t0p23 ^ [p23] t1p23) ) ) )",
+        H: 0,
+        IMPACTS: {"t0p0": [2, 1, 0, 0, 0, 0], "t1p0": [1, 2, 0, 0, 0, 0], "t0p5": [1, 2, 0, 0, 0, 0], "t1p5": [2, 1, 0, 0, 0, 0], "tp11": [4, 2, 0, 0, 0, 0], "t0p13": [0, 0, 1, 4, 0, 0], "t1p13": [0, 0, 4, 1, 0, 0], "t0p24": [0, 0, 0, 0, 5, 0], "t1p24": [0, 0, 0, 0, 0, 5], "t0p12": [3, 5, 0, 0, 0, 0], "t1p12": [2, 3, 0, 0, 0, 0], "t0p23": [0, 0, 0, 0, 8, 1], "t1p23": [0, 0, 0, 0, 1, 8], "t0p22": [0, 0, 0, 0, 8, 1], "t1p22": [0, 0, 0, 0, 1, 8], "tp20": [0, 0, 8, 0, 0, 0], "tp21": [0, 0, 0, 8, 0, 0]},
+        DURATIONS: {"t0p0": [0, 1], "t1p0": [0, 1], "t0p5": [0, 1], "t1p5": [0, 1], "tp11": [0, 1], "t0p13": [0, 1], "t1p13": [0, 1], "t0p24": [0, 1], "t1p24": [0, 1], "t0p12": [0, 2], "t1p12": [0, 2], "t0p23": [0, 1], "t1p23": [0, 1], "t0p22": [0, 1], "t1p22": [0, 1], "tp20": [0, 1], "tp21": [0, 1] },
+        IMPACTS_NAMES: ["A", "B", "C", "D", "E", "F"],
+        PROBABILITIES: {"p0": 0.5, "p12": 0.5, "p22": 0.99, "p23":0.01}, NAMES: {"p0": "p0", "p5": "p5", "p13": "p13", "p12": "p12", "p24": "p24", "p22": "p22", "p23": "p23"}, DELAYS: {"p5": 0, "p13": 0, "p24": 0},LOOPS_PROB : {}, LOOP: {}
+    }, [9.5,9,6.5,6.5,7,7]],
+
 }
 
-#test_calc_strategy_paco(bpmn_paper_example, 0)
+test_calc_strategy_paco(bpmn_paper_example, 2)
 
-test_calc_strategy_paco(bpmn_ex, 14)
+#test_calc_strategy_paco(bpmn_ex, 1)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #decision_based example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
