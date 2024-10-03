@@ -23,7 +23,7 @@ class ExecutionViewPoint:
 		s, _ = self.states.str()
 		self.state_id = s
 		self.decisions = decisions
-		self.choices_natures = choices_natures
+		self.choices_natures = choices_natures#TODO create separated list for choices and natures
 		self.parent = parent
 		self.is_final_state = is_final_state
 		self.transitions: dict[tuple, ExecutionTree] = {}
@@ -90,8 +90,24 @@ class ExecutionViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	def dot_cei_str(self):
+		label = f"CEI_td: {self.cei_top_down},\nCEI_bu: {self.cei_bottom_up}\n"
+
+		choice_label = ""
+		nature_label = ""
+
+		for choice_nature in self.choices_natures:
+			if choice_nature.type == "choice":
+				choice_label += f"{choice_nature.name}, "
+			else:
+				nature_label += f"{choice_nature.name}, "
+
+		if choice_label != "":
+			label += "Choice: " + choice_label[:-2] + "\n"
+		if nature_label != "":
+			label += "Nature: " + nature_label[:-2] + "\n"
+
 		return (self.dot_str(full=False) + "_impact",
-				f" [label=\"(cei_td: {self.cei_top_down},\ncei_bu: {self.cei_bottom_up})\", shape=rect];\n")
+				f" [label=\"{label}\", shape=rect];\n")
 				#f" [label=\"ID: {self.id} (cei_td: {self.cei_top_down},\ncei_bu: {self.cei_bottom_up})\", shape=rect];\n")
 
 

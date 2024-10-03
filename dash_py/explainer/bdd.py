@@ -263,7 +263,7 @@ class Bdd:
 
 	@staticmethod
 	def get_decision(decision: CNode):
-		if decision.type == 'nature' or decision.type == 'choice': #TODO loop (color for loops found in print_sese_diagram is 'yellow')
+		if decision.type == 'natural' or decision.type == 'choice': #TODO loop (color for loops found in print_sese_diagram is 'yellow')
 			color = 'orange'
 		elif decision.type == 'parallel':
 			color = 'yellowgreen'

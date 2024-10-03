@@ -1,6 +1,5 @@
 import math
 import os
-
 import numpy as np
 from graphviz import Source
 
@@ -140,7 +139,7 @@ class StrategyViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	def dot_info_str(self):
-		label = f" [label=\"Probability: {self.probability}\nImpacts: {self.impacts}\n"
+		label = f" [label=\"Probability: {round(self.probability, 2)}\nImpacts: {self.impacts}\n"
 		label += f"Time: {self.executed_time}\n"
 
 		if len(self.choices) > 0:
