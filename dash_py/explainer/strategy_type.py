@@ -1,10 +1,11 @@
 import copy
 import enum
-
-from evaluations.evaluate_execution_path import evaluate_execution_path
-from evaluations.evaluate_impacts import evaluate_unavoidable_impacts
+import numpy as np
 from parser.tree_lib import CNode, CTree
 from solver.execution_tree import ExecutionTree
+from evaluations.evaluate_execution_path import evaluate_execution_path, find_all_decisions
+from evaluations.evaluate_impacts import evaluate_unavoidable_impacts
+
 
 class TypeStrategy(enum.IntEnum):
 	CURRENT_IMPACTS = 0
@@ -25,6 +26,7 @@ def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 
 	return impacts, impacts_labels
 
+
 def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
@@ -38,20 +40,14 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 
 	return impacts, impacts_labels
 
-def decision_based(decisions: dict[CNode, set[ExecutionTree]]):
+
+def decision_based(region_tree: CTree, decisions_taken: dict[CNode, set[ExecutionTree]]) -> (list[CNode], list[np.ndarray], list):
+	decisions, decisions_names = find_all_decisions(region_tree)
 	decision_vectors, labels = [], []
-	for decision, executionTrees in decisions.items():
+	for decision_taken, executionTrees in decisions_taken.items():
 		for executionTree in executionTrees:
-			decision_vectors.append(executionTree.root.states.activityState)
-			labels.append(decision.id)
+			decision_vector, label = evaluate_execution_path(decisions, executionTree.root.states.activityState)
+			decision_vectors.append(decision_vector)
+			labels.append(label)
 
-	all_nodes, decision_vectors = evaluate_execution_path(decision_vectors)
-	
-	s = ''
-	for node in all_nodes:
-		s += str(node.id) + ', '
-	print("\t\t  ID: ", s [:-2])
-	for i in range(len(decision_vectors)):
-		print(f"Decision vector: {decision_vectors[i]}, label: {labels[i]}")
-
-	return all_nodes, decision_vectors, labels
+	return decisions_names, decision_vectors, labels

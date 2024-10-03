@@ -1,44 +1,37 @@
 import numpy as np
 from saturate_execution.states import ActivityState
-from parser.tree_lib import CNode
+from parser.tree_lib import CNode, CTree
 
 
-def evaluate_execution_path(all_states: list[ActivityState], all_nodes = set()):
-	#if all_nodes is empty, we need to get all nodes
-	if len(all_nodes) == 0:
-		for states in all_states:
-			nodes = set()
-			for node in states.keys():
-				if node.parent is not None and (node.parent.type == 'choice' or node.parent.type == 'natural'):
-					nodes.add(node)
-			all_nodes.update(nodes)
+def find_all_decisions_rec(tree: CTree) -> list[CNode]:
+	if not tree.root.children:
+		return []
 
-		all_nodes = sorted(all_nodes)
+	decisions = [child.root for child in tree.root.children if tree.root.type in {'choice', 'natural'}]
+	for subTree in tree.root.children:
+		decisions.extend(find_all_decisions_rec(subTree))
 
-	decisions_states = []
-	vector_size = len(all_nodes)
-	for states in all_states:
-		decision_vector = np.zeros(vector_size, dtype='int')
-		for i in range(vector_size):
-			if all_nodes[i] not in states:
-				#print(f"Node ID:{str(all_nodes[i].id)} not in states")
-				propagate_status(all_nodes[i], states)
-			decision_vector[i] = 0 if states[all_nodes[i]] < ActivityState.ACTIVE else 1 #TODO check
+	return decisions
 
-		decisions_states.append(decision_vector)
+def find_all_decisions(region_tree: CTree) -> list[CNode]:
+	decisions = sorted(find_all_decisions_rec(region_tree), key=lambda decision: decision.id)
+	decisions_names = []
+	for decision in decisions:
+		decisions_names.append(str(decision.parent.name) + '_' + ('0' if decision.parent.children[0].root == decision else '1'))
 
-	return all_nodes, decisions_states
+	return decisions, decisions_names
 
+def evaluate_execution_path(decisions: list[CNode], execution: ActivityState) -> (np.ndarray, str):
+	decisions_vector = np.array([0 if decision not in execution or execution[decision] < ActivityState.ACTIVE
+								 else 1 for decision in decisions], dtype='int')
 
-def propagate_status(node: CNode, states: ActivityState):
-	#print("ID: " + str(node.id))
-	if node in states:
-		#print("propagate status: " + str(states[node]))
-		return states[node]
+	decisions_taken = [node for node in execution if node.parent and node.parent.type in {'choice', 'natural'}]
+	decisions_taken = sorted(decisions_taken, key=lambda decision: decision.id)
 
-	if node.parent is None:
-		raise Exception("Node without parent")
+	label = ''
+	for decision_taken in decisions_taken:
+		if execution[decision_taken] >= ActivityState.ACTIVE:
+			choice_nature = decision_taken.parent
+			label += str(choice_nature.name) + '_' + ('0' if choice_nature.children[0].root == decision_taken else '1') + ';'
 
-	states[node] = propagate_status(node.parent, states)
-
-	return states[node]
+	return decisions_vector, label[:-1]
