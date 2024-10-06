@@ -1,6 +1,7 @@
 import math
 import os
 import graphviz
+import numpy as np
 import pandas as pd
 
 from explainer.dag_node import DagNode
@@ -39,7 +40,7 @@ class Bdd:
 
 	def is_separable(self):
 		if self.root is None:
-			print("is_separable: root is None")
+			#print("is_separable: root is None")
 			return True
 
 		#Find duplicates based on all columns except 'class'
@@ -50,7 +51,7 @@ class Bdd:
 		grouped = duplicated_vectors.groupby(list(duplicated_vectors.columns[:-1]))['class'].nunique()
 		#Identify groups with more than one unique label
 		conflicting_vectors = grouped[grouped > 1]
-		print("is_separable: ", conflicting_vectors.empty)
+		#print("is_separable: ", conflicting_vectors.empty)
 		return conflicting_vectors.empty
 
 	def get_splittable_leaves(self):
@@ -165,12 +166,12 @@ class Bdd:
 			nodes.extend(self.get_minimum_tree_nodes(target_f))
 		return nodes
 
-	def choose(self, vector: list):
+	def choose(self, vector: np.ndarray):
 		if self.root is None:# forced decision give always the same decision
 			return self.class_0
 
-		if len(vector) != len(self.root.df.columns[:-1]):
-			raise Exception("Different columns size")
+		if vector.size != len(self.root.df.columns[:-1]):
+			raise Exception("BDD:choose: different columns size")
 
 		df = pd.DataFrame([vector], columns=self.root.df.columns[:-1])
 		#print("df:", df)

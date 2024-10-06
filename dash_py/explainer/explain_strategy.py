@@ -29,38 +29,25 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.CURRENT_IMPACTS) -> (TypeStrategy, dict[CNode, Bdd]):
 	bdds = dict[CNode, Bdd]()
 	for choice, decisions_taken in strategy.items():
-		print("Explaining choice: ", choice.name)
+		print(f"Explaining choice {choice.name}, using {typeStrategy} explainer:")
+		features_names = impacts_names
 
 		if typeStrategy == TypeStrategy.CURRENT_IMPACTS:
-			impacts, impacts_labels = current_impacts(decisions_taken)
-
-			bdd = explain_choice(choice, list(decisions_taken.keys()), impacts, impacts_labels, impacts_names)
-			if bdd is not None:
-				bdds[choice] = bdd
-				print("Explaining choice, Current impacts, done: ", choice.name)
-				continue
-			print("No explanation found, trying with unavoidable impacts")
-			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.UNAVOIDABLE_IMPACTS)
-
+			vectors, labels = current_impacts(decisions_taken)
 		elif typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
-			unavoidableImpacts, unavoidableImpacts_labels = unavoidable_impacts(region_tree, decisions_taken)
-
-			bdd = explain_choice(choice, list(decisions_taken.keys()), unavoidableImpacts, unavoidableImpacts_labels, impacts_names)
-			if bdd is not None:
-				bdds[choice] = bdd
-				print("Explaining choice, Unavoidable impacts, done: ", choice.name)
-				continue
-
-			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.DECISION_BASED)
-
-
-		decisions, decision_vectors, labels = decision_based(region_tree, decisions_taken)
-		bdd = explain_choice(choice, list(decisions_taken.keys()), decision_vectors, labels, decisions)
-
-		if bdd is not None:
-			bdds[choice] = bdd
-			print("Explaining choice, Decision based, done: ", choice.name)
+			vectors, labels = unavoidable_impacts(region_tree, decisions_taken)
+		elif typeStrategy == TypeStrategy.DECISION_BASED:
+			features_names, vectors, labels = decision_based(region_tree, decisions_taken)
 		else:
-			raise Exception("No explanation found")
+			raise Exception("Impossible to explain")
+
+		bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names)
+
+		if bdd is None:
+			print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
+			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy(typeStrategy + 1))
+
+		bdds[choice] = bdd
+		print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: done")
 
 	return typeStrategy, bdds

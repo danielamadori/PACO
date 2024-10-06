@@ -11,9 +11,10 @@ class TypeStrategy(enum.IntEnum):
 	CURRENT_IMPACTS = 0
 	UNAVOIDABLE_IMPACTS = 1
 	DECISION_BASED = 2
+	IMPOSSIBLE = 3
 
 	def __str__(self):
-		return str(self.value)
+		return str(self.name)
 
 
 def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):

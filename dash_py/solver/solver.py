@@ -66,7 +66,7 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
     t1 = datetime.now()
     print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
     choices = [choice.name for choice in bdds.keys()]
-    print(f"{t1} Strategy: {choices}")
+    print(f"{t1} Strategy: {choices}, type: {type_strategy}")
 
     print(f'{t1} StrategyTree: ')
     t = datetime.now()
