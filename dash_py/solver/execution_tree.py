@@ -168,7 +168,8 @@ class ExecutionTree:
 			next_node = root.transitions[transition].root
 			x = ""
 			for t in transition:
-				x += str(t[0].id) + '->' + str(t[1].id) + ';'
+				x += str(t[0].name) + '->' + str(t[1].id if not t[1].name else t[1].name) + ';'
+				#x += str(t[0].id) + '->' + str(t[1].id) + ';'
 			#x += str(t)[1:-1].replace(',', '->') + ";"
 
 			transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
@@ -266,7 +267,7 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
 	if not os.path.exists(PATH_EXECUTION_TREE):
 		os.makedirs(PATH_EXECUTION_TREE)
-	solution_tree.save_dot(PATH_AUTOMA_STATE_DOT)
+	solution_tree.save_dot(PATH_AUTOMA_STATE_DOT, diff=False)
 	write_image(frontier, PATH_AUTOMA_STATE_DOT, svgPath=PATH_AUTOMA_STATE_IMAGE_SVG)#, PATH_AUTOMA_IMAGE)
 
 	solution_tree.save_dot(PATH_AUTOMA_STATE_TIME_DOT, executed_time=True)

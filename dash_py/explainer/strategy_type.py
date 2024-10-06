@@ -30,6 +30,7 @@ def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	impacts, impacts_labels = [], []
 	for decision, executionTrees in decisions.items():
+		print(f"Decision: {decision.id} has {len(executionTrees)} execution trees")
 		for executionTree in executionTrees:
 			impacts.append(
 				evaluate_unavoidable_impacts(region_tree.root,
@@ -37,7 +38,8 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 											 executionTree.root.impacts)
 			)
 			impacts_labels.append(decision.id)
-
+			print(f"I({decision.id}): {executionTree.root.impacts} + {impacts[-1]-executionTree.root.impacts} = {impacts[-1]}")
+	print("end of unavoidable")
 	return impacts, impacts_labels
 
 
@@ -45,9 +47,11 @@ def decision_based(region_tree: CTree, decisions_taken: dict[CNode, set[Executio
 	decisions, decisions_names = find_all_decisions(region_tree)
 	decision_vectors, labels = [], []
 	for decision_taken, executionTrees in decisions_taken.items():
+		print(f"Decision: {decision_taken.id} has {len(executionTrees)} execution trees")
 		for executionTree in executionTrees:
-			decision_vector, label = evaluate_execution_path(decisions, executionTree.root.states.activityState)
-			decision_vectors.append(decision_vector)
-			labels.append(label)
+			decision_vectors.append(
+				evaluate_execution_path(decisions, executionTree.root.states.activityState)
+			)
+			labels.append(decision_taken.name)
 
 	return decisions_names, decision_vectors, labels

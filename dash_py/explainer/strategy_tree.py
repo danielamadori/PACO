@@ -140,18 +140,20 @@ class StrategyViewPoint:
 
 	def dot_info_str(self):
 		label = f" [label=\"Probability: {round(self.probability, 2)}\nImpacts: {self.impacts}\n"
+		label += f"EI: {np.round(self.probability*self.impacts, 2)}\n"
 		label += f"Time: {self.executed_time}\n"
 
-		if len(self.choices) > 0:
-			label += "Choice: "
-			for choice, bdd in self.choices.items():
-				label += f"{choice.name}{'*' if bdd is None else''}, "
-			label = label[:-2] + "\n"
 		if len(self.natures) > 0:
 			label += "Nature: "
 			for nature in list(self.natures):
 				label += f"{nature.name}, "
+			label = label[:-2] + "\n"
+		if len(self.choices) > 0:
+			label += "Choice: "
+			for choice, bdd in self.choices.items():
+				label += f"{choice.name}{'*' if bdd is None else''}, "
 			label = label[:-2]
+
 
 		label += "\", shape=rect];\n"
 		return (self.dot_str(full=False) + "_impact", label)
@@ -215,7 +217,8 @@ class StrategyTree:
 			next_node = root.transitions[transition].root
 			x = ""
 			for t in transition:
-				x += str(t[0].id) + '->' + str(t[1].id) + ';'
+				x += str(t[0].name) + '->' + str(t[1].id if not t[1].name else t[1].name) + ';'
+				#x += str(t[0].id) + '->' + str(t[1].id) + ';'
 			#x += str(t)[1:-1].replace(',', '->') + ";"
 
 			transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
