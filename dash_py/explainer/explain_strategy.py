@@ -31,44 +31,35 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 	for choice, decisions_taken in strategy.items():
 		print("Explaining choice: ", choice.name)
 
-
 		if typeStrategy == TypeStrategy.CURRENT_IMPACTS:
-			print("Current impacts:")
 			impacts, impacts_labels = current_impacts(decisions_taken)
-			for i in range(len(impacts)):
-				print(f"I({impacts_labels[i]}): {impacts[i]}")
 
 			bdd = explain_choice(choice, list(decisions_taken.keys()), impacts, impacts_labels, impacts_names)
 			if bdd is not None:
 				bdds[choice] = bdd
+				print("Explaining choice, Current impacts, done: ", choice.name)
 				continue
 			print("No explanation found, trying with unavoidable impacts")
 			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.UNAVOIDABLE_IMPACTS)
 
 		elif typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
-			print("Unavoidable impacts:")
 			unavoidableImpacts, unavoidableImpacts_labels = unavoidable_impacts(region_tree, decisions_taken)
-			for i in range(len(unavoidableImpacts)):
-				print(f"I({unavoidableImpacts_labels[i]}): {unavoidableImpacts[i]}")
 
 			bdd = explain_choice(choice, list(decisions_taken.keys()), unavoidableImpacts, unavoidableImpacts_labels, impacts_names)
-
 			if bdd is not None:
 				bdds[choice] = bdd
+				print("Explaining choice, Unavoidable impacts, done: ", choice.name)
 				continue
 
 			return explain_strategy(region_tree, strategy, impacts_names, TypeStrategy.DECISION_BASED)
 
-		print("Decision based:")
-		decisions, decision_vectors, labels = decision_based(region_tree, decisions_taken)
-		print("Decisions:", decisions)
-		for i in range(len(decision_vectors)):
-			print(f"{labels[i]}: {decision_vectors[i]}")
 
+		decisions, decision_vectors, labels = decision_based(region_tree, decisions_taken)
 		bdd = explain_choice(choice, list(decisions_taken.keys()), decision_vectors, labels, decisions)
 
 		if bdd is not None:
 			bdds[choice] = bdd
+			print("Explaining choice, Decision based, done: ", choice.name)
 		else:
 			raise Exception("No explanation found")
 

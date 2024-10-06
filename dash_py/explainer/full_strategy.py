@@ -1,8 +1,7 @@
 import copy
 import random
 from itertools import product
-
-from evaluations.evaluate_execution_path import find_all_decisions, evaluate_execution_path
+from evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
 from evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
 from explainer.bdd import Bdd
 from explainer.strategy_tree import StrategyTree, saturate_execution, StrategyViewPoint, tree_node_info
@@ -27,7 +26,7 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 										  impacts=impacts, probability=probability)
 
 	strategyTree = StrategyTree(strategyViewPoint)
-	print(tree_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
+	#print(tree_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
 
 
 	if is_final:
@@ -45,9 +44,8 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 				print("Unavoidable impacts: ", vector)
 		elif typeStrategy == TypeStrategy.DECISION_BASED:
 			decisions, decisions_names = find_all_decisions(region_tree)
-			vector, label = evaluate_execution_path(decisions, strategyViewPoint.states.activityState)
-			print("Decisions:", decisions_names)
-			print(f"{label}: {vector}")
+			vector = evaluate_decisions(decisions, strategyViewPoint.states.activityState)
+			print(f"Decisions:\n{decisions_names}\n{vector}")
 		else:
 			raise Exception("TypeStrategy not implemented: " + str(typeStrategy))
 

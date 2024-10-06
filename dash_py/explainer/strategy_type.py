@@ -3,7 +3,7 @@ import enum
 import numpy as np
 from parser.tree_lib import CNode, CTree
 from solver.execution_tree import ExecutionTree
-from evaluations.evaluate_execution_path import evaluate_execution_path, find_all_decisions
+from evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
 from evaluations.evaluate_impacts import evaluate_unavoidable_impacts
 
 
@@ -17,41 +17,49 @@ class TypeStrategy(enum.IntEnum):
 
 
 def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
+	print("Current impacts:")
 	impacts, impacts_labels = [], []
-	for decision, executionTrees in decisions.items():
-		print(f"Decision: {decision.id} has {len(executionTrees)} execution trees")
+	for decision_taken, executionTrees in decisions.items():
+		print(f"Decision: {decision_taken.name if decision_taken.name else decision_taken.id} has {len(executionTrees)} execution trees")
 		for executionTree in executionTrees:
+			print(f"I({decision_taken.name if decision_taken.name else decision_taken.id}): {executionTree.root.impacts}")
 			impacts.append(copy.deepcopy(executionTree.root.impacts))
-			impacts_labels.append(decision.id)
+			impacts_labels.append(decision_taken.id)
 
 	return impacts, impacts_labels
 
 
 def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
+	print("Unavoidable impacts:")
 	impacts, impacts_labels = [], []
-	for decision, executionTrees in decisions.items():
-		print(f"Decision: {decision.id} has {len(executionTrees)} execution trees")
+	for decision_taken, executionTrees in decisions.items():
+		print(f"Decision: {decision_taken.name if decision_taken.name else decision_taken.id} has {len(executionTrees)} execution trees")
 		for executionTree in executionTrees:
 			impacts.append(
 				evaluate_unavoidable_impacts(region_tree.root,
 											 executionTree.root.states,
 											 executionTree.root.impacts)
 			)
-			impacts_labels.append(decision.id)
-			print(f"I({decision.id}): {executionTree.root.impacts} + {impacts[-1]-executionTree.root.impacts} = {impacts[-1]}")
-	print("end of unavoidable")
+			impacts_labels.append(decision_taken.id)
+			print(f"UI({decision_taken.name if decision_taken.name else decision_taken.id}): {executionTree.root.impacts} + {impacts[-1]-executionTree.root.impacts} = {impacts[-1]}")
+
 	return impacts, impacts_labels
 
 
 def decision_based(region_tree: CTree, decisions_taken: dict[CNode, set[ExecutionTree]]) -> (list[CNode], list[np.ndarray], list):
+	print("Decision based:")
 	decisions, decisions_names = find_all_decisions(region_tree)
 	decision_vectors, labels = [], []
 	for decision_taken, executionTrees in decisions_taken.items():
-		print(f"Decision: {decision_taken.id} has {len(executionTrees)} execution trees")
+		print(f"Decision: {decision_taken.name if decision_taken.name else decision_taken.id} has {len(executionTrees)} execution trees")
 		for executionTree in executionTrees:
 			decision_vectors.append(
-				evaluate_execution_path(decisions, executionTree.root.states.activityState)
+				evaluate_decisions(decisions, executionTree.root.states.activityState)
 			)
 			labels.append(decision_taken.name)
+
+	print("Decisions:\n", decisions_names)
+	for i in range(len(decision_vectors)):
+		print(f"{labels[i]}: {decision_vectors[i]}")
 
 	return decisions_names, decision_vectors, labels

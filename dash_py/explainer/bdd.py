@@ -39,6 +39,7 @@ class Bdd:
 
 	def is_separable(self):
 		if self.root is None:
+			print("is_separable: root is None")
 			return True
 
 		#Find duplicates based on all columns except 'class'
@@ -49,7 +50,7 @@ class Bdd:
 		grouped = duplicated_vectors.groupby(list(duplicated_vectors.columns[:-1]))['class'].nunique()
 		#Identify groups with more than one unique label
 		conflicting_vectors = grouped[grouped > 1]
-
+		print("is_separable: ", conflicting_vectors.empty)
 		return conflicting_vectors.empty
 
 	def get_splittable_leaves(self):
