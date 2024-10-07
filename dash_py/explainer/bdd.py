@@ -5,15 +5,17 @@ import numpy as np
 import pandas as pd
 
 from explainer.dag_node import DagNode
+from explainer.strategy_type import TypeStrategy
 from parser.tree_lib import CNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Bdd:
-	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list):
+	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list, typeStrategy:TypeStrategy):
 		self.choice = choice
 		self.class_0 = class_0 # in case is not splittable is the true class
 		self.class_1 = class_1
+		self.typeStrategy = typeStrategy
 
 		if class_1 is not None:
 			df = pd.DataFrame(impacts, columns=features_names)
@@ -100,8 +102,11 @@ class Bdd:
 				#get the unique labels in the new node
 				unique_labels = sorted(set(df['class']))
 
-				class_0, class_1 = (self.class_0, self.class_1) if unique_labels[0] == self.class_0.id else (self.class_1, self.class_0)
+				class_0, class_1 = (self.class_0, self.class_1)
 				if len(unique_labels) == 1:
+					if unique_labels[0] == self.class_1.id:
+						class_0 = class_1
+
 					class_1 = None
 
 				target_node = DagNode(df, class_0, class_1)
@@ -276,7 +281,11 @@ class Bdd:
 		else:
 			raise Exception(f"bdd:get_decision: decision type {decision.type} not recognized")
 
-		return "ID:" + str(decision.id), color
+		label = "ID:" + str(decision.id)
+		if decision.name:
+			label += "\n" + decision.name
+
+		return label, color
 
 
 	def bdd_to_file_recursively(self, dot, node: DagNode):
@@ -286,15 +295,23 @@ class Bdd:
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
 		else:
-			dot.node(str(node), label=f"{node.best_test[0]} < {node.best_test[1]}", shape="ellipse")
-
 			left_child, right_child = node.get_targets(node.best_test)
-			#The left is always the true condition
-			if not node.best_test[2]: # Swap to keep always < instead of >=
-				tmp = left_child
-				left_child = right_child
-				right_child = tmp
-			#TODO! check daniel
+
+			if self.typeStrategy != TypeStrategy.DECISION_BASED:
+				dot.node(str(node), label=f"{node.best_test[0]} < {node.best_test[1]}", shape="ellipse")
+
+				#The left is always the true condition
+				if not node.best_test[2]: # Swap to keep always < instead of >=
+					tmp = left_child
+					left_child = right_child
+					right_child = tmp
+				#TODO! check daniel
+			else:
+				dot.node(str(node), label=f"Exec: {node.best_test[0]}?", shape="ellipse")
+				if node.best_test[2]: # Swap to keep always to check if active instead of not active
+					tmp = left_child
+					left_child = right_child
+					right_child = tmp
 
 			left_style = ""
 			if not left_child.splittable and left_child.class_0 == self.choice.children[0].root:

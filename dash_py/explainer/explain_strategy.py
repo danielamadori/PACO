@@ -5,7 +5,7 @@ from parser.tree_lib import CNode, CTree
 from solver.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray], labels:list, features_names:list) -> Bdd:
+def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:TypeStrategy) -> Bdd:
 	decisions = list(decisions)
 	decision_0 = decisions[0]
 	decision_1 = None
@@ -13,7 +13,7 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 	if not is_unavoidable_decision:
 		decision_1 = decisions[1]
 
-	bdd = Bdd(choice, decision_0, decision_1, impacts, labels, features_names)
+	bdd = Bdd(choice, decision_0, decision_1, impacts, labels, features_names, typeStrategy)
 
 	success = True
 	if not is_unavoidable_decision:
@@ -41,7 +41,7 @@ def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[E
 		else:
 			raise Exception("Impossible to explain")
 
-		bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names)
+		bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
 
 		if bdd is None:
 			print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
