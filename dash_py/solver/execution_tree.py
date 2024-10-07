@@ -92,6 +92,8 @@ class ExecutionViewPoint:
 	def dot_cei_str(self):
 		label = f"CEI_td: {self.cei_top_down},\nCEI_bu: {self.cei_bottom_up}\n"
 
+		label += f"Impacts: {self.impacts}\n"
+
 		choice_label = ""
 		nature_label = ""
 
@@ -101,10 +103,12 @@ class ExecutionViewPoint:
 			else:
 				nature_label += f"{choice_nature.name}, "
 
-		if choice_label != "":
-			label += "Choice: " + choice_label[:-2] + "\n"
+
 		if nature_label != "":
 			label += "Nature: " + nature_label[:-2] + "\n"
+		if choice_label != "":
+			label += "Choice: " + choice_label[:-2] + "\n"
+
 
 		return (self.dot_str(full=False) + "_impact",
 				f" [label=\"{label}\", shape=rect];\n")

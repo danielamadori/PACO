@@ -91,7 +91,7 @@ async def calc_strategy_paco_api(request: StrategyFounderAlgo):
         #TODO ask emanuele
         #Original
         #result = paco_solver(dict(request.bpmn), request.bound)# calc_strat(bpmn = request.bpmn, bound = request.bound, algo = request.algo)
-        text_result, parse_tree, execution_tree, found, expected_impacts, choices, name_svg = paco(dict(request.bpmn), request.bound)
+        text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, name_svg = paco(dict(request.bpmn), request.bound)
         result = {"error" : text_result}
 
         if result.get('error') != None:

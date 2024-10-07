@@ -2,13 +2,14 @@ import os
 import numpy as np
 from explainer.strategy_tree import write_strategy_tree
 from explainer.full_strategy import full_strategy
+from explainer.strategy_type import TypeStrategy
 from parser.parse_tree import create_parse_tree
 from solver.build_strategy import build_strategy
 from explainer.explain_strategy import explain_strategy
 from evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
 from solver.execution_tree import create_execution_tree, write_execution_tree, ExecutionTree
 from solver.found_strategy import found_strategy
-from solver.pareto import get_non_dominated_impacts
+from solver.pareto import get_non_dominated_impacts, get_dominated_impacts
 from utils import check_syntax as cs
 from utils.env import IMPACTS_NAMES, DURATIONS
 from datetime import datetime
@@ -39,16 +40,18 @@ def create(bpmn: dict):
 def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list, name_svg: str):
     print(f"{datetime.now()} FoundStrategy:")
     t = datetime.now()
-    frontier_solution, frontier_solution_value_bottom_up = found_strategy([execution_tree], bound)
+    frontier_solution, frontier_cei_bottom_up, frontier_cei_top_down = found_strategy([execution_tree], bound)
     t1 = datetime.now()
     print(f"{t1} FoundStrategy:completed: {(t1 - t).total_seconds()*1000} ms")
 
-    if frontier_solution is None:
-        non_dominated_impacts = get_non_dominated_impacts(frontier_solution_value_bottom_up)
-        #TODO plot_pareto_frontier
-        return False, non_dominated_impacts, [], name_svg
+    frontier_dominated_cei_top_down = get_dominated_impacts(frontier_cei_top_down)
 
-    print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_solution_value_bottom_up[0]}")
+    if frontier_solution is None:
+        frontier_non_dominated_cei_bottom_up = get_non_dominated_impacts(frontier_cei_bottom_up)
+        #TODO plot_pareto_frontier
+        return False, frontier_non_dominated_cei_bottom_up, frontier_dominated_cei_top_down, [], name_svg
+
+    print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{frontier_cei_bottom_up[0]}")
     write_execution_tree(execution_tree, frontier_solution)
 
 
@@ -58,11 +61,11 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
     t1 = datetime.now()
     print(f"{t1} Build Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
     if len(strategy) == 0:
-        return True, frontier_solution_value_bottom_up, [], name_svg
+        return True, frontier_cei_bottom_up, frontier_dominated_cei_top_down, [], name_svg
 
     print(f'{t1} Explain Strategy: ')
     t = datetime.now()
-    type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names)
+    type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names)#TypeStrategy.DECISION_BASED
     t1 = datetime.now()
     print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
     choices = [choice.name for choice in bdds.keys()]
@@ -77,7 +80,7 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
     #name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
     #print_sese_diagram(**bpmn, outfile_svg=name_svg)
 
-    return True, frontier_solution_value_bottom_up, choices, name_svg
+    return True, frontier_cei_bottom_up, frontier_dominated_cei_top_down, choices, name_svg
 
 
 def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None):
@@ -96,15 +99,19 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None):
     if parse_tree is None or execution_tree is None:
         parse_tree, execution_tree = create(bpmn)
 
-    found, expected_impacts, choices, name_svg = solve(parse_tree, execution_tree, bound, bpmn[IMPACTS_NAMES], name_svg)
+    found, min_cei, max_cei, choices, name_svg = solve(parse_tree, execution_tree, bound, bpmn[IMPACTS_NAMES], name_svg)
+    #flexible
 
     if not found:
         text_result = ""
-        for i in range(len(expected_impacts)):
-            text_result += f"Exp. Impacts {i}:\t{np.round(expected_impacts[i], 2)}\n"
+        for i in range(len(min_cei)):
+            text_result += f"Exp. Impacts {i}:\t{np.round(min_cei[i], 2)}\n"
         print(f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nBound Impacts:\t{bound}\n" + text_result)
+        text_result = ""
+        for i in range(len(max_cei)):
+            text_result += f"Guaranteed Bound {i}:\t{np.ceil(max_cei[i])}\n"
     else:
-        expected_impact = expected_impacts[0]
+        expected_impact = min_cei[0]
         impacts = " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impact]))
         if len(choices) == 0:
             text_result = f"Any choice taken will provide a winning strategy with an expected impact of: {impacts}"
@@ -113,4 +120,4 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None):
         print(str(datetime.now()) + " " + text_result)
 
     #TODO Return strategy tree if found
-    return text_result, parse_tree, execution_tree, found, expected_impacts, choices, name_svg
+    return text_result, parse_tree, execution_tree, found, min_cei, max_cei, choices, name_svg

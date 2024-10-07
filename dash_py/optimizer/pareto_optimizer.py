@@ -14,23 +14,36 @@ def pareto_optimal_impacts(bpmn: dict, bound: np.ndarray = None, decimal_number:
 		bound = np.zeros(len(bpmn[IMPACTS_NAMES]))
 
 	mean_bound = bound
-	text_result, parse_tree, execution_tree, found, min_frontier_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
-	max_frontier_expected_impacts = [execution_tree.root.cei_bottom_up]
+	text_result, parse_tree, execution_tree, found, min_frontier_expected_impacts, max_frontier_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
+	#max_frontier_expected_impacts = [execution_tree.root.cei_bottom_up]
 
 	i = 0
 	while True:
 		if found:
 			break
 
-		min_bound = min_frontier_expected_impacts.pop(random.randint(0, len(min_frontier_expected_impacts)-1))
+		if len(min_frontier_expected_impacts) == 0:
+			min_bound = max_frontier_expected_impacts.pop(random.randint(0, len(max_frontier_expected_impacts)-1))
+		else:
+			min_bound = min_frontier_expected_impacts.pop(random.randint(0, len(min_frontier_expected_impacts)-1))
+
 		max_bound = np.maximum.reduce(max_frontier_expected_impacts)
 
-		mean_bound = np.round((min_bound + max_bound) / 2, decimal_number)
+		mean_bound = min_bound
+		#mean_bound = np.round((min_bound + max_bound) / 2, decimal_number)
 
-		text_result, parse_tree, execution_tree, found, min_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
+		text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
 
 		min_frontier_expected_impacts.extend([np.round(ei, decimal_number) for ei in min_expected_impacts])
 		min_frontier_expected_impacts = get_non_dominated_impacts(min_frontier_expected_impacts)
+
+		max_frontier_expected_impacts.extend([np.ceil(ei) for ei in max_expected_impacts])
+		max_frontier_expected_impacts = get_dominated_impacts(max_frontier_expected_impacts)
+
+		s = ""
+		for j in range(len(max_frontier_expected_impacts)):
+			s += f"Impacts {j}:\t{max_frontier_expected_impacts[j]}\n"
+		print(f"Guaranteed Bound: ", s)
 
 		s = ""
 		for j in range(len(min_frontier_expected_impacts)):
