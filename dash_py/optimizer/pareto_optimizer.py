@@ -1,58 +1,92 @@
 import numpy as np
 import random
-
 from solver.found_strategy import compare_bound
-from solver.pareto import get_non_dominated_impacts, get_dominated_impacts
+from solver.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
 from solver.solver import paco
 from utils.env import IMPACTS_NAMES
 
 
-def pareto_optimal_impacts(bpmn: dict, bound: np.ndarray = None, decimal_number: int = 0):
+def compare_element_wise(A, B):
+	if len(A) != len(B):
+		raise ValueError("Lists A and B must have the same length.")
+
+	less_than = []
+	greater_equal = []
+
+	# Loop through each pair of arrays in A and B
+	for a, b in zip(A, B):
+		if np.all(a < b):
+			less_than.append((a, b))
+		if np.all(a >= b):
+			greater_equal.append((a, b))
+
+	return less_than, greater_equal
+
+
+def pareto_optimal_impacts(bpmn: dict, decimal_number: int = 0):
 	parse_tree = None
 	execution_tree = None
-	if bound is None:
-		bound = np.zeros(len(bpmn[IMPACTS_NAMES]))
 
-	mean_bound = bound
-	text_result, parse_tree, execution_tree, found, min_frontier_expected_impacts, max_frontier_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
-	#max_frontier_expected_impacts = [execution_tree.root.cei_bottom_up]
+	bound = np.zeros(len(bpmn[IMPACTS_NAMES]), dtype=np.float64)
+
+	text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, min_solutions, choices, name_svg = paco(bpmn, bound, parse_tree, execution_tree, search_only=True)
 
 	i = 0
+	found_optimal = False
 	while True:
-		if found:
+		s = ""
+		for j in range(len(min_solutions)):
+			s += f"Impacts {j}:\t{min_solutions[j]}\n"
+		print(f"Guaranteed Bound:\n", s)
+
+		s = ""
+		for j in range(len(possible_min_solution)):
+			s += f"Impacts {j}:\t{possible_min_solution[j]}\n"
+		print(f"Possible Bound:\n", s)
+
+		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{bound}\n")
+
+
+		if len(possible_min_solution) == 0:
+			print("Min solutions found")
+			found_optimal = True
+			bound = min_solutions.pop(random.randint(0, len(min_solutions)-1))
+		else:
+			bound = possible_min_solution.pop(random.randint(0, len(possible_min_solution)-1))
+
+		#min_bound = np.minimum.reduce(possible_min_solution)
+		#	max_bound = np.maximum.reduce(min_solutions)
+
+		#	mean_bound = np.round(np.mean([min_bound, max_bound], axis=0), decimals=decimal_number)
+		#else:
+		#	mean_bound = possible_min_solution.pop(random.randint(0, len(possible_min_solution)-1))
+
+
+		text_result, parse_tree, execution_tree, expected_impacts, new_possible_min_solution, new_min_solutions, choices, name_svg = paco(bpmn, bound, parse_tree, execution_tree, search_only=not found_optimal)
+		if found_optimal:
+			print("Optimal solution found")
 			break
 
-		if len(min_frontier_expected_impacts) == 0:
-			min_bound = max_frontier_expected_impacts.pop(random.randint(0, len(max_frontier_expected_impacts)-1))
-		else:
-			min_bound = min_frontier_expected_impacts.pop(random.randint(0, len(min_frontier_expected_impacts)-1))
+		possible_min_solution.extend([np.round(ei, decimal_number) for ei in new_possible_min_solution])
+		min_solutions.extend([np.round(ei, decimal_number) for ei in new_min_solutions])
+		if expected_impacts is not None:
+			min_solutions.append(expected_impacts)
 
-		max_bound = np.maximum.reduce(max_frontier_expected_impacts)
+		#Finds the vectors in possible_min_solution dominated by vectors in min_solutions.
+		#Finds the vectors in min_solutions dominated by vectors in possible_min_solution.
+		new_possible_min_solution, new_min_solution = get_dominated_vectors(possible_min_solution, min_solutions)
 
-		mean_bound = min_bound
-		#mean_bound = np.round((min_bound + max_bound) / 2, decimal_number)
+		if len(new_min_solution) > 0:
+			possible_min_solution = [s for s in possible_min_solution if not any(np.array_equal(s, t) for t in new_possible_min_solution)]
+			min_solutions = min_solutions + new_min_solution
 
-		text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, name_svg = paco(bpmn, mean_bound, parse_tree, execution_tree)
+		possible_min_solution = get_max_dominating_vectors(possible_min_solution)
+		min_solutions = get_min_dominated_impacts(min_solutions)
 
-		min_frontier_expected_impacts.extend([np.round(ei, decimal_number) for ei in min_expected_impacts])
-		min_frontier_expected_impacts = get_non_dominated_impacts(min_frontier_expected_impacts)
-
-		max_frontier_expected_impacts.extend([np.ceil(ei) for ei in max_expected_impacts])
-		max_frontier_expected_impacts = get_dominated_impacts(max_frontier_expected_impacts)
-
-		s = ""
-		for j in range(len(max_frontier_expected_impacts)):
-			s += f"Impacts {j}:\t{max_frontier_expected_impacts[j]}\n"
-		print(f"Guaranteed Bound: ", s)
-
-		s = ""
-		for j in range(len(min_frontier_expected_impacts)):
-			s += f"Impacts {j}:\t{min_frontier_expected_impacts[j]}\n"
-		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{mean_bound}\n" + s)
 
 		i += 1
 
-	return bound, min_frontier_expected_impacts, parse_tree, execution_tree, choices
+	return bound, expected_impacts, min_solutions, parse_tree, execution_tree, choices
 
 
 
