@@ -11,7 +11,7 @@ class TypeStrategy(enum.IntEnum):
 	CURRENT_IMPACTS = 0
 	UNAVOIDABLE_IMPACTS = 1
 	DECISION_BASED = 2
-	IMPOSSIBLE = 3
+	HYBRID = 3
 
 	def __str__(self):
 		return str(self.name)

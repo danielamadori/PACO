@@ -12,22 +12,9 @@ from saturate_execution.states import States, ActivityState
 from parser.tree_lib import CTree, CNode
 
 
-def make_decisions(region_tree: CTree, typeStrategy: TypeStrategy, strategyViewPoint: StrategyViewPoint, explainers: dict[CNode, Bdd], impacts: np.ndarray, states: States) -> (States, list[CNode]):
+def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, explainers: dict[CNode, Bdd], impacts: np.ndarray, states: States) -> (States, list[CNode]):
 	if len(strategyViewPoint.choices) == 0:
 		return states, []
-
-	if typeStrategy == TypeStrategy.CURRENT_IMPACTS:
-		vector = impacts
-		print("Current impacts: ", vector)
-	elif typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
-		vector = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
-		print("Unavoidable impacts: ", vector)
-	elif typeStrategy == TypeStrategy.DECISION_BASED:
-		decisions, features_names = find_all_decisions(region_tree)
-		vector = evaluate_decisions(decisions, strategyViewPoint.states.activityState)
-		print(f"Decisions:\n{features_names}\n{vector}")
-	else:
-		raise Exception("TypeStrategy not implemented: " + str(typeStrategy))
 
 	decisions = []
 	for choice in strategyViewPoint.choices.keys():
@@ -45,6 +32,19 @@ def make_decisions(region_tree: CTree, typeStrategy: TypeStrategy, strategyViewP
 			print("Explaining choice: ", choice.name)
 			bdd = explainers[choice]
 			strategyViewPoint.choices[choice] = bdd
+
+			if bdd.typeStrategy == TypeStrategy.CURRENT_IMPACTS:
+				vector = impacts
+				print("Current impacts: ", vector)
+			elif bdd.typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
+				vector = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
+				print("Unavoidable impacts: ", vector)
+			elif bdd.typeStrategy == TypeStrategy.DECISION_BASED:
+				decisions, features_names = find_all_decisions(region_tree)
+				vector = evaluate_decisions(decisions, strategyViewPoint.states.activityState)
+				print(f"Decisions:\n{features_names}\n{vector}")
+			else:
+				raise Exception("TypeStrategy not implemented: " + str(bdd.typeStrategy))
 
 			decision_true = bdd.choose(vector)
 			decision_false = choice.children[1].root if decision_true == choice.children[0].root else choice.children[0].root
@@ -90,7 +90,7 @@ def nature_clausure(natures: list[CNode], states: States, decisions: list[CNode]
 	return branches
 
 
-def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: dict[CNode, Bdd], impacts_size: int,
+def full_strategy(region_tree: CTree, explainers: dict[CNode, Bdd], impacts_size: int,
 				  states: States = None, decisions_taken: tuple[CNode] = None, id: int = 0) -> (StrategyTree, int):
 	if states is None:
 		states = States(region_tree.root, ActivityState.WAITING, 0)
@@ -111,16 +111,12 @@ def full_strategy(region_tree: CTree, typeStrategy: TypeStrategy, explainers: di
 	if is_final:
 		return strategyTree, id
 
-
-	chosen_states, next_decisions = make_decisions(
-				region_tree, typeStrategy, strategyViewPoint,
-				explainers, impacts, copy.deepcopy(states)
-	)
+	chosen_states, next_decisions = make_decisions(region_tree, strategyViewPoint, explainers, impacts, copy.deepcopy(states))
 
 	branches = nature_clausure(natures, chosen_states, next_decisions)
 
 	for next_decisions, branch_states in branches.items():
-		sub_tree, id = full_strategy(region_tree, typeStrategy, explainers, impacts_size, branch_states, tuple(next_decisions), id + 1)
+		sub_tree, id = full_strategy(region_tree, explainers, impacts_size, branch_states, tuple(next_decisions), id + 1)
 		strategyViewPoint.add_child(sub_tree)
 
 	return strategyTree, id

@@ -63,9 +63,10 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
     if len(strategy) == 0:
         return True, frontier_cei_bottom_up, frontier_dominated_cei_top_down, [], name_svg
 
+    type_strategy = TypeStrategy.HYBRID #TypeStrategy.CURRENT_IMPACTS
     print(f'{t1} Explain Strategy: ')
     t = datetime.now()
-    type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names)#TypeStrategy.DECISION_BASED
+    type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy)
     t1 = datetime.now()
     print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
     choices = [choice.name for choice in bdds.keys()]
@@ -73,7 +74,7 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
 
     print(f'{t1} StrategyTree: ')
     t = datetime.now()
-    strategy_tree, _ = full_strategy(parse_tree, type_strategy, bdds, len(impacts_names))
+    strategy_tree, _ = full_strategy(parse_tree, bdds, len(impacts_names))
     t1 = datetime.now()
     print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
     write_strategy_tree(strategy_tree)
