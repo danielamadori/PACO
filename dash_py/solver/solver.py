@@ -75,9 +75,10 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
 
     print(f'{t1} StrategyTree: ')
     t = datetime.now()
-    strategy_tree, _ = full_strategy(parse_tree, bdds, len(impacts_names))
+    strategy_tree, children, strategy_expected_impacts, strategy_expected_time, _ = full_strategy(parse_tree, bdds, len(impacts_names))
     t1 = datetime.now()
     print(f"{t1} StrategyTree:completed: {(t1 - t).total_seconds()*1000} ms\n")
+    print(f"Strategy Expected Impacts: {strategy_expected_impacts}\nStrategy Expected Time: {strategy_expected_time}")
     write_strategy_tree(strategy_tree)
     #name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
     #print_sese_diagram(**bpmn, outfile_svg=name_svg)

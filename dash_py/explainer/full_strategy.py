@@ -2,7 +2,6 @@ import copy
 import random
 from itertools import product
 import numpy as np
-
 from evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
 from evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
 from explainer.bdd import Bdd
@@ -91,7 +90,7 @@ def nature_clausure(natures: list[CNode], states: States, decisions: list[CNode]
 
 
 def full_strategy(region_tree: CTree, explainers: dict[CNode, Bdd], impacts_size: int,
-				  states: States = None, decisions_taken: tuple[CNode] = None, id: int = 0) -> (StrategyTree, int):
+				  states: States = None, decisions_taken: tuple[CNode] = None, id: int = 0):
 	if states is None:
 		states = States(region_tree.root, ActivityState.WAITING, 0)
 		decisions_taken = (region_tree.root,)
@@ -109,14 +108,20 @@ def full_strategy(region_tree: CTree, explainers: dict[CNode, Bdd], impacts_size
 	#print(tree_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
 
 	if is_final:
-		return strategyTree, id
+		return strategyTree, [strategyViewPoint], probability*impacts, probability*strategyViewPoint.executed_time, id
 
 	chosen_states, next_decisions = make_decisions(region_tree, strategyViewPoint, explainers, impacts, copy.deepcopy(states))
 
 	branches = nature_clausure(natures, chosen_states, next_decisions)
 
+	children = []
+	expected_impacts = np.zeros(impacts_size, dtype=np.float64)
+	expected_time = 0
 	for next_decisions, branch_states in branches.items():
-		sub_tree, id = full_strategy(region_tree, explainers, impacts_size, branch_states, tuple(next_decisions), id + 1)
+		sub_tree, new_children, new_expected_impacts, new_expected_time, id = full_strategy(region_tree, explainers, impacts_size, branch_states, tuple(next_decisions), id + 1)
 		strategyViewPoint.add_child(sub_tree)
+		children.extend(new_children)
+		expected_impacts += new_expected_impacts
+		expected_time += new_expected_time
 
-	return strategyTree, id
+	return strategyTree, children, expected_impacts, expected_time, id
