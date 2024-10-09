@@ -228,7 +228,7 @@ bpmn_paper_example = {
     }, [3,3,8,8,7,7]],
 }
 
-test_calc_strategy_paco(bpmn_paper_example, 3)
+test_calc_strategy_paco(bpmn_paper_example, 2)
 
 #test_calc_strategy_paco(bpmn_ex, 1)
 

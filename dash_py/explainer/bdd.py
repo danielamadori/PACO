@@ -3,7 +3,6 @@ import os
 import graphviz
 import numpy as np
 import pandas as pd
-
 from explainer.dag_node import DagNode
 from explainer.strategy_type import TypeStrategy
 from parser.tree_lib import CNode
@@ -19,7 +18,7 @@ class Bdd:
 
 		if class_1 is not None:
 			df = pd.DataFrame(impacts, columns=features_names)
-			df['class'] = labels
+			df['class'] = labels # The labels are the id of the CNode
 			self.root = DagNode(df, class_0, class_1)
 			self.nodes = {self.root}
 		else:
@@ -99,15 +98,8 @@ class Bdd:
 					break
 
 			if target_node is None:
-				#get the unique labels in the new node
-				unique_labels = sorted(set(df['class']))
-
-				class_0, class_1 = (self.class_0, self.class_1)
-				if len(unique_labels) == 1:
-					if unique_labels[0] == self.class_1.id:
-						class_0 = class_1
-
-					class_1 = None
+				class_0 = self.class_0
+				class_1 = self.class_1
 
 				target_node = DagNode(df, class_0, class_1)
 				self.nodes.add(target_node)

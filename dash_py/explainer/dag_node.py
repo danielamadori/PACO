@@ -1,7 +1,5 @@
 import math
-
 import pandas as pd
-
 from parser.tree_lib import CNode
 
 
@@ -14,9 +12,18 @@ class DagNode:
 		self.edges = {} # target_node -> edge
 		self.tests = set()
 
-		self.class_0 = class_0 # in case is not splittable is the true class
+		self.class_0 = class_0
 		self.class_1 = class_1
-		self.splittable = class_1 is not None
+
+		self.splittable = True
+		unique_labels = sorted(set(df['class']))
+		if len(unique_labels) == 1:
+			self.splittable = False
+
+			if unique_labels[0] == self.class_1.id:
+				self.class_0 = class_1
+			self.class_1 = None
+
 		self.best_test = None
 		self.best_height = math.inf
 		self.visited = False
@@ -68,7 +75,7 @@ class DagNode:
 	def transition_str(self, target_node: 'DagNode', changed=False):
 		return f'{("*" if changed else "")}{self} --{self.edge_str(self.edges[target_node])}--> {target_node}'
 
-	def add_node(self, target_node: 'DagNode', test: tuple):
+	def add_node(self, target_node: 'DagNode', test: tuple) -> bool:
 		self.tests.add(test)
 		# The edge is a set of tests
 		edge = self.edges.get(target_node, None)
