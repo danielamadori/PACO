@@ -12,8 +12,8 @@ from utils.env import PATH_EXPLAINER_DECISION_TREE
 class Bdd:
 	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list, typeStrategy:TypeStrategy):
 		self.choice = choice
-		self.class_0 = class_0 # in case is not splittable is the true class
-		self.class_1 = class_1
+		self.class_0 = class_0
+		self.class_1 = class_1 # in case is NOT splittable is None
 		self.typeStrategy = typeStrategy
 
 		if class_1 is not None:
@@ -202,11 +202,13 @@ class Bdd:
 			if node in minimum_tree_nodes:
 				color = 'lightblue'
 
+			class_0_name = node.class_0.name if node.class_0.name else node.class_0.id
 			if not node.splittable:
 				color = 'green'
-				label += f"Class: {node.class_0}"
+				label += f"Class: {class_0_name}"
 			else:
-				label += f"Classes: {node.class_0}, {node.class_1}"
+				class_1_name = node.class_1.name if node.class_1.name else node.class_1.id
+				label += f"Classes: {class_0_name}, {class_1_name}"
 
 			dot.node(node_name, label=label, style='filled', fillcolor=color)
 
@@ -223,7 +225,7 @@ class Bdd:
 
 	def get_bdd_recursively(self, node: DagNode):
 		if not node.splittable:
-			return f"Class: {node.class_0}"
+			return f"Class: {node.class_0.name if node.class_0.name else node.class_0.id}"
 		if node.best_test is None:
 			return "Undetermined"
 		left_child, right_child = node.get_targets(node.best_test)
@@ -262,14 +264,16 @@ class Bdd:
 
 	@staticmethod
 	def get_decision(decision: CNode):
-		if decision.type == 'natural' or decision.type == 'choice': #TODO loop (color for loops found in print_sese_diagram is 'yellow')
+		if decision.type == 'choice':
 			color = 'orange'
-		elif decision.type == 'parallel':
+		elif decision.type in {'natural', 'loop', 'loop_probability'}:
 			color = 'yellowgreen'
 		elif decision.type == 'task':
 			color = 'lightblue'
 		elif decision.type == 'sequential':
 			return Bdd.get_decision(decision.children[0].root)
+		elif decision.type == 'parallel':
+			color = 'white'
 		else:
 			raise Exception(f"bdd:get_decision: decision type {decision.type} not recognized")
 

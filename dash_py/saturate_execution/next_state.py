@@ -51,7 +51,7 @@ def next_state(tree: CTree, states: States, k: int) -> (States, int):
 	if root.type == 'sequential':
 		#print("next_state:Sequential: " + node_info(root, states))
 		leftStates = States()
-		#leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #TODO: check if needed
+		#leftStates = States(leftSubTree.root, ActivityState.COMPLETED, states.executed_time[leftSubTree.root]) #Not needed
 		leftK = k
 		if states.activityState[leftSubTree.root] != ActivityState.COMPLETED:
 			leftStates, leftK = next_state(leftSubTree, states, k)

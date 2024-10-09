@@ -62,11 +62,16 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
 
     print(f'{t1} Explain Strategy: ')
     t = datetime.now()
-    type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy)
+    worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy)
     t1 = datetime.now()
     print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
-    choices = [choice.name for choice in bdds.keys()]
-    print(f"{t1} Strategy: {choices}, type: {type_strategy}")
+
+    s = ""
+    if type_strategy == TypeStrategy.HYBRID:
+        s += f"with worst type of choice: {worst_type_strategy}\n"
+    else:
+        s += f": {worst_type_strategy}"
+    print(f"{t1} Strategy {s}"+ "".join(f"{choice.name}:\t{bdd.typeStrategy}\n" for choice, bdd in bdds.items()))
 
     print(f'{t1} StrategyTree: ')
     t = datetime.now()
@@ -76,6 +81,7 @@ def solve(parse_tree, execution_tree: ExecutionTree, bound: np.ndarray, impacts_
     write_strategy_tree(strategy_tree)
     #name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
     #print_sese_diagram(**bpmn, outfile_svg=name_svg)
+    choices = [choice.name for choice in bdds.keys()]
 
     return expected_impacts, possible_min_solution, solutions, choices, name_svg
 

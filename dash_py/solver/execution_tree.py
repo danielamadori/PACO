@@ -91,8 +91,8 @@ class ExecutionViewPoint:
 
 	def dot_cei_str(self):
 		label = f"CEI_td: {self.cei_top_down},\nCEI_bu: {self.cei_bottom_up}\n"
-
 		label += f"Impacts: {self.impacts}\n"
+		label += f"Probability: {self.probability}\n"
 
 		choice_label = ""
 		nature_label = ""
@@ -102,7 +102,6 @@ class ExecutionViewPoint:
 				choice_label += f"{choice_nature.name}, "
 			else:
 				nature_label += f"{choice_nature.name}, "
-
 
 		if nature_label != "":
 			label += "Nature: " + nature_label[:-2] + "\n"
@@ -146,12 +145,12 @@ class ExecutionTree:
 
 		starting_node_ids = ""
 		for n in self.root.decisions:
-			starting_node_ids += str(n.id) + ";"
+			starting_node_ids += f"{n.name if n.name else n.id};"
 
 		if len(self.root.choices_natures) > 0:  #Just if we don't have choice
 			starting_node_ids = starting_node_ids[:-1] + "->"
 			for n in self.root.choices_natures:
-				starting_node_ids += str(n.id) + ";"
+				starting_node_ids += f"{n.name if n.name else n.id};"
 
 		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
 		return result

@@ -21,7 +21,7 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 		arbitrary = choice not in explainers
 
 		if arbitrary:
-			print(f"Choice not explained: {str(choice)}, random decision")
+			#print(f"Choice not explained: {str(choice)}, random decision")
 			random.seed()
 			random_decision = random.choice([0, 1])
 			opposite_decision = 1 - random_decision
@@ -29,29 +29,29 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 			decision_true = choice.children[random_decision].root
 			decision_false = choice.children[opposite_decision].root
 		else:
-			print("Explaining choice: ", choice.name)
+			#print("Explaining choice: ", choice.name)
 			bdd = explainers[choice]
 			strategyViewPoint.choices[choice] = bdd
 
 			if bdd.typeStrategy == TypeStrategy.CURRENT_IMPACTS:
 				vector = impacts
-				print("Current impacts: ", vector)
+				#print("Current impacts: ", vector)
 			elif bdd.typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
 				vector = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
-				print("Unavoidable impacts: ", vector)
+				#print("Unavoidable impacts: ", vector)
 			elif bdd.typeStrategy == TypeStrategy.DECISION_BASED:
 				decisions, features_names = find_all_decisions(region_tree)
 				vector = evaluate_decisions(decisions, strategyViewPoint.states.activityState)
-				print(f"Decisions:\n{features_names}\n{vector}")
+				#print(f"Decisions:\n{features_names}\n{vector}")
 			else:
-				raise Exception("TypeStrategy not implemented: " + str(bdd.typeStrategy))
+				raise Exception("make_decisions: TypeStrategy not implemented: " + str(bdd.typeStrategy))
 
 			decision_true = bdd.choose(vector)
 			decision_false = choice.children[1].root if decision_true == choice.children[0].root else choice.children[0].root
 
 		decisions.append(decision_true)
-		print("Decision True: ", decision_true.name if decision_true.name else decision_true.id)
-		print("Decision False: ", decision_false.name if decision_false.name else decision_false.id)
+		#print("Decision True: ", decision_true.name if decision_true.name else decision_true.id)
+		#print("Decision False: ", decision_false.name if decision_false.name else decision_false.id)
 		states.activityState[decision_true] = ActivityState.ACTIVE
 		states.activityState[decision_false] = ActivityState.WILL_NOT_BE_EXECUTED
 

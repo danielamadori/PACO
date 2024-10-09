@@ -55,6 +55,8 @@ def explain_strategy_full(region_tree: CTree, strategy: dict[CNode, dict[CNode, 
 
 def explain_strategy_hybrid(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str]) -> (TypeStrategy, dict[CNode, Bdd]):
 	bdds = dict[CNode, Bdd]()
+
+	worstType = TypeStrategy.CURRENT_IMPACTS
 	for choice, decisions_taken in strategy.items():
 		#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer:")
 		features_names = impacts_names
@@ -84,7 +86,10 @@ def explain_strategy_hybrid(region_tree: CTree, strategy: dict[CNode, dict[CNode
 		bdds[choice] = bdd
 		print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: done")
 
-	return TypeStrategy.HYBRID, bdds
+		if worstType < typeStrategy:
+			worstType = typeStrategy
+
+	return worstType, bdds
 
 
 def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: TypeStrategy = TypeStrategy.HYBRID) -> (TypeStrategy, dict[CNode, Bdd]):
