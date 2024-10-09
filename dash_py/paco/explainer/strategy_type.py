@@ -1,10 +1,10 @@
 import copy
 import enum
 import numpy as np
-from parser.tree_lib import CNode, CTree
-from solver.execution_tree import ExecutionTree
-from evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
-from evaluations.evaluate_impacts import evaluate_unavoidable_impacts
+from paco.parser.tree_lib import CNode, CTree
+from paco.searcher.execution_tree import ExecutionTree
+from paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
+from paco.evaluations.evaluate_impacts import evaluate_unavoidable_impacts
 
 
 class TypeStrategy(enum.IntEnum):

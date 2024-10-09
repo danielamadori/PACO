@@ -1,6 +1,6 @@
 import math
-from parser.tree_lib import CTree, CNode
-from saturate_execution.states import States, ActivityState
+from paco.parser.tree_lib import CTree, CNode
+from paco.saturate_execution.states import States, ActivityState
 
 
 def steps_to_saturation(tree: CTree, states: States):

@@ -1,7 +1,7 @@
 import copy
 import numpy as np
-from saturate_execution.states import States, ActivityState
-from parser.tree_lib import CNode
+from paco.saturate_execution.states import States, ActivityState
+from paco.parser.tree_lib import CNode
 
 
 def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64, np.ndarray):

@@ -5,10 +5,10 @@ import numpy as np
 import pydot
 from graphviz import Source
 
-from evaluations.evaluate_impacts import evaluate_expected_impacts
-from parser.tree_lib import CNode, CTree
-from saturate_execution.saturate_execution import saturate_execution
-from saturate_execution.states import States, states_info, ActivityState
+from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
+from paco.parser.tree_lib import CNode, CTree
+from paco.saturate_execution.saturate_execution import saturate_execution
+from paco.saturate_execution.states import States, states_info, ActivityState
 from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PATH_AUTOMA_STATE_IMAGE_SVG, \
 	PATH_AUTOMA_STATE_TIME_DOT, \
 	PATH_AUTOMA_TIME_IMAGE_SVG, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, \

@@ -1,5 +1,5 @@
 import enum
-from parser.tree_lib import CNode
+from paco.parser.tree_lib import CNode
 from collections import defaultdict
 
 

@@ -1,6 +1,6 @@
 import math
 import pandas as pd
-from parser.tree_lib import CNode
+from paco.parser.tree_lib import CNode
 
 
 class DagNode:

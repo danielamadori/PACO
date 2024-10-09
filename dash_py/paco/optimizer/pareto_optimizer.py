@@ -1,8 +1,7 @@
 import numpy as np
 import random
-from solver.found_strategy import compare_bound
-from solver.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
-from solver.solver import paco
+from paco.searcher.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
+from paco.solver import paco
 from utils.env import IMPACTS_NAMES
 
 

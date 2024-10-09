@@ -1,6 +1,6 @@
 import numpy as np
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
-from solver.solver import paco
+from paco.solver import paco
 
 
 

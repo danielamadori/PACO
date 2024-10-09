@@ -3,9 +3,9 @@ import os
 import graphviz
 import numpy as np
 import pandas as pd
-from explainer.dag_node import DagNode
-from explainer.strategy_type import TypeStrategy
-from parser.tree_lib import CNode
+from paco.explainer.dag_node import DagNode
+from paco.explainer.strategy_type import TypeStrategy
+from paco.parser.tree_lib import CNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 

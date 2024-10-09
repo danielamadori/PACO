@@ -3,13 +3,10 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-from scipy.special import result
-
 from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
 from utils.print_sese_diagram import print_sese_diagram
-from utils.automa import calc_strat
-from solver.solver import paco
-from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax
+from paco.solver import paco
+from utils.check_syntax import checkCorrectSyntax
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 # swaggerui al link  http://127.0.0.1:8000/docs

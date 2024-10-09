@@ -1,9 +1,9 @@
 import unittest
 import os
 from utils.create_custom_tree import create_custom_tree
-from saturate_execution.saturate_execution import saturate_execution
-from saturate_execution.states import States, states_info, ActivityState
-from parser.tree_lib import CTree, CNode, print_parse_tree
+from paco.saturate_execution.saturate_execution import saturate_execution
+from paco.saturate_execution.states import States, states_info, ActivityState
+from paco.parser.tree_lib import CTree, CNode, print_parse_tree
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
 
 

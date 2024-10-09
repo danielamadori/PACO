@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from solver.found_strategy import compare_bound
+from paco.searcher.found_strategy import compare_bound
 
 
 class TestFoundStrategy(unittest.TestCase):

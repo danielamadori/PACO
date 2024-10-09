@@ -2,7 +2,7 @@ import numpy as np
 from pydot import *
 from PIL import Image
 from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
-from parser.tree_lib import CTree
+from paco.parser.tree_lib import CTree
 
 """
     funzioni prese dal notebook

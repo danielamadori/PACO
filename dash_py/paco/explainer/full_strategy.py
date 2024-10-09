@@ -2,13 +2,13 @@ import copy
 import random
 from itertools import product
 import numpy as np
-from evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
-from evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
-from explainer.bdd import Bdd
-from explainer.strategy_tree import StrategyTree, saturate_execution, StrategyViewPoint
-from explainer.strategy_type import TypeStrategy
-from saturate_execution.states import States, ActivityState
-from parser.tree_lib import CTree, CNode
+from paco.evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
+from paco.evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
+from paco.explainer.bdd import Bdd
+from paco.explainer.strategy_tree import StrategyTree, saturate_execution, StrategyViewPoint
+from paco.explainer.strategy_type import TypeStrategy
+from paco.saturate_execution.states import States, ActivityState
+from paco.parser.tree_lib import CTree, CNode
 
 
 def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, explainers: dict[CNode, Bdd], impacts: np.ndarray, states: States) -> (States, list[CNode]):

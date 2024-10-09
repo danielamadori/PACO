@@ -1,5 +1,5 @@
 import copy
-from solver.execution_tree import ExecutionTree
+from paco.searcher.execution_tree import ExecutionTree
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):

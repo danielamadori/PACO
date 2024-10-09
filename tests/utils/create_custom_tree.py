@@ -1,6 +1,6 @@
-from parser.tree_lib import CTree
+from paco.parser.tree_lib import CTree
 from utils.env import SESE_PARSER, TASK_SEQ, PROBABILITIES, IMPACTS, DURATIONS, NAMES, DELAYS, H, LOOPS_PROB
-from parser.parse_tree import from_lark_parsed_to_custom_tree as Lark_to_CTree
+from paco.parser.parse_tree import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from utils import check_syntax as cs
 
 def create_custom_tree(bpmn: dict) -> CTree:

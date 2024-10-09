@@ -1,5 +1,5 @@
-from parser.tree_lib import CNode
-from saturate_execution.states import States, ActivityState
+from paco.parser.tree_lib import CNode
+from paco.saturate_execution.states import States, ActivityState
 from itertools import product
 
 

@@ -1,7 +1,6 @@
-from datetime import datetime
 import random
 import re
-from optimizer.pareto_optimizer import pareto_optimal_impacts
+from paco.optimizer.pareto_optimizer import pareto_optimal_impacts
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, LOOPS_PROB, DELAYS, PROBABILITIES, LOOP, NAMES
 
 #fare replacement di ^ con nature o choice

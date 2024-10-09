@@ -1,8 +1,8 @@
 import numpy as np
-from explainer.bdd import Bdd
-from explainer.strategy_type import current_impacts, unavoidable_impacts, decision_based, TypeStrategy
-from parser.tree_lib import CNode, CTree
-from solver.execution_tree import ExecutionTree
+from paco.explainer.bdd import Bdd
+from paco.explainer.strategy_type import current_impacts, unavoidable_impacts, decision_based, TypeStrategy
+from paco.parser.tree_lib import CNode, CTree
+from paco.searcher.execution_tree import ExecutionTree
 
 
 def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:TypeStrategy) -> Bdd:

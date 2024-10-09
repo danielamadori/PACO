@@ -1,7 +1,7 @@
 import enum
 import random
 import numpy as np
-from solver.execution_tree import ExecutionTree
+from paco.searcher.execution_tree import ExecutionTree
 
 '''
 def compare_bound(cei: np.ndarray, bound: np.ndarray):

@@ -1,6 +1,6 @@
 import numpy as np
-from saturate_execution.states import ActivityState
-from parser.tree_lib import CNode, CTree
+from paco.saturate_execution.states import ActivityState
+from paco.parser.tree_lib import CNode, CTree
 
 
 def find_all_decisions_rec(tree: CTree) -> list[CNode]:

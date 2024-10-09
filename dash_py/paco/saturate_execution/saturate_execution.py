@@ -1,8 +1,8 @@
-from parser.tree_lib import CTree, CNode
-from saturate_execution.create_branches import create_branches
-from saturate_execution.next_state import next_state
-from saturate_execution.states import States, ActivityState
-from saturate_execution.step_to_saturation import steps_to_saturation
+from paco.parser.tree_lib import CTree, CNode
+from paco.saturate_execution.create_branches import create_branches
+from paco.saturate_execution.next_state import next_state
+from paco.saturate_execution.states import States, ActivityState
+from paco.saturate_execution.step_to_saturation import steps_to_saturation
 
 
 def saturate_execution(region_tree: CTree, states: States) -> (States, tuple[CNode], dict[tuple[CNode], States]):

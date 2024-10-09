@@ -3,12 +3,12 @@ import os
 import numpy as np
 from graphviz import Source
 
-from saturate_execution.next_state import next_state
-from saturate_execution.states import States, ActivityState, states_info
-from saturate_execution.step_to_saturation import steps_to_saturation
-from parser.tree_lib import CNode, CTree
-from solver.execution_tree import write_image
-from explainer.bdd import Bdd
+from paco.saturate_execution.next_state import next_state
+from paco.saturate_execution.states import States, ActivityState, states_info
+from paco.saturate_execution.step_to_saturation import steps_to_saturation
+from paco.parser.tree_lib import CNode, CTree
+from paco.searcher.execution_tree import write_image
+from paco.explainer.bdd import Bdd
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STRATEGY_TREE_STATE_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_DOT, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_DOT, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED_IMAGE_SVG, \
@@ -149,9 +149,9 @@ class StrategyViewPoint:
 				label += f"{nature.name}, "
 			label = label[:-2] + "\n"
 		if len(self.choices) > 0:
-			label += "Choice: "
+			label += "Choice:\n"
 			for choice, bdd in self.choices.items():
-				label += f"{choice.name}{'*' if bdd is None else ': '+ str(bdd.typeStrategy)}, "
+				label += f"{choice.name}{'*' if bdd is None else ': '+ str(bdd.typeStrategy)}\n"
 			label = label[:-2]
 
 

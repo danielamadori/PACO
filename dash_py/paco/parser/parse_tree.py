@@ -1,12 +1,12 @@
 import os, sys
 import numpy as np
 
-from parser.tree_lib import CNode, CTree, print_parse_tree
+from paco.parser.tree_lib import CNode, CTree, print_parse_tree
 from utils import env
 from utils.env import LOOPS_PROB, SESE_PARSER, TASK_SEQ, \
 	IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H
 
-current_directory = os.path.dirname(os.path.realpath('../parser/tree_lib.py'))
+current_directory = os.path.dirname(os.path.realpath('tree_lib.py'))
 # Add the current directory to the Python path
 sys.path.append(current_directory)
 

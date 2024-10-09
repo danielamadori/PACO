@@ -1,6 +1,6 @@
 import numpy as np
 from utils.env import ALGORITHMS
-from solver.solver import paco
+from paco.solver import paco
 from utils import check_syntax as cs
 
 
