@@ -1,7 +1,5 @@
 import numpy as np
 
-import numpy as np
-
 def get_dominated_vectors(A, B):
 	# Find vectors in A dominated by any vector in B
 	dominated_A = []
