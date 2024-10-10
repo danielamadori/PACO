@@ -73,18 +73,18 @@ def print_parse_tree(tree, h = 0, probabilities={}, impacts={}, loop_thresholds 
     return Image.open(outfile).convert('RGB')
 
 def dot_task(id, name, duration, h=0, imp=None):
-    label = name
+    label = name + '\n'
     if imp is not None:
         if h == 0:
             label += str(imp)
         else: 
             label += str(imp[0:-h])
             label += str(imp[-h:])
-    label += ' dur:'
+    label += '\ndur:'
     label += str(duration)
     label += ' id:'
     label += str(id)
-    return f'node_{id}[label="{label}", shape=rectanble style="rounded,filled" fillcolor="lightblue"];'
+    return f'node_{id}[label="{label}", shape=rectangle style="rounded,filled" fillcolor="lightblue"];'
 
 
 def dot_choice_gateway(id, label="X"):

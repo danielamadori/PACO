@@ -2,12 +2,13 @@ import math
 import os
 import numpy as np
 from graphviz import Source
+from sympy.stats.rv import probability
 
 from paco.saturate_execution.next_state import next_state
 from paco.saturate_execution.states import States, ActivityState, states_info
 from paco.saturate_execution.step_to_saturation import steps_to_saturation
 from paco.parser.tree_lib import CNode, CTree
-from paco.searcher.execution_tree import write_image
+from paco.searcher.execution_tree import write_image, get_sequential_first_task
 from paco.explainer.bdd import Bdd
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE_DOT, PATH_STRATEGY_TREE_STATE_IMAGE_SVG, \
 	PATH_STRATEGY_TREE_STATE_TIME_DOT, PATH_STRATEGY_TREE_STATE_TIME_IMAGE_SVG, \
@@ -69,6 +70,8 @@ class StrategyViewPoint:
 		self.probability = probability
 		self.impacts = impacts
 		self.executed_time = states.executed_time[bpmn_root]
+		self.expected_impacts = probability * impacts
+		self.expected_time = probability * self.executed_time
 
 	def __str__(self) -> str:
 		return str(self.states)
@@ -104,8 +107,8 @@ class StrategyViewPoint:
 			result += f' [label=\"'
 
 			s, d = self.states.str(previous_node)
-			s = "q|s:{" + s + "}"
-			d = "q|delta:{" + d + "}"
+			s = "Execution State:\n{" + s + "}"
+			d = "Execution Time:\n{" + d + "}"
 
 			label = f"ID: {self.id}\n"  # ""
 			if state:
@@ -139,10 +142,13 @@ class StrategyViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	def dot_info_str(self):
-		label = f" [label=\"Probability: {round(self.probability, 2)}\nImpacts: {self.impacts}\n"
-		label += f"EI: {np.round(self.probability*self.impacts, 2)}\n"
+		label = f" [label=\""
 		label += f"Time: {self.executed_time}\n"
-
+		label += f"Impacts: {self.impacts}\n"
+		if self.probability != 1:
+			label += f"Probability: {round(self.probability, 2)}\n"
+			label += f"Exp. Time: {round(self.expected_time, 2)}\n"
+			label += f"Exp. Impacts: {np.round(self.expected_impacts, 2)}\n"
 		if len(self.natures) > 0:
 			label += "Nature: "
 			for nature in list(self.natures):
@@ -188,16 +194,18 @@ class StrategyTree:
 		result += transition
 		result += "__start0 [label=\"\", shape=none];\n"
 
-		starting_node_ids = ""
+		starting_node_names = ""
 		for n in self.root.decisions:
-			starting_node_ids += f"{n.name if n.name else n.id};"
+			n = get_sequential_first_task(n)
+			node_name = n.name if n.name else n.id
+			starting_node_names += f"{node_name};"
 
 		if len(self.root.choices_natures) > 0:  #Just if we don't have choice
-			starting_node_ids = starting_node_ids[:-1] + "->"
+			starting_node_ids = starting_node_names[:-1] + "->"
 			for n in self.root.choices_natures:
 				starting_node_ids += f"{n.name if n.name else n.id};"
 
-		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
+		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_names[:-1]}\"];\n" + "}"
 		return result
 
 	def create_dot_graph(self, root: StrategyViewPoint, state: bool, executed_time: bool, diff: bool,

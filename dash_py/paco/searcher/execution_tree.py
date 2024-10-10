@@ -65,8 +65,8 @@ class ExecutionViewPoint:
 			result += f' [label=\"'
 
 			s, d = self.states.str(previous_node)
-			s = "q|s:{" + s + "}"
-			d = "q|delta:{" + d + "}"
+			s = "Execution State:\n{" + s + "}"
+			d = "Execution Time:\n{" + d + "}"
 
 			label = f"ID: {self.id}\n" # ""
 			if state:
@@ -90,9 +90,12 @@ class ExecutionViewPoint:
 		self.transitions[tuple(transition)] = subTree
 
 	def dot_cei_str(self):
-		label = f"CEI_td: {self.cei_top_down},\nCEI_bu: {self.cei_bottom_up}\n"
-		label += f"Impacts: {self.impacts}\n"
-		label += f"Probability: {self.probability}\n"
+		label = f"Impacts: {self.impacts}\n"
+		if self.probability != 1:
+			label += f"Probability: {round(self.probability, 2)}\n"
+		label += f"EI Current: {self.cei_top_down}\n"
+		if not self.is_final_state:
+			label += f"EI Max: {self.cei_bottom_up}\n"
 
 		choice_label = ""
 		nature_label = ""
@@ -113,6 +116,12 @@ class ExecutionViewPoint:
 				f" [label=\"{label}\", shape=rect];\n")
 				#f" [label=\"ID: {self.id} (cei_td: {self.cei_top_down},\ncei_bu: {self.cei_bottom_up})\", shape=rect];\n")
 
+
+def get_sequential_first_task(node: CNode):
+	if node.type == "sequential":
+		return get_sequential_first_task(node.children[0].root)
+
+	return node
 
 class ExecutionTree:
 	def __init__(self, root: ExecutionViewPoint):
@@ -143,16 +152,18 @@ class ExecutionTree:
 		result += transition
 		result += "__start0 [label=\"\", shape=none];\n"
 
-		starting_node_ids = ""
+		starting_node_names = ""
 		for n in self.root.decisions:
-			starting_node_ids += f"{n.name if n.name else n.id};"
+			n = get_sequential_first_task(n)
+			node_name = n.name if n.name else n.id
+			starting_node_names += f"{node_name};"
 
-		if len(self.root.choices_natures) > 0:  #Just if we don't have choice
-			starting_node_ids = starting_node_ids[:-1] + "->"
+		if len(self.root.choices_natures) > 0:  #Just if we don't have decisions
+			starting_node_names = starting_node_names[:-1] + "->"
 			for n in self.root.choices_natures:
-				starting_node_ids += f"{n.name if n.name else n.id};"
+				starting_node_names += f"{n.name if n.name else n.id};"
 
-		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_ids[:-1]}\"];\n" + "}"
+		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_names[:-1]}\"];\n" + "}"
 		return result
 
 	def create_dot_graph(self, root: ExecutionViewPoint, state: bool, executed_time: bool, diff: bool,

@@ -18,6 +18,7 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 	i = 0
 	found_optimal = False
+	bound = np.zeros(len(bpmn[IMPACTS_NAMES]), dtype=np.float64)
 	while True:
 		s = ""
 		for j in range(len(min_solutions)):

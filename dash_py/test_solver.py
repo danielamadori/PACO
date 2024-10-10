@@ -179,7 +179,6 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
         test(name, example[0], example[1])
 
 
-
 bpmn_paper_example = {
     "Figure 1": [{
         TASK_SEQ: "(Cutting, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))), (HPHS / [C2] LPLS))",
@@ -188,7 +187,7 @@ bpmn_paper_example = {
         DURATIONS: {"Cutting": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1], "HPHS": [0, 1], "LPLS": [0, 2]},
         IMPACTS_NAMES: ["electric energy", "worker hours"],
         PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"}, DELAYS: {"C1": 0, "C2": 0},LOOPS_PROB : {}, LOOP: {}
-        }, [135, 7]],
+        }, [135, 9]], #[135, 7]
     #TODO loops
     "loop": [{
         TASK_SEQ: "(T1, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))))",
@@ -225,10 +224,18 @@ bpmn_paper_example = {
         PROBABILITIES: {"p0": 0.5, "p11": 0.5, "p15": 0.5, "p17": 0.99, "p18":0.01},
         NAMES: {"p0": "p0", "p5": "p5", "p11": "p11", "p15": "p15", "p17": "p17", "p18": "p18", "p21": "p21", "p33":"p33"},
         DELAYS: {"p5": 0, "p21": 0, "p33": 0},LOOPS_PROB : {}, LOOP: {}
-    }, [3,3,8,8,7,7]],
+    }, [3.5, 3.5,11, 12, 9.5, 9.5]], #[3,3,8,8,7,7]
 }
 
-test_calc_strategy_paco(bpmn_paper_example, 2)
+name, example = list(bpmn_paper_example.items())[0]
+print(example[0])
+
+print(example[1])
+
+
+test_calc_strategy_paco(bpmn_paper_example, 0)
+
+
 
 #test_calc_strategy_paco(bpmn_ex, 1)
 

@@ -374,7 +374,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
         error = True
     else:
         try:
-            text_result, found, choices, name_svg = at.calc_strat(bpmn_lark, bound, algo)
+            text_result, expected_impacts, choices, name_svg = at.calc_strat(bpmn_lark, bound, algo)
         except Exception as e:
             error = True
             text_result = str(e)
@@ -392,7 +392,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
 
     strategy_d[BOUND] = list(cs.extract_values_bound(bound))
 
-    if not found:
+    if expected_impacts is None:
         return [None,
             dbc.Modal([
                         dbc.ModalHeader(dbc.ModalTitle("Strategy not found"),  class_name="bg-info"),
@@ -404,34 +404,26 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
     # TODO save the strategy for the download
     #strategy_d[STRATEGY] = ....
 
+    s = [
+        html.P(text_result),
+        html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
+        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME_IMAGE_SVG, target='_blank'),
+    ]
+
     if choices:
         navigate_tabs('go-to-show-strategy')
         list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
-        s = [
-            html.P(text_result),
-            html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
-            # download diagram as svg
-            html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME_IMAGE_SVG, target='_blank'),
-            dcc.Tabs(
-                children=[
-                    dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices
-                ]
-            ),
-        ]
+        s.append(dcc.Tabs(
+            children=[dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
+        ))
         if list_choices_excluded:
             s.append(dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'))
 
         return [html.Div(s), None, 'tab-7']
 
     #TODO: create the strategy tree
-    return [
-        html.Div([
-            html.P(text_result),
-            html.Iframe(src=name_svg, style={"height": "60vh", "width": "95vw", 'border':'none'}),
-            # download diagram as svg
-            html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME_IMAGE_SVG, target='_blank'),
-            dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'),
-        ]), None, 'tab-7']
+    s.append(dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'))
+    return [html.Div(s), None, 'tab-7']
 
 
 
