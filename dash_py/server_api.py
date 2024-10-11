@@ -2,10 +2,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
+
 from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
 from utils.print_sese_diagram import print_sese_diagram
-from utils.automa import calc_strat, calc_strategy_paco
-from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax
+from paco.solver import paco
+from utils.check_syntax import checkCorrectSyntax
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 # swaggerui al link  http://127.0.0.1:8000/docs
@@ -84,7 +85,12 @@ async def calc_strategy_paco_api(request: StrategyFounderAlgo):
         # if not check_algo_is_usable(request.bpmn, request.algo):
         #     return HTTPException(status_code=400, detail="The algorithm is not usable")
         print(request.bpmn, request.bound)
-        result = calc_strategy_paco(dict(request.bpmn), request.bound)# calc_strat(bpmn = request.bpmn, bound = request.bound, algo = request.algo)
+        #TODO ask emanuele
+        #Original
+        #result = paco_solver(dict(request.bpmn), request.bound)# calc_strat(bpmn = request.bpmn, bound = request.bound, algo = request.algo)
+        text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, name_svg = paco(dict(request.bpmn), request.bound)
+        result = {"error" : text_result}
+
         if result.get('error') != None:
             return HTTPException(status_code=400, detail=result.get('error'))
         return result

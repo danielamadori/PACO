@@ -1,10 +1,9 @@
-from lark import Tree, Token
 import numpy as np
-import pydot
 from pydot import *
 from PIL import Image
-from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, SESE_PARSER, RESOLUTION
-from solver.tree_lib import CTree, from_lark_parsed_to_custom_tree as Lark_to_CTree
+from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
+from paco.parser.tree_lib import CTree
+
 """
     funzioni prese dal notebook
 """
@@ -106,7 +105,7 @@ def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds
 
 def get_tasks(t):
     trees = [subtree for subtree in t.iter_subtrees()]
-    v = {subtree.children[0].value for subtree in   filter(lambda x: x.data == 'task', trees)}
+    v = {subtree.children[0].value for subtree in filter(lambda x: x.data == 'task', trees)}
     return v
 
 def dot_task(id, name, h=0, imp=None, dur=None, imp_names = []):

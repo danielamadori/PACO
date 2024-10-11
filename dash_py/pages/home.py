@@ -4,17 +4,14 @@ import os
 import dash
 from dash import html, dcc, Input, Output,State, callback
 import dash_bootstrap_components as dbc
-import dash_svg as svg
-import pandas as pd
-import plotly.express as px
+from utils.automa import check_input
 from utils.utils_preparing_diagram import *
 from utils import check_syntax as cs
 from utils import automa as at
 import json
-from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, PATH_AUTOMATON_IMAGE_SVG, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION, STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS
+from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION, \
+    STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, PATH_STRATEGY_TREE_TIME_IMAGE_SVG
 from utils.print_sese_diagram import print_sese_diagram
-#from solver.tree_lib import print_sese_custom_tree
-
 
 
 ##### AGGIUNGERE TABS dove una si mette tutto e l'altra si usa come visualizzatore
@@ -80,7 +77,7 @@ def layout():
                     ),
                     html.Div(id='output-data-upload'),
                     html.Br(),
-                    html.P("""Here is an example of a BPMN complete diagram: Task0, (Task1 || Task4), (Task3 ^ [C1] Task9, Task8 / [C2] Task2)"""),
+                    html.P("""Here is an example of a BPMN complete diagram: Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)"""),
                     html.Br(),
                     html.Div(id='loaded-bpmn-file'),
                     html.Br(),
@@ -357,60 +354,8 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                 ),'tab-6'
             ]
     print(bpmn_lark)
-    if cs.checkCorrectSyntax(bpmn_lark) and cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):  
-        print(bpmn_lark)   
-        strategy_d[BOUND] = list(cs.extract_values_bound(bound))
-        finded_strategies, list_choises, name_svg = at.calc_strat(bpmn_lark, bound, algo)
-        if finded_strategies == {}: 
-            return [None,
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader(dbc.ModalTitle("Strategy not found"),  class_name="bg-info"),
-                        dbc.ModalBody("No strategy found for the given bound. Try with another bound."),
-                    ],
-                    id="modal",
-                    is_open=True,
-                ),'tab-6'
-            ]
-        elif finded_strategies.get('error') != None:
-            return [None,
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),
-                        dbc.ModalBody(f"Error while calculating the strategy: {finded_strategies.get('error')}"),
-                    ],
-                    id="modal",
-                    is_open=True,
-                ),'tab-6'
-            ]
-        else:
-            strategy_d[STRATEGY] = finded_strategies['strat1']
-            if list_choises:
-                navigate_tabs('go-to-show-strategy')
-                list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(list_choises))
-                return [
-                    html.Div([
-                        html.P(f"Strategies: {finded_strategies['strat1']}"),
-                        html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
-                        # download diagram as svg
-                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
-                        dcc.Tabs(
-                            children=[
-                                dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in list_choises
-                            ]
-                        ),
-                        dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'), 
-                    ]), None, 'tab-7']
-            else:
-                return [
-                    html.Div([
-                        html.P(f"Strategies: {finded_strategies['strat1']}"),
-                        html.Iframe(src=name_svg, style={"height": "60vh", "width": "95vw", 'border':'none'}),
-                        # download diagram as svg
-                        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_AUTOMATON_IMAGE_SVG, target='_blank'),
-                        dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'),    
-                    ]), None, 'tab-7']
-    else:
+
+    if not cs.checkCorrectSyntax(bpmn_lark) or not cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):
         return [None,
                 dbc.Modal(
                     [
@@ -419,8 +364,67 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     ],
                     id="modal",
                     is_open=True,
-                ),'tab-6'
-            ]
+                ),'tab-6']
+
+    print(bpmn_lark)
+    text_result, bound = check_input(bpmn_lark, bound)
+
+    error = False
+    if text_result != "":
+        error = True
+    else:
+        try:
+            text_result, expected_impacts, choices, name_svg = at.calc_strat(bpmn_lark, bound, algo)
+        except Exception as e:
+            error = True
+            text_result = str(e)
+
+    if error:
+        print(str(datetime.now()) + " " + text_result)
+        return [None,
+                    dbc.Modal(
+                        [
+                            dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),
+                            dbc.ModalBody(f"Error while calculating the strategy: " + text_result),
+                        ],
+                        id="modal", is_open=True,
+                    ),'tab-6']
+
+    strategy_d[BOUND] = list(cs.extract_values_bound(bound))
+
+    if expected_impacts is None:
+        return [None,
+            dbc.Modal([
+                        dbc.ModalHeader(dbc.ModalTitle("Strategy not found"),  class_name="bg-info"),
+                        dbc.ModalBody("No strategy found for the given bound. Try with another bound.\n"+ text_result),
+                    ],
+                id="modal", is_open=True,
+            ),'tab-6']
+
+    # TODO save the strategy for the download
+    #strategy_d[STRATEGY] = ....
+
+    s = [
+        html.P(text_result),
+        html.Iframe(src=name_svg, style={'height': '100%', 'width': '100%'}),
+        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME_IMAGE_SVG, target='_blank'),
+    ]
+
+    if choices:
+        navigate_tabs('go-to-show-strategy')
+        list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+        s.append(dcc.Tabs(
+            children=[dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
+        ))
+        if list_choices_excluded:
+            s.append(dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'))
+
+        return [html.Div(s), None, 'tab-7']
+
+    #TODO: create the strategy tree
+    s.append(dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'))
+    return [html.Div(s), None, 'tab-7']
+
 
 
 #######################
