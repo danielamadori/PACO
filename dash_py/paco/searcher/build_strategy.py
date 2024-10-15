@@ -1,6 +1,6 @@
 import copy
 from paco.parser.tree_lib import CNode
-from paco.searcher.execution_tree import ExecutionTree
+from paco.execution_tree.execution_tree import ExecutionTree
 
 
 def build_strategy(frontier: list[ExecutionTree], strategy: dict[CNode, dict[CNode, set[ExecutionTree]]] = {}) -> (set[ExecutionTree], dict[CNode, dict[CNode, set[ExecutionTree]]]):

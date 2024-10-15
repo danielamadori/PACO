@@ -35,7 +35,7 @@ def dot_sese_diagram(t:CTree, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = 
         label = (r.type)
         code = ""
         child_ids = []
-        for i, c in enumerate(r.childrens):
+        for i, c in enumerate(r.children):
             if (label != 'natural' or i != 1) and (label != 'choice' or i != 1) and (label != 'loop_probability' or i !=0 ):
                 dot_code, enid, exid, tmp_exit_label = dot_sese_diagram(c, last_id, h, prob, imp, loops, dur, imp_names)
                 code += f'\n {dot_code}'
@@ -180,7 +180,7 @@ def dot_tree(t: CTree,imp_names, h=0, prob={}, imp={}, loops={}, token_is_task=T
         label = (r.type)
         code = ""
         child_ids = []
-        for i, c in enumerate(r.childrens):
+        for i, c in enumerate(r.children):
             dot_code = dot_tree(t=c, h=h, prob=prob, imp=imp,loops= loops, imp_names=imp_names)
             code += f'\n {dot_code}'
             child_ids.append(c.root.id)
@@ -188,7 +188,7 @@ def dot_tree(t: CTree,imp_names, h=0, prob={}, imp={}, loops={}, token_is_task=T
             # if r.max_delay == np.inf: dly_str = 'inf'
             # else: dly_str = str(r.max_delay)
             code += dot_exclusive_gateway(r.id, r.name) #+ ' dly:' + dly_str
-            code += dot_exclusive_gateway(r.childrens[1], r.name)
+            code += dot_exclusive_gateway(r.children[1], r.name)
         elif label == 'natural':
             code += dot_probabilistic_gateway(r.id)
         elif label == 'loop_probability':
@@ -200,7 +200,7 @@ def dot_tree(t: CTree,imp_names, h=0, prob={}, imp={}, loops={}, token_is_task=T
         edge_labels = ['','', ''] 
         if label == "natural":
             prob_key = r.probability
-            edge_labels = edge_labels = [f'{prob[prob_key] if prob_key  in prob else 0.5 }',
+            edge_labels = [f'{prob[prob_key] if prob_key  in prob else 0.5 }',
                            f'{round(1 - prob[prob_key], 2) if prob_key  in prob else 0.5 }'] 
         if label == "loop_probability":
             prob_key = r.probability

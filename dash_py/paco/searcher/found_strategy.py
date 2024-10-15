@@ -1,7 +1,7 @@
 import enum
 import random
 import numpy as np
-from paco.searcher.execution_tree import ExecutionTree
+from paco.execution_tree.execution_tree import ExecutionTree
 
 '''
 def compare_bound(cei: np.ndarray, bound: np.ndarray):
@@ -32,20 +32,17 @@ def pick(frontier: list[ExecutionTree], typeSearch: TypeSearch) -> ExecutionTree
 
 
 def natural_closure(tree: ExecutionTree, selected_tree: ExecutionTree) -> list[ExecutionTree]:
-	nats = [node for node in tree.root.choices_natures if node.type == 'natural']
 	frontier = []
-	#print("nat_nodes: ", [node.id for node in nat_nodes], "chose_id: ", [node.id for node in chose_id])
+	#print("nat_nodes: ", tree.root.natures, "chose_id: ", [node.id for node in chose_id])
 
 	for transition, next_child in tree.root.transitions.items():
-		check_nat = len(nats) == 0
+		check_nat = len(tree.root.natures) == 0
 		check_choice = len(selected_tree.root.decisions) != 0
 		for t in transition:
 			#print("t: ", t[0].type, t[0].id, t[1].id)
 			if t[0].type == 'natural':# and t[0] in nats:
-				#print("ok nat")
 				check_nat = True
 			elif t[0].type == 'choice' and t[1] not in selected_tree.root.decisions:
-				#print("not ok choice")
 				check_choice = False
 
 			if check_nat and not check_choice:
@@ -64,11 +61,14 @@ def frontier_info(frontier: list[ExecutionTree]) -> str:
 		for decision in tree.root.decisions:
 			decisions += str(decision.id) + ", "
 
-		choices_natures = ""
-		for choice_nature in tree.root.choices_natures:
-			choices_natures += str(choice_nature.id) + ", "
+		choices = ""
+		for choice in tree.root.choices:
+			choices += str(choice.id) + ", "
+		natures = ""
+		for nature in tree.root.natures:
+			natures += str(nature.id) + ", "
 
-		result += f"ID:{tree.root.id}:<<" + decisions[:-2] + ">,<" + choices_natures[:-2] + ">>, "
+		result += f"ID:{tree.root.id}:<<{decisions[:-2]}>,<{choices[:-2]}; {natures[:-2]}>>, "
 
 	return "[" + result[:-2] + "]"
 

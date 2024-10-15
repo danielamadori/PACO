@@ -33,7 +33,7 @@ bpmn_ex = {
         IMPACTS: {"Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
         DURATIONS: {"Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, NAMES: {}, DELAYS: {}, LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, NAMES: {"N":"N", "N1":"N1", "N2":"N2"}, DELAYS: {}, LOOPS_PROB : {}, LOOP: {}
     }, [23.3, 24.4]],
 
     "just task, no strategy (no choice)": [{
@@ -77,7 +77,7 @@ bpmn_ex = {
         IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
         DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {}, DELAYS: {}, LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOPS_PROB : {}, LOOP: {}
     }, [23.3, 24.4]],
 
     "bpmn_choices_natures": [{
@@ -227,13 +227,8 @@ bpmn_paper_example = {
     }, [3.5, 3.5,11, 12, 9.5, 9.5]], #[3,3,8,8,7,7]
 }
 
-name, example = list(bpmn_paper_example.items())[0]
-print(example[0])
 
-print(example[1])
-
-
-test_calc_strategy_paco(bpmn_paper_example, 0)
+test_calc_strategy_paco(bpmn_paper_example, 2)
 
 
 

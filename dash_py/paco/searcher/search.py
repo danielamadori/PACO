@@ -1,7 +1,8 @@
 from datetime import datetime
 import numpy as np
 
-from paco.searcher.execution_tree import ExecutionTree, write_execution_tree
+from paco.searcher.create_execution_tree import write_execution_tree
+from paco.execution_tree.execution_tree import ExecutionTree
 from paco.searcher.found_strategy import found_strategy
 from paco.searcher.build_strategy import build_strategy
 

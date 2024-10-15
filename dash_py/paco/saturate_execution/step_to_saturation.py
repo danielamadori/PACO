@@ -57,5 +57,4 @@ def steps_to_saturation(tree: CTree, states: States):
 
 		return min(dur_left, dur_right)
 
-	print("Error: Invalid type!")
-	raise Exception(root)
+	raise Exception("step_to_saturation:invalid type", root)

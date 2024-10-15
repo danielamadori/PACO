@@ -1,7 +1,7 @@
 import unittest
 import os
 from utils.create_custom_tree import create_custom_tree
-from paco.saturate_execution.saturate_execution import saturate_execution
+from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, states_info, ActivityState
 from paco.parser.tree_lib import CTree, CNode, print_parse_tree
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
@@ -28,7 +28,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_tasks")
 
         s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
@@ -57,7 +57,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_nature_task")
 
         s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
@@ -87,8 +87,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0,
                          "T3 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one nature")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
 
         multi_decisions = []
         multi_branches = []
@@ -116,7 +116,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_task_nature")
 
         s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
@@ -146,8 +146,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0,
                          "T3 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one nature")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
 
         multi_decisions = []
         multi_branches = []
@@ -175,7 +175,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_choice_task")
 
         s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
@@ -205,8 +205,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0,
                          "T3 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) +len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -234,7 +234,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
 
         self.info(custom_tree, states, "sequential_task_choice")
 
@@ -265,8 +265,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0,
                          "T3 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -296,7 +296,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_sequential_nature")
 
         s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
@@ -321,8 +321,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0, "T3 never increases its executed time")
         self.assertEqual(states.executed_time[t4.root], 0, "T4 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one nature")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
 
         multi_decisions = []
         multi_branches = []
@@ -350,7 +350,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_sequential_choice")
 
         s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
@@ -374,8 +374,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0, "T3 never increases its executed time")
         self.assertEqual(states.executed_time[t4.root], 0, "T4 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -403,7 +403,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_sequential_choice_delay")
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE, "The root should be active")
@@ -422,8 +422,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0, "T3 never increases its executed time")
         self.assertEqual(states.executed_time[t4.root], 0, "T4 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -453,7 +453,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_task1_eq_task2")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -482,7 +482,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_task1_lt_task2")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -510,7 +510,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_task1_gt_task2")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -539,7 +539,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_task")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -569,8 +569,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t1.root], 1,
                          "T1 should be completed at time 1")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -599,7 +599,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_lt_task")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
@@ -623,8 +623,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t1.root], 1,
                          "T1 should be completed at time 1")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -653,7 +653,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 2}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_gt_task")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
@@ -677,8 +677,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t1.root], 1,
                          "T1 should be completed at time 1")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) +len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -709,7 +709,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_natures")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -750,9 +750,9 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2b.root], 0,
                          "T2B never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 2, "There should be two natures")
-        self.assertEqual(choices_natures[0], n1.root, "One nature should be N1")
-        self.assertEqual(choices_natures[1], n2.root, "One nature should be N2")
+        self.assertEqual(len(choices) + len(natures), 2, "There should be two natures")
+        self.assertEqual(natures[0], n1.root, "One nature should be N1")
+        self.assertEqual(natures[1], n2.root, "One nature should be N2")
 
         multi_decisions = []
         multi_branches = []
@@ -805,7 +805,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 1}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_choice")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -845,9 +845,9 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2b.root], 0,
                          "T2B never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 2, "There should be two choices")
-        self.assertEqual(choices_natures[0], c1.root, "One choice should be C1")
-        self.assertEqual(choices_natures[1], c2.root, "One choice should be C2")
+        self.assertEqual(len(choices) + len(natures), 2, "There should be two choices")
+        self.assertEqual(choices[0], c1.root, "One choice should be C1")
+        self.assertEqual(choices[1], c2.root, "One choice should be C2")
 
         multi_decisions = []
         multi_branches = []
@@ -900,7 +900,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_lt_choice")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
@@ -932,8 +932,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2b.root], 0,
                          "T2B never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
+        self.assertEqual(len(choices) +len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -961,7 +961,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 2, "C2": 1}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_gt_choice")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
@@ -993,8 +993,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2b.root], 0,
                          "T2B never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one choice")
-        self.assertEqual(choices_natures[0], c2.root, "The choice should be C2")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], c2.root, "The choice should be C2")
 
         multi_decisions = []
         multi_branches = []
@@ -1022,7 +1022,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1", 'C2':'C2'}, DELAYS: {"C2": 0}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_nature_eq_choice")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -1062,9 +1062,9 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2b.root], 0,
                          "T2B never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 2, "There should be one nature and one choice")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
-        self.assertEqual(choices_natures[1], c2.root, "The choice should be c2")
+        self.assertEqual(len(choices) + len(natures), 2, "There should be one nature and one choice")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(choices[0], c2.root, "The choice should be c2")
 
         multi_decisions = []
         multi_branches = []
@@ -1117,7 +1117,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_lt_choice")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
@@ -1150,8 +1150,8 @@ class TestSaturateExecution(unittest.TestCase):
                          "T2B never increases its executed time")
 
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one choice")
+        self.assertEqual(choices[0], n1.root, "The choice should be C1")
 
         multi_decisions = []
         multi_branches = []
@@ -1180,7 +1180,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N2": 0.6, "N3": 0.7}, NAMES: {'C1':'C1', "N2":"N2", "N3":"N3"}, DELAYS: {"C1": 0}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_nature_eq_nature")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -1241,10 +1241,10 @@ class TestSaturateExecution(unittest.TestCase):
                          "T3B never increases its executed time")
 
 
-        self.assertEqual(len(choices_natures), 3, "There should be one choice and two nature")
-        self.assertEqual(choices_natures[0], c1.root, "The choice should be C1")
-        self.assertEqual(choices_natures[1], n2.root, "The nature should be N2")
-        self.assertEqual(choices_natures[2], n3.root, "The nature should be N2")
+        self.assertEqual(len(choices) + len(natures), 3, "There should be one choice and two nature")
+        self.assertEqual(choices[0], c1.root, "The choice should be C1")
+        self.assertEqual(natures[0], n2.root, "The nature should be N2")
+        self.assertEqual(natures[1], n3.root, "The nature should be N2")
 
         multi_decisions = []
         multi_branches = []
@@ -1361,7 +1361,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
 
         p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
@@ -1387,8 +1387,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0, "T3 never increases its executed time")
         self.assertEqual(states.executed_time[t4.root], 0, "T4 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one nature")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
 
         multi_decisions = []
         multi_branches = []
@@ -1416,7 +1416,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE, "The root should be active")
@@ -1435,8 +1435,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0, "T3 never increases its executed time")
         self.assertEqual(states.executed_time[t4.root], 0, "T4 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one nature")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
 
         multi_decisions = []
         multi_branches = []
@@ -1464,7 +1464,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
         })
-        states, choices_natures, branches = saturate_execution(custom_tree, States())
+        states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE, "The root should be active")
@@ -1483,8 +1483,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t3.root], 0, "T3 never increases its executed time")
         self.assertEqual(states.executed_time[t4.root], 0, "T4 never increases its executed time")
 
-        self.assertEqual(len(choices_natures), 1, "There should be one nature")
-        self.assertEqual(choices_natures[0], n1.root, "The nature should be N1")
+        self.assertEqual(len(choices) + len(natures), 1, "There should be one nature")
+        self.assertEqual(natures[0], n1.root, "The nature should be N1")
 
         multi_decisions = []
         multi_branches = []

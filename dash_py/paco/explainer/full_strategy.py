@@ -4,19 +4,22 @@ from itertools import product
 import numpy as np
 from paco.evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
-from paco.explainer.bdd import Bdd
-from paco.explainer.strategy_tree import StrategyTree, saturate_execution, StrategyViewPoint
-from paco.explainer.strategy_type import TypeStrategy
+from paco.explainer.bdd.bdd import Bdd
+from paco.explainer.strategy_tree import saturate_execution
+from paco.execution_tree.strategy_view_point import StrategyViewPoint
+from paco.explainer.explanation_type import ExplanationType
 from paco.saturate_execution.states import States, ActivityState
 from paco.parser.tree_lib import CTree, CNode
+from paco.execution_tree.view_point import view_point_node_info
+from paco.execution_tree.execution_tree import ExecutionTree
 
 
 def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, explainers: dict[CNode, Bdd], impacts: np.ndarray, states: States) -> (States, list[CNode]):
-	if len(strategyViewPoint.choices) == 0:
+	if len(strategyViewPoint.explained_choices) == 0:
 		return states, []
 
 	decisions = []
-	for choice in strategyViewPoint.choices.keys():
+	for choice in strategyViewPoint.explained_choices.keys():
 		arbitrary = choice not in explainers
 
 		if arbitrary:
@@ -30,15 +33,15 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 		else:
 			#print("Explaining choice: ", choice.name)
 			bdd = explainers[choice]
-			strategyViewPoint.choices[choice] = bdd
+			strategyViewPoint.explained_choices[choice] = bdd
 
-			if bdd.typeStrategy == TypeStrategy.CURRENT_IMPACTS:
+			if bdd.typeStrategy == ExplanationType.CURRENT_IMPACTS:
 				vector = impacts
 				#print("Current impacts: ", vector)
-			elif bdd.typeStrategy == TypeStrategy.UNAVOIDABLE_IMPACTS:
+			elif bdd.typeStrategy == ExplanationType.UNAVOIDABLE_IMPACTS:
 				vector = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
 				#print("Unavoidable impacts: ", vector)
-			elif bdd.typeStrategy == TypeStrategy.DECISION_BASED:
+			elif bdd.typeStrategy == ExplanationType.DECISION_BASED:
 				decisions, features_names = find_all_decisions(region_tree)
 				vector = evaluate_decisions(decisions, strategyViewPoint.states.activityState)
 				#print(f"Decisions:\n{features_names}\n{vector}")
@@ -100,12 +103,12 @@ def full_strategy(region_tree: CTree, explainers: dict[CNode, Bdd], impacts_size
 
 	strategyViewPoint = StrategyViewPoint(bpmn_root=region_tree.root, id=id, states=states,
 										  decisions=decisions_taken,
-										  choices={choice: None for choice in choices},  # Each choice is a key and the value is the bdd,
+										  choices=choices,
 										  natures=natures, is_final_state=is_final,
 										  impacts=impacts, probability=probability)
 
-	strategyTree = StrategyTree(strategyViewPoint)
-	#print(tree_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
+	strategyTree = ExecutionTree(strategyViewPoint)
+	print(view_point_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
 
 	if is_final:
 		return strategyTree, [strategyViewPoint], probability*impacts, probability*strategyViewPoint.executed_time, id

@@ -2,12 +2,12 @@ import copy
 import enum
 import numpy as np
 from paco.parser.tree_lib import CNode, CTree
-from paco.searcher.execution_tree import ExecutionTree
+from paco.execution_tree.execution_tree import ExecutionTree
 from paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
 from paco.evaluations.evaluate_impacts import evaluate_unavoidable_impacts
 
 
-class TypeStrategy(enum.IntEnum):
+class ExplanationType(enum.IntEnum):
 	CURRENT_IMPACTS = 0
 	UNAVOIDABLE_IMPACTS = 1
 	DECISION_BASED = 2

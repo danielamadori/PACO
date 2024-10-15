@@ -5,6 +5,8 @@ from itertools import product
 
 def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]):
 	choices_natures = []
+	choices = []
+	natures = []
 	node: CNode
 	for node in list(states.activityState.keys()):
 		if ((node.type == 'choice' or node.type == 'natural')
@@ -13,13 +15,17 @@ def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]
 				and states.activityState[node.children[0].root] == ActivityState.WAITING
 				and states.activityState[node.children[1].root] == ActivityState.WAITING):
 
+			if node.type == 'choice':
+				choices.append(node)
+			else:
+				natures.append(node)
 
 			choices_natures.append(node)
 			#print(f"create_branches:active_choice-nature:" + node_info(node, states))
 
 	branches = {}
 	if len(choices_natures) == 0:
-		return tuple(choices_natures), branches
+		return tuple(choices), tuple(natures), branches
 
 	branches_choices = list(product([True, False], repeat=len(choices_natures)))
 	#print(f"create_branches:cardinality:{choice_nature_dim}:combinations:{branches_choices}")
@@ -42,4 +48,4 @@ def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]
 
 		branches[tuple(decisions)] = branch_states
 
-	return tuple(choices_natures), branches
+	return tuple(choices), tuple(natures), branches

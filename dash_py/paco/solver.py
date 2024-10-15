@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 from paco.explainer.build_explained_strategy import build_explained_strategy
-from paco.explainer.strategy_type import TypeStrategy
+from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
 from paco.searcher.search import search
 from utils import check_syntax as cs
@@ -11,7 +11,7 @@ from datetime import datetime
 from utils.print_sese_diagram import print_sese_diagram
 
 
-def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, search_only=False, type_strategy=TypeStrategy.HYBRID):
+def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID):
     #print(f'{datetime.now()} Testing PACO...')
     print(f'{datetime.now()} Bound {bound}')
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration

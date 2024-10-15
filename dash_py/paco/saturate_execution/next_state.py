@@ -38,12 +38,12 @@ def next_state(tree: CTree, states: States, k: int) -> (States, int):
 
 		if root.type == 'natural':
 			if k > 0:
-				raise Exception("ExceedingStepsException:Natural")
+				raise Exception("next_state:ExceedingStepsException:Natural")
 			#print(f"next_state:Natural:k: 0")
 			return States(root, ActivityState.ACTIVE, 0), 0
 		else:
 			if states.executed_time[root] + k > root.max_delay:
-				raise Exception("ExceedingStepsException:Choice")
+				raise Exception("next_state:ExceedingStepsException:Choice")
 
 			#print(f"next_state:Choice:remaining_time == k: k={k}")
 			return States(root, ActivityState.ACTIVE, states.executed_time[root] + k), 0
@@ -115,5 +115,4 @@ def next_state(tree: CTree, states: States, k: int) -> (States, int):
 
 		return leftStates, min(leftK, rightK)
 
-	print("Error: Invalid type!")
-	raise Exception(root)
+	raise Exception(f"next_state:invalid type: ", root)

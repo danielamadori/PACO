@@ -3,14 +3,14 @@ import os
 import graphviz
 import numpy as np
 import pandas as pd
-from paco.explainer.dag_node import DagNode
-from paco.explainer.strategy_type import TypeStrategy
+from paco.explainer.bdd.dag_node import DagNode
+from paco.explainer.explanation_type import ExplanationType
 from paco.parser.tree_lib import CNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE
 
 
 class Bdd:
-	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list, typeStrategy:TypeStrategy):
+	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list, typeStrategy:ExplanationType):
 		self.choice = choice
 		self.class_0 = class_0
 		self.class_1 = class_1 # in case is NOT splittable is None
@@ -293,7 +293,7 @@ class Bdd:
 		else:
 			left_child, right_child = node.get_targets(node.best_test)
 
-			if self.typeStrategy != TypeStrategy.DECISION_BASED:
+			if self.typeStrategy != ExplanationType.DECISION_BASED:
 				dot.node(str(node), label=f"{node.best_test[0]} < {node.best_test[1]}", shape="ellipse")
 
 				#The left is always the true condition
