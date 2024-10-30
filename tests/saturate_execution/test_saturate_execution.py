@@ -1,10 +1,24 @@
 import unittest
 import os
-from utils.create_custom_tree import create_custom_tree
+
+from paco.parser.parse_tree import from_lark_parsed_to_custom_tree as Lark_to_CTree
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, states_info, ActivityState
 from paco.parser.tree_lib import CTree, CNode, print_parse_tree
-from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
+from utils import check_syntax as cs
+from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP, \
+    SESE_PARSER
+
+
+def create_custom_tree(bpmn: dict) -> CTree:
+    bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
+    custom_tree, last_id = Lark_to_CTree(
+        SESE_PARSER.parse(bpmn[TASK_SEQ]),
+        bpmn[PROBABILITIES], bpmn[IMPACTS],
+        bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS],
+        h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
+
+    return custom_tree
 
 
 class TestSaturateExecution(unittest.TestCase):
@@ -1506,3 +1520,5 @@ class TestSaturateExecution(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
