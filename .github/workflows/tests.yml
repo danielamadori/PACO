@@ -20,7 +20,7 @@ jobs:
 
     - name: Run tests
       env:
-        PYTHONPATH: ${{ github.workspace }}/tests
+        PYTHONPATH: ${{ github.workspace }}/tests:${{ github.workspace }}/src
       run: |
         python tests/saturate_execution/test_saturate_execution.py
         python tests/searcher/test_found_strategy.py
