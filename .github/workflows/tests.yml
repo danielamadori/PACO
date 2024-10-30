@@ -13,29 +13,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Create output directory and check permissions
-      - name: Create output directory and check permissions
-        run: |
-          mkdir -p output_files/saturate_execution
-          ls -ld output_files/saturate_execution
-
-      # Step 5: Run all unit tests
       - name: Run all unit tests
         run: |
-          python -m unittest discover -s tests -p "*.py" -v
+          python -m unittest discover -s tests -p "test_*.py" -v
