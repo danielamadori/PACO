@@ -23,13 +23,14 @@ def create_custom_tree(bpmn: dict) -> CTree:
 
 class TestSaturateExecution(unittest.TestCase):
     def info(self, custom_tree, states, name):
-        print_parse_tree(custom_tree, outfile=self.directory + name + ".png")
+        #print_parse_tree(custom_tree, outfile=self.directory + name + ".png")
         print(f"{name}:\n{states_info(states)}")
 
     def setUp(self):
-        self.directory = "output_files/saturate_execution/"
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
+        pass
+        #self.directory = "output_files/saturate_execution/"
+        #if not os.path.exists(self.directory):
+        #    os.makedirs(self.directory)
 
     # Sequential Tests
 
