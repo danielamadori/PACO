@@ -14,3 +14,4 @@ dash_svg
 dash
 fastapi
 pydantic
+redis
