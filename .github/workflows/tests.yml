@@ -34,4 +34,5 @@ jobs:
     
     - name: Run tests
       run: |
-        python -m unittest discover -s .
+        python tests/saturate_execution/test_saturate_execution.py
+        python tests/searcher/test_found_strategy.py
