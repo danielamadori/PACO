@@ -11,7 +11,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'
+        python-version: '3.12'
 
     - name: Install dependencies
       run: |
@@ -20,7 +20,7 @@ jobs:
 
     - name: Run tests
       env:
-        PYTHONPATH: ${{ github.workspace }}/tests:${{ github.workspace }}/src
+        PYTHONPATH: ${{ github.workspace }}/src
       run: |
-        python -m saturate_execution/test_saturate_execution.py
-        python -m searcher/test_found_strategy.py
+        python -m tests/saturate_execution/test_saturate_execution.py
+        python -m tests/searcher/test_found_strategy.py
