@@ -32,11 +32,6 @@ jobs:
       run: |
         ls -R
     
-    - name: Export PYTHONPATH and print its value
-      run: |
-        export PYTHONPATH="${{ github.workspace }}/tests"
-        echo "PYTHONPATH is set to: $PYTHONPATH"
-
     - name: Run tests
       run: |
-        python -m unittest discover -s tests
+        python -m unittest discover -s ./tests
