@@ -22,5 +22,5 @@ jobs:
       env:
         PYTHONPATH: ${{ github.workspace }}/tests:${{ github.workspace }}/src
       run: |
-        python -m tests/saturate_execution/test_saturate_execution.py
-        python -m tests/searcher/test_found_strategy.py
+        python -m saturate_execution/test_saturate_execution.py
+        python -m searcher/test_found_strategy.py
