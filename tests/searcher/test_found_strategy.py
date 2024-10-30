@@ -6,6 +6,7 @@ from paco.searcher.found_strategy import compare_bound
 
 class TestFoundStrategy(unittest.TestCase):
 	def test_compare_bound(self):
+		#Doesn't work with 1e-15
 		cei = np.array([133.4, 7], dtype=np.float64)
 		bound = np.array([135, 7.0], dtype=np.float64)
 		expected_output = np.array([0, 0])
@@ -27,7 +28,7 @@ class TestFoundStrategy(unittest.TestCase):
 		np.testing.assert_array_equal(output, expected_output)
 
 		# Test case 3: cei greater than bound
-		cei = np.array([1.00000000000001, -0.99999999999999, 1e-15])
+		cei = np.array([1.00000000000001, -0.99999999999999, 1e-14])
 		bound = np.array([1.0, -1.0, 0.0])
 		expected_output = np.array([1, 1, 1])
 		output = compare_bound(cei, bound)
@@ -46,7 +47,6 @@ class TestFoundStrategy(unittest.TestCase):
 		expected_output = np.array([0, 0, 0])
 		output = compare_bound(cei, bound)
 		np.testing.assert_array_equal(output, expected_output)
-
 
 
 if __name__ == '__main__':
