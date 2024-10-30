@@ -6,7 +6,7 @@ from paco.evaluations.evaluate_decisions import find_all_decisions, evaluate_dec
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
 from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.strategy_tree import saturate_execution
-from paco.execution_tree.strategy_view_point import StrategyViewPoint
+from paco.explainer.strategy_view_point import StrategyViewPoint
 from paco.explainer.explanation_type import ExplanationType
 from paco.saturate_execution.states import States, ActivityState
 from paco.parser.tree_lib import CTree, CNode
@@ -20,6 +20,7 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 
 	decisions = []
 	for choice in strategyViewPoint.explained_choices.keys():
+		#print("make_decisions:Choice: ", choice.name)
 		arbitrary = choice not in explainers
 
 		if arbitrary:
@@ -42,8 +43,8 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 				vector = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
 				#print("Unavoidable impacts: ", vector)
 			elif bdd.typeStrategy == ExplanationType.DECISION_BASED:
-				decisions, features_names = find_all_decisions(region_tree)
-				vector = evaluate_decisions(decisions, strategyViewPoint.states.activityState)
+				actual_decisions, features_names = find_all_decisions(region_tree)
+				vector = evaluate_decisions(actual_decisions, strategyViewPoint.states.activityState)
 				#print(f"Decisions:\n{features_names}\n{vector}")
 			else:
 				raise Exception("make_decisions: TypeStrategy not implemented: " + str(bdd.typeStrategy))
@@ -57,6 +58,7 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 		states.activityState[decision_true] = ActivityState.ACTIVE
 		states.activityState[decision_false] = ActivityState.WILL_NOT_BE_EXECUTED
 
+	#print("make_decisions:Decisions: ", [d.name if d.name else d.id for d in decisions])
 	return states, decisions
 
 
@@ -108,7 +110,7 @@ def full_strategy(region_tree: CTree, explainers: dict[CNode, Bdd], impacts_size
 										  impacts=impacts, probability=probability)
 
 	strategyTree = ExecutionTree(strategyViewPoint)
-	print(view_point_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
+	#print(view_point_node_info(strategyViewPoint), f"Impacts: {impacts}\n")
 
 	if is_final:
 		return strategyTree, [strategyViewPoint], probability*impacts, probability*strategyViewPoint.executed_time, id

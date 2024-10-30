@@ -55,9 +55,7 @@ class StrategyViewPoint(ViewPoint):
 		if len(self.explained_choices) > 0:
 			label += "Choice:\n"
 			for choice, bdd in self.explained_choices.items():
-				label += f"{choice.name}{'*' if bdd is None else ': '+ str(bdd.typeStrategy)}\n"
-			label = label[:-2]
-
+				label += f"{choice.name}: {'arbitrary' if bdd is None else str(bdd.typeStrategy)}\n"
 
 		label += "\", shape=rect];\n"
 		return (self.dot_str(full=False) + "_impact", label)

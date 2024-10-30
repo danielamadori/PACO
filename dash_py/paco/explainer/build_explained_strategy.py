@@ -13,13 +13,11 @@ def build_explained_strategy(parse_tree:CTree, strategy: dict[CNode, dict[CNode,
     t = datetime.now()
     worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy)
     t1 = datetime.now()
-    print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms\n")
+    print(f"{t1} Explain Strategy:completed: {(t1 - t).total_seconds()*1000} ms")
 
-    s = ""
+    s = f": {worst_type_strategy}"
     if type_strategy == ExplanationType.HYBRID:
-        s += f"with worst type of choice: {worst_type_strategy}\n"
-    else:
-        s += f": {worst_type_strategy}"
+        s = f"with worst type of choice{s}\n"
     print(f"{t1} Strategy {s}"+ "".join(f"{choice.name}:\t{bdd.typeStrategy}\n" for choice, bdd in bdds.items()))
 
     print(f'{t1} StrategyTree: ')

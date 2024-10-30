@@ -29,7 +29,7 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 def explain_strategy_full(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.CURRENT_IMPACTS) -> (ExplanationType, dict[CNode, Bdd]):
 	bdds = dict[CNode, Bdd]()
 	for choice, decisions_taken in strategy.items():
-		print(f"Explaining choice {choice.name}, using {typeStrategy} explainer:")
+		#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer:")
 		features_names = impacts_names
 
 		if typeStrategy == ExplanationType.CURRENT_IMPACTS:
@@ -39,16 +39,16 @@ def explain_strategy_full(region_tree: CTree, strategy: dict[CNode, dict[CNode, 
 		elif typeStrategy == ExplanationType.DECISION_BASED:
 			features_names, vectors, labels = decision_based(region_tree, decisions_taken)
 		else:
-			raise Exception("Impossible to explain")
+			raise Exception(f"Choice {choice.name} is impossible to explain")
 
 		bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
 
 		if bdd is None:
-			print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
+			#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
 			return explain_strategy(region_tree, strategy, impacts_names, ExplanationType(typeStrategy + 1))
 
 		bdds[choice] = bdd
-		print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: done")
+		#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: done")
 
 	return typeStrategy, bdds
 
@@ -67,24 +67,24 @@ def explain_strategy_hybrid(region_tree: CTree, strategy: dict[CNode, dict[CNode
 			vectors, labels = current_impacts(decisions_taken)
 			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
 			if bdd is None:
-				print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
+				#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
 				typeStrategy = ExplanationType(typeStrategy + 1)
 
 		if typeStrategy == ExplanationType.UNAVOIDABLE_IMPACTS:
 			vectors, labels = unavoidable_impacts(region_tree, decisions_taken)
 			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
 			if bdd is None:
-				print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
+				#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
 				typeStrategy = ExplanationType(typeStrategy + 1)
 
 		if typeStrategy == ExplanationType.DECISION_BASED:
 			features_names, vectors, labels = decision_based(region_tree, decisions_taken)
 			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
 			if bdd is None:
-				raise Exception("Impossible to explain")
+				raise Exception(f"Choice {choice.name} is impossible to explain")
 
 		bdds[choice] = bdd
-		print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: done")
+		#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: done")
 
 		if worstType < typeStrategy:
 			worstType = typeStrategy
