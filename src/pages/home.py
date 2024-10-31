@@ -447,7 +447,8 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
     prevent_initial_call=True,
 )
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
-    print(bpmn_lark)
+    print(f'{datetime.now()}: create_sese_diagram')
+
     if not bpmn_lark:
         return [ None, None, bpmn_lark]
     #check the syntax of the input if correct print the diagram otherwise an error message
@@ -473,7 +474,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 ),
                 None, bpmn_lark
             ]
-    print(impacts)
+    print("Impacts names: ", impacts)
     try:
         bpmn_lark[IMPACTS] = cs.extract_impacts_dict(bpmn_lark[IMPACTS_NAMES], impacts_table) 
         #print(bpmn_lark[IMPACTS])
@@ -509,16 +510,16 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 None, bpmn_lark
             ]
     try:
-        list_choises = cs.extract_choises(task)        
-        loops_chioses = cs.extract_loops(task) 
-        choises_nat = cs.extract_choises_nat(task) + loops_chioses
-        bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choises_nat, probabilities)
-        bpmn_lark[PROBABILITIES], bpmn_lark[LOOPS_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_chioses)
-        bpmn_lark[NAMES] = cs.create_probabilities_names(list_choises)
+        list_choices = cs.extract_choises(task)
+        loops_choices = cs.extract_loops(task)
+        choices_nat = cs.extract_choises_nat(task) + loops_choices
+        bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choices_nat, probabilities)
+        bpmn_lark[PROBABILITIES], bpmn_lark[LOOPS_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_choices)
+        bpmn_lark[NAMES] = cs.create_probabilities_names(list_choices)
         bpmn_lark[DELAYS] = cs.create_probabilities_dict(cs.extract_choises_user(task), delays)
-        bpmn_lark[LOOP] = cs.create_probabilities_dict(loops_chioses,loops)
+        bpmn_lark[LOOP] = cs.create_probabilities_dict(loops_choices,loops)
     except Exception as e:
-        print(f'Error at 1st step while parsing the BPMN choises: {e}')
+        print(f'Error at 1st step while parsing the BPMN choices: {e}')
         return [
                 dbc.Modal(
                     [
