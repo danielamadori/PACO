@@ -20,4 +20,4 @@ app.layout = html.Div([
     ], style={'padding':'30px'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port="8050", dev_tools_hot_reload=False) #run_server()# 127.0.0.1 0.0.0.0 http://157.27.86.122:8050/
+    app.run(debug=True, host="0.0.0.0", port=8050, dev_tools_hot_reload=False) #run_server()# 127.0.0.1 0.0.0.0 http://157.27.86.122:8050/
