@@ -1,13 +1,7 @@
 lark
 pydot
-pillow
-nbformat
-ipython
 numpy
-aalpy
 graphviz
-networkx
-matplotlib
 dash-bootstrap-components
 pandas
 dash_svg
