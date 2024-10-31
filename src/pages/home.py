@@ -543,7 +543,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
             # add tree creation in a store!
             return [None, name_svg, bpmn_lark]
         except Exception as e:
-            return [ #dbc.Alert(f'Error while creating the diagram: {e}', color="danger")
+            return [
                     dbc.Modal(
                         [
                             dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),

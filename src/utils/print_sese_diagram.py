@@ -1,11 +1,8 @@
 from lark import Tree, Token
 import pydot
-from pydot import *
 from PIL import Image
 from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, SESE_PARSER, RESOLUTION
-"""
-    funzioni prese dal notebook
-"""
+
 def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_LARK, outfile_svg = PATH_IMAGE_BPMN_LARK_SVG,
                         graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={},):
     tree = SESE_PARSER.parse(expression)
@@ -20,7 +17,7 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     #print(graph)  
     graph.set('dpi', resolution_bpmn)
     graph.write_png(outfile)    
-    return  Image.open(outfile)   
+    return Image.open(outfile)
 
 def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
     exit_label = ''
