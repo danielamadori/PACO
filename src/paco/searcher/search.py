@@ -21,7 +21,7 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
         return expected_impacts, possible_min_solution, solutions, None
 
     print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{expected_impacts}")
-    write_execution_tree(execution_tree, frontier_solution)
+    #write_execution_tree(execution_tree, frontier_solution)
 
     print(f'{datetime.now()} BuildStrategy:')
     t = datetime.now()
