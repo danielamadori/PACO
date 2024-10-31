@@ -64,7 +64,11 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 	graph = graphs[0]
 
 	for e in frontier:
-		node = graph.get_node('"' + e.state_str() + '"')[0]
+		print("e:")
+		node = graph.get_node('"' + e.state_str() + '"')
+		if len(node) == 0:
+			raise Exception("Node of thee frontier not found in the dot file")
+		node = node[0]
 		node.set_style('filled')
 		node.set_fillcolor('lightblue')
 
@@ -81,13 +85,13 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 		os.makedirs(PATH_EXECUTION_TREE)
 	solution_tree.save_dot(PATH_AUTOMA_STATE_DOT, diff=False)
 	write_image(frontier, PATH_AUTOMA_STATE_DOT, svgPath=PATH_AUTOMA_STATE_IMAGE_SVG)#, PATH_AUTOMA_IMAGE)
-
+	print("1")
 	solution_tree.save_dot(PATH_AUTOMA_STATE_TIME_DOT, executed_time=True)
 	write_image(frontier, PATH_AUTOMA_STATE_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
-
+	print("2")
 	solution_tree.save_dot(PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, executed_time=True, diff=False)
 	write_image(frontier, PATH_AUTOMA_STATE_TIME_EXTENDED_DOT, svgPath=PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG)#, PATH_AUTOMA_TIME_EXTENDED_IMAGE)
-
+	print("3")
 	solution_tree.save_dot(PATH_AUTOMA_TIME_DOT, state=False, executed_time=True)
 	write_image(frontier, PATH_AUTOMA_TIME_DOT, svgPath=PATH_AUTOMA_TIME_IMAGE_SVG)#, PATH_AUTOMA_TIME_IMAGE)
 

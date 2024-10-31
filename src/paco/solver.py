@@ -6,7 +6,7 @@ from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
 from paco.searcher.search import search
 from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS
+from utils.env import IMPACTS_NAMES, DURATIONS, PATH_IMAGE_BPMN_FOLDER, RELATIVE_PATH_IMAGE_BPMN_FOLDER
 from datetime import datetime
 from utils.print_sese_diagram import print_sese_diagram
 
@@ -17,12 +17,13 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
     #print(f'{datetime.now()} bpmn + cpi {bpmn}')
 
-    directory = "assets/bpmnSvg/"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    #TODO separate app from paco
+    if not os.path.exists(PATH_IMAGE_BPMN_FOLDER):
+        os.makedirs(PATH_IMAGE_BPMN_FOLDER)
 
-    name_svg =  directory + "bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-    print_sese_diagram(**bpmn, outfile_svg=name_svg)
+    name_svg =  f"bpmn_{str(datetime.timestamp(datetime.now()))}.svg"
+    print_sese_diagram(**bpmn, outfile_svg=PATH_IMAGE_BPMN_FOLDER + name_svg)
+    name_svg = RELATIVE_PATH_IMAGE_BPMN_FOLDER + name_svg
 
     if parse_tree is None or execution_tree is None:
         parse_tree, execution_tree = create(bpmn)
