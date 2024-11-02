@@ -1,5 +1,4 @@
 import numpy as np
-
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.execution_tree.view_point import ViewPoint
 from paco.explainer.bdd.bdd import Bdd
@@ -58,4 +57,4 @@ class StrategyViewPoint(ViewPoint):
 				label += f"{choice.name}: {'arbitrary' if bdd is None else str(bdd.typeStrategy)}\n"
 
 		label += "\", shape=rect];\n"
-		return (self.dot_str(full=False) + "_impact", label)
+		return (self.dot_str(full=False) + "__description", label)
