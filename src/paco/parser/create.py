@@ -21,6 +21,6 @@ def create(bpmn: dict):
     evaluate_cumulative_expected_impacts(execution_tree)
     t1 = datetime.now()
     print(f"{t1} CreateExecutionTree:CEI evaluated: {(t1 - t).total_seconds()*1000} ms")
-    write_execution_tree(execution_tree)
+    #write_execution_tree(execution_tree)
 
     return parse_tree, execution_tree
