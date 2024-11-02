@@ -1,0 +1,18 @@
+version: '3'
+services:
+  redis:
+    image: "redis:latest"
+    container_name: "redis_server"
+    ports:
+      - "6379:6379"
+
+  paco_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "paco_app"
+    ports:
+      - "8050:8050"
+    depends_on:
+      - redis
+    command: ["./start.sh"]
