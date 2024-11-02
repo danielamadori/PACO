@@ -63,10 +63,14 @@ def write_image(frontier: list[ExecutionTree], dotPath: str, svgPath: str = "", 
 	graphs = pydot.graph_from_dot_file(dotPath)
 	graph = graphs[0]
 
-	for e in frontier:
-		node = graph.get_node('"' + e.state_str() + '"')[0]
-		node.set_style('filled')
-		node.set_fillcolor('lightblue')
+	for tree in frontier:
+		node = tree.root
+		dot_node = graph.get_node(str(node.id))
+		if len(dot_node) == 0:
+			raise Exception("Node of thee frontier not found in the dot file")
+		dot_node = dot_node[0]
+		dot_node.set_style('filled')
+		dot_node.set_fillcolor('lightblue')
 
 	if svgPath != "":
 		graph.write_svg(svgPath)

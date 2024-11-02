@@ -10,7 +10,8 @@ from utils import check_syntax as cs
 from utils import automa as at
 import json
 from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION, \
-    STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, PATH_STRATEGY_TREE_TIME_IMAGE_SVG
+    STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, PATH_STRATEGY_TREE_TIME_IMAGE_SVG, \
+    PATH_IMAGE_BPMN_FOLDER, RELATIVE_PATH_IMAGE_BPMN_FOLDER, RELATIVE_PATH_IMAGE_BPMN_LARK_SVG
 from utils.print_sese_diagram import print_sese_diagram
 
 
@@ -137,7 +138,7 @@ def layout():
                     # ),
                     html.Br(),
                     # download diagram as svg
-                    html.A('Download diagram as SVG', id='download-diagram', download='diagram.svg', href=PATH_IMAGE_BPMN_LARK_SVG, target='_blank'),
+                    html.A('Download diagram as SVG', id='download-diagram', download='diagram.svg', href=RELATIVE_PATH_IMAGE_BPMN_LARK_SVG, target='_blank'),
                     html.Br(),
                     dbc.Button('Back', id='back-to-load-cpi'),
                     dbc.Button('Next', id='go-to-define-strategy'),
@@ -540,15 +541,14 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
         bpmn_lark[TASK_SEQ] = bpmn_lark[TASK_SEQ].replace("\n", "").replace("\t", "")
         print(f'bpmn in printing {bpmn_lark}')
         try:
-            bpmn_svg_folder = "assets/bpmnSvg/"
-            if not os.path.exists(bpmn_svg_folder):
-                os.makedirs(bpmn_svg_folder)
+            if not os.path.exists(PATH_IMAGE_BPMN_FOLDER):
+                os.makedirs(PATH_IMAGE_BPMN_FOLDER)
             # Create a new SESE Diagram from the input
-            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
-            print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
+            name_svg =  f"bpmn_{str(datetime.timestamp(datetime.now()))}.svg"
+            print_sese_diagram(**bpmn_lark, outfile_svg=PATH_IMAGE_BPMN_FOLDER + name_svg)
             bpmn_lark[H] = 0
             # add tree creation in a store!
-            return [None, name_svg, bpmn_lark]
+            return [None, RELATIVE_PATH_IMAGE_BPMN_FOLDER + name_svg, bpmn_lark]
         except Exception as e:
             return [
                     dbc.Modal(
