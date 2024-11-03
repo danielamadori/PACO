@@ -286,7 +286,7 @@ def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
-        print(filename)
+        print("Json:", filename)
         if 'json' in filename:
             # Assume that the user uploaded a json file
             data = json.loads(decoded)
@@ -356,7 +356,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     is_open=True,
                 ),'tab-6'
             ]
-    print(bpmn_lark)
+    #print(bpmn_lark)
 
     if not cs.checkCorrectSyntax(bpmn_lark) or not cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):
         return [None,
@@ -369,7 +369,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     is_open=True,
                 ),'tab-6']
 
-    print(bpmn_lark)
+    #print(bpmn_lark)
     text_result, bound = check_input(bpmn_lark, bound)
 
     error = False
@@ -450,8 +450,6 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
     prevent_initial_call=True,
 )
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
-    print(f'{datetime.now()}: create_sese_diagram')
-
     if not bpmn_lark:
         return [ None, None, bpmn_lark]
 

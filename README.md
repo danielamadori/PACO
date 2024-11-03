@@ -1,5 +1,21 @@
 # RESPISE 
+![Build Status](https://github.com/danielamadori98/PACO/actions/workflows/tests.yml/badge.svg)
+![License](https://img.shields.io/github/license/danielamadori98/PACO)
+![Docker Pulls](https://img.shields.io/docker/pulls/danielamadori/paco)
+![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/danielamadori98/PACO)
+![GitHub issues](https://img.shields.io/github/issues/danielamadori98/PACO)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/danielamadori98/PACO)
+![GitHub contributors](https://img.shields.io/github/contributors/danielamadori98/PACO)
+
+
 ## A strategy founder for *BPMN + CPI* 
+
+## Features
+
+- Models complex business processes with probabilistic decision points
+- Provides a strategy synthesis algorithm for BPMN+CPI diagrams
+- Web-based interface using Dash for visualizations
 
 ## Description
 
@@ -9,21 +25,47 @@ In the context of increasingly complex business processes, accurately modeling d
 RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact vector can determine if there exists a feasible strategy such that the process can be completed while remaining under the bound vector. Moreover, We explain the synthesized strategies to users by labeling choice gateways in the BPMN diagram, making the strategies more interpretable and actionable.
 ![alt text](image.png)
 
-## Installation
+## Prerequisites
 
-To install RESPISE, you need to download the folder, install the required python packages that can be found in the requirements.txt file.
+To run the application, you can use either **Python** or **Docker**. Only one of these is required.
 
-## Usage
+- **Python 3.12+**
+- **Docker**
 
-To use RESPISE, you can  follow these steps:
-1. Open a terminal or command prompt window.
-2. Navigate to the directory containing the unzipped folder.
-3. Run the Python script named "app.py" using the following syntax: 
+To install **Python**, follow the instructions on [Python's official website](https://www.python.org/downloads/). For **Docker**, you can find installation steps on [Docker's official website](https://docs.docker.com/get-docker/).
+
+---
+
+## Quick Start
+
+### Using Python
+
+To start the application using Python, follow these steps:
+
+1. Ensure all dependencies are installed:
     ```bash
-        python3 .\app.py
+    pip install -r requirements.txt
     ```
-4. Open Chrome (or any othe  browser supporting HTML5) and go to `http://127.0.0.1:8050`.
+2. Run the application:
+    ```bash
+    python3 src/app.py
+    ```
+3. Open a browser and go to `http://127.0.0.1:8050` to view the app.
 
+### Using Docker
+
+To start the application using Docker, follow these steps:
+
+1. Pull and start the Docker:
+    ```bash
+    docker pull danielamadori/paco:latest
+    docker run -d -p 8050:8050 -it --name PACO danielamadori/paco:latest
+    docker logs PACO
+    ```
+   Note: Replace latest with a specific version number if needed.
+2. Open a browser and navigate to `http://127.0.0.1:8050` to access the application.
+
+---
 NB! This application is currently under development. There may be some issues and bugs.
 
 ## Authors
