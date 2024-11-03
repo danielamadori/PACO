@@ -27,6 +27,8 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}
 
     - name: Update release with Docker image link
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         release_id=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }} | jq -r .id)
         docker_image_url="https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/paco/tags?page=1&name=${{ github.ref_name }}"
