@@ -6,7 +6,7 @@ from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
 from paco.searcher.search import search
 from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS, PATH_IMAGE_BPMN_FOLDER, RELATIVE_PATH_IMAGE_BPMN_FOLDER
+from utils.env import IMPACTS_NAMES, DURATIONS, PATH_IMAGE_BPMN_FOLDER
 from datetime import datetime
 from utils.print_sese_diagram import print_sese_diagram
 
@@ -21,9 +21,8 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
     if not os.path.exists(PATH_IMAGE_BPMN_FOLDER):
         os.makedirs(PATH_IMAGE_BPMN_FOLDER)
 
-    name_svg =  f"bpmn_{str(datetime.timestamp(datetime.now()))}.svg"
-    print_sese_diagram(**bpmn, outfile_svg=PATH_IMAGE_BPMN_FOLDER + name_svg)
-    name_svg = RELATIVE_PATH_IMAGE_BPMN_FOLDER + name_svg
+    name_svg =  PATH_IMAGE_BPMN_FOLDER + f"{PATH_IMAGE_BPMN_FOLDER}bpmn_{str(datetime.timestamp(datetime.now()))}.svg"
+    print_sese_diagram(**bpmn, outfile_svg=name_svg)
 
     if parse_tree is None or execution_tree is None:
         parse_tree, execution_tree = create(bpmn)

@@ -1,14 +1,14 @@
 import numpy as np
 from pydot import *
 from PIL import Image
-from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
+from utils.env import PATH_IMAGE_BPMN_PNG, PATH_IMAGE_BPMN_SVG, RESOLUTION
 from paco.parser.tree_lib import CTree
 
 """
     funzioni prese dal notebook
 """
-def print_sese_diagram_explainer(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_LARK, outfile_svg = PATH_IMAGE_BPMN_LARK_SVG,
-                        graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={}, explainer= False, choices_list =[]):  
+def print_sese_diagram_explainer(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, outfile=PATH_IMAGE_BPMN_PNG, outfile_svg = PATH_IMAGE_BPMN_SVG,
+                                 graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], resolution_bpmn = RESOLUTION, loop_round = {}, loops_prob={}, explainer= False, choices_list =[]):
     diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names, explainer = explainer, choices_list=choices_list)
     global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'
     dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
@@ -16,7 +16,7 @@ def print_sese_diagram_explainer(tree, h = 0, probabilities={}, impacts={}, loop
     graph = graphs[0]  
     print(graph)
     graph.write_svg(outfile_svg)
-    graph.write_svg(PATH_IMAGE_BPMN_LARK_SVG)
+    graph.write_svg(PATH_IMAGE_BPMN_SVG)
     #print(graph)  
     graph.set('dpi', resolution_bpmn)
     graph.write_png(outfile)    

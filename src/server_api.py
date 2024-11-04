@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-from utils.env import PATH_IMAGE_BPMN_LARK, PATH_IMAGE_BPMN_LARK_SVG, RESOLUTION
+from utils.env import PATH_IMAGE_BPMN_PNG, PATH_IMAGE_BPMN_SVG, RESOLUTION
 from utils.print_sese_diagram import print_sese_diagram
 from paco.solver import paco
 from utils.check_syntax import checkCorrectSyntax
@@ -56,22 +56,22 @@ async def get(request: BPMNPrinting):
         bpmn = request.bpmn
         print(bpmn)
         print_sese_diagram(expression=bpmn.expression,
-            h=bpmn.h, 
-            probabilities=bpmn.probabilities, 
-            impacts=bpmn.impacts, 
-            loop_thresholds=bpmn.loop_thresholds, 
-            outfile=PATH_IMAGE_BPMN_LARK, 
-            outfile_svg=PATH_IMAGE_BPMN_LARK_SVG,
-            graph_options=request.graph_options, 
-            durations=bpmn.durations, 
-            names=bpmn.names, 
-            delays=bpmn.delays, 
-            impacts_names=bpmn.impacts_names, 
-            resolution_bpmn=request.resolution_bpmn, 
-            loop_round=bpmn.loop_round, 
-            loops_prob=bpmn.loops_prob
-        )
-        return FileResponse(PATH_IMAGE_BPMN_LARK, media_type='image/png', filename='output.png')
+						   h=bpmn.h,
+						   probabilities=bpmn.probabilities,
+						   impacts=bpmn.impacts,
+						   loop_thresholds=bpmn.loop_thresholds,
+						   outfile=PATH_IMAGE_BPMN_PNG,
+						   outfile_svg=PATH_IMAGE_BPMN_SVG,
+						   graph_options=request.graph_options,
+						   durations=bpmn.durations,
+						   names=bpmn.names,
+						   delays=bpmn.delays,
+						   impacts_names=bpmn.impacts_names,
+						   resolution_bpmn=request.resolution_bpmn,
+						   loop_round=bpmn.loop_round,
+						   loops_prob=bpmn.loops_prob
+						   )
+        return FileResponse(PATH_IMAGE_BPMN_PNG, media_type='image/png', filename='output.png')
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
