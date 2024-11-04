@@ -1,5 +1,6 @@
 from datetime import datetime
-from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
+from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts, \
+    evaluate_min_max_impacts
 from paco.parser.parse_tree import create_parse_tree
 from paco.searcher.create_execution_tree import create_execution_tree, write_execution_tree
 from utils.env import IMPACTS_NAMES
@@ -12,9 +13,19 @@ def create(bpmn: dict):
     t1 = datetime.now()
     print(f"{t1} CreateParseTree:completed: {(t1 - t).total_seconds()*1000} ms")
 
-    print(f"{datetime.now()} CreateExecutionTree:")
+    print(f"{datetime.now()} Evaluate Min/Max decisions impacts:")
     t = datetime.now()
-    execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES])
+    decision_min_max_impacts = {}
+    evaluate_min_max_impacts(parse_tree, decision_min_max_impacts, len(bpmn[IMPACTS_NAMES]))
+    t1 = datetime.now()
+    print(f"{t1} Evaluate Min/Max decisions impacts:completed: {(t1 - t).total_seconds()*1000} ms")
+
+    for decision, impacts in decision_min_max_impacts.items():
+        print(f"Decision: {decision.name if decision.name is not None else decision.id}: {impacts[0] * impacts[2]}")
+
+    print(f"{t1} CreateExecutionTree:")
+    t = datetime.now()
+    execution_tree = create_execution_tree(parse_tree, decision_min_max_impacts, bpmn[IMPACTS_NAMES])
     t1 = datetime.now()
     print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
     t = datetime.now()

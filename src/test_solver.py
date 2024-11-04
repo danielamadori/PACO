@@ -228,11 +228,11 @@ bpmn_paper_example = {
 }
 
 
-test_calc_strategy_paco(bpmn_paper_example, 3)
+#test_calc_strategy_paco(bpmn_paper_example, 3)
 
 
-
-#test_calc_strategy_paco(bpmn_ex, 0)
+#5 - 8
+test_calc_strategy_paco(bpmn_ex, 8)
 
 #test_calc_strategy_paco(bpmn_ex, 0) #decision_based example
 #test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example

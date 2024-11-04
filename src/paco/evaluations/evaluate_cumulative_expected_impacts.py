@@ -1,5 +1,9 @@
 import copy
+
+import numpy as np
+
 from paco.execution_tree.execution_tree import ExecutionTree
+from paco.parser.tree_lib import CTree
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
@@ -59,27 +63,37 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 				root.cei_bottom_up[i] = choices_cei_bottom_up[c][i]
 
 
-'''
-def worst_impacts(tree: CTree, states: States):
+def evaluate_min_max_impacts(tree: CTree, decision_impacts: dict, impacts_size: int):
 	root = tree.root
-	#print(node_info(root, states))
-	if root in states.activityState and states.activityState[root] == ActivityState.WILL_NOT_BE_EXECUTED:
-		return States()
+	min_impacts = np.zeros(impacts_size, dtype=np.float64)
+	max_impacts = np.zeros(impacts_size, dtype=np.float64)
+	probability = 1.0
 
 	if root.type == 'task':
-		return States(root, ActivityState.COMPLETED, root.duration)
+		min_impacts += np.array(root.impact)
+		max_impacts += np.array(root.impact)
 
 	if root.type in ['sequential', 'parallel']:
-		result = States()
 		for child in root.children:
-			result.update(worst_impacts(child, states))
-		return result
+			probability, child_min_impacts, child_max_impacts = evaluate_min_max_impacts(child, decision_impacts, impacts_size)
+			probability += child_min_impacts
+			min_impacts += child_min_impacts
+			max_impacts += child_max_impacts
 
 	if root.type in ['choice', 'natural']:
-		for child in root.children:
-			#print(node_info(child.root, states))
-			if child.root in states.activityState and states.activityState[child.root] >= ActivityState.ACTIVE:
-				return worst_impacts(child, states)
+		sx_probability, sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(root.children[0], decision_impacts, impacts_size)
+		dx_probability, dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(root.children[1], decision_impacts, impacts_size)
 
-	return States()
-'''
+		probability = sx_probability + dx_probability
+		if root.type == 'natural':
+			sx_probability *= root.probability
+			dx_probability *= (1 - root.probability)
+			min_impacts = sx_child_min_impacts + dx_child_min_impacts
+			max_impacts = sx_child_max_impacts + dx_child_max_impacts
+		else:
+			min_impacts = np.minimum(sx_child_min_impacts, dx_child_min_impacts)
+			max_impacts = np.maximum(sx_child_max_impacts, dx_child_max_impacts)
+
+		decision_impacts[root] = (probability, min_impacts, max_impacts)
+
+	return probability, min_impacts, max_impacts

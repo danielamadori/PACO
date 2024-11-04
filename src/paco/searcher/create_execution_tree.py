@@ -13,13 +13,14 @@ from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_AUTOMA_STATE_DOT, PA
 	PATH_AUTOMA_STATE_TIME_EXTENDED_IMAGE_SVG, PATH_AUTOMA_TIME_DOT
 
 
-def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
+def create_execution_tree(region_tree: CTree, decision_min_max_impacts:dict, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
 	states, choices, natures, branches = saturate_execution_decisions(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	id = 0
 	solution_tree = ExecutionTree(ExecutionViewPoint(
 		id=id, states=states,
 		decisions=(region_tree.root,),
+		decision_min_max_impacts=decision_min_max_impacts,
 		choices=choices, natures=natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
 		impacts_names=impacts_names)
@@ -30,12 +31,12 @@ def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionT
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, id + 1, impacts_names)
+		id = create_execution_viewpoint(region_tree, decisions, decision_min_max_impacts, branch, solution_tree, id + 1, impacts_names)
 
 	return solution_tree
 
 
-def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
+def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], decision_min_max_impacts: dict, states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
 	saturatedStates, choices, natures, branches = saturate_execution_decisions(region_tree, states)
 	states.update(saturatedStates)
 
@@ -43,6 +44,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 		id=id,
 		states=states,
 		decisions=decisions,
+		decision_min_max_impacts=decision_min_max_impacts,
 		choices=choices, natures=natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
 		impacts_names=impacts_names,
@@ -55,7 +57,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], stat
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1, impacts_names)
+		id = create_execution_viewpoint(region_tree, decisions, decision_min_max_impacts, branch, next_node, id + 1, impacts_names)
 	return id
 
 
