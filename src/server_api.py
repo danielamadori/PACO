@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-from utils.env import PATH_IMAGE_BPMN_PNG, PATH_IMAGE_BPMN_SVG, RESOLUTION
+from utils.env import RESOLUTION, PATH_IMAGE_BPMN
 from utils.print_sese_diagram import print_sese_diagram
 from paco.solver import paco
 from utils.check_syntax import checkCorrectSyntax
@@ -56,12 +56,11 @@ async def get(request: BPMNPrinting):
         bpmn = request.bpmn
         print(bpmn)
         print_sese_diagram(expression=bpmn.expression,
+						   outfile=PATH_IMAGE_BPMN,
 						   h=bpmn.h,
 						   probabilities=bpmn.probabilities,
 						   impacts=bpmn.impacts,
 						   loop_thresholds=bpmn.loop_thresholds,
-						   outfile=PATH_IMAGE_BPMN_PNG,
-						   outfile_svg=PATH_IMAGE_BPMN_SVG,
 						   graph_options=request.graph_options,
 						   durations=bpmn.durations,
 						   names=bpmn.names,
@@ -71,7 +70,7 @@ async def get(request: BPMNPrinting):
 						   loop_round=bpmn.loop_round,
 						   loops_prob=bpmn.loops_prob
 						   )
-        return FileResponse(PATH_IMAGE_BPMN_PNG, media_type='image/png', filename='output.png')
+        return FileResponse(PATH_IMAGE_BPMN + '.png', media_type='image/png', filename='output.png')
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -88,7 +87,7 @@ async def calc_strategy_paco_api(request: StrategyFounderAlgo):
         #TODO ask emanuele
         #Original
         #result = paco_solver(dict(request.bpmn), request.bound)# calc_strat(bpmn = request.bpmn, bound = request.bound, algo = request.algo)
-        text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, name_svg = paco(dict(request.bpmn), request.bound)
+        text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices = paco(dict(request.bpmn), request.bound)
         result = {"error" : text_result}
 
         if result.get('error') != None:
