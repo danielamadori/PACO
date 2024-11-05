@@ -67,36 +67,33 @@ def evaluate_min_max_impacts(tree: CTree, decision_impacts: dict, impacts_size: 
 	root = tree.root
 	min_impacts = np.zeros(impacts_size, dtype=np.float64)
 	max_impacts = np.zeros(impacts_size, dtype=np.float64)
-	probability = 1.0
+
+	if root in decision_impacts:
+		return min_impacts, max_impacts
 
 	if root.type == 'task':
 		min_impacts += np.array(root.impact)
 		max_impacts += np.array(root.impact)
 
-	if root.type in ['sequential', 'parallel']:
+	elif root.type in ['sequential', 'parallel']:
 		for child in root.children:
-			child_probability, child_min_impacts, child_max_impacts = evaluate_min_max_impacts(child, decision_impacts, impacts_size)
-			probability += child_probability
+			child_min_impacts, child_max_impacts = evaluate_min_max_impacts(child, decision_impacts, impacts_size)
 			min_impacts += child_min_impacts
 			max_impacts += child_max_impacts
 
-	if root.type in ['choice', 'natural']:
-		sx_probability, sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(root.children[0], decision_impacts, impacts_size)
-		dx_probability, dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(root.children[1], decision_impacts, impacts_size)
+	elif root.type in ['choice', 'natural']:
+		sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(root.children[0], decision_impacts, impacts_size)
+		dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(root.children[1], decision_impacts, impacts_size)
 
 		if root.type == 'natural':
-			sx_probability *= root.probability
-			dx_probability *= (1 - root.probability)
-			min_impacts = sx_child_min_impacts + dx_child_min_impacts
-			max_impacts = sx_child_max_impacts + dx_child_max_impacts
-
-			probability = sx_probability + dx_probability
+			print("okayyyyy")
+			min_impacts = root.probability * sx_child_min_impacts + (1 - root.probability) * dx_child_min_impacts
+			max_impacts = root.probability * sx_child_max_impacts + (1 - root.probability) * dx_child_max_impacts
 		else:
 			min_impacts = np.minimum(sx_child_min_impacts, dx_child_min_impacts)
 			max_impacts = np.maximum(sx_child_max_impacts, dx_child_max_impacts)
-			probability = max(sx_probability, dx_probability)
 
 
-		decision_impacts[root] = (probability, min_impacts, max_impacts)
+	decision_impacts[root] = (min_impacts, max_impacts)
 
-	return probability, min_impacts, max_impacts
+	return min_impacts, max_impacts
