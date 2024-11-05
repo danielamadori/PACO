@@ -1,4 +1,4 @@
-# RESPISE 
+# RESPISE
 ![Build Status](https://github.com/danielamadori98/PACO/actions/workflows/tests.yml/badge.svg)
 ![License](https://img.shields.io/github/license/danielamadori98/PACO)
 ![Docker Pulls](https://img.shields.io/docker/pulls/danielamadori/paco)
@@ -9,7 +9,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/danielamadori98/PACO)
 
 
-## A strategy founder for *BPMN + CPI* 
+## A strategy founder for *BPMN + CPI*
 
 ## Features
 
@@ -19,7 +19,7 @@
 
 ## Description
 
-In the context of increasingly complex business processes, accurately modeling decision points, their probabilities, and resource utilization is essential for optimizing operations. To tackle this challenge, we propose an extension to the Business Process Model and Notation (BPMN) called BPMN+CPI. This extension incorporates choices, probabilities, and impacts, emphasizing precise control in business process management. Our approach introduces a timeline-based semantics for BPMN+CPI, allowing for the analysis of process flows and decision points over time. Notably, we assume that all costs, energies, and resources are positive and exhibit additive characteristics, leading to favorable computational properties. Real-world examples demonstrate the role of probabilistic decision models in resource management. 
+In the context of increasingly complex business processes, accurately modeling decision points, their probabilities, and resource utilization is essential for optimizing operations. To tackle this challenge, we propose an extension to the Business Process Model and Notation (BPMN) called BPMN+CPI. This extension incorporates choices, probabilities, and impacts, emphasizing precise control in business process management. Our approach introduces a timeline-based semantics for BPMN+CPI, allowing for the analysis of process flows and decision points over time. Notably, we assume that all costs, energies, and resources are positive and exhibit additive characteristics, leading to favorable computational properties. Real-world examples demonstrate the role of probabilistic decision models in resource management.
 
 ### Solver
 RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact vector can determine if there exists a feasible strategy such that the process can be completed while remaining under the bound vector. Moreover, We explain the synthesized strategies to users by labeling choice gateways in the BPMN diagram, making the strategies more interpretable and actionable.
@@ -48,7 +48,8 @@ To start the application using Python, follow these steps:
     ```
 2. Run the application:
     ```bash
-    python3 src/app.py
+    cd src
+    python3 app.py
     ```
 3. Open a browser and go to `http://127.0.0.1:8050` to view the app.
 
@@ -71,7 +72,7 @@ NB! This application is currently under development. There may be some issues an
 ## Authors
 
 * **Daniel Amadori**
-* **Emanuele Chini** 
+* **Emanuele Chini**
 * **Pietro Sala**
 * **Andrea Simonetti**
 * **Omid Zare**
