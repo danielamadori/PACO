@@ -1,13 +1,14 @@
 import numpy as np
 
+from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_min_max_impacts
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.tree_lib import CNode
+from paco.parser.tree_lib import CNode, CTree
 from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.view_point import ViewPoint
 
 
 class ExecutionViewPoint(ViewPoint):
-	def __init__(self, id: int, states: States, decisions: tuple[CNode], decision_min_max_impacts: dict, choices:tuple, natures: tuple,
+	def __init__(self, id: int, states: States, decisions: tuple[CNode], choices:tuple, natures: tuple,
 				 is_final_state: bool, impacts_names, parent: 'ExecutionTree' = None):
 
 		super().__init__(id, states, decisions, is_final_state, natures, choices, parent)
@@ -19,14 +20,32 @@ class ExecutionViewPoint(ViewPoint):
 		self.cei_max = self.probability * self.impacts
 		self.cei_min = self.probability * self.impacts
 
-		for choice in decision_min_max_impacts.keys():
-			is_actual_choice = choice not in choices or choice not in natures
-			if not is_actual_choice and (choice not in states.activityState or states.activityState[choice] == ActivityState.WAITING):
-				max_impact = decision_min_max_impacts[choice][0] * decision_min_max_impacts[choice][2]
-				min_impact = decision_min_max_impacts[choice][0] * decision_min_max_impacts[choice][1]
+		choices_probability = 1
+		min_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+		max_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+
+		for elem in (*choices, *natures):
+			decision_min_max_impacts = {}
+			p, min_imp, max_imp = evaluate_min_max_impacts(CTree(elem), decision_min_max_impacts, len(impacts_names))
+			for choice in decision_min_max_impacts.keys():
 				print(f"Choice {choice.name}: {decision_min_max_impacts[choice][2]}, p: {decision_min_max_impacts[choice][0]}")
-				self.cei_max += max_impact
-				self.cei_min += min_impact
+
+			choices_probability *= p
+			min_impacts += min_imp
+			max_impacts += max_imp
+
+			for choice in decision_min_max_impacts.keys():
+				print(f"Choice {choice.name}: {decision_min_max_impacts[choice][2]}, p: {decision_min_max_impacts[choice][0]}")
+				is_actual_choice = choice not in choices or choice not in natures
+				if not is_actual_choice and (choice not in states.activityState or states.activityState[choice] == ActivityState.WAITING):
+					max_impact = decision_min_max_impacts[choice][0] * decision_min_max_impacts[choice][2]
+					min_impact = decision_min_max_impacts[choice][0] * decision_min_max_impacts[choice][1]
+				#self.cei_max += max_impact
+				#self.cei_min += min_impact
+
+
+		self.cei_max += choices_probability * max_impacts
+		self.cei_min += choices_probability * min_impacts
 
 		print(f"Max impacts:{self.cei_max}")
 		print(f"Min impacts:{self.cei_min}\n")

@@ -75,8 +75,8 @@ def evaluate_min_max_impacts(tree: CTree, decision_impacts: dict, impacts_size: 
 
 	if root.type in ['sequential', 'parallel']:
 		for child in root.children:
-			probability, child_min_impacts, child_max_impacts = evaluate_min_max_impacts(child, decision_impacts, impacts_size)
-			probability += child_min_impacts
+			child_probability, child_min_impacts, child_max_impacts = evaluate_min_max_impacts(child, decision_impacts, impacts_size)
+			probability += child_probability
 			min_impacts += child_min_impacts
 			max_impacts += child_max_impacts
 
@@ -84,15 +84,18 @@ def evaluate_min_max_impacts(tree: CTree, decision_impacts: dict, impacts_size: 
 		sx_probability, sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(root.children[0], decision_impacts, impacts_size)
 		dx_probability, dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(root.children[1], decision_impacts, impacts_size)
 
-		probability = sx_probability + dx_probability
 		if root.type == 'natural':
 			sx_probability *= root.probability
 			dx_probability *= (1 - root.probability)
 			min_impacts = sx_child_min_impacts + dx_child_min_impacts
 			max_impacts = sx_child_max_impacts + dx_child_max_impacts
+
+			probability = sx_probability + dx_probability
 		else:
 			min_impacts = np.minimum(sx_child_min_impacts, dx_child_min_impacts)
 			max_impacts = np.maximum(sx_child_max_impacts, dx_child_max_impacts)
+			probability = max(sx_probability, dx_probability)
+
 
 		decision_impacts[root] = (probability, min_impacts, max_impacts)
 
