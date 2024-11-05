@@ -26,7 +26,8 @@ To start the application using Python, follow these steps:
     ```
 2. Run the application:
     ```bash
-    python3 src/app.py
+    cd src
+    python3 app.py
     ```
 3. Open a browser and go to `http://127.0.0.1:8050` to view the app.
 
