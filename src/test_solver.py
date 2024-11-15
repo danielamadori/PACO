@@ -161,7 +161,7 @@ bpmn_ex = {
 }
 def test(name, bpmn, bound):
     print('Type bpmn: ', name)
-    text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, name_svg = paco(bpmn, np.array(bound, dtype=np.float64))
+    text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices = paco(bpmn, np.array(bound, dtype=np.float64))
     print('Type bpmn: ', name)
 
 
