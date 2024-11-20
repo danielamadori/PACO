@@ -4,7 +4,11 @@ import os
 from paco.parser.parse_tree import parse as Lark_to_CTree, SESE_PARSER
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, states_info, ActivityState
+<<<<<<< HEAD
 from paco.parser.tree_lib import ParseTree, ParseNode, print_parse_tree, Sequential, Task
+=======
+from paco.parser.tree_lib import ParseTree, ParseNode, print_parse_tree
+>>>>>>> origin/RefactoringParseTree
 from utils import check_syntax as cs
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
 
