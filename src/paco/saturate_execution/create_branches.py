@@ -1,21 +1,22 @@
-from paco.parser.tree_lib import CNode
+from paco.parser.tree_lib import ParseNode, ExclusiveGateway, Choice
 from paco.saturate_execution.states import States, ActivityState
 from itertools import product
 
 
-def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]):
+def create_branches(states: States) -> (tuple[ParseNode], dict[tuple[ParseNode], States]):
 	choices_natures = []
 	choices = []
 	natures = []
-	node: CNode
+	node: ParseNode
 	for node in list(states.activityState.keys()):
-		if ((node.type == 'choice' or node.type == 'natural')
+		if (isinstance(node, ExclusiveGateway)
 				and states.activityState[node] == ActivityState.ACTIVE
-				and states.executed_time[node] == node.max_delay
-				and states.activityState[node.children[0].root] == ActivityState.WAITING
-				and states.activityState[node.children[1].root] == ActivityState.WAITING):
+				and states.activityState[node.sx_child] == ActivityState.WAITING
+				and states.activityState[node.dx_child] == ActivityState.WAITING):
 
-			if node.type == 'choice':
+			if isinstance(node, Choice):
+				if states.executed_time[node] < node.max_delay:
+					continue
 				choices.append(node)
 			else:
 				natures.append(node)
@@ -36,11 +37,11 @@ def create_branches(states: States) -> (tuple[CNode], dict[tuple[CNode], States]
 			node = choices_natures[i]
 
 			if branch_choices[i]:
-				activeNode = node.children[0].root
-				inactiveNode = node.children[1].root
+				activeNode = node.sx_child
+				inactiveNode = node.dx_child
 			else:
-				activeNode = node.children[1].root
-				inactiveNode = node.children[0].root
+				activeNode = node.dx_child
+				inactiveNode = node.sx_child
 
 			decisions.append(activeNode)
 			branch_states.activityState[activeNode] = ActivityState.ACTIVE

@@ -1,5 +1,5 @@
 import enum
-from paco.parser.tree_lib import CNode
+from paco.parser.tree_lib import ParseNode, Sequential, Parallel, Choice, Task
 from collections import defaultdict
 
 
@@ -15,14 +15,14 @@ class ActivityState(enum.IntEnum):
 
 
 class States:
-	def __init__(self, state: CNode = None, activityState: ActivityState = ActivityState.WAITING, executed_time: int = 0):
+	def __init__(self, state: ParseNode = None, activityState: ActivityState = ActivityState.WAITING, executed_time: int = 0):
 		self.activityState = defaultdict(lambda: ActivityState.WAITING)
 		self.executed_time = defaultdict(lambda: 0)
 
 		if state is not None:
 			self.add(state, activityState, executed_time)
 
-	def add(self, state: CNode, activityState: ActivityState, executed_time: int):
+	def add(self, state: ParseNode, activityState: ActivityState, executed_time: int):
 		self.activityState[state] = activityState
 		self.executed_time[state] = executed_time
 
@@ -52,13 +52,13 @@ class States:
 		return s + " | " + d
 
 
-def node_info(node: CNode, states: States):
-	name = "" if node.name is None else "name:" + node.name + '; '
-	result = f"id:{node.id}; {name}type:{node.type}; q|s: {states.activityState[node]}; q|delta: {states.executed_time[node]}; "
+def node_info(node: ParseNode, states: States):
+	name = "" if not (isinstance(node, Sequential) and isinstance(node, Parallel)) else "name:" + node.name + '; '
+	result = f"id:{node.id}; {name} q|s: {states.activityState[node]}; q|delta: {states.executed_time[node]}; "
 
-	if node.type == 'choice':
+	if isinstance(node, Choice):
 		result += f"delta: {node.max_delay}"
-	elif node.type == 'task':
+	elif isinstance(node, Task):
 		result += f"delta: {node.duration}"
 
 	return result

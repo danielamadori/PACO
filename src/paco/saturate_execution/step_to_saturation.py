@@ -1,59 +1,55 @@
 import math
-from paco.parser.tree_lib import CTree, CNode
-from paco.saturate_execution.states import States, ActivityState
+from paco.parser.tree_lib import ParseNode, Task, ExclusiveGateway, Choice, Sequential, Parallel
+from paco.saturate_execution.states import States, ActivityState, node_info
 
 
-def steps_to_saturation(tree: CTree, states: States):
-	root: CNode = tree.root
-	# print("step_to_saturation: " + node_info(root, states))
+def steps_to_saturation(root: ParseNode, states: States):
+	#print("step_to_saturation: " + node_info(root, states))
 
-	if root.type == 'task':
+	if isinstance(root, Task):
 		remaining_time = root.duration - states.executed_time[root]
 		#print("step_to_saturation:Task:remaining_time: ", remaining_time)
 		return remaining_time
 
-	leftSubTree = root.children[0]
-	rightSubTree = root.children[1]
-
-	if root.type == 'natural' or root.type == 'choice':
+	if isinstance(root, ExclusiveGateway):
 		# print("step_to_saturation:Natural/Choice: " + node_info(root, states))
-		# print("step_to_saturation:Natural/Choice:Left: " + node_info(leftSubTree.root, states))
-		# print("step_to_saturation:Natural/Choice:Right: " + node_info(rightSubTree.root, states))
+		# print("step_to_saturation:Natural/Choice:Left: " + node_info(root.sx_child, states))
+		# print("step_to_saturation:Natural/Choice:Right: " + node_info(root.dx_child, states))
 
-		if states.activityState[leftSubTree.root] == ActivityState.ACTIVE:
-			return steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
-			return steps_to_saturation(rightSubTree, states)
+		if states.activityState[root.sx_child] == ActivityState.ACTIVE:
+			return steps_to_saturation(root.sx_child, states)
+		if states.activityState[root.dx_child] == ActivityState.ACTIVE:
+			return steps_to_saturation(root.dx_child, states)
 
 		remaining_time = 0
-		if root.type == 'choice':
+		if isinstance(root, Choice):
 			remaining_time = root.max_delay - states.executed_time[root]
 		# print("step_to_saturation:Natural/Choice:remaining_time: ", remaining_time)
 		return remaining_time
 
 
-	if root.type == 'sequential':
+	if isinstance(root, Sequential):
 		#print("step_to_saturation:Sequential: " + node_info(root, states))
-		#print("step_to_saturation:Sequential:Left: " + node_info(leftSubTree.root, states))
-		#print("step_to_saturation:Sequential:Right: " + node_info(rightSubTree.root, states))
+		#print("step_to_saturation:Sequential:Left: " + node_info(root.sx_child, states))
+		#print("step_to_saturation:Sequential:Right: " + node_info(root.dx_child, states))
 
 		# If the activity state of left child is in active mode (it means that the activity is currently ongoing)
-		if states.activityState[rightSubTree.root] == ActivityState.ACTIVE:
-			return steps_to_saturation(rightSubTree, states)
+		if states.activityState[root.dx_child] == ActivityState.ACTIVE:
+			return steps_to_saturation(root.dx_child, states)
 		else:
-			return steps_to_saturation(leftSubTree, states)
+			return steps_to_saturation(root.sx_child, states)
 
-	if root.type == 'parallel':
+	if isinstance(root, Parallel):
 		#print("step_to_saturation:Parallel:  " + node_info(root, states))
-		#print("step_to_saturation:Parallel:Left: " + node_info(leftSubTree.root, states))
-		#print("step_to_saturation:Parallel:Right: " + node_info(rightSubTree.root, states))
+		#print("step_to_saturation:Parallel:Left: " + node_info(root.sx_child, states))
+		#print("step_to_saturation:Parallel:Right: " + node_info(root.dx_child, states))
 		dur_left = math.inf
 		dur_right = math.inf
 
-		if states.activityState[leftSubTree.root] < ActivityState.COMPLETED:
-			dur_left = steps_to_saturation(leftSubTree, states)
-		if states.activityState[rightSubTree.root] < ActivityState.COMPLETED:
-			dur_right = steps_to_saturation(rightSubTree, states)
+		if states.activityState[root.sx_child] < ActivityState.COMPLETED:
+			dur_left = steps_to_saturation(root.sx_child, states)
+		if states.activityState[root.dx_child] < ActivityState.COMPLETED:
+			dur_right = steps_to_saturation(root.dx_child, states)
 
 		return min(dur_left, dur_right)
 

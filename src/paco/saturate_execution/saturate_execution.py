@@ -1,11 +1,11 @@
-from paco.parser.tree_lib import CTree, CNode
+from paco.parser.tree_lib import ParseTree, ParseNode
 from paco.saturate_execution.create_branches import create_branches
 from paco.saturate_execution.next_state import next_state
-from paco.saturate_execution.states import States, ActivityState
+from paco.saturate_execution.states import States, ActivityState, states_info
 from paco.saturate_execution.step_to_saturation import steps_to_saturation
 
 # Saturation of the execution tree activating decisions nodes
-def saturate_execution_decisions(region_tree: CTree, states: States) -> (States, tuple[CNode], dict[tuple[CNode], States]):
+def saturate_execution_decisions(region_tree: ParseTree, states: States) -> (States, tuple[ParseNode], dict[tuple[ParseNode], States]):
 	branches = dict()
 	choices = tuple()
 	natures = tuple()
@@ -14,10 +14,10 @@ def saturate_execution_decisions(region_tree: CTree, states: States) -> (States,
 		#print("step_to_saturation:")
 		#print("start:", states_info(states))
 
-		k = steps_to_saturation(region_tree, states)
+		k = steps_to_saturation(region_tree.root, states)
 		#print('step_to_saturation:k:', k, states_info(states))
 
-		updatedStates, k = next_state(region_tree, states, k)
+		updatedStates, k = next_state(region_tree.root, states, k)
 		states.update(updatedStates)
 
 		#print('next_state:k:', k, states_info(states))

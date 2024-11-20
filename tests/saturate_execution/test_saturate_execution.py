@@ -1,36 +1,36 @@
 import unittest
 import os
 
-from paco.parser.parse_tree import from_lark_parsed_to_custom_tree as Lark_to_CTree
+from paco.parser.parse_tree import parse as Lark_to_CTree, SESE_PARSER
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, states_info, ActivityState
-from paco.parser.tree_lib import CTree, CNode
+from paco.parser.tree_lib import ParseTree, ParseNode, print_parse_tree
 from utils import check_syntax as cs
-from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP, \
-    SESE_PARSER
+from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
 
 
-def create_custom_tree(bpmn: dict) -> CTree:
+def create_custom_tree(bpmn: dict) -> ParseTree:
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
-    custom_tree, last_id = Lark_to_CTree(
+    root_parse_tree, last_id = Lark_to_CTree(
         SESE_PARSER.parse(bpmn[TASK_SEQ]),
         bpmn[PROBABILITIES], bpmn[IMPACTS],
         bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS],
         h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
 
-    return custom_tree
+    return ParseTree(root_parse_tree)
 
 
 class TestSaturateExecution(unittest.TestCase):
     def info(self, custom_tree, states, name):
-        #print_parse_tree(custom_tree, outfile=self.directory + name + ".png")
-        print(f"{name}:\n{states_info(states)}")
+        print_parse_tree(custom_tree, outfile=self.directory + name)
+        print("ok")
+        #print(f"{name}:\n{states_info(states)}")
 
     def setUp(self):
-        pass
-        #self.directory = "output_files/saturate_execution/"
-        #if not os.path.exists(self.directory):
-        #    os.makedirs(self.directory)
+        #pass
+        self.directory = "output_files/saturate_execution/"
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
 
     # Sequential Tests
 
@@ -46,9 +46,9 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_tasks")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 2, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 2, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
                          "The root should be completed without passing over")
@@ -75,11 +75,11 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_nature_task")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        n1 = CTree(CNode("N1", 0, "", 1, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 2, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 4, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        n1 = ParseTree(ParseNode("N1", 0, "", 1, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 2, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 4, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -134,11 +134,11 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_task_nature")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        n1 = CTree(CNode("N1", 0, "", 2, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 4, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        n1 = ParseTree(ParseNode("N1", 0, "", 2, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 4, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -193,11 +193,11 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_choice_task")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        c1 = CTree(CNode("C1", 0, "", 1, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 2, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 4, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        c1 = ParseTree(ParseNode("C1", 0, "", 1, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 2, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 4, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -253,11 +253,11 @@ class TestSaturateExecution(unittest.TestCase):
 
         self.info(custom_tree, states, "sequential_task_choice")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        c1 = CTree(CNode("C1", 0, "", 2, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 4, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        c1 = ParseTree(ParseNode("C1", 0, "", 2, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 4, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -314,12 +314,12 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_sequential_nature")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 2, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        n1 = CTree(CNode("N1", 0, "", 4, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 5, 0, 0, 0, 0))
-        t4 = CTree(CNode("T4", 0, "", 6, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 2, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        n1 = ParseTree(ParseNode("N1", 0, "", 4, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 5, 0, 0, 0, 0))
+        t4 = ParseTree(ParseNode("T4", 0, "", 6, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[s1.root], 1, "S1 should be executed with time 1")
@@ -368,12 +368,12 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "sequential_sequential_choice")
 
-        s1 = CTree(CNode("S1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 2, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        c1 = CTree(CNode("C1", 0, "", 4, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 5, 0, 0, 0, 0))
-        t4 = CTree(CNode("T4", 0, "", 6, 0, 0, 0, 0))
+        s1 = ParseTree(ParseNode("S1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 2, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        c1 = ParseTree(ParseNode("C1", 0, "", 4, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 5, 0, 0, 0, 0))
+        t4 = ParseTree(ParseNode("T4", 0, "", 6, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[s1.root], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[s1.root], 1, "S1 should be executed with time 1")
@@ -471,9 +471,9 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_task1_eq_task2")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 2, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 2, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
                          "The root should be completed without passing over")
@@ -500,9 +500,9 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_task1_lt_task2")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 2, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 2, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
                          "The root should be completed without passing over")
@@ -528,9 +528,9 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_task1_gt_task2")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 2, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 2, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
                          "The root should be completed without passing over")
@@ -557,11 +557,11 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_task")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        c1 = CTree(CNode("C1", 0, "", 1, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 4, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 2, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 3, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        c1 = ParseTree(ParseNode("C1", 0, "", 1, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 4, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 2, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 3, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -727,14 +727,14 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_natures")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        n1 = CTree(CNode("N1", 0, "", 1, 0, 0, 0, 0))
-        t1a = CTree(CNode("T1A", 0, "", 2, 0, 0, 0, 0))
-        t1b = CTree(CNode("T1B", 0, "", 3, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        n1 = ParseTree(ParseNode("N1", 0, "", 1, 0, 0, 0, 0))
+        t1a = ParseTree(ParseNode("T1A", 0, "", 2, 0, 0, 0, 0))
+        t1b = ParseTree(ParseNode("T1B", 0, "", 3, 0, 0, 0, 0))
 
-        n2 = CTree(CNode("N2", 0, "", 4, 0, 0, 0, 0))
-        t2a = CTree(CNode("T2A", 0, "", 5, 0, 0, 0, 0))
-        t2b = CTree(CNode("T2B", 0, "", 6, 0, 0, 0, 0))
+        n2 = ParseTree(ParseNode("N2", 0, "", 4, 0, 0, 0, 0))
+        t2a = ParseTree(ParseNode("T2A", 0, "", 5, 0, 0, 0, 0))
+        t2b = ParseTree(ParseNode("T2B", 0, "", 6, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -823,13 +823,13 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_choice")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        c1 = CTree(CNode("C1", 0, "", 1, 0, 0, 0, 0))
-        t1a = CTree(CNode("T1A", 0, "", 2, 0, 0, 0, 0))
-        t1b = CTree(CNode("T1B", 0, "", 3, 0, 0, 0, 0))
-        c2 = CTree(CNode("C2", 0, "", 4, 0, 0, 0, 0))
-        t2a = CTree(CNode("T2A", 0, "", 5, 0, 0, 0, 0))
-        t2b = CTree(CNode("T2B", 0, "", 6, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        c1 = ParseTree(ParseNode("C1", 0, "", 1, 0, 0, 0, 0))
+        t1a = ParseTree(ParseNode("T1A", 0, "", 2, 0, 0, 0, 0))
+        t1b = ParseTree(ParseNode("T1B", 0, "", 3, 0, 0, 0, 0))
+        c2 = ParseTree(ParseNode("C2", 0, "", 4, 0, 0, 0, 0))
+        t2a = ParseTree(ParseNode("T2A", 0, "", 5, 0, 0, 0, 0))
+        t2b = ParseTree(ParseNode("T2B", 0, "", 6, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -1040,13 +1040,13 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_nature_eq_choice")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        n1 = CTree(CNode("N1", 0, "", 1, 0, 0, 0, 0))
-        t1a = CTree(CNode("T1A", 0, "", 2, 0, 0, 0, 0))
-        t1b = CTree(CNode("T1B", 0, "", 3, 0, 0, 0, 0))
-        c2 = CTree(CNode("C2", 0, "", 4, 0, 0, 0, 0))
-        t2a = CTree(CNode("T2A", 0, "", 5, 0, 0, 0, 0))
-        t2b = CTree(CNode("T2B", 0, "", 6, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        n1 = ParseTree(ParseNode("N1", 0, "", 1, 0, 0, 0, 0))
+        t1a = ParseTree(ParseNode("T1A", 0, "", 2, 0, 0, 0, 0))
+        t1b = ParseTree(ParseNode("T1B", 0, "", 3, 0, 0, 0, 0))
+        c2 = ParseTree(ParseNode("C2", 0, "", 4, 0, 0, 0, 0))
+        t2a = ParseTree(ParseNode("T2A", 0, "", 5, 0, 0, 0, 0))
+        t2b = ParseTree(ParseNode("T2B", 0, "", 6, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -1198,17 +1198,17 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_choice_eq_nature_eq_nature")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        p2 = CTree(CNode("P2", 0, "", 1, 0, 0, 0, 0))
-        c1 = CTree(CNode("C1", 0, "", 2, 0, 0, 0, 0))
-        t1a = CTree(CNode("T1A", 0, "", 3, 0, 0, 0, 0))
-        t1b = CTree(CNode("T1B", 0, "", 4, 0, 0, 0, 0))
-        n2 = CTree(CNode("N2", 0, "", 5, 0, 0, 0, 0))
-        t2a = CTree(CNode("T2A", 0, "", 6, 0, 0, 0, 0))
-        t2b = CTree(CNode("T2B", 0, "", 7, 0, 0, 0, 0))
-        n3 = CTree(CNode("N3", 0, "", 8, 0, 0, 0, 0))
-        t3a = CTree(CNode("T3A", 0, "", 9, 0, 0, 0, 0))
-        t3b = CTree(CNode("T3B", 0, "", 10, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        p2 = ParseTree(ParseNode("P2", 0, "", 1, 0, 0, 0, 0))
+        c1 = ParseTree(ParseNode("C1", 0, "", 2, 0, 0, 0, 0))
+        t1a = ParseTree(ParseNode("T1A", 0, "", 3, 0, 0, 0, 0))
+        t1b = ParseTree(ParseNode("T1B", 0, "", 4, 0, 0, 0, 0))
+        n2 = ParseTree(ParseNode("N2", 0, "", 5, 0, 0, 0, 0))
+        t2a = ParseTree(ParseNode("T2A", 0, "", 6, 0, 0, 0, 0))
+        t2b = ParseTree(ParseNode("T2B", 0, "", 7, 0, 0, 0, 0))
+        n3 = ParseTree(ParseNode("N3", 0, "", 8, 0, 0, 0, 0))
+        t3a = ParseTree(ParseNode("T3A", 0, "", 9, 0, 0, 0, 0))
+        t3b = ParseTree(ParseNode("T3B", 0, "", 10, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE,
                          "The root should be active")
@@ -1379,12 +1379,12 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, branches = saturate_execution_decisions(custom_tree, States())
         self.info(custom_tree, states, "parallel_sequential_nature")
 
-        p1 = CTree(CNode("P1", 0, "", 0, 0, 0, 0, 0))
-        t1 = CTree(CNode("T1", 0, "", 1, 0, 0, 0, 0))
-        t2 = CTree(CNode("T2", 0, "", 3, 0, 0, 0, 0))
-        n1 = CTree(CNode("N1", 0, "", 4, 0, 0, 0, 0))
-        t3 = CTree(CNode("T3", 0, "", 5, 0, 0, 0, 0))
-        t4 = CTree(CNode("T4", 0, "", 6, 0, 0, 0, 0))
+        p1 = ParseTree(ParseNode("P1", 0, "", 0, 0, 0, 0, 0))
+        t1 = ParseTree(ParseNode("T1", 0, "", 1, 0, 0, 0, 0))
+        t2 = ParseTree(ParseNode("T2", 0, "", 3, 0, 0, 0, 0))
+        n1 = ParseTree(ParseNode("N1", 0, "", 4, 0, 0, 0, 0))
+        t3 = ParseTree(ParseNode("T3", 0, "", 5, 0, 0, 0, 0))
+        t4 = ParseTree(ParseNode("T4", 0, "", 6, 0, 0, 0, 0))
 
         self.assertEqual(states.activityState[p1.root], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[p1.root], 1, "P1 should be executed with time 1")

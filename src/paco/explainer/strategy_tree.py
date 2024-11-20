@@ -2,22 +2,22 @@ import os
 from paco.saturate_execution.next_state import next_state
 from paco.saturate_execution.states import States, ActivityState
 from paco.saturate_execution.step_to_saturation import steps_to_saturation
-from paco.parser.tree_lib import CNode, CTree
+from paco.parser.tree_lib import ParseNode, ParseTree, Choice, Nature
 from paco.searcher.create_execution_tree import write_image
 from paco.execution_tree.execution_tree import ExecutionTree
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, \
 	PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME
 
 
-def saturate_execution(region_tree: CTree, states: States) -> (States, bool, list[CNode], list[CNode]):
+def saturate_execution(region_tree: ParseTree, states: States) -> (States, bool, list[ParseNode], list[ParseNode]):
 	while states.activityState[region_tree.root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
 		#print("start:", states_info(states))
 
-		k = steps_to_saturation(region_tree, states)
+		k = steps_to_saturation(region_tree.root, states)
 		#print('step_to_saturation:k:', k, states_info(states))
 
-		updatedStates, k = next_state(region_tree, states, k)
+		updatedStates, k = next_state(region_tree.root, states, k)
 		states.update(updatedStates)
 
 		#print('next_state:k:', k, states_info(states))
@@ -25,19 +25,19 @@ def saturate_execution(region_tree: CTree, states: States) -> (States, bool, lis
 			raise Exception("StepsException" + str(k))
 
 		choices, natures = [], []
-		node: CNode
+		node: ParseNode
 		for node in list(states.activityState.keys()):
-			if (node.type == 'choice'
+			if (isinstance(node, Choice)
 					and states.activityState[node] == ActivityState.ACTIVE
 					and states.executed_time[node] == node.max_delay
-					and states.activityState[node.children[0].root] == ActivityState.WAITING
-					and states.activityState[node.children[1].root] == ActivityState.WAITING):
+					and states.activityState[node.sx_child] == ActivityState.WAITING
+					and states.activityState[node.dx_child] == ActivityState.WAITING):
 				choices.append(node)
 
-			if (node.type == 'natural'
+			if (isinstance(node, Nature)
 					and states.activityState[node] == ActivityState.ACTIVE
-					and states.activityState[node.children[0].root] == ActivityState.WAITING
-					and states.activityState[node.children[1].root] == ActivityState.WAITING):
+					and states.activityState[node.sx_child] == ActivityState.WAITING
+					and states.activityState[node.dx_child] == ActivityState.WAITING):
 				natures.append(node)
 
 		if len(choices) > 0 or len(natures) > 0:

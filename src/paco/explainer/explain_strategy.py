@@ -1,11 +1,11 @@
 import numpy as np
 from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.explanation_type import current_impacts, unavoidable_impacts, decision_based, ExplanationType
-from paco.parser.tree_lib import CNode, CTree
+from paco.parser.tree_lib import ParseNode, ParseTree
 from paco.execution_tree.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType) -> Bdd:
+def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType) -> Bdd:
 	decisions = list(decisions)
 	decision_0 = decisions[0]
 	decision_1 = None
@@ -26,8 +26,8 @@ def explain_choice(choice:CNode, decisions:list[CNode], impacts:list[np.ndarray]
 	return bdd
 
 
-def explain_strategy_full(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.CURRENT_IMPACTS) -> (ExplanationType, dict[CNode, Bdd]):
-	bdds = dict[CNode, Bdd]()
+def explain_strategy_full(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.CURRENT_IMPACTS) -> (ExplanationType, dict[ParseNode, Bdd]):
+	bdds = dict[ParseNode, Bdd]()
 	for choice, decisions_taken in strategy.items():
 		#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer:")
 		features_names = impacts_names
@@ -53,8 +53,8 @@ def explain_strategy_full(region_tree: CTree, strategy: dict[CNode, dict[CNode, 
 	return typeStrategy, bdds
 
 
-def explain_strategy_hybrid(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str]) -> (ExplanationType, dict[CNode, Bdd]):
-	bdds = dict[CNode, Bdd]()
+def explain_strategy_hybrid(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str]) -> (ExplanationType, dict[ParseNode, Bdd]):
+	bdds = dict[ParseNode, Bdd]()
 
 	worstType = ExplanationType.CURRENT_IMPACTS
 	for choice, decisions_taken in strategy.items():
@@ -92,7 +92,7 @@ def explain_strategy_hybrid(region_tree: CTree, strategy: dict[CNode, dict[CNode
 	return worstType, bdds
 
 
-def explain_strategy(region_tree: CTree, strategy: dict[CNode, dict[CNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.HYBRID) -> (ExplanationType, dict[CNode, Bdd]):
+def explain_strategy(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.HYBRID) -> (ExplanationType, dict[ParseNode, Bdd]):
 	if typeStrategy == ExplanationType.HYBRID:
 		return explain_strategy_hybrid(region_tree, strategy, impacts_names)
 

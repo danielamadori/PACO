@@ -2,8 +2,7 @@ import base64
 from datetime import datetime
 import os
 import dash
-from dash import html, dcc, Input, Output,State, callback
-import dash_bootstrap_components as dbc
+from dash import Input, Output,State, callback
 from utils.solver_selector import check_input
 from utils.utils_preparing_diagram import *
 from utils import check_syntax as cs
@@ -12,7 +11,7 @@ import json
 from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, \
     STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, \
     PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_IMAGE_BPMN
-from utils.print_sese_diagram import print_sese_diagram
+from paco.parser.print_sese_diagram import print_sese_diagram
 
 
 ##### AGGIUNGERE TABS dove una si mette tutto e l'altra si usa come visualizzatore

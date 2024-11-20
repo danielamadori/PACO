@@ -2,17 +2,17 @@ import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.execution_tree.view_point import ViewPoint
 from paco.explainer.bdd.bdd import Bdd
-from paco.parser.tree_lib import CNode
+from paco.parser.tree_lib import ParseNode
 from paco.saturate_execution.states import States
 
 
 class StrategyViewPoint(ViewPoint):
-	def __init__(self, bpmn_root: CNode, id: int, states: States, decisions: tuple[CNode], choices: dict[CNode:Bdd], natures: list[CNode],
+	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],
 				 is_final_state: bool, probability:float, impacts: np.ndarray, parent: ExecutionTree = None):
 		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), parent)
 
 		# Each choice is a key and the value is the bdd (None if arbitrary)
-		self.explained_choices: dict[CNode:Bdd] = {choice: None for choice in choices}
+		self.explained_choices: dict[ParseNode:Bdd] = {choice: None for choice in choices}
 		# initially all choices are arbitrary, will be updated using make_decisions
 
 		self.probability = probability
