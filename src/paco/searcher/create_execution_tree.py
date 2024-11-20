@@ -3,7 +3,7 @@ import os
 import pydot
 
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
-from paco.parser.tree_lib import CNode, CTree
+from paco.parser.tree_lib import ParseNode, ParseTree
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.execution_tree import ExecutionTree
@@ -11,7 +11,7 @@ from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_EXECUTION_TREE_STATE
 	PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME
 
 
-def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
+def create_execution_tree(region_tree: ParseTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
 	states, choices, natures, branches = saturate_execution_decisions(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	id = 0
@@ -33,7 +33,7 @@ def create_execution_tree(region_tree: CTree, impacts_names:list) -> (ExecutionT
 	return solution_tree
 
 
-def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
+def create_execution_viewpoint(region_tree: ParseTree, decisions: tuple[ParseNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
 	saturatedStates, choices, natures, branches = saturate_execution_decisions(region_tree, states)
 	states.update(saturatedStates)
 
@@ -78,7 +78,9 @@ def write_image(frontier: list[ExecutionTree], path: str):
 def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = [], PATH_AUTOMA_STATE_TIME=None):
 	if not os.path.exists(PATH_EXECUTION_TREE):
 		os.makedirs(PATH_EXECUTION_TREE)
+
 	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE + '.dot', diff=False)
+
 	write_image(frontier, PATH_EXECUTION_TREE_STATE)
 
 	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE_TIME + '.dot', executed_time=True)

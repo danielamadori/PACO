@@ -1,5 +1,5 @@
 from graphviz import Source
-from paco.parser.tree_lib import CNode
+from paco.parser.tree_lib import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
 
 
@@ -40,7 +40,7 @@ class ExecutionTree:
 			x = ""
 			for t in transition:
 				next = get_sequential_first_task(t[1])
-				x += str(t[0].name) + '->' + str(next.id if not next.name else next.name) + ';'
+				x += str(t[0].name) + '->' + str(next.id if (isinstance(next, Parallel) or isinstance(next, Sequential)) else next.name) + ';'
 			#x += str(t[0].id) + '->' + str(t[1].id) + ';'
 			#x += str(t)[1:-1].replace(',', '->') + ";"
 
@@ -67,7 +67,7 @@ class ExecutionTree:
 		starting_node_names = ""
 		for n in self.root.decisions:
 			n = get_sequential_first_task(n)
-			node_name = n.name if n.name else n.id
+			node_name = n.id if (isinstance(n, Parallel) or isinstance(n, Sequential)) else n.name
 			starting_node_names += f"{node_name};"
 
 		if len(self.root.choices) + len(self.root.natures) > 0:  #Just if we don't have decisions
@@ -81,8 +81,8 @@ class ExecutionTree:
 		return result
 
 
-def get_sequential_first_task(node: CNode):
-	if node.type == "sequential":
-		return get_sequential_first_task(node.children[0].root)
+def get_sequential_first_task(node: ParseNode):
+	if isinstance(node, Sequential):
+		return get_sequential_first_task(node.sx_child)
 
 	return node

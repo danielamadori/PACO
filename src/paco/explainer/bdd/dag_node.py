@@ -1,11 +1,11 @@
 import math
 import pandas as pd
-from paco.parser.tree_lib import CNode
+from paco.parser.tree_lib import ParseNode
 
 
 class DagNode:
 	# root ---- {('a', 2.5, True), ('b', 3.5, True)} ---->  index = {0,1,2}
-	def __init__(self, df: pd.DataFrame, class_0: CNode, class_1: CNode):
+	def __init__(self, df: pd.DataFrame, class_0: ParseNode, class_1: ParseNode):
 		self.df = df
 		self.index = frozenset(sorted(df.index.to_list()))# Needed for hashing
 		# edge: n --{(feature, threshold, lt),('a', 3.5, True)}--> n'

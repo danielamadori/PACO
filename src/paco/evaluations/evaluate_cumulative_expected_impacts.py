@@ -1,5 +1,6 @@
 import copy
 from paco.execution_tree.execution_tree import ExecutionTree
+from paco.parser.tree_lib import Choice
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
@@ -16,7 +17,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 
 		choices_transitions = []
 		for t in Transition:
-			if t[0].type == 'choice':
+			if isinstance(t[0], Choice):
 				onlyChoice = False
 				choices_transitions.append(t)
 

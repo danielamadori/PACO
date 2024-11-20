@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional
 
 from utils.env import RESOLUTION, PATH_IMAGE_BPMN
-from utils.print_sese_diagram import print_sese_diagram
+from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.solver import paco
 from utils.check_syntax import checkCorrectSyntax
 from fastapi.middleware.cors import CORSMiddleware
