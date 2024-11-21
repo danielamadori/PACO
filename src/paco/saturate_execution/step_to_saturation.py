@@ -1,5 +1,5 @@
 import math
-from paco.parser.tree_lib import ParseNode, Task, ExclusiveGateway, Choice, Sequential, Parallel
+from paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Choice, Task
 from paco.saturate_execution.states import States, ActivityState, node_info
 
 

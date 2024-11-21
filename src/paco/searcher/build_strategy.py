@@ -1,5 +1,5 @@
 import copy
-from paco.parser.tree_lib import ParseNode, Choice
+from paco.parser.parse_node import ParseNode, Choice
 from paco.execution_tree.execution_tree import ExecutionTree
 
 

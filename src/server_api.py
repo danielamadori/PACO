@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-from utils.env import RESOLUTION, PATH_IMAGE_BPMN
+from utils.env import RESOLUTION, PATH_BPMN
 from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.solver import paco
 from utils.check_syntax import checkCorrectSyntax
@@ -56,7 +56,7 @@ async def get(request: BPMNPrinting):
         bpmn = request.bpmn
         print(bpmn)
         print_sese_diagram(expression=bpmn.expression,
-						   outfile=PATH_IMAGE_BPMN,
+						   outfile=PATH_BPMN,
 						   h=bpmn.h,
 						   probabilities=bpmn.probabilities,
 						   impacts=bpmn.impacts,
@@ -70,7 +70,7 @@ async def get(request: BPMNPrinting):
 						   loop_round=bpmn.loop_round,
 						   loops_prob=bpmn.loops_prob
 						   )
-        return FileResponse(PATH_IMAGE_BPMN + '.png', media_type='image/png', filename='output.png')
+        return FileResponse(PATH_BPMN + '.png', media_type='image/png', filename='output.png')
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

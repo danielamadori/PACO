@@ -2,7 +2,7 @@ import enum
 import random
 import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.parser.tree_lib import Nature, Choice
+from paco.parser.parse_node import Choice, Nature
 
 '''
 def compare_bound(cei: np.ndarray, bound: np.ndarray):

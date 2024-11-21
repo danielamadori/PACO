@@ -3,7 +3,8 @@ import os
 import pydot
 
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
-from paco.parser.tree_lib import ParseNode, ParseTree
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.execution_tree import ExecutionTree

@@ -1,7 +1,8 @@
 import copy
 import enum
 import numpy as np
-from paco.parser.tree_lib import ParseNode, ParseTree
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
 from paco.evaluations.evaluate_impacts import evaluate_unavoidable_impacts

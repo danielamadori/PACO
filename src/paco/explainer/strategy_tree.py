@@ -2,7 +2,8 @@ import os
 from paco.saturate_execution.next_state import next_state
 from paco.saturate_execution.states import States, ActivityState
 from paco.saturate_execution.step_to_saturation import steps_to_saturation
-from paco.parser.tree_lib import ParseNode, ParseTree, Choice, Nature
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode, Choice, Nature
 from paco.searcher.create_execution_tree import write_image
 from paco.execution_tree.execution_tree import ExecutionTree
 from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, \

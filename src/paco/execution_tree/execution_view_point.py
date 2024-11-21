@@ -1,7 +1,7 @@
 import numpy as np
 
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.tree_lib import ParseNode
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States
 from paco.execution_tree.view_point import ViewPoint
 

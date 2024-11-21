@@ -4,7 +4,7 @@
 """
 from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, TASK_SEQ
 from paco.parser.grammar import ALL_SYNTAX
-from paco.parser.parse_tree import SESE_PARSER
+from paco.parser.bpmn_parser import SESE_PARSER
 import re
 import json
 from datetime import datetime

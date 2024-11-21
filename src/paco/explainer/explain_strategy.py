@@ -1,7 +1,8 @@
 import numpy as np
 from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.explanation_type import current_impacts, unavoidable_impacts, decision_based, ExplanationType
-from paco.parser.tree_lib import ParseNode, ParseTree
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 
 

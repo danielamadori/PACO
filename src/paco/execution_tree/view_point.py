@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 
-from paco.parser.tree_lib import ParseNode
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States, states_info
 
 

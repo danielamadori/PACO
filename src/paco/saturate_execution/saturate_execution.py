@@ -1,4 +1,5 @@
-from paco.parser.tree_lib import ParseTree, ParseNode
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.create_branches import create_branches
 from paco.saturate_execution.next_state import next_state
 from paco.saturate_execution.states import States, ActivityState, states_info

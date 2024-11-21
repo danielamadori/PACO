@@ -1,35 +1,6 @@
-import pydot
-from utils.env import PATH_PARSE_TREE
 from abc import ABC, abstractmethod
+import numpy as np
 
-class ParseTree:
-	def __init__(self, root: 'ParseNode(ABC)') -> None:
-		self.root = root
-
-	def copy(self) -> 'ParseTree':
-		return ParseTree(self.root.copy())
-
-	def dot_tree(self, root: 'ParseNode(ABC)' = None):
-		if root is None:
-			root = self.root
-
-		if isinstance(root, Task):
-			return root.dot()
-
-		dot_code = self.dot_tree(root.sx_child)
-		dot_code += self.dot_tree(root.dx_child)
-		dot_code += root.dot()
-
-		sx_edge_label = ''
-		dx_edge_label = ''
-		if isinstance(root, Nature):
-			sx_edge_label = f'{root.probability}'
-			dx_edge_label = f'{round((1 - root.probability), 2)}'
-
-		dot_code += f'\n node_{root.id} -> node_{root.sx_child.id} [label="{sx_edge_label}"];'
-		dot_code += f'\n node_{root.id} -> node_{root.dx_child.id} [label="{dx_edge_label}"];'
-
-		return dot_code
 
 class ParseNode(ABC):
 	# types = ['task', 'sequential', 'parallel', 'natural', 'choice', 'loop', 'loop_probability']
@@ -45,6 +16,10 @@ class ParseNode(ABC):
 	@abstractmethod
 	def copy(self) -> 'ParseNode(ABC)':
 		pass
+
+	@abstractmethod
+	def to_dict(self) -> dict:
+		return {"id": self.id, "type": self.__class__.__name__}
 
 	def __eq__(self, other: 'ParseNode(ABC)') -> bool:
 		if isinstance(other, Task) or isinstance(other, Sequential) or isinstance(other, Parallel) or isinstance(other, Nature) or isinstance(other, Choice):
@@ -72,6 +47,14 @@ class Gateway(ParseNode, ABC):
 	def set_children(self, sx_child:ParseNode, dx_child:ParseNode) -> None:
 		self.sx_child = sx_child
 		self.dx_child = dx_child
+
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({
+			"sx_child": self.sx_child.to_dict() if self.sx_child else None,
+			"dx_child": self.dx_child.to_dict() if self.dx_child else None,
+		})
+		return base
 
 
 class Sequential(Gateway):
@@ -105,6 +88,12 @@ class ExclusiveGateway(Gateway, ABC):
 		super().__init__(parent, index_in_parent, id)
 		self.name = name
 
+	@abstractmethod
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({"name": self.name})
+		return base
+
 
 class Choice(ExclusiveGateway):
 	def __init__(self, parent:Gateway, index_in_parent:int, id:int, name:str, max_delay:int) -> None:
@@ -119,11 +108,16 @@ class Choice(ExclusiveGateway):
 		root_copy.set_children(self.root.sx_child.copy(), self.root.dx_child.copy())
 		return root_copy
 
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({"max_delay": self.max_delay})
+		return base
+
 
 class Nature(ExclusiveGateway):
 	def __init__(self, parent:Gateway, index_in_parent:int, id:int, name:str, probability:float) -> None:
 		super().__init__(parent, index_in_parent, id, name)
-		self.probability = probability #of the sx_child
+		self.probability = np.float64(probability) #of the sx_child
 
 	def dot(self):
 		return f'\n node_{self.id}[shape=diamond label="{self.name} id:{self.id}" style="filled" fillcolor=yellowgreen];'
@@ -133,13 +127,18 @@ class Nature(ExclusiveGateway):
 		root_copy.set_children(self.root.sx_child.copy(), self.root.dx_child.copy())
 		return root_copy
 
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({"probability": self.probability})
+		return base
+
 
 class Task(ParseNode):
 	def __init__(self, parent:'Gateway', index_in_parent:int, id:int, name:str, impact:list, non_cumulative_impact:list, duration:int) -> None:
 		super().__init__(parent, index_in_parent, id)
 		self.name = name
-		self.impact = impact
-		self.non_cumulative_impact = non_cumulative_impact
+		self.impact = np.array(impact, dtype=np.float64)
+		self.non_cumulative_impact = np.array(non_cumulative_impact, dtype=np.float64)
 		self.duration = duration
 
 	def dot(self):
@@ -148,10 +147,12 @@ class Task(ParseNode):
 	def copy(self) -> 'Task':
 		return Task(self.parent.copy(), self.index_in_parent, self.id, self.name, self.impact.copy(), self.non_cumulative_impact.copy(), self.duration)
 
-
-def print_parse_tree(tree, outfile=PATH_PARSE_TREE):
-	tree = tree.dot_tree()
-	dot_string = "digraph my_graph{"+ tree +"}"
-	graph = pydot.graph_from_dot_data(dot_string)[0]
-	graph.write_svg(outfile + '.svg')
-	#graph.write_png(outfile)
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({
+			"name": self.name,
+			"impact": self.impact.tolist(),
+			"non_cumulative_impact": self.non_cumulative_impact.tolist(),
+			"duration": self.duration,
+		})
+		return base

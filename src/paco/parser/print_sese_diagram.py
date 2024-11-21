@@ -1,6 +1,6 @@
 from lark import Tree, Token
 import pydot
-from paco.parser.parse_tree import SESE_PARSER
+from paco.parser.bpmn_parser import SESE_PARSER
 
 
 def print_sese_diagram(expression, outfile:str, h = 0, probabilities={}, impacts={}, loop_thresholds = {},

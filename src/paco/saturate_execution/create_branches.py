@@ -1,4 +1,4 @@
-from paco.parser.tree_lib import ParseNode, ExclusiveGateway, Choice
+from paco.parser.parse_node import ParseNode, ExclusiveGateway, Choice
 from paco.saturate_execution.states import States, ActivityState
 from itertools import product
 

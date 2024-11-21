@@ -10,7 +10,7 @@ from utils import solver_selector as at
 import json
 from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, \
     STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, \
-    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_IMAGE_BPMN
+    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_BPMN
 from paco.parser.print_sese_diagram import print_sese_diagram
 
 
@@ -137,7 +137,7 @@ def layout():
                     # ),
                     html.Br(),
                     # download diagram as svg
-                    html.A('Download diagram as SVG', id='download-diagram', download='bpmn.svg', href=PATH_IMAGE_BPMN + '.svg', target='_blank'),
+                    html.A('Download diagram as SVG', id='download-diagram', download='bpmn.svg', href=PATH_BPMN + '.svg', target='_blank'),
                     html.Br(),
                     dbc.Button('Back', id='back-to-load-cpi'),
                     dbc.Button('Next', id='go-to-define-strategy'),
@@ -547,7 +547,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
         bpmn_lark[TASK_SEQ] = bpmn_lark[TASK_SEQ].replace("\n", "").replace("\t", "")
         print(f'bpmn in printing {bpmn_lark}')
         try:
-            print_sese_diagram(**bpmn_lark, outfile=PATH_IMAGE_BPMN)
+            print_sese_diagram(**bpmn_lark, outfile=PATH_BPMN)
             if not os.path.exists(PATH_IMAGE_BPMN_FOLDER):
                 os.makedirs(PATH_IMAGE_BPMN_FOLDER)
             # Create a new SESE Diagram from the input

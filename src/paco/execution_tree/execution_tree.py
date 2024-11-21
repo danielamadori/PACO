@@ -1,5 +1,5 @@
 from graphviz import Source
-from paco.parser.tree_lib import ParseNode, Sequential, Parallel
+from paco.parser.parse_node import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
 
 

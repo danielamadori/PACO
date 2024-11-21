@@ -9,7 +9,8 @@ from paco.explainer.strategy_tree import saturate_execution
 from paco.explainer.strategy_view_point import StrategyViewPoint
 from paco.explainer.explanation_type import ExplanationType
 from paco.saturate_execution.states import States, ActivityState
-from paco.parser.tree_lib import ParseTree, ParseNode
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.execution_tree.view_point import view_point_node_info
 from paco.execution_tree.execution_tree import ExecutionTree
 

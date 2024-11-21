@@ -1,14 +1,12 @@
 import unittest
 import os
 
-from paco.parser.parse_tree import parse as Lark_to_CTree, SESE_PARSER
+from paco.parser.bpmn_parser import parse as Lark_to_CTree, SESE_PARSER
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, states_info, ActivityState
-<<<<<<< HEAD
-from paco.parser.tree_lib import ParseTree, ParseNode, print_parse_tree, Sequential, Task
-=======
-from paco.parser.tree_lib import ParseTree, ParseNode, print_parse_tree
->>>>>>> origin/RefactoringParseTree
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode, Sequential, Task
+
 from utils import check_syntax as cs
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
 
@@ -25,9 +23,9 @@ def create_custom_tree(bpmn: dict) -> ParseTree:
 
 
 class TestSaturateExecution(unittest.TestCase):
-    def info(self, custom_tree, states, name):
-        print_parse_tree(custom_tree, outfile=self.directory + name)
-        print("ok")
+    def info(self, parse_tree, states, name):
+        parse_tree.print(outfile=self.directory + name)
+
         #print(f"{name}:\n{states_info(states)}")
 
     def setUp(self):

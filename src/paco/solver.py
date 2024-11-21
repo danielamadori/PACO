@@ -1,10 +1,12 @@
+import json
+
 import numpy as np
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
 from paco.searcher.search import search
 from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS, PATH_IMAGE_BPMN
+from utils.env import IMPACTS_NAMES, DURATIONS, PATH_BPMN
 from datetime import datetime
 from paco.parser.print_sese_diagram import print_sese_diagram
 
@@ -15,7 +17,8 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 
 	#print(f'{datetime.now()} bpmn + cpi {bpmn}')
 	if parse_tree is None or execution_tree is None:
-		print_sese_diagram(**bpmn, outfile=PATH_IMAGE_BPMN)
+		open(PATH_BPMN + '.json', 'w').write(json.dumps(bpmn, indent=2))
+		print_sese_diagram(**bpmn, outfile=PATH_BPMN)
 		bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 		parse_tree, execution_tree = create(bpmn)
 

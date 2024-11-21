@@ -2,7 +2,7 @@ import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.execution_tree.view_point import ViewPoint
 from paco.explainer.bdd.bdd import Bdd
-from paco.parser.tree_lib import ParseNode
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States
 
 

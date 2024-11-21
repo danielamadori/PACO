@@ -1,5 +1,5 @@
 import enum
-from paco.parser.tree_lib import ParseNode, Sequential, Parallel, Choice, Task
+from paco.parser.parse_node import ParseNode, Sequential, Parallel, Choice, Task
 from collections import defaultdict
 
 
