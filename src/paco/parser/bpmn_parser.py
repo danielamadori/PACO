@@ -21,7 +21,7 @@ def create_parse_tree(bpmn: dict):
 	return parse_tree
 
 
-def parse(lark_tree, probabilities, impacts, durations, names, delays, loops_prob, loop_round =3, h = 0, loop_thresholds = None, parent = None, index_in_parent = None, id = 0):
+def parse(lark_tree, probabilities, impacts, durations, names, delays, loops_prob, loop_round =3, h = 0, loop_thresholds = None, parent = None, index_in_parent = 0, id = 0):
 	if lark_tree.data == 'task':
 		impact = impacts[lark_tree.children[0].value] if lark_tree.children[0].value in impacts else []
 		task = Task(parent, index_in_parent, id, name=lark_tree.children[0].value, impact=impact[0:len(impact) - h], non_cumulative_impact=impact[len(impact) - h:], duration=durations[lark_tree.children[0].value])

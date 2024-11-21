@@ -40,9 +40,9 @@ class ParseTree:
 		graph.write_svg(outfile + '.svg')
 		#graph.write_png(outfile)
 
-	def to_json(self, filename:str = PATH_PARSE_TREE) -> None:
+	def to_json(self, outfile:str = PATH_PARSE_TREE) -> None:
 		dictionary = self.root.to_dict()
-		open(filename + '.json', 'w').write(json.dumps(dictionary, indent=2))
+		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
 
 	@staticmethod
 	def create_node(node_data: dict, parent: 'ParseNode' = None, impact_size = -1, non_cumulative_impact = -1) -> 'ParseNode':
@@ -63,7 +63,7 @@ class ParseTree:
 			elif non_cumulative_impact != new_non_cumulative_impact:
 				raise ValueError(f"Task {node_id} has different non_cumulative_impact size")
 
-			node = Task(
+			return Task(
 				parent=parent,
 				index_in_parent=index_in_parent,
 				id=node_id,
@@ -73,7 +73,7 @@ class ParseTree:
 				duration=node_data['duration']
 			)
 
-		elif node_type == "Sequential":
+		if node_type == "Sequential":
 			node = Sequential(parent=parent, index_in_parent=index_in_parent, id=node_id)
 		elif node_type == "Parallel":
 			node = Parallel(parent=parent, index_in_parent=index_in_parent, id=node_id)

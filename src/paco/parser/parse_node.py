@@ -19,7 +19,7 @@ class ParseNode(ABC):
 
 	@abstractmethod
 	def to_dict(self) -> dict:
-		return {"id": self.id, "type": self.__class__.__name__}
+		return {"id": self.id, "index_in_parent": self.index_in_parent, "type": self.__class__.__name__}
 
 	def __eq__(self, other: 'ParseNode(ABC)') -> bool:
 		if isinstance(other, Task) or isinstance(other, Sequential) or isinstance(other, Parallel) or isinstance(other, Nature) or isinstance(other, Choice):
@@ -90,8 +90,8 @@ class ExclusiveGateway(Gateway, ABC):
 
 	@abstractmethod
 	def to_dict(self) -> dict:
-		base = super().to_dict()
-		base.update({"name": self.name})
+		base = {"name": self.name}
+		base.update(super().to_dict())
 		return base
 
 
@@ -109,8 +109,8 @@ class Choice(ExclusiveGateway):
 		return root_copy
 
 	def to_dict(self) -> dict:
-		base = super().to_dict()
-		base.update({"max_delay": self.max_delay})
+		base = {"max_delay": self.max_delay}
+		base.update(super().to_dict())
 		return base
 
 
@@ -128,8 +128,8 @@ class Nature(ExclusiveGateway):
 		return root_copy
 
 	def to_dict(self) -> dict:
-		base = super().to_dict()
-		base.update({"probability": self.probability})
+		base = {"probability": self.probability}
+		base.update(super().to_dict())
 		return base
 
 
