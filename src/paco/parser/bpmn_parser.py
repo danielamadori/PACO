@@ -12,10 +12,10 @@ def create_parse_tree(bpmn: dict):
 	tree = SESE_PARSER.parse(bpmn[TASK_SEQ]) # Parse the task sequence from the BPMN diagram
 	#print(tree.pretty)
 
-	root_parse_tree, last_id = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
-	parse_tree = ParseTree(root_parse_tree)
-	parse_tree.print()
-	parse_tree.to_json()
+	#root_parse_tree, last_id = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
+	#parse_tree = ParseTree(root_parse_tree)
+	#parse_tree.print()
+	#parse_tree.to_json()
 	parse_tree = ParseTree.from_json()
 	parse_tree.print(PATH_ASSETS + "parse_tree_json")
 	return parse_tree

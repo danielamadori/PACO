@@ -2,6 +2,7 @@ import pydot
 import json
 from abc import ABC
 
+from paco.parser.json_schema.validator import validate_node
 from paco.parser.parse_node import Gateway, Sequential, Parallel, Choice, Nature, Task
 from utils.env import PATH_PARSE_TREE
 
@@ -51,18 +52,6 @@ class ParseTree:
 		index_in_parent = node_data.get('index_in_parent', -1)
 
 		if node_type == "Task":
-			new_impact_size = len(node_data['impact'])
-			new_non_cumulative_impact = len(node_data['non_cumulative_impact'])
-
-			if impact_size == -1:
-				impact_size = new_impact_size
-			elif impact_size != new_impact_size:
-				raise ValueError(f"Task {node_id} has different impact size")
-			if non_cumulative_impact == -1:
-				non_cumulative_impact = new_non_cumulative_impact
-			elif non_cumulative_impact != new_non_cumulative_impact:
-				raise ValueError(f"Task {node_id} has different non_cumulative_impact size")
-
 			return Task(
 				parent=parent,
 				index_in_parent=index_in_parent,
@@ -109,4 +98,8 @@ class ParseTree:
 
 	@staticmethod
 	def from_json(filename: str = PATH_PARSE_TREE) -> 'ParseTree':
-		return ParseTree(ParseTree.create_node(json.load(open(filename +'.json', 'r'))))
+		data = json.load(open(filename + '.json', 'r'))
+
+		validate_node(data)
+
+		return ParseTree(ParseTree.create_node(data))
