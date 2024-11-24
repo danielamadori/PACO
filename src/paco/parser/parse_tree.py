@@ -2,7 +2,7 @@ import pydot
 import json
 from abc import ABC
 
-from paco.parser.json_schema.validator import validate_node
+from paco.parser.json_schema.json_validator import validate_json
 from paco.parser.parse_node import Gateway, Sequential, Parallel, Choice, Nature, Task
 from utils.env import PATH_PARSE_TREE
 
@@ -97,9 +97,7 @@ class ParseTree:
 		return node
 
 	@staticmethod
-	def from_json(filename: str = PATH_PARSE_TREE) -> 'ParseTree':
+	def from_json(filename: str = PATH_PARSE_TREE, impact_size: int = -1, non_cumulative_impact_size: int = -1) -> 'ParseTree':
 		data = json.load(open(filename + '.json', 'r'))
-
-		validate_node(data)
-
+		validate_json(data, impact_size, non_cumulative_impact_size)
 		return ParseTree(ParseTree.create_node(data))

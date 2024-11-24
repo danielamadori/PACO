@@ -2,22 +2,24 @@ from lark import Lark
 from paco.parser.grammar import sese_diagram_grammar
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import Sequential, Parallel, Choice, Nature, Task
-from utils.env import LOOPS_PROB, TASK_SEQ, IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, PATH_ASSETS
+from utils.env import LOOPS_PROB, TASK_SEQ, IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H
 
 SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
 DEFAULT_UNFOLDING_NUMBER = 3
 
 
-def create_parse_tree(bpmn: dict):
-	tree = SESE_PARSER.parse(bpmn[TASK_SEQ]) # Parse the task sequence from the BPMN diagram
-	#print(tree.pretty)
+def create_parse_tree(bpmn: dict, from_json=False):
+	if from_json:
+		parse_tree = ParseTree.from_json()
+	else:
+		tree = SESE_PARSER.parse(bpmn[TASK_SEQ]) # Parse the task sequence from the BPMN diagram
+		#print(tree.pretty)
+		root_parse_tree, last_id = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
+		parse_tree = ParseTree(root_parse_tree)
+		parse_tree.to_json()
 
-	#root_parse_tree, last_id = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loops_prob=bpmn[LOOPS_PROB])
-	#parse_tree = ParseTree(root_parse_tree)
-	#parse_tree.print()
-	#parse_tree.to_json()
-	parse_tree = ParseTree.from_json()
-	parse_tree.print(PATH_ASSETS + "parse_tree_json")
+	parse_tree.print()
+
 	return parse_tree
 
 
