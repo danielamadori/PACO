@@ -1,4 +1,8 @@
+import json
+
 from graphviz import Source
+
+from paco.execution_tree.view_point import ViewPoint
 from paco.parser.parse_node import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
 
@@ -21,6 +25,30 @@ class ExecutionTree:
 	def save_pdf(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
 		Source(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff),
 			   format='pdf').render(path, cleanup=True)
+
+	def to_json(self, outfile:str) -> None:
+		dictionary = self.root.to_dict()
+		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
+
+
+	@staticmethod
+	def create_node(node_data: dict, parent: 'ViewPoint' = None) -> 'ViewPoint':
+		node_type = node_data['type']
+
+		if node_type == "ExecutionViewPoint":
+			return ExecutionTree.create_node(node_data, parent)
+		if node_type == "StrategyViewPoint":
+			return ExecutionTree.create_node(node_data, parent)
+
+		raise ValueError(f"Unsupported type: {node_type}")
+
+
+	@staticmethod
+	def from_json(filename: str) -> 'ExecutionTree':
+		data = json.load(open(filename + '.json', 'r'))
+		#validate_json(data)
+		return ExecutionTree(ExecutionTree.create_node(data))
+
 
 
 	def create_dot_graph(self, root: 'ExecutionViewPoint|StrategyViewPoint', state: bool, executed_time: bool, diff: bool,

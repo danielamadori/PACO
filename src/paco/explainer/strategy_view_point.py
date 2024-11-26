@@ -57,4 +57,17 @@ class StrategyViewPoint(ViewPoint):
 				label += f"{choice.name}: {'arbitrary' if bdd is None else str(bdd.typeStrategy)}\n"
 
 		label += "\", shape=rect];\n"
-		return (self.dot_str(full=False) + "__description", label)
+		return self.dot_str(full=False) + "__description", label
+
+
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({
+			"probability": self.probability,
+			"impacts": self.impacts.tolist(),
+			"executed_time": self.executed_time,
+			"expected_impacts": self.expected_impacts.tolist(),
+			"expected_time": self.expected_time,
+			"explained_choices": {choice.name: None if bdd is None else bdd.to_dict() for choice, bdd in self.explained_choices.items()}
+		})
+		return base

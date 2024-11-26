@@ -87,6 +87,20 @@ class ViewPoint(ABC):
 	def dot_info_str(self):
 		pass
 
+	@abstractmethod
+	def to_dict(self) -> dict:
+		return {"id": self.id,
+				"states": self.states.to_dict(),
+				"state_id": self.state_id,
+				"decisions": [d.to_dict() for d in self.decisions],
+				"is_final_state": self.is_final_state,
+				"natures": [n.to_dict() for n in self.natures],
+				"choices": [c.to_dict() for c in self.choices],
+				"parent": self.parent.id,
+				"transitions": self.transitions.to_dict()
+				}
+
+
 
 def view_point_node_info(node: ViewPoint) -> str:
 	result = f"ID:{node.id}:decisions:<"

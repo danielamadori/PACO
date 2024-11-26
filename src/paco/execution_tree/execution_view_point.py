@@ -46,3 +46,12 @@ class ExecutionViewPoint(ViewPoint):
 			label += "Choice: " + choice_label[:-2] + "\n"
 
 		return self.dot_str(full=False) + "_description", f" [label=\"{label}\", shape=rect];\n"
+
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({
+			"probability": self.probability,
+			"impacts": self.impacts.tolist(),
+			"cei_top_down": self.cei_top_down.tolist(),
+			"cei_bottom_up": self.cei_bottom_up.tolist()
+		})
