@@ -8,7 +8,7 @@ from utils.utils_preparing_diagram import *
 from utils import check_syntax as cs
 from utils import solver_selector as at
 import json
-from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, \
+from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP_ROUND, LOOP_PROB, \
     STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, \
     PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_BPMN
 from paco.parser.print_sese_diagram import print_sese_diagram
@@ -526,10 +526,10 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
         loops_choices = cs.extract_loops(task)
         choices_nat = cs.extract_choises_nat(task) + loops_choices
         bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choices_nat, probabilities)
-        bpmn_lark[PROBABILITIES], bpmn_lark[LOOPS_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_choices)
+        bpmn_lark[PROBABILITIES], bpmn_lark[LOOP_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_choices)
         bpmn_lark[NAMES] = cs.create_probabilities_names(list_choices)
         bpmn_lark[DELAYS] = cs.create_probabilities_dict(cs.extract_choises_user(task), delays)
-        bpmn_lark[LOOP] = cs.create_probabilities_dict(loops_choices,loops)
+        bpmn_lark[LOOP_ROUND] = cs.create_probabilities_dict(loops_choices, loops)
     except Exception as e:
         print(f'Error at 1st step while parsing the BPMN choices: {e}')
         return [

@@ -30,7 +30,7 @@ class BPMNDefinition(BaseModel):
     delays: Optional[Dict] = {}
     impacts_names: Optional[List] = []    
     loop_round: Optional[Dict] = {}
-    loops_prob: Optional[Dict] = {}
+    loop_prob: Optional[Dict] = {}
 
 class BPMNPrinting(BaseModel):
     bpmn: BPMNDefinition
@@ -68,7 +68,7 @@ async def get(request: BPMNPrinting):
 						   impacts_names=bpmn.impacts_names,
 						   resolution_bpmn=request.resolution_bpmn,
 						   loop_round=bpmn.loop_round,
-						   loops_prob=bpmn.loops_prob
+						   loop_prob=bpmn.loop_prob
 						   )
         return FileResponse(PATH_BPMN + '.png', media_type='image/png', filename='output.png')
     except Exception as e:

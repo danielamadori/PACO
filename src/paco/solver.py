@@ -1,5 +1,4 @@
 import json
-
 import numpy as np
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType

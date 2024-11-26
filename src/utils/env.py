@@ -46,12 +46,10 @@ DURATIONS = 'durations'
 DELAYS = 'delays'
 H = 'h'
 IMPACTS_NAMES ='impacts_names'
-LOOP = 'loop_round'
-### Automaton parameters
-AUTOMATON_TYPE = 'mealy'
+LOOP_ROUND = 'loop_round'
 ### SYNTAX
-LOOPS = 'loops'
-LOOPS_PROB = 'loops_prob'
+LOOPS = 'loops' #useless
+LOOP_PROB = 'loop_probability'
 # BPMN RESOLUTION #######################
 RESOLUTION = 300
 #############################
