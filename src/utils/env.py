@@ -28,6 +28,7 @@ PATH_EXECUTION_TREE_TIME = PATH_EXECUTION_TREE + 'time'
 PATH_EXPLAINER = PATH_ASSETS + 'explainer/'
 PATH_EXPLAINER_DECISION_TREE = PATH_EXPLAINER + 'decision_tree'
 PATH_EXPLAINER_BDD = PATH_EXPLAINER + 'bdd'
+PATH_STRATEGIES = PATH_ASSETS + 'strategies'
 
 PATH_STRATEGY_TREE = PATH_ASSETS + 'strategy_tree/'
 PATH_STRATEGY_TREE_STATE = PATH_STRATEGY_TREE + 'state'
@@ -46,12 +47,10 @@ DURATIONS = 'durations'
 DELAYS = 'delays'
 H = 'h'
 IMPACTS_NAMES ='impacts_names'
-LOOP = 'loop_round'
-### Automaton parameters
-AUTOMATON_TYPE = 'mealy'
+LOOP_ROUND = 'loop_round'
 ### SYNTAX
-LOOPS = 'loops'
-LOOPS_PROB = 'loops_prob'
+LOOPS = 'loops' #useless
+LOOP_PROB = 'loop_probability'
 # BPMN RESOLUTION #######################
 RESOLUTION = 300
 #############################

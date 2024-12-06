@@ -4,7 +4,7 @@ from paco.parser.bpmn_parser import SESE_PARSER
 
 
 def print_sese_diagram(expression, outfile:str, h = 0, probabilities={}, impacts={}, loop_thresholds = {},
-                       graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], loop_round = {}, loops_prob={}, ):
+                       graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], loop_round = {}, loop_probability={}):
     tree = SESE_PARSER.parse(expression)
     diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names)
     global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'
@@ -47,11 +47,11 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
                 code += dot_probabilistic_gateway(id_enter, label=t.children[1])
                 code += dot_probabilistic_gateway(id_exit, label=t.children[1])
             elif label in {'loop', 'loop_probability'}: 
-                code += dot_loop_gateway(id_enter)
+                code += dot_loop_gateway(id_enter, label=t.children[0])
                 if label == 'loop':
-                    code += dot_loop_gateway(id_exit)
+                    code += dot_loop_gateway(id_exit, label=t.children[0])
                 else:
-                    code += dot_loop_gateway(id_exit)
+                    code += dot_loop_gateway(id_exit, label=t.children[0])
             else: 
                 label_sym = '+'    
                 node_label = f'[shape=diamond label="{label_sym}"]'

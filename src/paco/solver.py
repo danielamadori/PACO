@@ -1,12 +1,12 @@
 import json
-
+import os
 import numpy as np
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
 from paco.searcher.search import search
 from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS, PATH_BPMN
+from utils.env import IMPACTS_NAMES, DURATIONS, PATH_BPMN, PATH_EXPLAINER, PATH_EXPLAINER_BDD
 from datetime import datetime
 from paco.parser.print_sese_diagram import print_sese_diagram
 
@@ -35,6 +35,12 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 
 		print(str(datetime.now()) + " " + text_result)
 		return text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, []
+
+
+	if os.path.exists(PATH_EXPLAINER):
+		for file in os.listdir(PATH_EXPLAINER):
+			os.remove(os.path.join(PATH_EXPLAINER, file))
+
 
 	if strategy is None:
 		text_result = f"Any choice taken will provide a winning strategy with an expected impact of: "

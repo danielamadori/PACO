@@ -27,11 +27,13 @@ def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint,
 		if arbitrary:
 			#print(f"Choice not explained: {str(choice)}, random decision")
 			random.seed()
-			random_decision = random.choice([0, 1])
-			opposite_decision = 1 - random_decision
+			if random.choice([0, 1]) == 0:
+				decision_true = choice.sx_child
+				decision_false = choice.dx_child
+			else:
+				decision_true = choice.dx_child
+				decision_false = choice.sx_child
 
-			decision_true = choice.children[random_decision].root
-			decision_false = choice.children[opposite_decision].root
 		else:
 			#print("Explaining choice: ", choice.name)
 			bdd = explainers[choice]
@@ -79,7 +81,6 @@ def nature_clausure(natures: list[ParseNode], states: States, decisions: list[Pa
 			node = natures[i]
 
 			if branch_choices[i]:
-
 				activeNode = node.sx_child
 				inactiveNode = node.dx_child
 			else:

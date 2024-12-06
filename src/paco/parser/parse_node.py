@@ -65,7 +65,8 @@ class Sequential(Gateway):
 		return f'\n node_{self.id}[label="Sequential id: {self.id}"];'
 
 	def copy(self) -> 'Sequential':
-		root_copy = Sequential(self.parent.copy(), self.index_in_parent, self.id)
+		parent_copy = self.parent.copy() if self.parent else None
+		root_copy = Sequential(parent_copy, self.index_in_parent, self.id)
 		root_copy.set_children(self.root.sx_child.copy(), self.root.dx_child.copy())
 		return root_copy
 
@@ -78,7 +79,8 @@ class Parallel(Gateway):
 		return f'\n node_{self.id}[shape=diamond label="Parallel id:{self.id}"];'
 
 	def copy(self) -> 'Parallel':
-		root_copy = Parallel(self.parent.copy(), self.index_in_parent, self.id)
+		parent_copy = self.parent.copy() if self.parent else None
+		root_copy = Parallel(parent_copy, self.index_in_parent, self.id)
 		root_copy.set_children(self.root.sx_child.copy(), self.root.dx_child.copy())
 		return root_copy
 
@@ -104,7 +106,8 @@ class Choice(ExclusiveGateway):
 		return f'\n node_{self.id}[shape=diamond label="{self.name} id:{self.id} dly:{self.max_delay}" style="filled" fillcolor=orange];'
 
 	def copy(self) -> 'Choice':
-		root_copy = Choice(self.parent.copy(), self.index_in_parent, self.id, self.name, self.max_delay)
+		parent_copy = self.parent.copy() if self.parent else None
+		root_copy = Choice(parent_copy, self.index_in_parent, self.id, self.name, self.max_delay)
 		root_copy.set_children(self.root.sx_child.copy(), self.root.dx_child.copy())
 		return root_copy
 
@@ -123,7 +126,8 @@ class Nature(ExclusiveGateway):
 		return f'\n node_{self.id}[shape=diamond label="{self.name} id:{self.id}" style="filled" fillcolor=yellowgreen];'
 
 	def copy(self) -> 'Nature':
-		root_copy = Nature(self.parent.copy(), self.index_in_parent, self.id, self.name, self.probability)
+		parent_copy = self.parent.copy() if self.parent else None
+		root_copy = Nature(parent_copy, self.index_in_parent, self.id, self.name, self.probability)
 		root_copy.set_children(self.root.sx_child.copy(), self.root.dx_child.copy())
 		return root_copy
 
@@ -145,7 +149,8 @@ class Task(ParseNode):
 		return f'\n node_{self.id}[label="{self.name}\n{self.impact}\ndur:{self.duration} id:{self.id}" shape=rectangle style="rounded, filled" fillcolor=lightblue];'
 
 	def copy(self) -> 'Task':
-		return Task(self.parent.copy(), self.index_in_parent, self.id, self.name, self.impact.copy(), self.non_cumulative_impact.copy(), self.duration)
+		parent_copy = self.parent.copy() if self.parent else None
+		return Task(parent_copy, self.index_in_parent, self.id, self.name, self.impact.copy(), self.non_cumulative_impact.copy(), self.duration)
 
 	def to_dict(self) -> dict:
 		base = super().to_dict()
