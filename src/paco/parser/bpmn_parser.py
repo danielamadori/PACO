@@ -45,7 +45,7 @@ def parse(lark_tree, probabilities, impacts, durations, names, delays, loop_prob
 		return unfolded_tree, last_id
 
 	if lark_tree.data in {'choice', 'natural'}:
-		#Check if lark_tree.children[1].value works instead of names[lark_tree.children[1].value]
+		#TODO: Check if lark_tree.children[1].value works instead of names[lark_tree.children[1].value]
 		name = names[lark_tree.children[1].value]
 
 		if lark_tree.data == 'choice':

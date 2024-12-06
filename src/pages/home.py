@@ -433,7 +433,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                 raise FileNotFoundError(f"BDD File not found: {file_name}")
 
     s.append(
-        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategies.zip', href=strategies_zip, target='_blank'),
+        html.A('Download strategy', id='download-diagram', download='strategies.zip', href=strategies_zip, target='_blank'),
     )
     navigate_tabs('go-to-show-strategy')
 
