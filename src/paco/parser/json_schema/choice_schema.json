@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "allOf": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "index_in_parent": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Task",
+            "Sequential",
+            "Parallel",
+            "Choice",
+            "Nature"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ]
+    },
+    {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "max_delay": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "max_delay"
+      ]
+    }
+  ]
+}

@@ -1,9 +1,7 @@
 import copy
-
 import numpy as np
-
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.parser.tree_lib import CTree
+from paco.parser.parse_node import Choice
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
@@ -20,7 +18,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 
 		choices_transitions = []
 		for t in Transition:
-			if t[0].type == 'choice':
+			if isinstance(t[0], Choice):
 				onlyChoice = False
 				choices_transitions.append(t)
 
@@ -61,6 +59,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 		for i in range(len(root.impacts)):
 			if root.cei_bottom_up[i] < choices_cei_bottom_up[c][i]:
 				root.cei_bottom_up[i] = choices_cei_bottom_up[c][i]
+
 
 
 def evaluate_min_max_impacts(tree: CTree, decision_impacts: dict, impacts_size: int):

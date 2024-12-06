@@ -1,12 +1,12 @@
 import math
 from abc import ABC, abstractmethod
 
-from paco.parser.tree_lib import CNode
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States, states_info
 
 
 class ViewPoint(ABC):
-	def __init__(self, id: int, states: States, decisions: tuple[CNode], is_final_state: bool, natures: tuple, choices:tuple, parent: 'ExecutionTree'):
+	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], is_final_state: bool, natures: tuple, choices:tuple, parent: 'ExecutionTree'):
 		self.id = id
 		self.states = states
 		s, _ = self.states.str()

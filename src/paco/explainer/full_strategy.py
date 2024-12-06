@@ -9,12 +9,13 @@ from paco.explainer.strategy_tree import saturate_execution
 from paco.explainer.strategy_view_point import StrategyViewPoint
 from paco.explainer.explanation_type import ExplanationType
 from paco.saturate_execution.states import States, ActivityState
-from paco.parser.tree_lib import CTree, CNode
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.execution_tree.view_point import view_point_node_info
 from paco.execution_tree.execution_tree import ExecutionTree
 
 
-def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, explainers: dict[CNode, Bdd], impacts: np.ndarray, states: States) -> (States, list[CNode]):
+def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint, explainers: dict[ParseNode, Bdd], impacts: np.ndarray, states: States) -> (States, list[ParseNode]):
 	if len(strategyViewPoint.explained_choices) == 0:
 		return states, []
 
@@ -26,11 +27,13 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 		if arbitrary:
 			#print(f"Choice not explained: {str(choice)}, random decision")
 			random.seed()
-			random_decision = random.choice([0, 1])
-			opposite_decision = 1 - random_decision
+			if random.choice([0, 1]) == 0:
+				decision_true = choice.sx_child
+				decision_false = choice.dx_child
+			else:
+				decision_true = choice.dx_child
+				decision_false = choice.sx_child
 
-			decision_true = choice.children[random_decision].root
-			decision_false = choice.children[opposite_decision].root
 		else:
 			#print("Explaining choice: ", choice.name)
 			bdd = explainers[choice]
@@ -50,7 +53,7 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 				raise Exception("make_decisions: TypeStrategy not implemented: " + str(bdd.typeStrategy))
 
 			decision_true = bdd.choose(vector)
-			decision_false = choice.children[1].root if decision_true == choice.children[0].root else choice.children[0].root
+			decision_false = choice.dx_child if decision_true == choice.sx_child else choice.sx_child
 
 		decisions.append(decision_true)
 		#print("Decision True: ", decision_true.name if decision_true.name else decision_true.id)
@@ -62,7 +65,7 @@ def make_decisions(region_tree: CTree, strategyViewPoint: StrategyViewPoint, exp
 	return states, decisions
 
 
-def nature_clausure(natures: list[CNode], states: States, decisions: list[CNode]):
+def nature_clausure(natures: list[ParseNode], states: States, decisions: list[ParseNode]):
 	branches = dict[tuple, States]()
 	if len(natures) == 0:
 		branches[tuple(decisions)] = states
@@ -78,11 +81,11 @@ def nature_clausure(natures: list[CNode], states: States, decisions: list[CNode]
 			node = natures[i]
 
 			if branch_choices[i]:
-				activeNode = node.children[0].root
-				inactiveNode = node.children[1].root
+				activeNode = node.sx_child
+				inactiveNode = node.dx_child
 			else:
-				activeNode = node.children[1].root
-				inactiveNode = node.children[0].root
+				activeNode = node.dx_child
+				inactiveNode = node.sx_child
 
 			branch_states.activityState[activeNode] = ActivityState.ACTIVE
 			branch_states.activityState[inactiveNode] = ActivityState.WILL_NOT_BE_EXECUTED
@@ -94,8 +97,8 @@ def nature_clausure(natures: list[CNode], states: States, decisions: list[CNode]
 	return branches
 
 
-def full_strategy(region_tree: CTree, explainers: dict[CNode, Bdd], impacts_size: int,
-				  states: States = None, decisions_taken: tuple[CNode] = None, id: int = 0):
+def full_strategy(region_tree: ParseTree, explainers: dict[ParseNode, Bdd], impacts_size: int,
+				  states: States = None, decisions_taken: tuple[ParseNode] = None, id: int = 0):
 	if states is None:
 		states = States(region_tree.root, ActivityState.WAITING, 0)
 		decisions_taken = (region_tree.root,)

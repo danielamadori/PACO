@@ -1,7 +1,8 @@
 import copy
 import enum
 import numpy as np
-from paco.parser.tree_lib import CNode, CTree
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
 from paco.evaluations.evaluate_impacts import evaluate_unavoidable_impacts
@@ -17,7 +18,7 @@ class ExplanationType(enum.IntEnum):
 		return str(self.name)
 
 
-def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
+def current_impacts(decisions: dict[ParseNode, set[ExecutionTree]]) -> (list, list):
 	#print("Current impacts:")
 	impacts, impacts_labels = [], []
 	for decision_taken, executionTrees in decisions.items():
@@ -30,7 +31,7 @@ def current_impacts(decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
 	return impacts, impacts_labels
 
 
-def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[ExecutionTree]]) -> (list, list):
+def unavoidable_impacts(region_tree: ParseTree, decisions: dict[ParseNode, set[ExecutionTree]]) -> (list, list):
 	#print("Unavoidable impacts:")
 	impacts, impacts_labels = [], []
 	for decision_taken, executionTrees in decisions.items():
@@ -47,7 +48,7 @@ def unavoidable_impacts(region_tree: CTree, decisions: dict[CNode, set[Execution
 	return impacts, impacts_labels
 
 
-def decision_based(region_tree: CTree, decisions_taken: dict[CNode, set[ExecutionTree]]) -> (list[CNode], list[np.ndarray], list):
+def decision_based(region_tree: ParseTree, decisions_taken: dict[ParseNode, set[ExecutionTree]]) -> (list[ParseNode], list[np.ndarray], list):
 	decisions, decisions_names = find_all_decisions(region_tree)
 	decision_vectors, labels = [], []
 	#print(f"Decision based:\n{decisions_names}")
