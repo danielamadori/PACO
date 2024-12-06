@@ -1,7 +1,7 @@
 import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from utils.env import sese_diagram_grammar 
+from paco.parser.grammar import sese_diagram_grammar
 dash.register_page(__name__)
 
 layout = html.Div([

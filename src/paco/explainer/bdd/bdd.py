@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 from paco.explainer.bdd.dag_node import DagNode
 from paco.explainer.explanation_type import ExplanationType
-from paco.parser.tree_lib import CNode
-from utils.env import PATH_EXPLAINER_DECISION_TREE
+from paco.parser.parse_node import ParseNode, Sequential, Parallel, Choice, Nature, Task
+from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_EXPLAINER_BDD
 
 
 class Bdd:
-	def __init__(self, choice: CNode, class_0: CNode, class_1: CNode, impacts:list, labels:list, features_names:list, typeStrategy:ExplanationType):
+	def __init__(self, choice: ParseNode, class_0: ParseNode, class_1: ParseNode, impacts:list, labels:list, features_names:list, typeStrategy:ExplanationType):
 		self.choice = choice
 		self.class_0 = class_0
 		self.class_1 = class_1 # in case is NOT splittable is None
@@ -248,11 +248,11 @@ class Bdd:
 			dot.edge(str(self.choice), str(self.root))
 			self.bdd_to_file_recursively(dot, self.root)
 		else:
-			label = '0' if self.choice.children[1].root == self.class_0 else '1'
+			label = '0' if self.choice.dx_child == self.class_0 else '1'
 			dot.node(label, label=label, shape="box", style="filled", color=Bdd.get_decision_color(self.class_0))
 			dot.edge(str(self.choice), label, label="True", style='')
 
-		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice.name)
+		file_path = PATH_EXPLAINER_BDD + "_" + str(self.choice.name)
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)# tmp file
@@ -260,26 +260,26 @@ class Bdd:
 
 
 	@staticmethod
-	def get_decision_color(decision: CNode):
-		if decision.type == 'choice':
+	def get_decision_color(decision: ParseNode):
+		if isinstance(decision, Choice):
 			color = 'orange'
-		elif decision.type in {'natural', 'loop', 'loop_probability'}:
+		elif isinstance(decision, Nature):
 			color = 'yellowgreen'
-		elif decision.type == 'task':
+		elif isinstance(decision, Task):
 			color = 'lightblue'
-		elif decision.type == 'sequential':
-			return Bdd.get_decision_color(decision.children[0].root)
-		elif decision.type == 'parallel':
+		elif isinstance(decision, Sequential):
+			return Bdd.get_decision_color(decision.sx_child)
+		elif isinstance(decision, Parallel):
 			color = 'white'
 		else:
-			raise Exception(f"bdd:get_decision: decision type {decision.type} not recognized")
+			raise Exception(f"bdd:get_decision: decision type {decision} not recognized")
 
 		return color
 
 
 	def bdd_to_file_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			label = '0' if self.choice.children[1].root == node.class_0 else '1'
+			label = '0' if self.choice.dx_child == node.class_0 else '1'
 			dot.node(str(node), label=label, shape="box", style="filled", color=Bdd.get_decision_color(node.class_0))
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")

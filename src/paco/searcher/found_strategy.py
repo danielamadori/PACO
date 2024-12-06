@@ -2,6 +2,7 @@ import enum
 import random
 import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
+from paco.parser.parse_node import Choice, Nature
 
 '''
 def compare_bound(cei: np.ndarray, bound: np.ndarray):
@@ -40,9 +41,9 @@ def natural_closure(tree: ExecutionTree, selected_tree: ExecutionTree) -> list[E
 		check_choice = len(selected_tree.root.decisions) != 0
 		for t in transition:
 			#print("t: ", t[0].type, t[0].id, t[1].id)
-			if t[0].type == 'natural':# and t[0] in nats:
+			if isinstance(t[0], Nature):# and t[0] in nats:
 				check_nat = True
-			elif t[0].type == 'choice' and t[1] not in selected_tree.root.decisions:
+			elif isinstance(t[0], Choice) and t[1] not in selected_tree.root.decisions:
 				check_choice = False
 
 			if check_nat and not check_choice:

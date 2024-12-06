@@ -1,9 +1,9 @@
 import copy
-from paco.parser.tree_lib import CNode
+from paco.parser.parse_node import ParseNode, Choice
 from paco.execution_tree.execution_tree import ExecutionTree
 
 
-def build_strategy(frontier: list[ExecutionTree], strategy: dict[CNode, dict[CNode, set[ExecutionTree]]] = {}) -> (set[ExecutionTree], dict[CNode, dict[CNode, set[ExecutionTree]]]):
+def build_strategy(frontier: list[ExecutionTree], strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]] = {}) -> (set[ExecutionTree], dict[ParseNode, dict[ParseNode, set[ExecutionTree]]]):
 	if len(frontier) == 0:
 		return frontier, strategy
 
@@ -19,7 +19,7 @@ def build_strategy(frontier: list[ExecutionTree], strategy: dict[CNode, dict[CNo
 		#print(f"ID: {execution_viewpoint.id}")
 		for decision in execution_viewpoint.decisions:
 			#print(f"ID:{decision.id}, Parent id: {decision.parent.id}, type: {decision.parent.type}")
-			if decision.parent.type == 'choice':
+			if isinstance(decision.parent, Choice):
 				choice = decision.parent
 				if choice not in newStrategy:
 					newStrategy[choice] = {decision: {execution_viewpoint.parent}}

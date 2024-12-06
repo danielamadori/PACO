@@ -1,18 +1,18 @@
 import base64
+import zipfile
 from datetime import datetime
 import os
 import dash
-from dash import html, dcc, Input, Output,State, callback
-import dash_bootstrap_components as dbc
+from dash import Input, Output,State, callback
 from utils.solver_selector import check_input
 from utils.utils_preparing_diagram import *
 from utils import check_syntax as cs
 from utils import solver_selector as at
 import json
-from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP, LOOPS_PROB, \
+from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP_ROUND, LOOP_PROB, \
     STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, \
-    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_IMAGE_BPMN
-from utils.print_sese_diagram import print_sese_diagram
+    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_BPMN, PATH_EXPLAINER_BDD, PATH_STRATEGIES
+from paco.parser.print_sese_diagram import print_sese_diagram
 
 
 ##### AGGIUNGERE TABS dove una si mette tutto e l'altra si usa come visualizzatore
@@ -138,7 +138,7 @@ def layout():
                     # ),
                     html.Br(),
                     # download diagram as svg
-                    html.A('Download diagram as SVG', id='download-diagram', download='bpmn.svg', href=PATH_IMAGE_BPMN + '.svg', target='_blank'),
+                    html.A('Download diagram as SVG', id='download-diagram', download='bpmn.svg', href=PATH_BPMN + '.svg', target='_blank'),
                     html.Br(),
                     dbc.Button('Back', id='back-to-load-cpi'),
                     dbc.Button('Next', id='go-to-define-strategy'),
@@ -420,14 +420,25 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
         s.append(dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'))
         return [html.Div(s), None, 'tab-7']
 
-    #TODO: create the strategy tree
+
+    list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+
+    strategies_zip = PATH_STRATEGIES + '.zip'
+    with zipfile.ZipFile(strategies_zip, 'w') as zipf:
+        for c in choices:
+            file_name = f"{PATH_EXPLAINER_BDD}_{c}.svg"
+            if os.path.exists(file_name):
+                zipf.write(file_name, arcname=os.path.basename(file_name))  # Add file without path
+            else:
+                raise FileNotFoundError(f"BDD File not found: {file_name}")
+
     s.append(
-        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME + '.svg', target='_blank'),
+        html.A('Download strategy', id='download-diagram', download='strategies.zip', href=strategies_zip, target='_blank'),
     )
     navigate_tabs('go-to-show-strategy')
-    list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+
     s.append(dcc.Tabs(
-        children=[dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
+        children=[dcc.Tab(label=c, children=[html.Iframe(src=f'{PATH_EXPLAINER_BDD}_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
     ))
     if list_choices_excluded:
         s.append(dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'))
@@ -527,10 +538,10 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
         loops_choices = cs.extract_loops(task)
         choices_nat = cs.extract_choises_nat(task) + loops_choices
         bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choices_nat, probabilities)
-        bpmn_lark[PROBABILITIES], bpmn_lark[LOOPS_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_choices)
+        bpmn_lark[PROBABILITIES], bpmn_lark[LOOP_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_choices)
         bpmn_lark[NAMES] = cs.create_probabilities_names(list_choices)
         bpmn_lark[DELAYS] = cs.create_probabilities_dict(cs.extract_choises_user(task), delays)
-        bpmn_lark[LOOP] = cs.create_probabilities_dict(loops_choices,loops)
+        bpmn_lark[LOOP_ROUND] = cs.create_probabilities_dict(loops_choices, loops)
     except Exception as e:
         print(f'Error at 1st step while parsing the BPMN choices: {e}')
         return [
@@ -548,7 +559,7 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
         bpmn_lark[TASK_SEQ] = bpmn_lark[TASK_SEQ].replace("\n", "").replace("\t", "")
         print(f'bpmn in printing {bpmn_lark}')
         try:
-            print_sese_diagram(**bpmn_lark, outfile=PATH_IMAGE_BPMN)
+            print_sese_diagram(**bpmn_lark, outfile=PATH_BPMN)
             if not os.path.exists(PATH_IMAGE_BPMN_FOLDER):
                 os.makedirs(PATH_IMAGE_BPMN_FOLDER)
             # Create a new SESE Diagram from the input

@@ -3,7 +3,8 @@ import os
 import pydot
 
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
-from paco.parser.tree_lib import CNode, CTree
+from paco.parser.parse_tree import ParseTree
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.execution_tree import ExecutionTree
@@ -11,14 +12,13 @@ from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_EXECUTION_TREE_STATE
 	PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME
 
 
-def create_execution_tree(region_tree: CTree, decision_min_max_impacts:dict, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
+def create_execution_tree(region_tree: ParseTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
 	states, choices, natures, branches = saturate_execution_decisions(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
 
 	id = 0
 	solution_tree = ExecutionTree(ExecutionViewPoint(
 		id=id, states=states,
 		decisions=(region_tree.root,),
-		decision_min_max_impacts=decision_min_max_impacts,
 		choices=choices, natures=natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
 		impacts_names=impacts_names)
@@ -29,12 +29,12 @@ def create_execution_tree(region_tree: CTree, decision_min_max_impacts:dict, imp
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		id = create_execution_viewpoint(region_tree, decisions, decision_min_max_impacts, branch, solution_tree, id + 1, impacts_names)
+		id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, id + 1, impacts_names)
 
 	return solution_tree
 
 
-def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], decision_min_max_impacts: dict, states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
+def create_execution_viewpoint(region_tree: ParseTree, decisions: tuple[ParseNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
 	saturatedStates, choices, natures, branches = saturate_execution_decisions(region_tree, states)
 	states.update(saturatedStates)
 
@@ -42,7 +42,6 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], deci
 		id=id,
 		states=states,
 		decisions=decisions,
-		decision_min_max_impacts=decision_min_max_impacts,
 		choices=choices, natures=natures,
 		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
 		impacts_names=impacts_names,
@@ -55,7 +54,7 @@ def create_execution_viewpoint(region_tree: CTree, decisions: tuple[CNode], deci
 	for decisions, branch_states in branches.items():
 		branch = copy.deepcopy(states)
 		branch.update(branch_states)
-		id = create_execution_viewpoint(region_tree, decisions, decision_min_max_impacts, branch, next_node, id + 1, impacts_names)
+		id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1, impacts_names)
 	return id
 
 
@@ -80,7 +79,9 @@ def write_image(frontier: list[ExecutionTree], path: str):
 def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = [], PATH_AUTOMA_STATE_TIME=None):
 	if not os.path.exists(PATH_EXECUTION_TREE):
 		os.makedirs(PATH_EXECUTION_TREE)
+
 	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE + '.dot', diff=False)
+
 	write_image(frontier, PATH_EXECUTION_TREE_STATE)
 
 	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE_TIME + '.dot', executed_time=True)
