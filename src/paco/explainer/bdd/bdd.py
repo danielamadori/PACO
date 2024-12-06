@@ -6,7 +6,7 @@ import pandas as pd
 from paco.explainer.bdd.dag_node import DagNode
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_node import ParseNode, Sequential, Parallel, Choice, Nature, Task
-from utils.env import PATH_EXPLAINER_DECISION_TREE
+from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_EXPLAINER_BDD
 
 
 class Bdd:
@@ -252,7 +252,7 @@ class Bdd:
 			dot.node(label, label=label, shape="box", style="filled", color=Bdd.get_decision_color(self.class_0))
 			dot.edge(str(self.choice), label, label="True", style='')
 
-		file_path = PATH_EXPLAINER_DECISION_TREE + "_" + str(self.choice.name)
+		file_path = PATH_EXPLAINER_BDD + "_" + str(self.choice.name)
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)# tmp file

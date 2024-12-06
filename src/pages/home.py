@@ -1,4 +1,5 @@
 import base64
+import zipfile
 from datetime import datetime
 import os
 import dash
@@ -10,7 +11,7 @@ from utils import solver_selector as at
 import json
 from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP_ROUND, LOOP_PROB, \
     STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, \
-    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_BPMN
+    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_BPMN, PATH_EXPLAINER_BDD, PATH_STRATEGIES
 from paco.parser.print_sese_diagram import print_sese_diagram
 
 
@@ -419,14 +420,25 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
         s.append(dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'))
         return [html.Div(s), None, 'tab-7']
 
-    #TODO: create the strategy tree
+
+    list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+
+    strategies_zip = PATH_STRATEGIES + '.zip'
+    with zipfile.ZipFile(strategies_zip, 'w') as zipf:
+        for c in choices:
+            file_name = f"{PATH_EXPLAINER_BDD}_{c}.svg"
+            if os.path.exists(file_name):
+                zipf.write(file_name, arcname=os.path.basename(file_name))  # Add file without path
+            else:
+                raise FileNotFoundError(f"BDD File not found: {file_name}")
+
     s.append(
-        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_TIME + '.svg', target='_blank'),
+        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategies.zip', href=strategies_zip, target='_blank'),
     )
     navigate_tabs('go-to-show-strategy')
-    list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+
     s.append(dcc.Tabs(
-        children=[dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
+        children=[dcc.Tab(label=c, children=[html.Iframe(src=f'{PATH_EXPLAINER_BDD}_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
     ))
     if list_choices_excluded:
         s.append(dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'))

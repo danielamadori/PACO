@@ -6,7 +6,7 @@ from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType) -> Bdd:
+def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType, write_decision_tree=False) -> Bdd:
 	decisions = list(decisions)
 	decision_0 = decisions[0]
 	decision_1 = None
@@ -18,7 +18,7 @@ def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.
 
 	success = True
 	if not is_unavoidable_decision:
-		success = bdd.build(write=True)
+		success = bdd.build(write=write_decision_tree)
 	if success:
 		bdd.bdd_to_file()
 	else:

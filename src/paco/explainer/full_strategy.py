@@ -79,7 +79,6 @@ def nature_clausure(natures: list[ParseNode], states: States, decisions: list[Pa
 			node = natures[i]
 
 			if branch_choices[i]:
-
 				activeNode = node.sx_child
 				inactiveNode = node.dx_child
 			else:
