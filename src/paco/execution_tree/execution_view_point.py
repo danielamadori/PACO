@@ -1,8 +1,8 @@
 import numpy as np
 from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_min_max_impacts
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.states import States
+from paco.parser.parse_node import ParseNode, Parallel
+from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.view_point import ViewPoint
 
 
@@ -16,34 +16,42 @@ class ExecutionViewPoint(ViewPoint):
 		self.cei_top_down:np.ndarray = self.probability * self.impacts
 		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
 
-		self.cei_max = self.probability * self.impacts
-		self.cei_min = self.probability * self.impacts
+		pending_decisions = [*choices]
+		unavoidable_pending_activities = [elem for elem in states.activityState if elem.parent not in pending_decisions and states.activityState[elem] == ActivityState.WAITING]
 
-		min_impacts = np.zeros(len(impacts_names), dtype=np.float64)
-		max_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+		self.min_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+		self.max_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+		for pending_activity in unavoidable_pending_activities:
+			min_imp, max_imp = evaluate_min_max_impacts(pending_activity)
+			self.min_impacts += min_imp
+			self.max_impacts += max_imp
+
+		pending_decisions_min_impacts = np.array(self.min_impacts)
+		pending_decisions_max_impacts = np.array(self.max_impacts)
+		for pending_decision in pending_decisions:
+			min_imp, max_imp = evaluate_min_max_impacts(pending_decision)
+			pending_decisions_min_impacts += min_imp
+			pending_decisions_max_impacts += max_imp
+
+			min_imp, max_imp = evaluate_min_max_impacts(pending_decision.sx_child)
+			min_imp += self.min_impacts
+			max_imp += self.max_impacts
+			print(f"Pending Decisions {pending_decision.sx_child.name} Min impacts:{min_imp}")
+			print(f"Pending Decisions {pending_decision.sx_child.name} Max impacts:{max_imp}")
+
+			min_imp, max_imp = evaluate_min_max_impacts(pending_decision.dx_child)
+			min_imp += self.min_impacts
+			max_imp += self.max_impacts
+			print(f"Pending Decisions {pending_decision.dx_child.name} Min impacts:{min_imp}")
+			print(f"Pending Decisions {pending_decision.dx_child.name} Max impacts:{max_imp}")
+
+		print(f"Total Pending Decisions Min impacts:{pending_decisions_min_impacts}")
+		print(f"Total Pending Decisions Max impacts:{pending_decisions_max_impacts}\n")
+
+		self.min_impacts = pending_decisions_min_impacts
+		self.max_impacts = pending_decisions_max_impacts
 
 
-		pending_choices_natures = [*choices, *natures]
-		pending_activity = [elem for elem in states.activityState if elem.parent not in pending_choices_natures and states.activityState[elem] == ActivityState.WAITING]
-		pending_activity.extend(pending_choices_natures)
-		#print all the nodes names
-		print(f"Activity nodes: {[elem.name for elem in pending_activity]}")
-
-		parallel = CNode(None, None,'parallel')
-		parallel.set_children([CTree(elem) for elem in pending_activity])
-
-		decision_min_max_impacts = {}
-		min_imp, max_imp = evaluate_min_max_impacts(CTree(parallel), decision_min_max_impacts, len(impacts_names))
-		for choice in decision_min_max_impacts.keys():
-			print(f"Choice {choice.name}: max: {decision_min_max_impacts[choice][1]}, min: {decision_min_max_impacts[choice][0]}")
-			#min_impacts += min_imp
-			#max_impacts += max_imp
-
-		self.cei_max += max_imp
-		self.cei_min += min_imp
-
-		print(f"Max impacts:{self.cei_max}")
-		print(f"Min impacts:{self.cei_min}\n")
 
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
@@ -61,8 +69,8 @@ class ExecutionViewPoint(ViewPoint):
 		#if not self.is_final_state:
 		label += f"EI Max: {self.cei_bottom_up}\n"
 
-		label += f"EI Test Max: {self.cei_max}\n"
-		label += f"EI Test Min: {self.cei_min}\n"
+		label += f"EI Test Max: {self.max_impacts}\n"
+		label += f"EI Test Min: {self.min_impacts}\n"
 
 		choice_label = ""
 		nature_label = ""

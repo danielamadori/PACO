@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.parser.parse_node import Choice
-
+from paco.parser.parse_node import Choice, Nature
+from paco.parser.parse_node import Task, ParseNode, Gateway, ExclusiveGateway, Parallel, Sequential
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 	root = solution_tree.root
@@ -62,37 +62,23 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 
 
 
-def evaluate_min_max_impacts(tree: CTree, decision_impacts: dict, impacts_size: int):
-	root = tree.root
-	min_impacts = np.zeros(impacts_size, dtype=np.float64)
-	max_impacts = np.zeros(impacts_size, dtype=np.float64)
+def evaluate_min_max_impacts(node: ParseNode):
+	if isinstance(node, Task):
+		return np.array(node.impact), np.array(node.impact)
 
-	if root in decision_impacts:
-		return min_impacts, max_impacts
+	sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(node.sx_child)
+	dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(node.dx_child)
 
-	if root.type == 'task':
-		min_impacts += np.array(root.impact)
-		max_impacts += np.array(root.impact)
-
-	elif root.type in ['sequential', 'parallel']:
-		for child in root.children:
-			child_min_impacts, child_max_impacts = evaluate_min_max_impacts(child, decision_impacts, impacts_size)
-			min_impacts += child_min_impacts
-			max_impacts += child_max_impacts
-
-	elif root.type in ['choice', 'natural']:
-		sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(root.children[0], decision_impacts, impacts_size)
-		dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(root.children[1], decision_impacts, impacts_size)
-
-		if root.type == 'natural':
-			print("okayyyyy")
-			min_impacts = root.probability * sx_child_min_impacts + (1 - root.probability) * dx_child_min_impacts
-			max_impacts = root.probability * sx_child_max_impacts + (1 - root.probability) * dx_child_max_impacts
+	if isinstance(node, ExclusiveGateway):
+		if isinstance(node, Nature):
+			min_impacts = node.probability * sx_child_min_impacts + (1 - node.probability) * dx_child_min_impacts
+			max_impacts = node.probability * sx_child_max_impacts + (1 - node.probability) * dx_child_max_impacts
 		else:
 			min_impacts = np.minimum(sx_child_min_impacts, dx_child_min_impacts)
 			max_impacts = np.maximum(sx_child_max_impacts, dx_child_max_impacts)
 
-
-	decision_impacts[root] = (min_impacts, max_impacts)
+	else: #Parallel or Sequential
+		min_impacts = sx_child_min_impacts + dx_child_min_impacts
+		max_impacts = sx_child_max_impacts + dx_child_max_impacts
 
 	return min_impacts, max_impacts
