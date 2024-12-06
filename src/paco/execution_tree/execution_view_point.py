@@ -1,13 +1,13 @@
 import numpy as np
 
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.tree_lib import CNode
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States
 from paco.execution_tree.view_point import ViewPoint
 
 
 class ExecutionViewPoint(ViewPoint):
-	def __init__(self, id: int, states: States, decisions: tuple[CNode], choices:tuple, natures: tuple,
+	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], choices:tuple, natures: tuple,
 				 is_final_state: bool, impacts_names, parent: 'ExecutionTree' = None):
 
 		super().__init__(id, states, decisions, is_final_state, natures, choices, parent)

@@ -1,5 +1,6 @@
 import copy
 from paco.execution_tree.execution_tree import ExecutionTree
+from paco.parser.parse_node import Choice
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
@@ -16,7 +17,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 
 		choices_transitions = []
 		for t in Transition:
-			if t[0].type == 'choice':
+			if isinstance(t[0], Choice):
 				onlyChoice = False
 				choices_transitions.append(t)
 
@@ -59,27 +60,3 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 				root.cei_bottom_up[i] = choices_cei_bottom_up[c][i]
 
 
-'''
-def worst_impacts(tree: CTree, states: States):
-	root = tree.root
-	#print(node_info(root, states))
-	if root in states.activityState and states.activityState[root] == ActivityState.WILL_NOT_BE_EXECUTED:
-		return States()
-
-	if root.type == 'task':
-		return States(root, ActivityState.COMPLETED, root.duration)
-
-	if root.type in ['sequential', 'parallel']:
-		result = States()
-		for child in root.children:
-			result.update(worst_impacts(child, states))
-		return result
-
-	if root.type in ['choice', 'natural']:
-		for child in root.children:
-			#print(node_info(child.root, states))
-			if child.root in states.activityState and states.activityState[child.root] >= ActivityState.ACTIVE:
-				return worst_impacts(child, states)
-
-	return States()
-'''

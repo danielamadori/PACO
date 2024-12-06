@@ -1,19 +1,28 @@
 import numpy as np
-from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOPS_PROB, LOOP
+from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROB, LOOP_ROUND
 from paco.solver import paco
 
 
 
 bpmn_ex = {
+    "loop_example":  [{
+        TASK_SEQ: "T1, <[L1] T2 >",
+        H: 0,
+        IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
+        DURATIONS: {"T1": [0, 100], "T2": [0, 100]},
+        IMPACTS_NAMES: ["cost", "hours"],
+        PROBABILITIES: {}, NAMES: {'L1': 'L1'}, DELAYS: {}, LOOP_PROB: {'L1': 0.5}, LOOP_ROUND: {'L1': 10}
+    }, [19, 19]
+    ],
     "decision_based_example" : [{
         TASK_SEQ: '((T1 /[C1] T2) || (( (T3 ^[N2] T4), TU1) ^[N1] ( (T5 ^[N3] T6), TU2)))',
         IMPACTS_NAMES: ['a', 'b'],
         IMPACTS: {'T1': [3, 1], 'T2': [1, 3], 'T3': [2, 0], 'T4': [0, 2], 'TU1': [3, 1], 'T5': [2, 0], 'T6': [0, 2], 'TU2': [1, 3]},
         DURATIONS: {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1]},
         PROBABILITIES: {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
-        LOOPS_PROB: {},
+        LOOP_PROB: {},
         NAMES: {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
-        DELAYS: {'C1': 1}, LOOP: {}, H: 0,
+        DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
         }, [5, 6]
     ],
     "unavoidable_example" : [{
@@ -22,9 +31,9 @@ bpmn_ex = {
         IMPACTS: {'T1': [3, 1], 'T2': [1, 3], 'T3': [2, 0], 'T4': [0, 2], 'TU1': [3, 1], 'T5': [2, 0], 'T6': [0, 2], 'TU2': [1, 3], 'TD1': [0, 0], 'TD2': [0, 0]},
         DURATIONS: {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1], 'TD1': [0, 2], 'TD2': [0, 2]},
         PROBABILITIES: {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
-        LOOPS_PROB: {},
+        LOOP_PROB: {},
         NAMES: {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
-        DELAYS: {'C1': 1}, LOOP: {}, H: 0,
+        DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
     }, [5, 6]
     ],
     "natures of natures": [{
@@ -33,7 +42,7 @@ bpmn_ex = {
         IMPACTS: {"Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
         DURATIONS: {"Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, NAMES: {"N":"N", "N1":"N1", "N2":"N2"}, DELAYS: {}, LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, NAMES: {"N":"N", "N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROB : {}, LOOP_ROUND: {}
     }, [23.3, 24.4]],
 
     "just task, no strategy (no choice)": [{
@@ -42,7 +51,7 @@ bpmn_ex = {
         IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
         DURATIONS: {"T1": [0, 100], "T2": [0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOPS_PROB: {}, LOOP: {}
+        PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
     }, [15, 17]],
 
     "one choice, strategy with one obligated decision (current impacts)": [{
@@ -51,7 +60,7 @@ bpmn_ex = {
         IMPACTS: {"T0": [11, 15], "T1": [4, 2] , "T2": [3, 3]},
         DURATIONS: {"T0": [0, 100], "T1": [0, 100], "T2":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0},LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [14, 18]], #[15, 17]
 
     "only natures, no strategy (no choice)": [{
@@ -60,7 +69,7 @@ bpmn_ex = {
         IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1]},
         DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N1": 0.6}, NAMES: {'N1':'N1'}, DELAYS: {},LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N1": 0.6}, NAMES: {'N1':'N1'}, DELAYS: {},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [14.7, 16.7]],
 
     "sequential choices": [{TASK_SEQ: "SimpleTask1,  (Task1 / [C1] T2),  (T3 / [C2] T4)",
@@ -68,7 +77,7 @@ bpmn_ex = {
                             IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
                             DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
                             IMPACTS_NAMES: ["cost", "hours"],
-                            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 0, "C2": 0},LOOPS_PROB : {}, LOOP: {}
+                            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 0, "C2": 0}, LOOP_PROB : {}, LOOP_ROUND: {}
                             }, [23, 26]], #[23, 26], [25, 22], [22, 25], [24, 21]
 
     "bpmn_seq_natures": [{
@@ -77,7 +86,7 @@ bpmn_ex = {
         IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
         DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROB : {}, LOOP_ROUND: {}
     }, [23.3, 24.4]],
 
     "bpmn_choices_natures": [{
@@ -88,7 +97,7 @@ bpmn_ex = {
         IMPACTS_NAMES: ["cost", "hours"],
         PROBABILITIES: {"N1": 0.6},
         NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"},
-        DELAYS: {"C1": 0, "C2": 0}, LOOPS_PROB : {}, LOOP: {}
+        DELAYS: {"C1": 0, "C2": 0}, LOOP_PROB : {}, LOOP_ROUND: {}
     }, [26, 33.3]],
 
     "bpmn_prof": [{
@@ -98,9 +107,9 @@ bpmn_ex = {
         DURATIONS: {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100},
         IMPACTS_NAMES: ["cost", "r", "s", "e"],
         PROBABILITIES: {"N1": 0.5, "N2": 0.5},
-        LOOPS_PROB: {},
+        LOOP_PROB: {},
         NAMES: {"N1": "N1", "N2": "N2", "c1": "c1"},
-        DELAYS: {"c1": 0}, LOOP: {}
+        DELAYS: {"c1": 0}, LOOP_ROUND: {}
     }, [1, 1, 1, 1]],
 
     "bpmn_unavoidable_tasks": [{
@@ -109,7 +118,7 @@ bpmn_ex = {
         IMPACTS: {"TaskA": [10], "TaskB": [10], "Task2": [10]},
         DURATIONS: {"TaskA": 100, "TaskB": 100, "Task2": 100},
         IMPACTS_NAMES: ["cost"],
-        PROBABILITIES: {"C1": 0.5}, NAMES: {"C1": "C1"}, DELAYS: {"C1": 0},LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"C1": 0.5}, NAMES: {"C1": "C1"}, DELAYS: {"C1": 0},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [20]],
 
     "bpmn_unavoidable_tasks2": [{
@@ -119,9 +128,9 @@ bpmn_ex = {
         DURATIONS: {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100, "t4": 100},
         IMPACTS_NAMES: ["cost", "r", "s", "e"],
         PROBABILITIES: {"N1": 0.5, "N2": 0.5},
-        LOOPS_PROB: {},
+        LOOP_PROB: {},
         NAMES: {"N1": "N1", "N2": "N2", "c1": "c1"},
-        DELAYS: {"c1": 0}, LOOP: {}
+        DELAYS: {"c1": 0}, LOOP_ROUND: {}
     }, [2, 2, 2, 2]],
 
     "bpmn_unavoidable_tasks3": [{
@@ -131,9 +140,9 @@ bpmn_ex = {
         DURATIONS: {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100, "t4": 100, "t5": 100},
         IMPACTS_NAMES: ["cost", "r", "s", "e"],
         PROBABILITIES: {"N1": 0.5, "N2": 0.5},
-        LOOPS_PROB: {},
+        LOOP_PROB: {},
         NAMES: {"N1": "N1", "N2": "N2", "c1": "c1"},
-        DELAYS: {"c1": 0}, LOOP: {}
+        DELAYS: {"c1": 0}, LOOP_ROUND: {}
     }, [3, 3, 3, 3]],
 
     "choice not explained": [{
@@ -143,7 +152,7 @@ bpmn_ex = {
         DURATIONS: {"T1": 1, "TA_N1": 1, "TB_N1": 1, "TA_C1": 1, "TB_C1":1 , "TA_C2": 1, "TB_C2": 1},
         IMPACTS_NAMES: ["cost", "hours"],
         PROBABILITIES: {"N1": 0.6}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"},
-        DELAYS: {"C1": 0, "C2": 0},LOOPS_PROB : {}, LOOP: {}
+        DELAYS: {"C1": 0, "C2": 0},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [30, 30]],
 
     #TODO
@@ -154,7 +163,7 @@ bpmn_ex = {
         DURATIONS: {"T1": 1, "TA_N1": 1, "TB_N1": 1, "TA_C1": 1, "TB_C1":1 , "TA_C2": 1, "TB_C2": 1, "TA_N2": 1, "TB_N2": 1},
         IMPACTS_NAMES: ["A", "B"],
         PROBABILITIES: {"N1": 0.6, "N2": 0.5}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1", "N2": "N2"},
-        DELAYS: {"C1": 1, "C2": 0},LOOPS_PROB : {}, LOOP: {}
+        DELAYS: {"C1": 1, "C2": 0},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [57, 48]],
 
     # TODO "multi condition BDD"
@@ -186,7 +195,7 @@ bpmn_paper_example = {
         IMPACTS: {"Cutting": [10, 1], "Bending": [20, 1], "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1], "FD": [30, 1], "RD": [10, 1], "HPHS": [40, 1], "LPLS": [20, 3]},
         DURATIONS: {"Cutting": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1], "HPHS": [0, 1], "LPLS": [0, 2]},
         IMPACTS_NAMES: ["electric energy", "worker hours"],
-        PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"}, DELAYS: {"C1": 0, "C2": 0},LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"}, DELAYS: {"C1": 0, "C2": 0},LOOP_PROB : {}, LOOP_ROUND: {}
         }, [135, 9]], #[135, 7]
     #TODO loops
     "loop": [{
@@ -195,7 +204,7 @@ bpmn_paper_example = {
         IMPACTS: {"T1": [10, 1], "Bending": [20, 1], "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1], "FD": [30, 1], "RD": [10, 1]},
         DURATIONS: {"T1": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1]},
         IMPACTS_NAMES: ["electric energy", "worker hours"],
-        PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "N1": "N1"}, DELAYS: {"C1": 0},LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "N1": "N1"}, DELAYS: {"C1": 0},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [100, 7]],
     "Explainer Figure": [{
         TASK_SEQ: "((t0p0 ^[p0] t1p0), (t0p5 /[p5] t1p5), (tp11, (t0p13 /[p13] t1p13),(t0p24 /[p24] t1p24) || (t0p12, tp20, (t0p22 ^[p22] t1p22) ^[p12] t1p12, tp21, (t0p23 ^ [p23] t1p23) ) ) )",
@@ -207,7 +216,7 @@ bpmn_paper_example = {
 
         DURATIONS: {"t0p0": [0, 1], "t1p0": [0, 1], "t0p5": [0, 1], "t1p5": [0, 1], "tp11": [0, 1], "t0p13": [0, 1], "t1p13": [0, 1], "t0p24": [0, 1], "t1p24": [0, 1], "t0p12": [0, 2], "t1p12": [0, 2], "t0p23": [0, 1], "t1p23": [0, 1], "t0p22": [0, 1], "t1p22": [0, 1], "tp20": [0, 1], "tp21": [0, 1] },
         IMPACTS_NAMES: ["A", "B", "C", "D", "E", "F"],
-        PROBABILITIES: {"p0": 0.5, "p12": 0.5, "p22": 0.99, "p23":0.01}, NAMES: {"p0": "p0", "p5": "p5", "p13": "p13", "p12": "p12", "p24": "p24", "p22": "p22", "p23": "p23"}, DELAYS: {"p5": 0, "p13": 0, "p24": 0},LOOPS_PROB : {}, LOOP: {}
+        PROBABILITIES: {"p0": 0.5, "p12": 0.5, "p22": 0.99, "p23":0.01}, NAMES: {"p0": "p0", "p5": "p5", "p13": "p13", "p12": "p12", "p24": "p24", "p22": "p22", "p23": "p23"}, DELAYS: {"p5": 0, "p13": 0, "p24": 0},LOOP_PROB : {}, LOOP_ROUND: {}
     }, [10,10,8,8,7,7]],
     "Explainer Figure_1": [{
         TASK_SEQ: "((p1 ^[p0] p2), (p6 /[p5] p7), ((p16, (p28 /[p21] p29),(p35 /[p33] p36)) || (p19, p26 ^[p15] p20, p27) || (p13, (p22 ^[p17] p23) ^[p11] p14, (p24 ^ [p18] p25) )) )",
@@ -223,30 +232,15 @@ bpmn_paper_example = {
         IMPACTS_NAMES: ["A", "B", "C", "D", "E", "F"],
         PROBABILITIES: {"p0": 0.5, "p11": 0.5, "p15": 0.5, "p17": 0.99, "p18":0.01},
         NAMES: {"p0": "p0", "p5": "p5", "p11": "p11", "p15": "p15", "p17": "p17", "p18": "p18", "p21": "p21", "p33":"p33"},
-        DELAYS: {"p5": 0, "p21": 0, "p33": 0},LOOPS_PROB : {}, LOOP: {}
+        DELAYS: {"p5": 0, "p21": 0, "p33": 0}, LOOP_PROB : {}, LOOP_ROUND: {}
     }, [3.5, 3.5,11, 12, 9.5, 9.5]], #[3,3,8,8,7,7]
 }
 
 
-test_calc_strategy_paco(bpmn_paper_example, 3)
+#test_calc_strategy_paco(bpmn_paper_example, 0)
 
-
-
-#test_calc_strategy_paco(bpmn_ex, 0)
-
-#test_calc_strategy_paco(bpmn_ex, 0) #decision_based example
-#test_calc_strategy_paco(bpmn_ex, 1) #unavoidable example
-#test_calc_strategy_paco(bpmn_ex, 4) #current impacts (one obligated decision)
-#test_calc_strategy_paco(bpmn_ex, 8) #current impacts
-
+test_calc_strategy_paco(bpmn_ex, 0)
 
 #test_calc_strategy_paco(bpmn_ex, 14)
 
 
-#Testing StrategyTree:
-#test_calc_strategy_paco(bpmn_ex, 0) # Not pruned ask if okay, decision_based example
-#test_calc_strategy_paco(bpmn_ex, 1) # Not pruned ask if okay, unavoidable example
-#test_calc_strategy_paco(bpmn_ex, 4) # Okay, current impacts (one obligated decision)
-#test_calc_strategy_paco(bpmn_ex, 6) # Okay, current impacts (two obligated decision)
-#test_calc_strategy_paco(bpmn_ex, 8) # Okay, current impacts
-#test_calc_strategy_paco(bpmn_ex, 9) # Not pruned ask if okay, all leaves in the frontier
