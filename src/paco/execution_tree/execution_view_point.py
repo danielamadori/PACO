@@ -1,5 +1,5 @@
 import numpy as np
-
+from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_min_max_impacts
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
 from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States
@@ -16,6 +16,35 @@ class ExecutionViewPoint(ViewPoint):
 		self.cei_top_down:np.ndarray = self.probability * self.impacts
 		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
 
+		self.cei_max = self.probability * self.impacts
+		self.cei_min = self.probability * self.impacts
+
+		min_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+		max_impacts = np.zeros(len(impacts_names), dtype=np.float64)
+
+
+		pending_choices_natures = [*choices, *natures]
+		pending_activity = [elem for elem in states.activityState if elem.parent not in pending_choices_natures and states.activityState[elem] == ActivityState.WAITING]
+		pending_activity.extend(pending_choices_natures)
+		#print all the nodes names
+		print(f"Activity nodes: {[elem.name for elem in pending_activity]}")
+
+		parallel = CNode(None, None,'parallel')
+		parallel.set_children([CTree(elem) for elem in pending_activity])
+
+		decision_min_max_impacts = {}
+		min_imp, max_imp = evaluate_min_max_impacts(CTree(parallel), decision_min_max_impacts, len(impacts_names))
+		for choice in decision_min_max_impacts.keys():
+			print(f"Choice {choice.name}: max: {decision_min_max_impacts[choice][1]}, min: {decision_min_max_impacts[choice][0]}")
+			#min_impacts += min_imp
+			#max_impacts += max_imp
+
+		self.cei_max += max_imp
+		self.cei_min += min_imp
+
+		print(f"Max impacts:{self.cei_max}")
+		print(f"Min impacts:{self.cei_min}\n")
+
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
 		result = super().common_dot_str(full, state, executed_time, previous_node)
@@ -29,8 +58,11 @@ class ExecutionViewPoint(ViewPoint):
 		if self.probability != 1:
 			label += f"Probability: {round(self.probability, 2)}\n"
 		label += f"EI Current: {self.cei_top_down}\n"
-		if not self.is_final_state:
-			label += f"EI Max: {self.cei_bottom_up}\n"
+		#if not self.is_final_state:
+		label += f"EI Max: {self.cei_bottom_up}\n"
+
+		label += f"EI Test Max: {self.cei_max}\n"
+		label += f"EI Test Min: {self.cei_min}\n"
 
 		choice_label = ""
 		nature_label = ""
