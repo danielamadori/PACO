@@ -1,8 +1,7 @@
 import copy
-import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.parser.parse_node import Choice, Nature
-from paco.parser.parse_node import Task, ParseNode, Gateway, ExclusiveGateway, Parallel, Sequential
+from paco.parser.parse_node import Choice
+
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 	root = solution_tree.root
@@ -62,23 +61,3 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 
 
 
-def evaluate_min_max_impacts(node: ParseNode):
-	if isinstance(node, Task):
-		return np.array(node.impact), np.array(node.impact)
-
-	sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(node.sx_child)
-	dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(node.dx_child)
-
-	if isinstance(node, ExclusiveGateway):
-		if isinstance(node, Nature):
-			min_impacts = node.probability * sx_child_min_impacts + (1 - node.probability) * dx_child_min_impacts
-			max_impacts = node.probability * sx_child_max_impacts + (1 - node.probability) * dx_child_max_impacts
-		else:
-			min_impacts = np.minimum(sx_child_min_impacts, dx_child_min_impacts)
-			max_impacts = np.maximum(sx_child_max_impacts, dx_child_max_impacts)
-
-	else: #Parallel or Sequential
-		min_impacts = sx_child_min_impacts + dx_child_min_impacts
-		max_impacts = sx_child_max_impacts + dx_child_max_impacts
-
-	return min_impacts, max_impacts

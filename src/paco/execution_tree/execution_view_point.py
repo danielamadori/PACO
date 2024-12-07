@@ -1,9 +1,10 @@
 import numpy as np
-from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_min_max_impacts
+from paco.evaluations.evaluate_possible_decisions import evaluate_possible_decisions
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.parse_node import ParseNode, Parallel
+from paco.parser.parse_node import ParseNode, Choice
 from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.view_point import ViewPoint
+from paco.searcher.found_strategy import compare_bound
 
 
 class ExecutionViewPoint(ViewPoint):
@@ -16,40 +17,36 @@ class ExecutionViewPoint(ViewPoint):
 		self.cei_top_down:np.ndarray = self.probability * self.impacts
 		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
 
-		pending_decisions = [*choices]
-		unavoidable_pending_activities = [elem for elem in states.activityState if elem.parent not in pending_decisions and states.activityState[elem] == ActivityState.WAITING]
+		pending_choices = [*choices]
+		pending_activities = [node for node in states.activityState if node.parent not in pending_choices and states.activityState[node] == ActivityState.WAITING]
 
-		self.min_impacts = np.zeros(len(impacts_names), dtype=np.float64)
-		self.max_impacts = np.zeros(len(impacts_names), dtype=np.float64)
-		for pending_activity in unavoidable_pending_activities:
-			min_imp, max_imp = evaluate_min_max_impacts(pending_activity)
-			self.min_impacts += min_imp
-			self.max_impacts += max_imp
+		self.possible_expected_impacts, self.branches_possible_expected_impacts = evaluate_possible_decisions(self.probability, self.impacts, pending_activities, pending_choices, len(impacts_names))
 
-		pending_decisions_min_impacts = np.array(self.min_impacts)
-		pending_decisions_max_impacts = np.array(self.max_impacts)
-		for pending_decision in pending_decisions:
-			min_imp, max_imp = evaluate_min_max_impacts(pending_decision)
-			pending_decisions_min_impacts += min_imp
-			pending_decisions_max_impacts += max_imp
+	def pruning(self, bound: np.ndarray):
+		possible_decisions = {}
+		for branch_possible_decisions, branch_possible_expected_impacts in self.branches_possible_expected_impacts.items():
+			max_possible_expected_impacts = branch_possible_expected_impacts[1]
+			min_possible_expected_impacts = branch_possible_expected_impacts[0]
 
-			min_imp, max_imp = evaluate_min_max_impacts(pending_decision.sx_child)
-			min_imp += self.min_impacts
-			max_imp += self.max_impacts
-			print(f"Pending Decisions {pending_decision.sx_child.name} Min impacts:{min_imp}")
-			print(f"Pending Decisions {pending_decision.sx_child.name} Max impacts:{max_imp}")
+			if np.all(compare_bound(min_possible_expected_impacts, bound) > 0):
+				# You can stop here is guaranteed to stay over the bound so it is not a valid choose and this is a dead branch
+				continue
 
-			min_imp, max_imp = evaluate_min_max_impacts(pending_decision.dx_child)
-			min_imp += self.min_impacts
-			max_imp += self.max_impacts
-			print(f"Pending Decisions {pending_decision.dx_child.name} Min impacts:{min_imp}")
-			print(f"Pending Decisions {pending_decision.dx_child.name} Max impacts:{max_imp}")
+			if np.all(compare_bound(max_possible_expected_impacts, bound) <= 0):
+				# You can stop here is guaranteed to stay under the bound
+				possible_decisions = {branch_possible_decisions : branch_possible_expected_impacts}
+				break
 
-		print(f"Total Pending Decisions Min impacts:{pending_decisions_min_impacts}")
-		print(f"Total Pending Decisions Max impacts:{pending_decisions_max_impacts}\n")
+			possible_decisions[branch_possible_decisions] = branch_possible_expected_impacts
 
-		self.min_impacts = pending_decisions_min_impacts
-		self.max_impacts = pending_decisions_max_impacts
+		possible_transitions = {}
+		for transitions, next_child in self.transitions.items():
+			decisions = tuple(decision for decision in list(transitions) if isinstance(decision, Choice))
+			if decisions in possible_decisions:
+				possible_transitions[transitions] = next_child
+			else:
+				print("Pruning: ", decisions, " not in ", possible_decisions)
+
 
 
 
@@ -69,8 +66,8 @@ class ExecutionViewPoint(ViewPoint):
 		#if not self.is_final_state:
 		label += f"EI Max: {self.cei_bottom_up}\n"
 
-		label += f"EI Test Max: {self.max_impacts}\n"
-		label += f"EI Test Min: {self.min_impacts}\n"
+		label += f"Guaranteed Impacts Max: {self.possible_expected_impacts[1]}\n"
+		label += f"Guaranteed Impacts Min: {self.possible_expected_impacts[0]}\n"
 
 		choice_label = ""
 		nature_label = ""
