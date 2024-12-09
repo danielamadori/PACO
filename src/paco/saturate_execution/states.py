@@ -51,6 +51,12 @@ class States:
 		s, d = self.str()
 		return s + " | " + d
 
+	def to_dict(self):
+		return {
+			"activityState": {k.id: v for k, v in self.activityState.items()},
+			"executed_time": {k.id: v for k, v in self.executed_time.items()}
+		}
+
 
 def node_info(node: ParseNode, states: States):
 	name = "" if not (isinstance(node, Sequential) and isinstance(node, Parallel)) else "name:" + node.name + '; '

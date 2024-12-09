@@ -55,3 +55,4 @@ class ExecutionViewPoint(ViewPoint):
 			"cei_top_down": self.cei_top_down.tolist(),
 			"cei_bottom_up": self.cei_bottom_up.tolist()
 		})
+		return base

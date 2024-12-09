@@ -89,16 +89,20 @@ class ViewPoint(ABC):
 
 	@abstractmethod
 	def to_dict(self) -> dict:
-		return {"id": self.id,
-				"states": self.states.to_dict(),
-				"state_id": self.state_id,
-				"decisions": [d.to_dict() for d in self.decisions],
-				"is_final_state": self.is_final_state,
-				"natures": [n.to_dict() for n in self.natures],
-				"choices": [c.to_dict() for c in self.choices],
-				"parent": self.parent.id,
-				"transitions": self.transitions.to_dict()
-				}
+		s = {"id": self.id,
+			"states": self.states.to_dict(),
+			#"state_id": self.state_id,
+			"decisions": [d.id for d in self.decisions],
+			"is_final_state": self.is_final_state,
+			"natures": [n.id for n in self.natures],
+			"choices": [c.id for c in self.choices],
+			"parent": self.parent.root.id if not self.parent is None else None,
+			"transitions": {
+				 str([(decision[0].id, decision[1].id) for decision in decisions]): nextViewPoint.root.to_dict()
+				 for decisions, nextViewPoint in self.transitions.items()
+			}
+		}
+		return s
 
 
 

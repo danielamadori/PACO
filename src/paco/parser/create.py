@@ -2,7 +2,7 @@ from datetime import datetime
 from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
 from paco.parser.bpmn_parser import create_parse_tree
 from paco.searcher.create_execution_tree import create_execution_tree, write_execution_tree
-from utils.env import IMPACTS_NAMES
+from utils.env import IMPACTS_NAMES, PATH_EXECUTION_TREE
 
 
 def create(bpmn: dict):
@@ -17,6 +17,9 @@ def create(bpmn: dict):
     execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES])
     t1 = datetime.now()
     print(f"{t1} CreateExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
+
+    execution_tree.to_json()
+
     t = datetime.now()
     evaluate_cumulative_expected_impacts(execution_tree)
     t1 = datetime.now()

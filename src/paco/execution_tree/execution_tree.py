@@ -5,6 +5,7 @@ from graphviz import Source
 from paco.execution_tree.view_point import ViewPoint
 from paco.parser.parse_node import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
+from utils.env import PATH_EXECUTION_TREE
 
 
 class ExecutionTree:
@@ -26,7 +27,7 @@ class ExecutionTree:
 		Source(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff),
 			   format='pdf').render(path, cleanup=True)
 
-	def to_json(self, outfile:str) -> None:
+	def to_json(self, outfile:str = PATH_EXECUTION_TREE[:-1]) -> None:
 		dictionary = self.root.to_dict()
 		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
 
