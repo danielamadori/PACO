@@ -1,9 +1,7 @@
-import asyncio
 import dash
-from dash import html, dcc, callback, Output, Input
+from dash import html, dcc
 import dash_bootstrap_components as dbc
-
-from api.api import get_bpmn_grammar # , get_image_content
+from env import sese_diagram_grammar
 dash.register_page(__name__)
 
 layout = html.Div([
@@ -16,11 +14,9 @@ layout = html.Div([
         Here is the complete grammar:
     '''),
 
-    dcc.Loading(
-        id="loading-grammar",
-        type="default",
-        children=html.Div(id='grammar-content')
-    ),
+    dcc.Markdown(f'''
+            {sese_diagram_grammar}
+           '''),
     html.Br(),
     
     html.Div(children=[
@@ -405,29 +401,29 @@ layout = html.Div([
    
 # ])
 
-@callback(
-    Output('grammar-content', 'children'),
-    Input('auth-token-store', 'data'),
-    prevent_initial_call=False
-)
-def update_grammar(token):
-    """Update grammar content when token changes"""
-    try:
-        # Create event loop and run coroutine
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        grammar = loop.run_until_complete(get_bpmn_grammar(token))
-        loop.close()
+# @callback(
+#     Output('grammar-content', 'children'),
+#     Input('auth-token-store', 'data'),
+#     prevent_initial_call=False
+# )
+# def update_grammar(token):
+#     """Update grammar content when token changes"""
+#     try:
+#         # Create event loop and run coroutine
+#         loop = asyncio.new_event_loop()
+#         asyncio.set_event_loop(loop)
+#         grammar = loop.run_until_complete(get_bpmn_grammar(token))
+#         loop.close()
         
-        if grammar:
-            return dcc.Markdown(f'''
-                ```lark
-                {grammar}
-                ```
-            ''')
-        return html.Div("Failed to load grammar", style={'color': 'red'})
-    except Exception as e:
-        return html.Div(f"Error loading grammar: {str(e)}", style={'color': 'red'})
+#         if grammar:
+#             return dcc.Markdown(f'''
+#                 ```lark
+#                 {grammar}
+#                 ```
+#             ''')
+#         return html.Div("Failed to load grammar", style={'color': 'red'})
+#     except Exception as e:
+#         return html.Div(f"Error loading grammar: {str(e)}", style={'color': 'red'})
 # @callback(
 #     [Output('simple-person-task', 'src'),
 #      Output('simple-person-error', 'children')],

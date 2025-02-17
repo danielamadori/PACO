@@ -24,7 +24,7 @@ layout = html.Div([
     html.Div([
         html.Img(
             id='bpmn-example-img',
-            src='',
+            src=dash.get_asset_url('examples/bpmn_example.png'),
             width="1000"
         ),
         html.Div(id='image-load-error')
@@ -33,7 +33,7 @@ layout = html.Div([
     html.Div([
         html.Img(
             id='lark-bpmn-img',
-            src='',
+            src=dash.get_asset_url('examples/lark_bpmn.svg'),
             width="1500"
         ),
         html.Div(id='svg-load-error')
@@ -56,42 +56,42 @@ layout = html.Div([
     '''),
 ])
 
-@callback(
-    [Output('bpmn-example-img', 'src'),
-     Output('image-load-error', 'children')],
-    [Input('token-store', 'data')],
-    prevent_initial_call=False
-)
-def update_bpmn_image(token):
-    """Update BPMN image when token changes"""
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        img_content = loop.run_until_complete(get_image_content("bpmn_example", token=token))
-        loop.close() 
-        if img_content:
-            print('img : ', img_content)
-            return f'data:image/png;base64,{img_content}', ''
-        return '', html.Div('Failed to load image', style={'color': 'red'})
-    except Exception as e:
-        return '', html.Div(f'Error: {str(e)}', style={'color': 'red'})
+# @callback(
+#     [Output('bpmn-example-img', 'src'),
+#      Output('image-load-error', 'children')],
+#     [Input('token-store', 'data')],
+#     prevent_initial_call=False
+# )
+# def update_bpmn_image(token):
+#     """Update BPMN image when token changes"""
+#     try:
+#         loop = asyncio.new_event_loop()
+#         asyncio.set_event_loop(loop)
+#         img_content = loop.run_until_complete(get_image_content("bpmn_example", token=token))
+#         loop.close() 
+#         if img_content:
+#             print('img : ', img_content)
+#             return f'data:image/png;base64,{img_content}', ''
+#         return '', html.Div('Failed to load image', style={'color': 'red'})
+#     except Exception as e:
+#         return '', html.Div(f'Error: {str(e)}', style={'color': 'red'})
 
-@callback(
-    [Output('lark-bpmn-img', 'src'),
-     Output('svg-load-error', 'children')],
-    [Input('token-store', 'data')],
-    prevent_initial_call=False
-)
-def update_lark_image(token):
-    """Update Lark BPMN image when token changes"""
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        img_content = loop.run_until_complete(get_image_content("lark_bpmn", "svg", token=token))
-        loop.close()        
-        if img_content:
-            print('img : ', img_content)
-            return f'data:image/svg+xml;base64,{img_content}', ''
-        return '', html.Div('Failed to load image', style={'color': 'red'})
-    except Exception as e:
-        return '', html.Div(f'Error: {str(e)}', style={'color': 'red'})
+# @callback(
+#     [Output('lark-bpmn-img', 'src'),
+#      Output('svg-load-error', 'children')],
+#     [Input('token-store', 'data')],
+#     prevent_initial_call=False
+# )
+# def update_lark_image(token):
+#     """Update Lark BPMN image when token changes"""
+#     try:
+#         loop = asyncio.new_event_loop()
+#         asyncio.set_event_loop(loop)
+#         img_content = loop.run_until_complete(get_image_content("lark_bpmn", "svg", token=token))
+#         loop.close()        
+#         if img_content:
+#             print('img : ', img_content)
+#             return f'data:image/svg+xml;base64,{img_content}', ''
+#         return '', html.Div('Failed to load image', style={'color': 'red'})
+#     except Exception as e:
+#         return '', html.Div(f'Error: {str(e)}', style={'color': 'red'})

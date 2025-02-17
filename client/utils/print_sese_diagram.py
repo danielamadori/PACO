@@ -1,9 +1,7 @@
 from lark import Tree, Token
 import pydot
-from pydot import *
-from PIL import Image
-from server.src.paco.parser.bpmn_parser import SESE_PARSER
-from utils.env import PATH_BPMN, RESOLUTION
+from pydot import * 
+from env import PATH_BPMN, RESOLUTION, SESE_PARSER
 """
     funzioni prese dal notebook
 """
@@ -20,9 +18,7 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     graph.write_svg(outfile_svg)
     # # #print(graph)  
     graph.set('dpi', resolution_bpmn)
-    graph.write_png(outfile)    
-    # return  Image.open(outfile) 
-    return graph  
+    graph.write_png(outfile)     
 
 def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
     exit_label = ''

@@ -10,10 +10,11 @@ from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.parser.create import create
 from paco.searcher.search import search
 from paco.parser.bpmn_parser import SESE_PARSER
-from utils.env import ALGORITHMS, RESOLUTION
+from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, RESOLUTION, PROBABILITIES
 from paco.solver import paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
 from fastapi.middleware.cors import CORSMiddleware
+from utils import check_syntax as cs
 import uvicorn
 # TO EMBED DASH IN FASAPI
 # https://medium.com/@gerardsho/embedding-dash-dashboards-in-fastapi-framework-in-less-than-3-mins-b1bec12eb3
@@ -194,12 +195,12 @@ async def check_syntax(bpmn: BPMNDefinition, token:str = None) -> bool:
     return checkCorrectSyntax(dict(bpmn))
 
 @app.get("/get_algorithms") 
-async def get_algorithms(token:str = None) -> List[str]:
+async def get_algorithms(token:str = None) -> dict:
     """
     Returns the list of available algorithms.
 
     Returns:
-        List[str]: The list of available algorithms.
+        dict: Dictionary of available algorithms with their descriptions
 
     Raises:
         403: If the token is not provided, an exception not authorized.
@@ -207,7 +208,7 @@ async def get_algorithms(token:str = None) -> List[str]:
     if token == None:
         return HTTPException(status_code=403, detail="Not authorized")
     try:
-        return list(ALGORITHMS.values())
+        return ALGORITHMS
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
@@ -489,6 +490,33 @@ async def login(request: LoginRequest):
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
+@app.post("/set_bpmn")
+async def set_bpmn(
+    bpmn_lark: dict, impacts_table, 
+    durations, task: str,
+    loops, probabilities, delays, token: str = None):
+    try:
+        bpmn_lark[IMPACTS] = cs.extract_impacts_dict(bpmn_lark[IMPACTS_NAMES], impacts_table) 
+        # print(bpmn_lark[IMPACTS])
+        bpmn_lark[IMPACTS] = cs.impacts_dict_to_list(bpmn_lark[IMPACTS])     
+        # print(bpmn_lark[IMPACTS], ' AS LISTR')   
+
+        bpmn_lark[DURATIONS] = cs.create_duration_dict(task=task, durations=durations)
+    
+        list_choises = cs.extract_choises(task)        
+        loops_chioses = cs.extract_loops(task) 
+        choises_nat = cs.extract_choises_nat(task) + loops_chioses
+        bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choises_nat, probabilities)
+        bpmn_lark[PROBABILITIES], bpmn_lark[LOOP_PROB] = cs.divide_dict(bpmn_lark[PROBABILITIES], loops_chioses)
+        bpmn_lark[NAMES] = cs.create_probabilities_names(list_choises)
+        bpmn_lark[DELAYS] = cs.create_probabilities_dict(cs.extract_choises_user(task), delays)
+        bpmn_lark[LOOP_PROB] = cs.create_probabilities_dict(loops_chioses,loops)
+        if cs.checkCorrectSyntax(bpmn_lark):
+            return bpmn_lark
+        else:
+            raise HTTPException(status_code=400, detail="Invalid BPMN syntax")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 #######################################################
 ############ PUT ######################################
 #######################################################

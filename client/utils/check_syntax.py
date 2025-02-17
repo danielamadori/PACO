@@ -2,9 +2,7 @@
 """
    File that checks things and useful things 
 """
-from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, TASK_SEQ
-from paco.parser.grammar import ALL_SYNTAX
-from paco.parser.bpmn_parser import SESE_PARSER
+from env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, TASK_SEQ, ALL_SYNTAX, SESE_PARSER
 import re
 import json
 from datetime import datetime

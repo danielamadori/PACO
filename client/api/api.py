@@ -110,3 +110,35 @@ def get_bpmn_grammar(token = None):
     if bpmn_grammar.status_code == 200:
         return bpmn_grammar.json()['grammar']
     return None
+
+
+def calc_strat(bpmn_lark, bound, algo, token:str =None):
+    strat = requests.post(
+        f'{URL_SERVER}calc_strat',
+        json={'bpmn_lark': bpmn_lark, 'bound': bound, 'algo': algo},
+        params={'token': token},
+        headers=headers,
+    )
+    return strat.status_code, strat.json()
+
+def get_bpmn_correct(
+    bpmn_lark: dict, impacts_table, 
+    durations, task: str,
+    loops, probabilities, delays, token: str = None
+):
+    data = {
+       'bpmn_lark' :bpmn_lark,
+         'impacts_table': impacts_table,
+         'durations': durations,
+         'task': task,
+         'loops': loops,
+         'probabilities': probabilities,
+         'delays': delays,
+    }
+    resp = requests.post(
+        f'{URL_SERVER}set_bpmn',
+        data=data,
+        params={'token': token},
+        headers=headers,
+    )
+    return resp.status_code, resp.json()
