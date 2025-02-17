@@ -5,7 +5,7 @@ ALGORITHMS = {  # strategies with labels
 }
 
 ALGORITHMS_MISSING_SYNTAX = {
-    's1': [],#['<', '>'], # no LOOPs in PACO
+    's1': [],
     's2': [],
     's3': []
 }
@@ -49,7 +49,6 @@ H = 'h'
 IMPACTS_NAMES ='impacts_names'
 LOOP_ROUND = 'loop_round'
 ### SYNTAX
-LOOPS = 'loops' #useless
 LOOP_PROB = 'loop_probability'
 # BPMN RESOLUTION #######################
 RESOLUTION = 300
