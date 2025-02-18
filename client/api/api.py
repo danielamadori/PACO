@@ -14,10 +14,20 @@ headers = {
 ########################
 # LLM - AI
 ########################
-async def get_agent_definition(token = None):
+async def get_agent_definition( 
+    url: str, api_key: str, 
+    model: str, temperature: float = 0.7,token = None
+    ):
+    data = {
+        'url': url, 
+        'api_key': api_key, 
+        'model': model, 
+        'temperature':temperature,
+        'token': token
+    }
     agent_definition = requests.get(
         f'{URL_SERVER}agent-definition',
-        params={'token': token},
+        params=data,
         headers=headers,
     )
     if agent_definition.status_code == 200:
