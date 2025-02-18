@@ -2,7 +2,7 @@ import numpy as np
 import random
 from paco.optimizer.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
 from paco.searcher.found_strategy import compare_bound
-from server.src.paco.solver import paco
+from paco.solver import paco
 from utils.env import IMPACTS_NAMES
 
 
