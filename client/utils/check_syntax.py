@@ -314,26 +314,6 @@ def extract_values_bound(input_dict):
             yield from extract_values_bound(item)
 
 
-def set_max_duration(durations:dict):
-    """
-    This function takes a dictionary where the value is a list of 2 elements.
-    It replaces each list with its last element.
-
-    Parameters:
-    durations (dict): The input dictionary where each value is a list of 2 elements.
-
-    Returns:
-    dict: The modified dictionary where each list value has been replaced with its last element.
-    """
-    # Iterate over the items in the dictionary
-    for key, value in durations.items():
-        #print(key, value)
-        # If the value is a list with 2 elements, replace it with its last element
-        if isinstance(value, list) and len(value) == 2:
-            durations[key] = value[-1]
-    return durations
-
-
 #######################
 
 ## PROBABILITIES

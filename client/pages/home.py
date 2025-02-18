@@ -287,10 +287,10 @@ def parse_contents(contents, filename):
                            {tasks} 
                            If you want to modify it, just copy and paste in the textarea below. 
                            Note that this will reset all the other values to the default one.""")
-            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ",".join(bpmn_lark['impacts_names'])
+            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ", ".join(bpmn_lark['impacts_names'])
     except Exception as e:
         print(e)
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, {}, None
 
 @callback([
         Output('loaded-bpmn-file', 'children'),
@@ -309,9 +309,9 @@ def parse_contents(contents, filename):
     )
 def update_output(list_of_contents, list_of_names):
     if list_of_contents is not None and len(list_of_contents) == 1:
-        children = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names) ]
+        # children = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names) ]
         return parse_contents(list_of_contents[0], list_of_names[0])
-
+    return None, None, None, None, None, None, {}, None
 
 ######################
 
@@ -433,11 +433,12 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
     if not bpmn_lark:
         return [ None, None, bpmn_lark]
     # check the syntax of the input if correct print the diagram otherwise an error message
+    task = task.replace("\n", "").replace("\t", "")
     try:
         if task == '' and bpmn_lark[TASK_SEQ] == '':
             raise Exception
         elif task != '':
-            print('task non vuota ')
+            print('task non vuota ')            
             bpmn_lark[TASK_SEQ] = task
         else:
             print('task  vuota  bpmn no')
@@ -518,9 +519,9 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
             if not os.path.exists(bpmn_svg_folder):
                 os.makedirs(bpmn_svg_folder)
             # Create a new SESE Diagram from the input
-            name_svg =  "assets/bpmnSvg/bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+            name_svg =  bpmn_svg_folder+"bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
             
-
+            print(name_svg)
             print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
             bpmn_lark[H] = 0
             # add tree creation in a store!
@@ -578,7 +579,8 @@ def add_task_durations( tasks_,bpmn_lark): #tasks_
     """
     # If no tasks are provided, return an empty list
     if not tasks_:
-        return []
+        return [[], {}]
+    tasks_ = tasks_.replace("\n", "").replace("\t", "")
     bpmn_lark[TASK_SEQ] = tasks_
     # Convert the task data list into a DataFrame and then into a Table component
     return [prepare_task_duration(tasks_), bpmn_lark]
@@ -671,7 +673,7 @@ def add_probabilities(tasks_):
     # If no tasks are provided, return an empty list
     if not tasks_:
         return []
-
+    tasks_ = tasks_.replace("\n", "").replace("\t", "")
     return prepare_task_probabilities(tasks_=tasks_)
 
 
@@ -703,7 +705,7 @@ def add_delays(tasks_):
     # If no tasks are provided, return an empty list
     if not tasks_:
         return []
-
+    tasks_ = tasks_.replace("\n", "").replace("\t", "")
     return prepare_task_delays(tasks_=tasks_)
 
 
@@ -736,9 +738,10 @@ def add_impacts(tasks_, impacts, bpmn_lark):
     dbc.Table: A table where each row contains an impact and an input
     """
     # If no tasks are provided, return an empty list
-    if not tasks_:
-        return []
+    if not tasks_ or not impacts:
+        return [[], {}]
     bpmn_lark[IMPACTS_NAMES] = impacts.replace(" ",'').split(sep=',')
+    tasks_ = tasks_.replace("\n", "").replace("\t", "")
     return [prepare_task_impacts(tasks_=tasks_, impacts=impacts), bpmn_lark]
 
 
@@ -794,4 +797,5 @@ def add_loops_number(tasks_):
     # If no tasks are provided, return an empty list
     if not tasks_:
         return []
+    tasks_ = tasks_.replace("\n", "").replace("\t", "")
     return prepare_task_loops(tasks_=tasks_)

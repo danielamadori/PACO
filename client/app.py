@@ -10,6 +10,7 @@ from flask_session import Session
 chat_history = []
 llm, config_llm = None, None
 # docker build -t paco_dash .  && docker run -p 8050:8050 paco_dash
+# https://github.com/RenaudLN/dash_socketio/tree/main per websocket
 app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
             suppress_callback_exceptions=True, 
         )
