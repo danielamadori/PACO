@@ -1,6 +1,6 @@
 from lark import Lark
 
-URL_SERVER = 'http://127.0.0.1:8000/'
+URL_SERVER = 'http://host.docker.internal:8000/'
 
 ###############
 # MODEL

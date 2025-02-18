@@ -13,7 +13,6 @@ def print_sese_diagram(expression, h = 0, probabilities={}, impacts={}, loop_thr
     dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
     graphs = pydot.graph_from_dot_data(dot_string)    
     graph = graphs[0]  
-    print('graph ' , graph)
     if outfile_svg is not None:
         graph.write_svg(outfile_svg)
     if outfile is not None:

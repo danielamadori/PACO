@@ -278,16 +278,17 @@ def parse_contents(contents, filename):
             bpmn_lark = data['bpmn']
             tasks = bpmn_lark[TASK_SEQ]
             print(bpmn_lark)
-            task_duration = prepare_task_duration(tasks_=tasks, durations=bpmn_lark['durations'])
-            task_impacts = prepare_task_impacts(tasks_=tasks, impacts=",".join(bpmn_lark['impacts_names']), impacts_dict=bpmn_lark['impacts'])
-            task_probabilities = prepare_task_probabilities(tasks_=tasks, prob=bpmn_lark['probabilities'])
-            task_delays = prepare_task_delays(tasks_=tasks, delays=bpmn_lark['delays'])
-            task_loops = prepare_task_loops(tasks_=tasks, loops=bpmn_lark['loop_round'])
+            task_duration = prepare_task_duration(tasks_=tasks, durations=bpmn_lark[DURATIONS])
+            task_impacts = prepare_task_impacts(tasks_=tasks, impacts=",".join(bpmn_lark[IMPACTS_NAMES]), impacts_dict=bpmn_lark[IMPACTS])
+            print(task_impacts)
+            task_probabilities = prepare_task_probabilities(tasks_=tasks, prob=bpmn_lark[PROBABILITIES])
+            task_delays = prepare_task_delays(tasks_=tasks, delays=bpmn_lark[DELAYS])
+            task_loops = prepare_task_loops(tasks_=tasks, loops=bpmn_lark[LOOP_ROUND])
             tasks = html.P(f"""Here is provided the bpmn schema from the file: 
                            {tasks} 
                            If you want to modify it, just copy and paste in the textarea below. 
                            Note that this will reset all the other values to the default one.""")
-            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ", ".join(bpmn_lark['impacts_names'])
+            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ", ".join(bpmn_lark[IMPACTS_NAMES])
     except Exception as e:
         print(e)
         return None, None, None, None, None, None, {}, None
@@ -354,9 +355,15 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     is_open=True,
                 ),'tab-6'
             ]
-
+    expected_impacts = None
+    choices = None
+    text_result = ''
     try:
-        code, resp_json = calc_strat(bpmn_lark, bound, algo)
+        text_result, bound = cs.check_input(bpmn_lark, bound)
+        print(bound)
+        code, resp_json = calc_strat(bpmn_lark, bound, algo, token='neonrejieji')
+        print(resp_json)
+        print(code)
         if code != 200:
             return [html.P(f'Insert a bound dictionary to find the strategy.'),
                 dbc.Modal(
@@ -371,6 +378,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
         strategy_d[BOUND] = resp_json[BOUND]
         expected_impacts = resp_json['expected_impacts']
         choices = resp_json['choices']
+        text_result = resp_json['text_result']
     except Exception as e:
         error = True
         text_result = str(e)
@@ -430,6 +438,7 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
     prevent_initial_call=True,
 )
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
+    print(impacts_table)
     if not bpmn_lark:
         return [ None, None, bpmn_lark]
     # check the syntax of the input if correct print the diagram otherwise an error message
@@ -755,9 +764,10 @@ def add_impacts(tasks_, impacts, bpmn_lark):
     Output("download", "data"),
     Input("btn-download", "n_clicks"),
     State('switches-input', 'value'),
+    State('bpmn-lark-store', 'data'),
     prevent_initial_call=True,
 )
-def func(n_clicks, switches):
+def func(n_clicks, switches, bpmn_lark):
     print(f' in dwonlaoad {switches}')
     content = {}
     for el in switches: 

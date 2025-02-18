@@ -1,5 +1,4 @@
 import base64
-import os
 import aiohttp
 import requests
 
@@ -58,7 +57,7 @@ async def authorization_function(username = '', password = '', server = None):
                     token = data.get('token')
                     if token:
                         return True, token, server.config.update(
-                                                SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
+                                                SECRET_KEY=token,
                                                 SESSION_TYPE='filesystem',
                                                 SESSION_FILE_DIR='flask_session'
                                             )
@@ -112,13 +111,20 @@ def get_bpmn_grammar(token = None):
     return None
 
 
-def calc_strat(bpmn_lark, bound, algo, token:str =None):
-    strat = requests.post(
-        f'{URL_SERVER}calc_strat',
-        json={'bpmn_lark': bpmn_lark, 'bound': bound, 'algo': algo},
+def calc_strat(bpmn_lark:dict, bound:list, algo:str, token:str =None):
+    data = {
+        'bpmn': bpmn_lark ,          
+        'bound': bound,
+        'algo': algo
+    }
+    strat = requests.get(
+        f'{URL_SERVER}calc_strategy_general',
+        json=data,
         params={'token': token},
         headers=headers,
-    )
+    )    
+    print('strat', strat.status_code)
+    print('strat', strat.json())
     return strat.status_code, strat.json()
 
 def get_bpmn_correct(
