@@ -6,7 +6,7 @@ from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
 from paco.searcher.search import search
 from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS, PATH_BPMN, PATH_EXPLAINER, PATH_EXPLAINER_BDD
+from utils.env import IMPACTS_NAMES, DURATIONS, PATH_BPMN, PATH_EXPLAINER
 from datetime import datetime
 from paco.parser.print_sese_diagram import print_sese_diagram
 
@@ -21,6 +21,8 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 		print_sese_diagram(**bpmn, outfile=PATH_BPMN)
 		bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 		parse_tree, execution_tree = create(bpmn)
+	else:
+		print(f'{datetime.now()} Caching parse_tree and execution_tree')
 
 	expected_impacts, possible_min_solution, solutions, strategy = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
 

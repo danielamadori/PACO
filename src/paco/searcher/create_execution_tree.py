@@ -76,12 +76,11 @@ def write_image(frontier: list[ExecutionTree], path: str):
 	#graph.write_png(path + '.png')
 
 
-def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = [], PATH_AUTOMA_STATE_TIME=None):
+def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
 	if not os.path.exists(PATH_EXECUTION_TREE):
 		os.makedirs(PATH_EXECUTION_TREE)
 
 	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE + '.dot', diff=False)
-
 	write_image(frontier, PATH_EXECUTION_TREE_STATE)
 
 	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE_TIME + '.dot', executed_time=True)
