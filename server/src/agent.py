@@ -75,7 +75,7 @@ def check_correct_process(expression: str) -> bool:
 #         print(chunk.content, end='', flush=True)
 
 def define_agent(
-        url = '157.27.193.108', verbose = False,
+        url:str = '157.27.193.108', verbose = False,
         api_key = "lm-studio",
         model = 'gpt-3.5-turbo',
         temperature = 0.7
@@ -93,12 +93,8 @@ def define_agent(
     Returns:
         tuple: The agent defined and the configuration.
     """
-    if url.startswith("http"):
-        base_url = url
-    else: 
-        base_url = f"http://{url}:1234/v1" 
     model: ChatOpenAI = ChatOpenAI(
-        base_url=base_url,
+        base_url=url,
         temperature=temperature,
         api_key=api_key,
         model=model

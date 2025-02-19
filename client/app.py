@@ -6,7 +6,7 @@ import dash
 from api.api import authorization_function, get_agent_definition, invoke_llm
 import dash_auth
 from dash.dependencies import Input, Output, State
-from flask_session import Session
+# from flask_session import Session
 # https://help.dash.app/en/articles/3535011-dash-security-overview
 # docker build -t paco_dash .  && docker run -p 8050:8050 paco_dash
 # https://github.com/RenaudLN/dash_socketio/tree/main per websocket
@@ -16,27 +16,27 @@ llm, config_llm = None, None
 app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
             suppress_callback_exceptions=True, 
         )
-server = app.server
-server.config.update(
-    SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
-    SESSION_TYPE='filesystem',
-    SESSION_FILE_DIR='flask_session'
-)
-Session(server)
+# server = app.server
+# server.config.update(
+#     SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
+#     SESSION_TYPE='filesystem',
+#     SESSION_FILE_DIR='flask_session'
+# )
+# Session(server)
 
 def login(username, password):
     if username== 'admin' and password == 'admin':
-        token = os.urandom(24).hex()
-        server.config.update(
-            SECRET_KEY=os.environ.get('SECRET_KEY', token),
-            SESSION_TYPE='filesystem',
-            SESSION_FILE_DIR='flask_session',
-            SESSION_PERMANENT=False,
-            PERMANENT_SESSION_LIFETIME=3600  # Session lifetime in seconds
-        )
+        # token = os.urandom(24).hex()
+        # server.config.update(
+        #     SECRET_KEY=os.environ.get('SECRET_KEY', token),
+        #     SESSION_TYPE='filesystem',
+        #     SESSION_FILE_DIR='flask_session',
+        #     SESSION_PERMANENT=False,
+        #     PERMANENT_SESSION_LIFETIME=3600  # Session lifetime in seconds
+        # )
 
         # Initialize Flask-Session
-        Session(server)
+        # Session(server)
         return True
     return False
 
@@ -46,7 +46,7 @@ auth = dash_auth.BasicAuth(
 )
 
 app.layout = html.Div([  
-        dcc.Store(id='auth-token-store', storage_type='session'),     
+        dcc.Store(id='auth-token-store', data='vnfo'),#storage_type='session'),     
         dcc.Store(id = 'bpmn-lark-store', data={}),
         dcc.Store(id = 'chat-ai-store'),
         html.H1('BPMN+CPI APP!', style={'textAlign': 'center'}),
@@ -78,6 +78,13 @@ app.layout = html.Div([
                                 dbc.Collapse(
                                     html.Div([
                                         html.H3("AI Model Configuration"),
+                                        html.P('''Configure the AI model to chat with the assistant.
+                                               Here an example of the configuration:
+                                                  - API Key: 123456
+                                                    - Model URL: https://api.openai.com/...
+                                                    - Model: llama-3.2-1b-instruct
+                                                    - Temperature: 0.7
+                                               '''),
                                         dbc.Input(id='model-api-key', placeholder='Enter API Key', type='text'),
                                         html.Br(),
                                         dbc.Input(id='model-url', placeholder='Enter Model URL', type='text'),
@@ -89,9 +96,13 @@ app.layout = html.Div([
                                             id='temperature-slider',
                                             min=0,
                                             max=1,
-                                            step=0.1,
+                                            step=0.01,
                                             value=0.7,
-                                            marks={i: f'{i:.1f}' for i in [0, 0.2, 0.4, 0.6, 0.8, 1]}
+                                            marks={i: f'{i:.1f}' for i in range(0, 1)},
+                                            tooltip={
+                                                "placement": "bottom",
+                                                "always_visible": True,
+                                            }
                                         ),
                                         html.Br(),
                                         dbc.Button("Save Configuration", id='save-config-button', color="primary"),
@@ -147,7 +158,8 @@ app.layout = html.Div([
 @app.callback(
     [Output('chat-output-home', 'children'),],
     [Input('send-button', 'n_clicks')],
-    [State('input-box', 'value'), State('auth-token-store', 'data'),
+    [State('input-box', 'value'),
+     State('auth-token-store', 'data'),
      State('chat-ai-store', 'data')],
     prevent_initial_call=True
 )
@@ -193,15 +205,20 @@ def update_output(n_clicks, prompt, token, chat_history,  verbose = False):
     prevent_initial_call=True
 )
 def save_config(n_clicks, api_key, model_url, token,model, temperature):
-    token = os.environ.get('SECRET_KEY', token)
+    #token = os.environ.get('SECRET_KEY', token)
     if api_key and model_url:
         try:
             global llm, config_llm
-            llm, config_llm = get_agent_definition(api_key=api_key, url=model_url, token=token)
-            return html.P("Configuration saved successfully!")
+            llm, config_llm = get_agent_definition(
+                api_key=api_key, 
+                url=model_url, 
+                model=model,
+                temperature=temperature,
+                token='token'
+            )
+            return dbc.Alert("Configuration saved successfully!", color="success")
         except Exception as e:
-            return html.P(f"Error: {e}")
-    return html.P("Please provide both API Key and Model URL.")
+            return dbc.Alert(f"Error: {e}", color="danger")
 
 @app.callback(
     Output("collapse", "is_open"),

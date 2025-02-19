@@ -426,7 +426,9 @@ async def get_agent(
     if not isinstance(url, str) or not isinstance(api_key, str) or not isinstance(model, str) or not isinstance(temperature, float):
         return HTTPException(status_code=400, detail="Invalid input")
     try:
-        llm, config =  define_agent(url, api_key, model, temperature)
+        llm, config =  define_agent(
+            url=url, api_key=api_key, 
+            model=model, temperature=temperature)
         return {
             "llm": llm,
             "config": config

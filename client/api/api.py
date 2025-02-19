@@ -14,7 +14,7 @@ headers = {
 ########################
 # LLM - AI
 ########################
-async def get_agent_definition( 
+def get_agent_definition( 
     url: str, api_key: str, 
     model: str, temperature: float = 0.7,token = None
     ):
@@ -23,7 +23,7 @@ async def get_agent_definition(
         'api_key': api_key, 
         'model': model, 
         'temperature':temperature,
-        'token': token
+        'token': 'token'
     }
     agent_definition = requests.get(
         f'{URL_SERVER}agent-definition',
@@ -34,9 +34,9 @@ async def get_agent_definition(
         llm = agent_definition.json()['llm']
         config = agent_definition.json()['config']
         return llm, config
-    return None
+    return None, None
 
-async def invoke_llm(llm, prompt, token= None):
+def invoke_llm(llm, prompt, token= None):
     ag = requests.post(
         f'{URL_SERVER}invoke',
         json={'llm': llm, 'prompt': prompt},
