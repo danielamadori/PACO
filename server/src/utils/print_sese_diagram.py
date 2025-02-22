@@ -1,7 +1,8 @@
 from lark import Tree, Token
 import pydot
 from pydot import * 
-from env import PATH_BPMN, RESOLUTION, SESE_PARSER
+from utils.env import RESOLUTION
+from paco.parser.bpmn_parser import SESE_PARSER
 """
     funzioni prese dal notebook
 """

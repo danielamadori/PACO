@@ -10,6 +10,7 @@ from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.parser.create import create
 from paco.searcher.search import search
 from paco.parser.bpmn_parser import SESE_PARSER
+from utils.print_sese_diagram import print_sese_diagram
 from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, RESOLUTION, PROBABILITIES
 from paco.solver import paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
@@ -173,6 +174,56 @@ async def check_algo_usable(sfa :StrategyFounderAlgo, token:str = None) -> bool:
         return False
     return True
 
+
+@app.get("/print_sese_diagram")
+async def print_bpmn(request: BPMNPrinting, token: str = None):
+    """
+    Generates and returns a BPMN diagram image
+    Args:
+        request (BPMNPrinting): BPMN printing configuration
+        token (str): Authorization token
+    Returns:
+        FileResponse: PNG image of the BPMN diagram
+    Raises:
+        HTTPException: 400 for invalid input, 500 for server errors, 403 for unauthorized access
+    """
+    bpmn = request.bpmn
+    if token == None:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    if not isinstance(bpmn, BPMNDefinition):
+        raise HTTPException(status_code=400, detail="Invalid input")
+    if not checkCorrectSyntax(dict(bpmn)):
+        raise HTTPException(status_code=400, detail="Invalid BPMN syntax")   
+    try:
+        
+        try:
+            img = print_sese_diagram(expression=bpmn.expression,
+                h=bpmn.h, 
+                probabilities=bpmn.probabilities, 
+                impacts=bpmn.impacts, 
+                loop_thresholds=bpmn.loop_thresholds, 
+                graph_options=request.graph_options, 
+                durations=bpmn.durations, 
+                names=bpmn.names, 
+                delays=bpmn.delays, 
+                impacts_names=bpmn.impacts_names, 
+                resolution_bpmn=request.resolution_bpmn, 
+                loop_round=bpmn.loop_round, 
+                loops_prob=bpmn.loops_prob
+            )
+            print('GRAPH' , img)
+        except Exception as e:
+            print('--------------------------------')
+            print(e)
+            print('--------------------------------')
+            raise HTTPException(status_code=505, detail=str(e))
+        return {
+            "graph": img
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/check_syntax")
 async def check_syntax(bpmn: BPMNDefinition, token:str = None) -> bool:
     """
@@ -245,7 +296,7 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, token: str =
             return HTTPException(status_code=400, detail="Invalid algorithm")
         
         return {
-            "text_result": text_result,
+            "result": text_result,
             "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
             "possible_min_solution": str(possible_min_solution),
             "solutions": str(solutions),
