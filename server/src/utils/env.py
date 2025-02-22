@@ -1,5 +1,5 @@
 ALGORITHMS = {  # strategies with labels
-    's1': 'PACO',
+    'paco': 'PACO',
     's2': 'Strategy 2',
     's3': 'Strategy 3'
 }

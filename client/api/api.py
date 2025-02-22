@@ -38,14 +38,14 @@ def get_agent_definition(
 
 def invoke_llm(llm, prompt, token= None):
     ag = requests.post(
-        f'{URL_SERVER}invoke',
+        f'{URL_SERVER}invoke-agent',
         json={'llm': llm, 'prompt': prompt},
         params={'token': token},
         headers=headers,
     )
     if ag.status_code == 200:
-        return ag.json()['response'], ag.json()['history']
-    return None
+        return ag.json()['response'], list(ag.json()['history'])
+    return None, None
 
 ########################
 # AUTHORIZATION FUNCTION

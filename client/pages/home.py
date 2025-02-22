@@ -586,11 +586,13 @@ def add_task_durations( tasks_,bpmn_lark): #tasks_
     Returns:
     dbc table with the tables
     """
+    print(f' in add_task_durations {tasks_}')
     # If no tasks are provided, return an empty list
     if not tasks_:
         return [[], {}]
     tasks_ = tasks_.replace("\n", "").replace("\t", "")
     bpmn_lark[TASK_SEQ] = tasks_
+    
     # Convert the task data list into a DataFrame and then into a Table component
     return [prepare_task_duration(tasks_), bpmn_lark]
 

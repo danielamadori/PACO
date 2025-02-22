@@ -6,7 +6,7 @@ import dash
 from api.api import authorization_function, get_agent_definition, invoke_llm
 import dash_auth
 from dash.dependencies import Input, Output, State
-# from flask_session import Session
+from flask_session import Session
 # https://help.dash.app/en/articles/3535011-dash-security-overview
 # docker build -t paco_dash .  && docker run -p 8050:8050 paco_dash
 # https://github.com/RenaudLN/dash_socketio/tree/main per websocket
@@ -16,13 +16,13 @@ llm, config_llm = None, None
 app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
             suppress_callback_exceptions=True, 
         )
-# server = app.server
-# server.config.update(
-#     SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
-#     SESSION_TYPE='filesystem',
-#     SESSION_FILE_DIR='flask_session'
-# )
-# Session(server)
+server = app.server
+server.config.update(
+    SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
+    SESSION_TYPE='filesystem',
+    SESSION_FILE_DIR='flask_session'
+)
+Session(server)
 
 def login(username, password):
     if username== 'admin' and password == 'admin':
@@ -175,6 +175,8 @@ def update_output(n_clicks, prompt, token, chat_history,  verbose = False):
                 return dbc.Alert("Please configure AI model first.", color="danger") 
             # Generate the response
             response, chat_history = invoke_llm(llm, prompt, token=token)
+            if chat_history is None:
+                return dbc.Alert("Please configure AI model first.", color="danger")
             if verbose:
                 print(f' response {response}')
            
