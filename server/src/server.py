@@ -85,7 +85,16 @@ class StrategyFounderAlgo(BaseModel):
     bpmn: BPMNDefinition
     bound: list[float]
     algo: str
+class AgentRequest(BaseModel):
+    prompt: str
+    session_id: str  # Unique ID to track chat history
+    url: str = '157.27.193.108'
+    api_key: str = 'lm-studio'
+    model: str = 'gpt-3.5-turbo'
+    temperature: float = 0.7
+    verbose: bool = False
 
+chat_histories = {}
 #######################################################
 ############ GET  #####################################
 #######################################################
@@ -417,35 +426,6 @@ async def get_agent(
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
-
-@app.get("/invoke-agent")
-async def invoke_agent(prompt:str, llm, history:list[tuple]) ->  tuple[str, list[tuple]]:
-    """
-    Invoke the agent with the given prompt.
-
-    Args:
-        prompt (str): The prompt to be used.
-        
-        llm: The agent defined.
-        history: The history of the agent.
-
-    Returns:
-        str: The response from the agent.
-        list[tuple]: The history of the agent.
-    """
-    if not isinstance(prompt, str):
-        return HTTPException(status_code=400, detail="Invalid input")
-    try:
-        response = llm.invoke({"input": prompt})
-        history.append((prompt, response.content))
-        return {
-            "response": response.content,
-            "history": history
-        }
-    except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
-
-
 #######################################################
 ############ POST #####################################
 #######################################################
@@ -534,6 +514,56 @@ async def print_bpmn(request: BPMNPrinting):
         return {
             "graph": img
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.post("/invoke-agent")
+async def invoke_agent(request: AgentRequest) ->  dict:
+    """
+    Invoke the agent with the given prompt.
+
+    Args:
+        prompt (str): The prompt to be used.
+        
+        llm: The agent defined.
+        history: The history of the agent.
+
+    Returns:
+        str: The response from the agent.
+        list[tuple]: The history of the agent.
+    """
+    if not isinstance(request, AgentRequest):
+        return HTTPException(status_code=400, detail="Invalid input")
+    print(request)
+    try:
+        # Retrieve or initialize chat history
+        if request.session_id not in chat_histories:
+            chat_histories[request.session_id] = []
+        
+        # Append new input to history
+        chat_history = chat_histories[request.session_id]
+        chat_history.append({"role": "human", "content": request.prompt})
+
+        # Format chat history as input
+        formatted_history = "\n".join(
+            [f"{msg['role']}: {msg['content']}" for msg in chat_history]
+        )
+        # Define agent
+        llm, _ = define_agent(
+            url=request.url,
+            verbose=request.verbose,
+            api_key=request.api_key,
+            model=request.model,
+            temperature=request.temperature
+        )
+
+        response = llm.invoke({"input": formatted_history})#formatted_history
+        chat_history.append({"role": "ai", "content": response.content})
+        print(chat_history)
+        return {"session_id": request.session_id, "response": response.content, "history": chat_history}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
