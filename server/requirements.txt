@@ -11,3 +11,4 @@ openai
 langchain
 langchain_openai
 uvicorn
+pillow
