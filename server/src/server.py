@@ -2,7 +2,6 @@ from datetime import datetime
 import os
 from agent import define_agent
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import numpy as np
@@ -11,16 +10,20 @@ from paco.parser.create import create
 from paco.searcher.search import search
 from paco.parser.bpmn_parser import SESE_PARSER
 from paco.parser.print_sese_diagram import print_sese_diagram
-from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, RESOLUTION, PROBABILITIES
+from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PROBABILITIES
 from paco.solver import paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
 from fastapi.middleware.cors import CORSMiddleware
 from utils import check_syntax as cs
 import uvicorn
+# https://blog.futuresmart.ai/integrating-google-authentication-with-fastapi-a-step-by-step-guide
+# http://youtube.com/watch?v=B5AMPx9Z1OQ&list=PLqAmigZvYxIL9dnYeZEhMoHcoP4zop8-p&index=26
+# https://www.youtube.com/watch?v=bcYmfHOrOPM
 # TO EMBED DASH IN FASAPI
 # https://medium.com/@gerardsho/embedding-dash-dashboards-in-fastapi-framework-in-less-than-3-mins-b1bec12eb3
 # swaggerui al link  http://127.0.0.1:8000/docs
 # server al link http://127.0.0.1:8000/
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +32,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"] 
 )
+
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -430,27 +434,6 @@ async def get_agent(
 ############ POST #####################################
 #######################################################
 
-@app.post("/login")
-async def login(request: LoginRequest):
-    """
-    Login endpoint
-    
-    Args:
-        request (LoginRequest): Login credentials
-            username (str): Username
-            password (str): Password
-    
-    Returns:
-        dict: Login response containing token
-        
-    Raises:
-        HTTPException: 401 for invalid credentials
-    """
-    if request.username == 'admin' and request.password == 'admin':
-        return {"token": os.urandom(24).hex()}
-    raise HTTPException(status_code=401, detail="Invalid credentials")
-
-
 @app.post("/set_bpmn")
 async def set_bpmn(
     bpmn_lark: dict, impacts_table, 
@@ -559,7 +542,7 @@ async def invoke_agent(request: AgentRequest) ->  dict:
             temperature=request.temperature
         )
 
-        response = llm.invoke({"input": formatted_history})#formatted_history
+        response = llm.invoke({"input": formatted_history})
         chat_history.append({"role": "ai", "content": response.content})
         print(chat_history)
         return {"session_id": request.session_id, "response": response.content, "history": chat_history}
