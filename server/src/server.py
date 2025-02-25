@@ -504,9 +504,7 @@ async def get_chat_history(session_id: str) -> list:
     if not isinstance(session_id, str):
         return HTTPException(status_code=400, detail="Invalid input")
     try:
-        return {
-            "chat_history": chat_histories[session_id]
-        }
+        return chat_histories[session_id]
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
     
