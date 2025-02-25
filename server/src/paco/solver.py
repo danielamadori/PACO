@@ -28,7 +28,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 		for i in range(len(possible_min_solution)):
 			text_result += f"Exp. Impacts {i}:\t{np.round(possible_min_solution[i], 2)}\n"
 		print(f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nPossible Bound Impacts:\t{bound}\n" + text_result)
-		text_result = ""
+		text_result = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nPossible Bound Impacts:\t{bound}\n" + text_result
 		for i in range(len(solutions)):
 			text_result += f"Guaranteed Bound {i}:\t{np.ceil(solutions[i])}\n"
 

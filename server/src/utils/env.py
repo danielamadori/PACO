@@ -1,7 +1,5 @@
 ALGORITHMS = {  # strategies with labels
     'paco': 'PACO',
-    's2': 'Strategy 2',
-    's3': 'Strategy 3'
 }
 
 ALGORITHMS_MISSING_SYNTAX = {

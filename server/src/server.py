@@ -2,7 +2,8 @@ from datetime import datetime
 import os
 from agent import define_agent
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+import json
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import numpy as np
@@ -11,7 +12,9 @@ from paco.parser.create import create
 from paco.searcher.search import search
 from paco.parser.bpmn_parser import SESE_PARSER
 from paco.parser.print_sese_diagram import print_sese_diagram
-from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME, PATH_EXPLAINER_BDD, PATH_EXPLAINER_DECISION_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME, PROBABILITIES
+from paco.explainer.explanation_type import ExplanationType
+from paco.parser.parse_tree import ParseTree
+from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME, PATH_EXPLAINER_BDD, PATH_EXPLAINER_DECISION_TREE, PATH_PARSE_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME, PROBABILITIES
 from paco.solver import paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,15 +57,22 @@ class BPMNDefinition(BaseModel):
         loop_round (Dict, optional): Loop round configurations
         loops_prob (Dict, optional): Loop probabilities
     """
-    expression: str
+    expression: str = "(Cutting, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))), (HPHS / [C2] LPLS))" 
     h: Optional[int] = 0
-    probabilities: Optional[Dict] = {}
-    impacts: Dict = {}
+    probabilities: Optional[Dict] = {"N1": 0.2}
+    impacts: Dict = {"Cutting": [10, 1], "Bending": [20, 1],
+        "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1],
+        "FD": [30, 1], "RD": [10, 1], "HPHS": [40, 1],
+        "LPLS": [20, 3]
+    }
     loop_thresholds: Optional[Dict] = {}    
-    durations: Optional[Dict] = {}
-    names: Optional[Dict] = {}
-    delays: Optional[Dict] = {}
-    impacts_names: Optional[List] = []    
+    durations: Optional[Dict] = {"Cutting": [0, 1], "Bending": [0, 1],
+        "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1],
+        "FD": [0, 1], "RD": [0, 1], "HPHS": [0, 1],
+        "LPLS": [0, 2]}
+    names: Optional[Dict] = {"C1": "C1", "C2": "C2", "N1": "N1"}
+    delays: Optional[Dict] = {"C1": 0, "C2": 0}
+    impacts_names: Optional[List] = ["electric_energy", "worker hours"]   
     loop_round: Optional[Dict] = {}
     loop_probability: Optional[Dict] = {}
 
@@ -72,7 +82,6 @@ class BPMNPrinting(BaseModel):
     
     Attributes:
         bpmn (BPMNDefinition): BPMN process definition
-        resolution_bpmn (int, optional): Image resolution
         graph_options (Dict, optional): Graph rendering options
     """    
     bpmn: BPMNDefinition
@@ -85,15 +94,15 @@ class StrategyFounderAlgo(BaseModel):
     Attributes:
         bpmn (BPMNDefinition): BPMN process definition
         bound (list[float]): Impact bounds vector
-        algo (str): Algorithm selection
+        algo (str): Algorithm selected
     """
     bpmn: BPMNDefinition
-    bound: list[float]
-    algo: str
+    bound: list[float] = [20., 100.]
+    algo: str = "paco"
 class AgentRequest(BaseModel):
     prompt: str
     session_id: str  # Unique ID to track chat history
-    url: str = '157.27.193.108'
+    url: str = 'http://157.27.193.108'
     api_key: str = 'lm-studio'
     model: str = 'gpt-3.5-turbo'
     temperature: float = 0.7
@@ -241,33 +250,33 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
         bound = np.array(request.bound, dtype=np.float64)            
         if request.algo == list(ALGORITHMS.keys())[0]:
             text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, choices, found_strategy_time, build_strategy_time, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree, strategy_expected_time, time_explain_strategy, strategy_tree_time = paco(bpmn, bound)
-        elif request.algo == list(ALGORITHMS.keys())[1]:
-            text_result, found, choices = None, None, None, None
-        elif request.algo == list(ALGORITHMS.keys())[2]:
-            text_result, found, choices = None, None, None, None
+            return {
+                "result": text_result,
+                "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
+                "possible_min_solution": str(possible_min_solution),
+                "solutions": str(solutions),
+                "choices": str(choices),
+                "found_strategy_time": found_strategy_time,
+                "build_strategy_time": build_strategy_time,
+                "time_create_parse_tree": time_create_parse_tree,
+                "time_create_execution_tree": time_create_execution_tree,
+                "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree,
+                "strategy_expected_time": strategy_expected_time,
+                "time_explain_strategy": time_explain_strategy,
+                "strategy_tree_time": strategy_tree_time
+            }
+        # elif request.algo == list(ALGORITHMS.keys())[1]:
+        #     text_result, found, choices = None, None, None, None
+        # elif request.algo == list(ALGORITHMS.keys())[2]:
+        #     text_result, found, choices = None, None, None, None
         else:
             return HTTPException(status_code=400, detail="Invalid algorithm")
-        
-        return {
-            "result": text_result,
-            "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
-            "possible_min_solution": str(possible_min_solution),
-            "solutions": str(solutions),
-            "choices": str(choices),
-            "found_strategy_time": found_strategy_time,
-            "build_strategy_time": build_strategy_time,
-            "time_create_parse_tree": time_create_parse_tree,
-            "time_create_execution_tree": time_create_execution_tree,
-            "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree,
-            "strategy_expected_time": strategy_expected_time,
-            "time_explain_strategy": time_explain_strategy,
-            "strategy_tree_time": strategy_tree_time
-        }
+                
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
-@app.get("/excecution_tree")
-async def get_excecution_tree(bpmn:BPMNDefinition = None) -> tuple:
+@app.get("/create_execution_tree")
+async def get_excecution_tree(bpmn:BPMNDefinition = None) -> dict:
     """
     Get the execution tree.
 
@@ -276,32 +285,48 @@ async def get_excecution_tree(bpmn:BPMNDefinition = None) -> tuple:
         bpmn (BPMNDefinition): The BPMN process.
 
     Returns:
-        tuple: The parse tree & execution tree.
+        The parse tree & execution tree.
 
     Raises:
-        403: If the token is not provided, an exception not authorized.
         400: If the input is not valid, an exception is raised.
         500: If an error occurs, an exception is raised.
     """
     if not isinstance(bpmn, BPMNDefinition) or bpmn == None:
         return HTTPException(status_code=400, detail="Invalid input")
-    try:        
-        parse_tree, execution_tree , time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(dict(bpmn))
+    try:
+        bpmn = dict(bpmn) 
+        bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])       
+        parse_tree, execution_tree , time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(bpmn)
+        
         return {
-            "parse_tree": parse_tree.to_json(),
-            "execution_tree": execution_tree,
+            "execution_tree": str(execution_tree),
             "time_create_parse_tree": time_create_parse_tree,
             "time_create_execution_tree": time_create_execution_tree,
             "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree
         }
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
-    
+
+@app.get("/get_parse_tree")
+async def get_parse_tree() -> JSONResponse:
+    """
+    Get the parse tree from a JSON file.
+
+    Returns:
+        JSONResponse: The parse tree data.
+    """
+    try:
+        with open(PATH_PARSE_TREE + '.json', "r") as file:
+            parse_tree_data = json.load(file)
+        return JSONResponse(content=parse_tree_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))  
+     
 @app.get("/search_only_strategy")
 async def search_strategy(
-    impacts_names: list[str], execution_tree, #: ExecutionTreeModel, 
+    impacts_names: list[str], execution_tree:str,
     bound: list[float], search_only: bool = False
-    ) -> tuple:
+    ) -> dict:
     """
     calcolate ONLY the strategy.
     Args:
@@ -312,14 +337,14 @@ async def search_strategy(
         
 
     Returns:
-        tuple: The expected impacts, possible min solution, solutions, and strategy.
+        dict: The expected impacts, possible min solution, solutions, and strategy and times associated with the computations.
 
     Raises:
         403: If the token is not provided, an exception not authorized.
         400: If the input is not valid, an exception is raised.
         500: If an error occurs, an exception is raised.
     """
-    if not isinstance(impacts_names, list[str]) or not isinstance(bound, np.ndarray) or not isinstance(search_only, bool):
+    if not isinstance(bound, np.ndarray) or not isinstance(search_only, bool):
         return HTTPException(status_code=400, detail="Invalid input")
     try:
 
@@ -378,35 +403,50 @@ async def search_strategy(
 
 @app.get("/explainer")
 async def get_explainer(
-    parse_tree, strategy, type_explainer: str, impacts_names: list[str], name_svg: str = ''
-    ) -> tuple:
+    parse_tree: dict, impacts_names: list[str], strategy: dict = {}, type_explainer: int = 3) -> dict:
     """
     Get the explainer.
 
     Args:
-        parse_tree (CTree): The parse tree.
+        parse_tree (json): The parse tree.
         strategy: The strategy.
-        type_explainer (str): The type of explainer.
-        impacts_names (list[str]): The impacts names.
-        name_svg (str): The name of the svg.
-        
+        type_explainer (int): The type of explainer:
+            CURRENT_IMPACTS = 0
+            UNAVOIDABLE_IMPACTS = 1
+            DECISION_BASED = 2
+            HYBRID = 3 default
+        impacts_names (list[str]): The impacts names.        
 
     Returns:
         tuple: The strategy tree, expected impacts, strategy expected time, choices, and name svg.
 
     Raises:
-        403: If the token is not provided, an exception not authorized.
         400: If the input is not valid, an exception is raised.
         500: If an error occurs, an exception is raised.
     """
-    if not isinstance(strategy, list) or not isinstance(type_explainer, str) or not isinstance(impacts_names, list[str]) or not isinstance(name_svg, str):
+    if not isinstance(strategy, dict) or not isinstance(type_explainer, int):
         return HTTPException(status_code=400, detail="Invalid input")
+    # if strategy == {}:
+    #     return None
     try:
+        if type_explainer == 0:
+            type_explainer = ExplanationType.CURRENT_IMPACTS
+        elif type_explainer == 1:
+            type_explainer = ExplanationType.UNAVOIDABLE_IMPACTS
+        elif type_explainer == 2:
+            type_explainer = ExplanationType.DECISION_BASED
+        else:
+            type_explainer = ExplanationType.HYBRID
+        parse_tree = ParseTree.from_json(parse_tree)
+        print(parse_tree)
+        print(type(parse_tree))
+        print(type_explainer)
+        print(type(type_explainer))
         strategy_tree, expected_impacts, strategy_expected_time, choices, time_explain_strategy, strategy_tree_time = build_explained_strategy(
             parse_tree, strategy, type_explainer, impacts_names
         )
         return  {
-            "strategy_tree": strategy_tree,
+            "strategy_tree": str(strategy_tree),
             "expected_impacts": expected_impacts,
             "strategy_expected_time": strategy_expected_time,
             "choices": choices,
