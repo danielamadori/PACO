@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 from agent import define_agent
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import numpy as np
@@ -10,7 +11,7 @@ from paco.parser.create import create
 from paco.searcher.search import search
 from paco.parser.bpmn_parser import SESE_PARSER
 from paco.parser.print_sese_diagram import print_sese_diagram
-from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PROBABILITIES
+from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME, PATH_EXPLAINER_BDD, PATH_EXPLAINER_DECISION_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME, PROBABILITIES
 from paco.solver import paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
 from fastapi.middleware.cors import CORSMiddleware
@@ -230,16 +231,16 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
         HTTPException: 400 for invalid input, 500 for server errors
     """
     if not isinstance(request.bpmn, BPMNDefinition):
-        raise HTTPException(status_code=400, detail="Invalid input")
+        return HTTPException(status_code=400, detail="Invalid input")
     bpmn = dict(request.bpmn)
     if not checkCorrectSyntax(bpmn):
-        raise HTTPException(status_code=400, detail="Invalid BPMN syntax")
+        return HTTPException(status_code=400, detail="Invalid BPMN syntax")
     if not check_algo_is_usable(bpmn, request.algo):
-        raise HTTPException(status_code=400, detail="The algorithm is not usable")       
+        return HTTPException(status_code=400, detail="The algorithm is not usable")       
     try:
         bound = np.array(request.bound, dtype=np.float64)            
         if request.algo == list(ALGORITHMS.keys())[0]:
-            text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, choices = paco(bpmn, bound)
+            text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, choices, found_strategy_time, build_strategy_time, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree, strategy_expected_time, time_explain_strategy, strategy_tree_time = paco(bpmn, bound)
         elif request.algo == list(ALGORITHMS.keys())[1]:
             text_result, found, choices = None, None, None, None
         elif request.algo == list(ALGORITHMS.keys())[2]:
@@ -252,10 +253,18 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
             "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
             "possible_min_solution": str(possible_min_solution),
             "solutions": str(solutions),
-            "choices": str(choices)
+            "choices": str(choices),
+            "found_strategy_time": found_strategy_time,
+            "build_strategy_time": build_strategy_time,
+            "time_create_parse_tree": time_create_parse_tree,
+            "time_create_execution_tree": time_create_execution_tree,
+            "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree,
+            "strategy_expected_time": strategy_expected_time,
+            "time_explain_strategy": time_explain_strategy,
+            "strategy_tree_time": strategy_tree_time
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return HTTPException(status_code=500, detail=str(e))
 
 @app.get("/excecution_tree")
 async def get_excecution_tree(bpmn:BPMNDefinition = None) -> tuple:
@@ -275,15 +284,18 @@ async def get_excecution_tree(bpmn:BPMNDefinition = None) -> tuple:
         500: If an error occurs, an exception is raised.
     """
     if not isinstance(bpmn, BPMNDefinition) or bpmn == None:
-        raise HTTPException(status_code=400, detail="Invalid input")
+        return HTTPException(status_code=400, detail="Invalid input")
     try:        
-        parse_tree, execution_tree = create(dict(bpmn))
+        parse_tree, execution_tree , time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(dict(bpmn))
         return {
             "parse_tree": parse_tree.to_json(),
-            "execution_tree": execution_tree
+            "execution_tree": execution_tree,
+            "time_create_parse_tree": time_create_parse_tree,
+            "time_create_execution_tree": time_create_execution_tree,
+            "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return HTTPException(status_code=500, detail=str(e))
     
 @app.get("/search_only_strategy")
 async def search_strategy(
@@ -311,7 +323,7 @@ async def search_strategy(
         return HTTPException(status_code=400, detail="Invalid input")
     try:
 
-        expected_impacts, possible_min_solution, solutions, strategy = search(
+        expected_impacts, possible_min_solution, solutions, strategy, found_strategy_time, build_strategy_time = search(
             execution_tree, bound, impacts_names, search_only
         )
 
@@ -330,7 +342,9 @@ async def search_strategy(
                 "expected_impacts": expected_impacts,
                 "possible_min_solution": possible_min_solution,
                 "solutions": solutions,
-                "strategy": []
+                "strategy": [],
+                "found_strategy_time": found_strategy_time,
+                "build_strategy_time": build_strategy_time
             }
 
         if strategy is None:
@@ -342,7 +356,9 @@ async def search_strategy(
                 "expected_impacts": expected_impacts,
                 "possible_min_solution": possible_min_solution,
                 "solutions": solutions,
-                "strategy": []
+                "strategy": [],
+                "found_strategy_time": found_strategy_time,
+                "build_strategy_time": build_strategy_time
             }
         text_result = f"This is the strategy, with an expected impact of: "
         text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(impacts_names,  [item for item in expected_impacts]))
@@ -352,7 +368,9 @@ async def search_strategy(
             "expected_impacts": expected_impacts,
             "possible_min_solution": possible_min_solution,
             "solutions": solutions,
-            "strategy": strategy
+            "strategy": strategy,
+            "found_strategy_time": found_strategy_time,
+            "build_strategy_time": build_strategy_time
         }
 
     except Exception as e:
@@ -384,14 +402,16 @@ async def get_explainer(
     if not isinstance(strategy, list) or not isinstance(type_explainer, str) or not isinstance(impacts_names, list[str]) or not isinstance(name_svg, str):
         return HTTPException(status_code=400, detail="Invalid input")
     try:
-        strategy_tree, expected_impacts, strategy_expected_time, choices = build_explained_strategy(
+        strategy_tree, expected_impacts, strategy_expected_time, choices, time_explain_strategy, strategy_tree_time = build_explained_strategy(
             parse_tree, strategy, type_explainer, impacts_names
         )
         return  {
             "strategy_tree": strategy_tree,
             "expected_impacts": expected_impacts,
             "strategy_expected_time": strategy_expected_time,
-            "choices": choices
+            "choices": choices,
+            "time_explain_strategy": time_explain_strategy,
+            "strategy_tree_time": strategy_tree_time,
         }
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
@@ -399,7 +419,7 @@ async def get_explainer(
 #######################################################
 ###             LLMS API                            ###
 #######################################################
-@app.get("/agent-definition")
+@app.get("/agent_definition")
 async def get_agent(
     url: str, api_key: str, 
     model: str, temperature: float,
@@ -430,6 +450,214 @@ async def get_agent(
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
+@app.get("/get_chat_history")
+async def get_chat_history(session_id: str) -> list:
+    """
+    Get the chat history.
+
+    Args:
+        session_id (str): The session id.
+
+    Returns:
+        list: The chat history.
+    """
+    if not isinstance(session_id, str):
+        return HTTPException(status_code=400, detail="Invalid input")
+    try:
+        return {
+            "chat_history": chat_histories[session_id]
+        }
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    
+#######################################################
+########### GET SVG TREES #############################
+#######################################################
+
+#------------------------------------------------------
+#           EXCECUTION TREES
+#------------------------------------------------------
+@app.get("/get_execution_tree_state")
+async def get_execution_tree_state() -> FileResponse:
+    """
+    Get the execution state tree.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_EXECUTION_TREE_STATE+ '.svg', 
+            media_type="image/svg", 
+            filename="execution_tree_state.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get_execution_tree_state_time")
+async def get_execution_tree_state_time() -> FileResponse:
+    """
+    Get the execution tree with states and times contracted.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_EXECUTION_TREE_STATE_TIME+ '.svg', 
+            media_type="image/svg", 
+            filename="execution_tree_state_time.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/get_execution_tree_state_time_extended")
+async def get_execution_tree_state_time_extended() -> FileResponse:
+    """
+    Get the execution tree with states and times extended.
+
+    Returns:
+        FileResponse:The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_EXECUTION_TREE_STATE_TIME_EXTENDED+ '.svg', 
+            media_type="image/svg", 
+            filename="execution_tree_state_time_extended.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get_execution_tree_time")
+async def get_execution_tree_time() -> FileResponse:
+    """
+    Get the execution tree  only times.
+
+    Returns:
+        FileResponse:The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_EXECUTION_TREE_TIME+ '.svg', 
+            media_type="image/svg", 
+            filename="execution_tree_time.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    
+
+#------------------------------------------------------
+#           EXPLAINER TREES
+#------------------------------------------------------
+
+@app.get("/get_explainer_decision_tree")
+async def get_explainer_decision_tree() -> FileResponse:
+    """
+    Get the execution tree with states and times extended.
+
+    Returns:
+        FileResponse:The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_EXPLAINER_DECISION_TREE+ '.svg', 
+            media_type="image/svg", 
+            filename="explainer_decision_tree.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get_explainer_bdd")
+async def get_explainer_bdd() -> FileResponse:
+    """
+    Get the execution tree  only times.
+
+    Returns:
+        FileResponse:The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_EXPLAINER_BDD+ '.svg', 
+            media_type="image/svg", 
+            filename="explainer_bdd.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    
+
+
+#------------------------------------------------------
+#       STRATEGY TREES
+#------------------------------------------------------
+@app.get("/get_strategy_tree_state")
+async def get_strategy_tree_state() -> FileResponse:
+    """
+    Get the strategy tree with states.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_STRATEGY_TREE_STATE+ '.svg', 
+            media_type="image/svg", 
+            filename="strategy_tree_state.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/get_strategy_tree_state_time")
+async def get_strategy_tree_state_time() -> FileResponse:
+    """
+    Get the strategy tree with states and times contracted.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_STRATEGY_TREE_STATE_TIME + '.svg', 
+            media_type="image/svg", 
+            filename="strategy_tree_state_time.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/get_strategy_tree_state_time_extended")
+async def get_strategy_tree_state_time_extended() -> FileResponse:
+    """
+    Get the strategy tree with states and times extended.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_STRATEGY_TREE_STATE_TIME_EXTENDED+ '.svg', 
+            media_type="image/svg", 
+            filename="strategy_tree_state_time_extended.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get_strategy_tree_time")
+async def get_strategy_tree_time() -> FileResponse:
+    """
+    Get the strategy tree  only times.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_STRATEGY_TREE_TIME+ '.svg', 
+            media_type="image/svg", 
+            filename="strategy_tree_time.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e)) 
+    
 #######################################################
 ############ POST #####################################
 #######################################################
@@ -458,9 +686,9 @@ async def set_bpmn(
         if cs.checkCorrectSyntax(bpmn_lark):
             return bpmn_lark
         else:
-            raise HTTPException(status_code=400, detail="Invalid BPMN syntax")
+            return HTTPException(status_code=400, detail="Invalid BPMN syntax")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return HTTPException(status_code=500, detail=str(e))
 
 @app.post("/create_sese_diagram")
 async def print_bpmn(request: BPMNPrinting):
@@ -470,14 +698,14 @@ async def print_bpmn(request: BPMNPrinting):
         request (BPMNPrinting): BPMN printing configuration
     Returns:
         FileResponse: PNG image of the BPMN diagram
-    Raises:
+    returns:
         HTTPException: 400 for invalid input, 500 for server errors, 403 for unauthorized access
     """
     bpmn = request.bpmn
     if not isinstance(request, BPMNPrinting):
-        raise HTTPException(status_code=400, detail="Invalid input")
+        return HTTPException(status_code=400, detail="Invalid input")
     if not checkCorrectSyntax(dict(bpmn)):
-        raise HTTPException(status_code=400, detail="Invalid BPMN syntax")   
+        return HTTPException(status_code=400, detail="Invalid BPMN syntax")   
     try:        
         print('BPMN', dict(bpmn))
         print(request)
@@ -498,11 +726,11 @@ async def print_bpmn(request: BPMNPrinting):
             "graph": img
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return HTTPException(status_code=500, detail=str(e))
 
 
 
-@app.post("/invoke-agent")
+@app.post("/invoke_agent")
 async def invoke_agent(request: AgentRequest) ->  dict:
     """
     Invoke the agent with the given prompt.
@@ -545,10 +773,10 @@ async def invoke_agent(request: AgentRequest) ->  dict:
         response = llm.invoke({"input": formatted_history})
         chat_history.append({"role": "ai", "content": response.content})
         print(chat_history)
-        return {"session_id": request.session_id, "response": response.content, "history": chat_history}
+        return {"session_id": request.session_id, "response": response.content}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return HTTPException(status_code=500, detail=str(e))
 
 
 #######################################################

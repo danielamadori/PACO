@@ -12,3 +12,4 @@ server/tests/output_files
 .idea/inspectionProfiles/Project_Default.xml
 /src/pages/__pycache__
 *.svg
+test.ipynb
