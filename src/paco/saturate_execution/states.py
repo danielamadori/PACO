@@ -57,6 +57,12 @@ class States:
 			"executed_time": {k.id: v for k, v in self.executed_time.items()}
 		}
 
+	@staticmethod
+	def from_dict(data: dict, parseTreeNodes: dict):
+		states = States()
+		states.activityState.update({parseTreeNodes[int(k)]: ActivityState(v) for k, v in data["activityState"].items()})
+		states.executed_time.update({parseTreeNodes[int(k)]: v for k, v in data["executed_time"].items()})
+		return states
 
 def node_info(node: ParseNode, states: States):
 	name = "" if not (isinstance(node, Sequential) and isinstance(node, Parallel)) else "name:" + node.name + '; '

@@ -1,13 +1,15 @@
 import numpy as np
 
+from paco.execution_tree.execution_tree import ExecutionTree
+from paco.parser.parse_tree import ParseTree
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROB, LOOP_ROUND
 from paco.solver import paco
 
 
 #parse_tree = ParseTree.from_json()
-#execution_tree = ExecutionTree.from_json()
-#parse_tree = None
-#execution_tree = None
+#execution_tree = ExecutionTree.from_json(parse_tree, ["cost", "hours"])
+parse_tree = None
+execution_tree = None
 
 bpmn_ex = {
     "loop_example":  [{

@@ -8,14 +8,18 @@ from paco.execution_tree.view_point import ViewPoint
 
 class ExecutionViewPoint(ViewPoint):
 	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], choices:tuple, natures: tuple,
-				 is_final_state: bool, impacts_names, parent: 'ExecutionTree' = None):
+				 is_final_state: bool, impacts_names, parent = None, probability: np.float64 = None, impacts: np.ndarray = None, cei_top_down: np.ndarray = None, cei_bottom_up: np.ndarray = None):
 
 		super().__init__(id, states, decisions, is_final_state, natures, choices, parent)
-
-		self.probability, self.impacts = evaluate_expected_impacts(states, len(impacts_names))
-		self.cei_top_down:np.ndarray = self.probability * self.impacts
-		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
-
+		if probability is None or impacts is None or cei_top_down is None or cei_bottom_up is None:
+			self.probability, self.impacts = evaluate_expected_impacts(states, len(impacts_names))
+			self.cei_top_down:np.ndarray = self.probability * self.impacts
+			self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
+		else:
+			self.probability = probability
+			self.impacts = impacts
+			self.cei_top_down = cei_top_down
+			self.cei_bottom_up = cei_bottom_up
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
 		result = super().common_dot_str(full, state, executed_time, previous_node)

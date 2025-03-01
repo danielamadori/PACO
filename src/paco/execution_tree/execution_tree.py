@@ -1,8 +1,10 @@
 import json
-
+import numpy as np
+from jsonschema import validate, ValidationError
 from graphviz import Source
 
-from paco.execution_tree.view_point import ViewPoint
+from paco.execution_tree.execution_view_point import ExecutionViewPoint
+from paco.explainer.strategy_view_point import StrategyViewPoint
 from paco.parser.parse_node import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
 from utils.env import PATH_EXECUTION_TREE
@@ -16,6 +18,11 @@ class ExecutionTree:
 		result = self.create_dot_graph(self.root, True, True, False)
 		return result[0] + result[1]
 
+	def to_dict(self) -> dict:
+		dictionary = {"type": self.root.__class__.__name__}
+		dictionary.update(self.root.to_dict())
+		return dictionary
+
 	def state_str(self):
 		return self.root.dot_str(state=True, executed_time=True, previous_node=None).split(' [')[0]
 
@@ -28,27 +35,71 @@ class ExecutionTree:
 			   format='pdf').render(path, cleanup=True)
 
 	def to_json(self, outfile:str = PATH_EXECUTION_TREE[:-1]) -> None:
-		dictionary = self.root.to_dict()
-		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
-
+		open(outfile + '.json', 'w').write(json.dumps(self.to_dict(), indent=2))
 
 	@staticmethod
-	def create_node(node_data: dict, parent: 'ViewPoint' = None) -> 'ViewPoint':
-		node_type = node_data['type']
+	def create_tree(node_data: dict, tree_type:str, parseTreeNodes:dict, impacts_names:list, parent = None) -> 'ExecutionTree':
+		id = node_data['id']
+		states = States.from_dict(node_data['states'], parseTreeNodes)
+		decisions = tuple([parseTreeNodes[decision] for decision in node_data['decisions']])
+		choices = tuple([parseTreeNodes[choice] for choice in node_data['choices']])
+		natures = tuple([parseTreeNodes[nature] for nature in node_data['natures']])
+		is_final_state = node_data['is_final_state']
+		probability = np.float64(node_data['probability'])
+		impacts = np.array(node_data['impacts'], dtype=np.float64)
 
-		if node_type == "ExecutionViewPoint":
-			return ExecutionTree.create_node(node_data, parent)
-		if node_type == "StrategyViewPoint":
-			return ExecutionTree.create_node(node_data, parent)
+		if tree_type == "ExecutionViewPoint":
+			viewPoint = ExecutionViewPoint(
+				id=id, states=states, decisions=decisions, choices=choices,
+				natures=natures, is_final_state=is_final_state,
+				impacts_names=impacts_names, parent=parent,
+				probability=probability, impacts=impacts,
+				cei_top_down=np.array(node_data['cei_top_down'], dtype=np.float64),
+				cei_bottom_up=np.array(node_data['cei_bottom_up'], dtype=np.float64)
+			)
 
-		raise ValueError(f"Unsupported type: {node_type}")
+		elif tree_type == "StrategyViewPoint":
+			viewPoint = StrategyViewPoint(
+				id=id, states=states, decisions=decisions, choices=choices,
+				natures=natures, is_final_state=is_final_state,
+				impacts_names=impacts_names, parent=parent,
+				probability=probability, impacts=impacts,
+				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
+				expected_time=np.float64(node_data['expected_time'])
+			)
+			'''
+			TODO
+			self.explained_choices: dict[ParseNode:Bdd]
+			'''
 
+		else:
+			raise ValueError(f"Unsupported type: {tree_type}")
+
+		tree = ExecutionTree(viewPoint)
+		viewPoint.transitions = {}
+		for key, transition_data in node_data.get("transitions", {}).items():
+			viewPoint.add_child(
+				ExecutionTree.create_tree(transition_data, tree_type, parseTreeNodes, impacts_names, tree))
+		'''
+		for key, transition_data in node_data.get("transitions", {}).items():
+			try:
+				print(f"Key: {key}, type key: {type(key)}")
+				transition_tuple = ast.literal_eval(key)
+				print(f"Transition: {transition_tuple}, type transition: {type(transition_tuple)}")
+				
+				viewPoint.transitions[transition_tuple] = ExecutionTree.create_node(transition_data, tree_type, parseTreeNodes, impacts_names, tree)
+			except (SyntaxError, ValueError) as e:
+				raise ValueError(f"Invalid transition key format: {key}") from e
+		'''
+		return tree
 
 	@staticmethod
-	def from_json(filename: str) -> 'ExecutionTree':
+	def from_json(parseTree: 'ParseTree', impacts_names: list, filename: str = PATH_EXECUTION_TREE[:-1]) -> 'ExecutionTree':
 		data = json.load(open(filename + '.json', 'r'))
+		#TODO validation
 		#validate_json(data)
-		return ExecutionTree(ExecutionTree.create_node(data))
+		parseTreeNodes = parseTree.root.to_dict_id_node()
+		return ExecutionTree.create_tree(data, data['type'], parseTreeNodes, impacts_names)
 
 
 
@@ -115,3 +166,33 @@ def get_sequential_first_task(node: ParseNode):
 		return get_sequential_first_task(node.sx_child)
 
 	return node
+
+
+def validate_json(data: dict):
+	schema = {
+		"type": "object",
+		"properties": {
+			"id": {"type": "integer"},
+			"type": {"type": "string", "enum": ["Task", "Sequential", "Parallel", "Choice", "Nature"]},
+			"decisions": {"type": "array", "items": {"type": "integer"}},
+			"transitions": {
+				"type": "object",
+				"additionalProperties": {"type": "object"}
+			},
+			"natures": {"type": "array", "items": {"type": "integer"}},
+			"choices": {"type": "array", "items": {"type": "integer"}},
+			"is_final_state": {"type": "boolean"}
+		},
+		"required": ["id", "type", "decisions", "transitions", "natures", "choices", "is_final_state"]
+	}
+
+	try:
+		validate(instance=data, schema=schema)
+	except ValidationError as e:
+		raise ValueError(f"Validation error: {e.message}")
+
+	for transition_key, transition_node in data.get("transitions", {}).items():
+		if isinstance(transition_node, dict):
+			validate_json(transition_node)
+
+	return True

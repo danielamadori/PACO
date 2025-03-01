@@ -45,6 +45,12 @@ class ParseTree:
 		dictionary = self.root.to_dict()
 		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
 
+	def to_dict(self) -> dict:
+		return self.root.to_dict()
+
+	def to_dict_id_node(self) -> dict:
+		return self.root.to_dict_id_node()
+
 	@staticmethod
 	def create_node(node_data: dict, parent: 'ParseNode' = None, impact_size = -1, non_cumulative_impact = -1) -> 'ParseNode':
 		node_type = node_data['type']
