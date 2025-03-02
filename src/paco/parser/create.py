@@ -21,6 +21,7 @@ def create(bpmn: dict, parse_tree_from_json=False, execution_tree_from_json=Fals
         t1 = datetime.now()
         print(f"{t1} Create ParseTree:completed: {(t1 - t).total_seconds()*1000} ms")
 
+
     parse_tree.to_json()
     parse_tree.print()
 
