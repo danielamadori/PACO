@@ -18,11 +18,11 @@ def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:Stat
 	earlyStop = len(pending_choices) == 0
 	#earlyStop = False
 	if earlyStop:
-		print(f"EarlyStop:id:{id}: No pending choices")
+		#print(f"EarlyStop:id:{id}: No pending choices")
 		for node in list(states.activityState.keys()):
 			if states.activityState[node] == ActivityState.WAITING:
 				cei_bottom_up += evaluate_expected_impacts_from_parseNode(node, impacts_size)
-				print(f"Node:id:{node.id}:", evaluate_expected_impacts_from_parseNode(node, impacts_size))
+		#		print(f"Node:id:{node.id}:", evaluate_expected_impacts_from_parseNode(node, impacts_size))
 
 		choices = tuple()
 		natures = tuple(pending_natures)
@@ -31,13 +31,14 @@ def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:Stat
 		states, choices, natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)
 
 	probability, impacts = evaluate_expected_impacts(states, impacts_size)
+	impacts += cei_bottom_up
 
 	return (ExecutionTree(ExecutionViewPoint(
 				id=id, states=states, decisions=decisions, choices=choices, natures=natures,
 				is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED or earlyStop,
 				probability=probability, impacts=impacts,
 				cei_top_down=probability * impacts, cei_bottom_up=cei_bottom_up,
-				parent=solution_tree)),
+				pending_choices=pending_choices, parent=solution_tree)),
 			branches)
 
 

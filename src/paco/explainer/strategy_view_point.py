@@ -7,8 +7,8 @@ from paco.saturate_execution.states import States
 
 class StrategyViewPoint(ViewPoint):
 	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],
-				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = None):
-		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), parent)
+				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choice:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = None):
+		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), pending_choice, parent)
 
 		self.probability = probability
 		self.impacts = impacts

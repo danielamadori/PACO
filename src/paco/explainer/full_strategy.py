@@ -109,7 +109,8 @@ def full_strategy(region_tree: ParseTree, explainers: dict[ParseNode, Bdd], impa
 										  decisions=decisions_taken,
 										  choices=choices,
 										  natures=natures, is_final_state=is_final,
-										  impacts=impacts, probability=probability)
+										  impacts=impacts, probability=probability,
+										  pending_choice=set(choices))
 
 	strategyTree = ExecutionTree(strategyViewPoint)
 	#print(view_point_node_info(strategyViewPoint), f"Impacts: {impacts}\n")

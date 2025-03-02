@@ -43,6 +43,7 @@ class ExecutionTree:
 		states = States.from_dict(node_data['states'], parseTreeNodes)
 		decisions = tuple([parseTreeNodes[decision] for decision in node_data['decisions']])
 		choices = tuple([parseTreeNodes[choice] for choice in node_data['choices']])
+		pending_choices = set([parseTreeNodes[choice] for choice in node_data['pending_choices']])
 		natures = tuple([parseTreeNodes[nature] for nature in node_data['natures']])
 		is_final_state = node_data['is_final_state']
 		probability = np.float64(node_data['probability'])
@@ -55,7 +56,8 @@ class ExecutionTree:
 				impacts_names=impacts_names, parent=parent,
 				probability=probability, impacts=impacts,
 				cei_top_down=np.array(node_data['cei_top_down'], dtype=np.float64),
-				cei_bottom_up=np.array(node_data['cei_bottom_up'], dtype=np.float64)
+				cei_bottom_up=np.array(node_data['cei_bottom_up'], dtype=np.float64),
+				pending_choices=pending_choices
 			)
 
 		elif tree_type == "StrategyViewPoint":
