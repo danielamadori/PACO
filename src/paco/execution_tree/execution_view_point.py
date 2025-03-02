@@ -20,7 +20,7 @@ class ExecutionViewPoint(ViewPoint):
 		self.cei_bottom_up = cei_bottom_up
 
 		#TODO check
-    	'''
+		'''
 		pending_choices = [*choices]
 		pending_activities = [node for node in states.activityState if node.parent not in pending_choices and states.activityState[node] == ActivityState.WAITING]
 
