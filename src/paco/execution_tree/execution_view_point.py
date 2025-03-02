@@ -1,11 +1,7 @@
 import numpy as np
-
-from paco.evaluations.evaluate_possible_decisions import evaluate_possible_decisions
-from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.parse_node import ParseNode, Choice
-from paco.saturate_execution.states import States, ActivityState
+from paco.parser.parse_node import ParseNode
+from paco.saturate_execution.states import States
 from paco.execution_tree.view_point import ViewPoint
-from paco.searcher.found_strategy import compare_bound
 
 
 class ExecutionViewPoint(ViewPoint):
@@ -67,10 +63,11 @@ class ExecutionViewPoint(ViewPoint):
 		label += f"EI Current: {self.cei_top_down}\n"
 		#if not self.is_final_state:
 		label += f"EI Max: {self.cei_bottom_up}\n"
-
+		#TODO
+		'''
 		label += f"Guaranteed Impacts Max: {self.possible_expected_impacts[1]}\n"
 		label += f"Guaranteed Impacts Min: {self.possible_expected_impacts[0]}\n"
-
+		'''
 		choice_label = ""
 		nature_label = ""
 
