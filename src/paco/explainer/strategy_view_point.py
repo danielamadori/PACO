@@ -71,6 +71,6 @@ class StrategyViewPoint(ViewPoint):
 			"executed_time": self.executed_time,
 			"expected_impacts": self.expected_impacts.tolist(),
 			"expected_time": self.expected_time,
-			"explained_choices": {choice.name: None if bdd is None else bdd.to_dict() for choice, bdd in self.explained_choices.items()}
+			"explained_choices": {choice.id: None if bdd is None else bdd.to_dict() for choice, bdd in self.explained_choices.items()}
 		})
 		return base
