@@ -1,11 +1,7 @@
 import numpy as np
-
-from paco.evaluations.evaluate_possible_decisions import evaluate_possible_decisions
-from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.parser.parse_node import ParseNode, Choice
-from paco.saturate_execution.states import States, ActivityState
+from paco.parser.parse_node import ParseNode
+from paco.saturate_execution.states import States
 from paco.execution_tree.view_point import ViewPoint
-from paco.searcher.found_strategy import compare_bound
 
 
 class ExecutionViewPoint(ViewPoint):
@@ -19,8 +15,8 @@ class ExecutionViewPoint(ViewPoint):
 		self.cei_top_down = cei_top_down
 		self.cei_bottom_up = cei_bottom_up
 
-    #TODO check
-    '''
+		#TODO check
+		'''
 		pending_choices = [*choices]
 		pending_activities = [node for node in states.activityState if node.parent not in pending_choices and states.activityState[node] == ActivityState.WAITING]
 
@@ -51,7 +47,7 @@ class ExecutionViewPoint(ViewPoint):
 			else:
 				print("Pruning: ", decisions, " not in ", possible_decisions)
 
-'''
+		'''
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
 		result = super().common_dot_str(full, state, executed_time, previous_node)
@@ -67,10 +63,11 @@ class ExecutionViewPoint(ViewPoint):
 		label += f"EI Current: {self.cei_top_down}\n"
 		#if not self.is_final_state:
 		label += f"EI Max: {self.cei_bottom_up}\n"
-
+		#TODO
+		'''
 		label += f"Guaranteed Impacts Max: {self.possible_expected_impacts[1]}\n"
 		label += f"Guaranteed Impacts Min: {self.possible_expected_impacts[0]}\n"
-
+		'''
 		choice_label = ""
 		nature_label = ""
 
