@@ -10,8 +10,8 @@ def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64,
 
 	for node, state in states.activityState.items():
 		if (isinstance(node, Nature) and state > ActivityState.WAITING
-				and (states.activityState[node.sx_child] > ActivityState.WAITING
-					 or states.activityState[node.dx_child] > ActivityState.WAITING)):
+				and ((node.sx_child in states.activityState and states.activityState[node.sx_child] > ActivityState.WAITING)
+					 or (node.dx_child in states.activityState and states.activityState[node.dx_child] > ActivityState.WAITING))):
 
 			p = node.probability
 			if states.activityState[node.dx_child] > 0:
