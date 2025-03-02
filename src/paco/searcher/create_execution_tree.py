@@ -1,7 +1,8 @@
-import copy
 import os
+import numpy as np
 import pydot
 
+from paco.evaluations.evaluate_impacts import evaluate_expected_impacts_from_parseNode, evaluate_expected_impacts
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode
@@ -11,50 +12,52 @@ from paco.execution_tree.execution_tree import ExecutionTree
 from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, \
 	PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME
 
+def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:States, pending_choices:set, pending_natures:set, solution_tree:ExecutionTree, impacts_size:int) -> (ExecutionViewPoint, dict[tuple[ParseNode], (States,set,set)]):
+	cei_bottom_up = np.zeros(impacts_size, dtype=np.float64)
 
-def create_execution_tree(region_tree: ParseTree, impacts_names:list) -> (ExecutionTree, list[ExecutionTree]):
-	states, choices, natures, branches = saturate_execution_decisions(region_tree, States(region_tree.root, ActivityState.WAITING, 0))
+	earlyStop = len(pending_choices) == 0
+	#earlyStop = False
+	if earlyStop:
+		print(f"EarlyStop:id:{id}: No pending choices")
+		for node in list(states.activityState.keys()):
+			if states.activityState[node] == ActivityState.WAITING:
+				cei_bottom_up += evaluate_expected_impacts_from_parseNode(node, impacts_size)
+				print(f"Node:id:{node.id}:", evaluate_expected_impacts_from_parseNode(node, impacts_size))
 
+		choices = tuple()
+		natures = tuple(pending_natures)
+		branches = {}
+	else:
+		states, choices, natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)
+
+	probability, impacts = evaluate_expected_impacts(states, impacts_size)
+
+	return (ExecutionTree(ExecutionViewPoint(
+				id=id, states=states, decisions=decisions, choices=choices, natures=natures,
+				is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED or earlyStop,
+				probability=probability, impacts=impacts,
+				cei_top_down=probability * impacts, cei_bottom_up=cei_bottom_up,
+				parent=solution_tree)),
+			branches)
+
+
+def create_execution_tree(region_tree: ParseTree, impacts_names:list, pending_choices:set, pending_natures:set) -> ExecutionTree:
 	id = 0
-	solution_tree = ExecutionTree(ExecutionViewPoint(
-		id=id, states=states,
-		decisions=(region_tree.root,),
-		choices=choices, natures=natures,
-		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
-		impacts_names=impacts_names)
-	)
+	solution_tree, branches = evaluate_viewPoint(id, region_tree, (region_tree.root,), States(region_tree.root, ActivityState.WAITING, 0), pending_choices, pending_natures, None, len(impacts_names))
 
-	#print("create_execution_tree:", tree_node_info(solution_tree.root))
-
-	for decisions, branch_states in branches.items():
-		branch = copy.deepcopy(states)
-		branch.update(branch_states)
-		id = create_execution_viewpoint(region_tree, decisions, branch, solution_tree, id + 1, impacts_names)
+	for decisions, (branch_states, pending_choices, pending_natures) in branches.items():
+		id = create_execution_viewpoint(region_tree, decisions, branch_states, solution_tree, id + 1, pending_choices, pending_natures, impacts_names)
 
 	return solution_tree
 
 
-def create_execution_viewpoint(region_tree: ParseTree, decisions: tuple[ParseNode], states: States, solution_tree: ExecutionTree, id: int, impacts_names:list) -> int:
-	saturatedStates, choices, natures, branches = saturate_execution_decisions(region_tree, states)
-	states.update(saturatedStates)
+def create_execution_viewpoint(region_tree: ParseTree, decisions: tuple[ParseNode], states: States, solution_tree: ExecutionTree, id: int, pending_choices:set, pending_natures:set, impacts_names:list) -> int:
+	new_solution_tree, branches = evaluate_viewPoint(id, region_tree, decisions, states, pending_choices, pending_natures, solution_tree, len(impacts_names))
 
-	next_node = ExecutionTree(ExecutionViewPoint(
-		id=id,
-		states=states,
-		decisions=decisions,
-		choices=choices, natures=natures,
-		is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
-		impacts_names=impacts_names,
-		parent=solution_tree)
-	)
+	solution_tree.root.add_child(new_solution_tree)
+	for decisions, (branch_states, pending_choices, pending_natures) in branches.items():
+		id = create_execution_viewpoint(region_tree, decisions, branch_states, new_solution_tree, id + 1, pending_choices, pending_natures, impacts_names)
 
-	#print("create_execution_viewpoint:", tree_node_info(next_node.root))
-
-	solution_tree.root.add_child(next_node)
-	for decisions, branch_states in branches.items():
-		branch = copy.deepcopy(states)
-		branch.update(branch_states)
-		id = create_execution_viewpoint(region_tree, decisions, branch, next_node, id + 1, impacts_names)
 	return id
 
 

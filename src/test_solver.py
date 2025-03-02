@@ -249,7 +249,7 @@ bpmn_paper_example = {
 #test_calc_strategy_paco(bpmn_paper_example, 0)
 
 
-test_calc_strategy_paco(bpmn_ex, 0)
+test_calc_strategy_paco(bpmn_ex, 2)
 
 #test_calc_strategy_paco(bpmn_ex, 14)
 

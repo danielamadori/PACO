@@ -37,12 +37,14 @@ class States:
 		if previousStates is None:
 			for state in sorted(self.activityState.keys(), key=lambda x: x.id):
 				result_s += str(state.id) + ":" + str(self.activityState[state]) + ";"
-				result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+				if state in self.executed_time:
+					result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
 		else:
 			for state in sorted(self.activityState.keys(), key=lambda x: x.id):
 				if state not in previousStates.activityState or self.activityState[state] != previousStates.activityState[state]:
 					result_s += str(state.id) + ":" + str(self.activityState[state]) + ";"
-					result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+					if state in self.executed_time:
+						result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
 
 		# Remove last  ";"
 		return result_s[:-1], result_d[:-1]
