@@ -695,7 +695,27 @@ async def get_strategy_tree_time() -> FileResponse:
         )
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e)) 
-    
+
+#------------------------------------------------------
+#      PARSE TREE
+# -----------------------------------------------------
+
+@app.get("/get_parse_tree")    
+async def get_region_tree() -> FileResponse:
+    """
+    Get the parse tree.
+
+    Returns:
+        FileResponse: The tree in svg format.
+    """
+    try:
+        return FileResponse(
+            PATH_PARSE_TREE+ '.svg', 
+            media_type="image/svg", 
+            filename="parse_tree.svg"
+        )
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
 #######################################################
 ############ POST #####################################
 #######################################################
