@@ -45,11 +45,18 @@ class ParseTree:
 		dictionary = self.root.to_dict()
 		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
 
+	def to_dict(self) -> dict:
+		return self.root.to_dict()
+
+	def to_dict_id_node(self) -> dict:
+		return self.root.to_dict_id_node()
+
 	@staticmethod
 	def create_node(node_data: dict, parent: 'ParseNode' = None, impact_size = -1, non_cumulative_impact = -1) -> 'ParseNode':
 		node_type = node_data['type']
 		node_id = node_data['id']
 		index_in_parent = node_data.get('index_in_parent', -1)
+		pending_choice, pending_natures = set(), set()
 
 		if node_type == "Task":
 			return Task(
@@ -60,7 +67,7 @@ class ParseTree:
 				impact=node_data['impact'],
 				non_cumulative_impact=node_data['non_cumulative_impact'],
 				duration=node_data['duration']
-			)
+			), pending_choice, pending_natures
 
 		if node_type == "Sequential":
 			node = Sequential(parent=parent, index_in_parent=index_in_parent, id=node_id)
@@ -74,6 +81,7 @@ class ParseTree:
 				name=node_data['name'],
 				max_delay=node_data['max_delay']
 			)
+			pending_choice.update(node)
 		elif node_type == "Nature":
 			node = Nature(
 				parent=parent,
@@ -82,6 +90,7 @@ class ParseTree:
 				name=node_data['name'],
 				probability=node_data['probability']
 			)
+			pending_natures.update(node)
 		else:
 			raise ValueError(f"Unsupported node type: {node_type}")
 
@@ -89,15 +98,21 @@ class ParseTree:
 		if isinstance(node, Gateway):
 			sx_child_data = node_data.get('sx_child')
 			dx_child_data = node_data.get('dx_child')
-			if sx_child_data:
-				node.sx_child = ParseTree.create_node(sx_child_data, parent=node, impact_size=impact_size, non_cumulative_impact=non_cumulative_impact)
-			if dx_child_data:
-				node.dx_child = ParseTree.create_node(dx_child_data, parent=node, impact_size=impact_size, non_cumulative_impact=non_cumulative_impact)
 
-		return node
+			if sx_child_data:
+				node.sx_child, sx_pending_choice, sx_pending_natures = ParseTree.create_node(sx_child_data, parent=node, impact_size=impact_size, non_cumulative_impact=non_cumulative_impact)
+				pending_choice.update(sx_pending_choice)
+				pending_natures.update(sx_pending_natures)
+			if dx_child_data:
+				node.dx_child, dx_pending_choice, dx_pending_natures = ParseTree.create_node(dx_child_data, parent=node, impact_size=impact_size, non_cumulative_impact=non_cumulative_impact)
+				pending_natures.update(dx_pending_natures)
+				pending_choice.update(dx_pending_choice)
+
+		return node, pending_choice, pending_natures
 
 	@staticmethod
 	def from_json(filename: str = PATH_PARSE_TREE, impact_size: int = -1, non_cumulative_impact_size: int = -1) -> 'ParseTree':
 		data = json.load(open(filename + '.json', 'r'))
 		validate_json(data, impact_size, non_cumulative_impact_size)
-		return ParseTree(ParseTree.create_node(data))
+		root, pending_choice, pending_natures = ParseTree.create_node(data)
+		return ParseTree(root), pending_choice, pending_natures

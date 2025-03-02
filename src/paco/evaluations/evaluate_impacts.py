@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 from paco.saturate_execution.states import States, ActivityState
-from paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Nature, Task
+from paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Nature, Task, Gateway
 
 
 def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64, np.ndarray):
@@ -56,3 +56,21 @@ def evaluate_unavoidable_impacts(root: ParseNode, states: States, current_impact
 		unavoidableImpacts += unavoidableTask.impact
 
 	return unavoidableImpacts
+
+
+def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode, impacts_size: int) -> (np.float64, np.ndarray):
+	if isinstance(parseNode, Task):
+		return parseNode.impact
+
+	expected_impacts = np.zeros(impacts_size, dtype=np.float64)
+	if isinstance(parseNode, Gateway):
+		sx_expected_impacts = evaluate_expected_impacts_from_parseNode(parseNode.sx_child, impacts_size)
+		dx_expected_impacts = evaluate_expected_impacts_from_parseNode(parseNode.dx_child, impacts_size)
+
+		if isinstance(parseNode, Nature):
+			sx_expected_impacts *= parseNode.probability
+			dx_expected_impacts *= (1 - parseNode.probability)
+
+		expected_impacts = sx_expected_impacts + dx_expected_impacts
+
+	return expected_impacts

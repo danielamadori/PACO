@@ -1,4 +1,5 @@
 import numpy as np
+
 from paco.evaluations.evaluate_possible_decisions import evaluate_possible_decisions
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
 from paco.parser.parse_node import ParseNode, Choice
@@ -9,14 +10,17 @@ from paco.searcher.found_strategy import compare_bound
 
 class ExecutionViewPoint(ViewPoint):
 	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], choices:tuple, natures: tuple,
-				 is_final_state: bool, impacts_names, parent: 'ExecutionTree' = None):
+				 is_final_state: bool, probability: np.float64, impacts: np.ndarray, cei_top_down: np.ndarray, cei_bottom_up: np.ndarray, parent = None):
 
 		super().__init__(id, states, decisions, is_final_state, natures, choices, parent)
 
-		self.probability, self.impacts = evaluate_expected_impacts(states, len(impacts_names))
-		self.cei_top_down:np.ndarray = self.probability * self.impacts
-		self.cei_bottom_up:np.ndarray = np.zeros(len(impacts_names), dtype=np.float64)
+		self.probability = probability
+		self.impacts = impacts
+		self.cei_top_down = cei_top_down
+		self.cei_bottom_up = cei_bottom_up
 
+    #TODO check
+    '''
 		pending_choices = [*choices]
 		pending_activities = [node for node in states.activityState if node.parent not in pending_choices and states.activityState[node] == ActivityState.WAITING]
 
@@ -47,9 +51,7 @@ class ExecutionViewPoint(ViewPoint):
 			else:
 				print("Pruning: ", decisions, " not in ", possible_decisions)
 
-
-
-
+'''
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
 		result = super().common_dot_str(full, state, executed_time, previous_node)
@@ -83,3 +85,13 @@ class ExecutionViewPoint(ViewPoint):
 			label += "Choice: " + choice_label[:-2] + "\n"
 
 		return self.dot_str(full=False) + "_description", f" [label=\"{label}\", shape=rect];\n"
+
+	def to_dict(self) -> dict:
+		base = super().to_dict()
+		base.update({
+			"probability": self.probability,
+			"impacts": self.impacts.tolist(),
+			"cei_top_down": self.cei_top_down.tolist(),
+			"cei_bottom_up": self.cei_bottom_up.tolist()
+		})
+		return base

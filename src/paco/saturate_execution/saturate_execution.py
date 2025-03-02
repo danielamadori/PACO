@@ -1,3 +1,4 @@
+import copy
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.create_branches import create_branches
@@ -6,11 +7,12 @@ from paco.saturate_execution.states import States, ActivityState, states_info
 from paco.saturate_execution.step_to_saturation import steps_to_saturation
 
 # Saturation of the execution tree activating decisions nodes
-def saturate_execution_decisions(region_tree: ParseTree, states: States) -> (States, tuple[ParseNode], dict[tuple[ParseNode], States]):
+def saturate_execution_decisions(region_tree: ParseTree, states: States, pending_choices:set, pending_natures:set) -> (States, tuple[ParseNode], dict[tuple[ParseNode], (States,set,set)]):
 	branches = dict()
 	choices = tuple()
 	natures = tuple()
 
+	states = copy.deepcopy(states)
 	while len(choices) + len(natures) == 0 and states.activityState[region_tree.root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
 		#print("start:", states_info(states))
@@ -25,7 +27,7 @@ def saturate_execution_decisions(region_tree: ParseTree, states: States) -> (Sta
 		if k > 0:
 			raise Exception("saturate_execution:StepsException" + str(k))
 
-		choices, natures, branches = create_branches(states)
+		choices, natures, branches = create_branches(states, pending_choices, pending_natures)
 
 	#if len(branches) > 0:
 		#print("create_branches:", states_info(states))
