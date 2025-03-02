@@ -60,3 +60,4 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 				root.cei_bottom_up[i] = choices_cei_bottom_up[c][i]
 
 
+
