@@ -6,14 +6,16 @@ from paco.saturate_execution.states import States, states_info
 
 
 class ViewPoint(ABC):
-	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], is_final_state: bool, natures: tuple, choices:tuple, pending_choice:set, parent): #Parent is ExecutionTree
+	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], is_final_state: bool, natures: tuple, choices:tuple, pending_choices:set, pending_natures:set, parent): #Parent is ExecutionTree
 		self.id = id
 		self.states = states
 		self.decisions = decisions
-		self.is_final_state = is_final_state
+		self.is_final_state = is_final_state #If is leaf and the execution is finished
+		self.is_leaf = is_final_state or len(pending_choices) + len(choices) == 0
 		self.natures = natures
 		self.choices = choices
-		self.pending_choice = pending_choice
+		self.pending_choices = pending_choices
+		self.pending_natures = pending_natures
 		self.parent = parent
 		self.transitions: dict[tuple, 'ExecutionTree'] = {}
 
@@ -92,9 +94,11 @@ class ViewPoint(ABC):
 			"states": self.states.to_dict(),
 			"decisions": [d.id for d in self.decisions],
 			"is_final_state": self.is_final_state,
+			"is_leaf": self.is_leaf,
 			"natures": [n.id for n in self.natures],
 			"choices": [c.id for c in self.choices],
-			"pending_choice": [pc.id for pc in self.pending_choice],
+			"pending_choices": [pc.id for pc in self.pending_choices],
+			"pending_natures": [pn.id for pn in self.pending_natures],
 			"transitions": {
 				 str([(decision[0].id, decision[1].id) for decision in decisions]): nextViewPoint.root.to_dict()
 				 for decisions, nextViewPoint in self.transitions.items()

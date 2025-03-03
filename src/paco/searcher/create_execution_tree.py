@@ -13,32 +13,31 @@ from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_EXECUTION_TREE_STATE
 	PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME
 
 def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:States, pending_choices:set, pending_natures:set, solution_tree:ExecutionTree, impacts_size:int) -> (ExecutionViewPoint, dict[tuple[ParseNode], (States,set,set)]):
+	states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)
+
 	cei_bottom_up = np.zeros(impacts_size, dtype=np.float64)
 
-	earlyStop = len(pending_choices) == 0
-	#earlyStop = False
+	earlyStop = len(pending_choices) + len(choices) == 0 and len(pending_natures) + len(natures) > 0
+	earlyStop = False
 	if earlyStop:
-		#print(f"EarlyStop:id:{id}: No pending choices")
+		print(f"EarlyStop:id:{id}: No pending choices, pending nature: {[n.name for n in pending_natures]}, nature: {[n.name for n in natures]}")
 		for node in list(states.activityState.keys()):
 			if states.activityState[node] == ActivityState.WAITING:
 				cei_bottom_up += evaluate_expected_impacts_from_parseNode(node, impacts_size)
 		#		print(f"Node:id:{node.id}:", evaluate_expected_impacts_from_parseNode(node, impacts_size))
 
-		choices = tuple()
-		natures = tuple(pending_natures)
 		branches = {}
-	else:
-		states, choices, natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)
 
 	probability, impacts = evaluate_expected_impacts(states, impacts_size)
 	impacts += cei_bottom_up
 
 	return (ExecutionTree(ExecutionViewPoint(
 				id=id, states=states, decisions=decisions, choices=choices, natures=natures,
-				is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED or earlyStop,
+				is_final_state=states.activityState[region_tree.root] >= ActivityState.COMPLETED,
 				probability=probability, impacts=impacts,
 				cei_top_down=probability * impacts, cei_bottom_up=cei_bottom_up,
-				pending_choices=pending_choices, parent=solution_tree)),
+				pending_choices=pending_choices, pending_natures=pending_natures,
+				parent=solution_tree)),
 			branches)
 
 

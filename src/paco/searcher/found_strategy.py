@@ -88,11 +88,11 @@ def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray, typeSearch:
 	if np.all(compare_bound(frontier_bottom_up, bound) <= 0):
 		return frontier, frontier_bottom_up, [frontier_bottom_up + frontier_top_down], []
 
-	if np.all(compare_bound(frontier_top_down, bound) > 0) or all(tree.root.is_final_state for tree in frontier):
+	if np.all(compare_bound(frontier_top_down, bound) > 0) or all(tree.root.is_leaf for tree in frontier):
 		#print("Failed top_down: not a valid choose")
 		return None, None, [frontier_bottom_up], [frontier_top_down]
 
-	tree = pick([tree for tree in frontier if not tree.root.is_final_state], typeSearch)
+	tree = pick([tree for tree in frontier if not tree.root.is_leaf], typeSearch)
 
 	tested_frontier_solution = []
 	frontier_solution_bottom_up = []

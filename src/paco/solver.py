@@ -14,13 +14,15 @@ from paco.parser.print_sese_diagram import print_sese_diagram
 def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID):
 	#print(f'{datetime.now()} Testing PACO...')
 	print(f'{datetime.now()} Bound {bound}')
+	#TODO fix
+	pending_choices, pending_natures = None, None
 
 	#print(f'{datetime.now()} bpmn + cpi {bpmn}')
 	if parse_tree is None or execution_tree is None:
 		open(PATH_BPMN + '.json', 'w').write(json.dumps(bpmn, indent=2))
 		print_sese_diagram(**bpmn, outfile=PATH_BPMN)
 		bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
-		parse_tree, execution_tree = create(bpmn)
+		parse_tree, execution_tree, pending_choices, pending_natures = create(bpmn)
 	else:
 		print(f'{datetime.now()} Caching parse_tree and execution_tree')
 
@@ -50,7 +52,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 		print(str(datetime.now()) + " " + text_result)
 		return text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, []
 
-	strategy_tree, expected_impacts, strategy_expected_time, choices = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES])
+	strategy_tree, expected_impacts, strategy_expected_time, choices = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES],  pending_choices, pending_natures)
 
 	text_result = f"This is the strategy, with an expected impact of: "
 	text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))

@@ -7,8 +7,8 @@ from paco.saturate_execution.states import States
 
 class StrategyViewPoint(ViewPoint):
 	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],
-				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choice:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = None):
-		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), pending_choice, parent)
+				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = None):
+		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), pending_choices, pending_natures, parent)
 
 		self.probability = probability
 		self.impacts = impacts
@@ -49,15 +49,31 @@ class StrategyViewPoint(ViewPoint):
 			label += f"Probability: {round(self.probability, 2)}\n"
 			label += f"Exp. Time: {round(self.expected_time, 2)}\n"
 			label += f"Exp. Impacts: {np.round(self.expected_impacts, 2)}\n"
-		if len(self.natures) > 0:
-			label += "Nature: "
-			for nature in list(self.natures):
-				label += f"{nature.name}, "
-			label = label[:-2] + "\n"
-		if len(self.explained_choices) > 0:
-			label += "Choice:\n"
+
+		nature_label = ""
+		for nature in self.natures:
+			nature_label += f"{nature.name}, "
+		if nature_label != "":
+			label += "Actual Nature: " + nature_label[:-2] + "\n"
+
+		if len(self.pending_choices) + len(self.explained_choices) > 0:
+			choice_label = ""
 			for choice, bdd in self.explained_choices.items():
-				label += f"{choice.name}: {'arbitrary' if bdd is None else str(bdd.typeStrategy)}\n"
+				choice_label += f"{choice.name}: {'arbitrary' if bdd is None else str(bdd.typeStrategy).replace("_", " ").lower()}\n"
+			if choice_label != "":
+				label += "Actual Choice:\n" + choice_label
+
+			choice_label = ""
+			for choice in self.pending_choices:
+				choice_label += f"{choice.name}, "
+			if choice_label != "":
+				label += f"Pending Choices: {choice_label[:-2]}\n"
+
+		nature_label = ""
+		for nature in self.pending_natures:
+			nature_label += f"{nature.name}, "
+		if nature_label != "":
+			label += f"Pending Natures: {nature_label[:-2]}\n"
 
 		label += "\", shape=rect];\n"
 		return self.dot_str(full=False) + "__description", label

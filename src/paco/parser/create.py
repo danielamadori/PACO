@@ -11,13 +11,13 @@ def create(bpmn: dict, parse_tree_from_json=False, execution_tree_from_json=Fals
     if parse_tree_from_json:
         print(f'{datetime.now()} Read ParseTree')
         t = datetime.now()
-        parse_tree, pending_choice, pending_natures = ParseTree.from_json()
+        parse_tree, pending_choices, pending_natures = ParseTree.from_json()
         t1 = datetime.now()
         print(f"{t1} Read ParseTree:completed: {(t1 - t).total_seconds()*1000} ms")
     else:
         print(f"{datetime.now()} Create ParseTree:")
         t = datetime.now()
-        parse_tree, pending_choice, pending_natures = create_parse_tree(bpmn)
+        parse_tree, pending_choices, pending_natures = create_parse_tree(bpmn)
         t1 = datetime.now()
         print(f"{t1} Create ParseTree:completed: {(t1 - t).total_seconds()*1000} ms")
 
@@ -34,7 +34,7 @@ def create(bpmn: dict, parse_tree_from_json=False, execution_tree_from_json=Fals
     else:
         print(f"{datetime.now()} Create ExecutionTree:")
         t = datetime.now()
-        execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES], pending_choice, pending_natures)
+        execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
         t1 = datetime.now()
         print(f"{t1} Create ExecutionTree:completed: {(t1 - t).total_seconds()*1000} ms")
         t = datetime.now()
@@ -45,4 +45,4 @@ def create(bpmn: dict, parse_tree_from_json=False, execution_tree_from_json=Fals
     execution_tree.to_json()
     write_execution_tree(execution_tree)
 
-    return parse_tree, execution_tree
+    return parse_tree, execution_tree,  pending_choices, pending_natures

@@ -6,7 +6,7 @@ from paco.parser.parse_node import Choice
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 	root = solution_tree.root
 	# root.cei_top_down = root.probability * root.impacts #Useless, already done in the constructor
-	if root.is_final_state:
+	if root.is_leaf:
 		root.cei_bottom_up = copy.deepcopy(root.cei_top_down)
 		return
 

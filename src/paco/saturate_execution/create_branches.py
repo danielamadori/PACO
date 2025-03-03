@@ -45,12 +45,12 @@ def create_branches(states: States, pending_choices:set, pending_natures:set) ->
 			choices_natures.append(node)
 			#print(f"create_branches:active_choice-nature:" + node_info(node, states))
 
-	branches = {}
-	if len(choices_natures) == 0:
-		return tuple(choices), tuple(natures), branches
-
 	pending_choices = pending_choices - set(choices)
 	pending_natures = pending_natures - set(natures)
+
+	branches = {}
+	if len(choices_natures) == 0:
+		return tuple(choices), tuple(natures), pending_choices, pending_natures, branches
 
 	branches_choices = list(product([True, False], repeat=len(choices_natures)))
 	#print(f"create_branches:cardinality:{choice_nature_dim}:combinations:{branches_choices}")
@@ -77,4 +77,4 @@ def create_branches(states: States, pending_choices:set, pending_natures:set) ->
 		branch_pending_natures = set(nature for nature in pending_natures if nature not in excluded_nature)
 		branches[tuple(decisions)] = (branch_states, branch_pending_choices, branch_pending_natures)
 
-	return tuple(choices), tuple(natures), branches
+	return tuple(choices), tuple(natures), pending_choices, pending_natures, branches

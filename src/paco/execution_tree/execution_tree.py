@@ -44,6 +44,7 @@ class ExecutionTree:
 		decisions = tuple([parseTreeNodes[decision] for decision in node_data['decisions']])
 		choices = tuple([parseTreeNodes[choice] for choice in node_data['choices']])
 		pending_choices = set([parseTreeNodes[choice] for choice in node_data['pending_choices']])
+		pending_natures = set([parseTreeNodes[nature] for nature in node_data['pending_natures']])
 		natures = tuple([parseTreeNodes[nature] for nature in node_data['natures']])
 		is_final_state = node_data['is_final_state']
 		probability = np.float64(node_data['probability'])
@@ -57,7 +58,7 @@ class ExecutionTree:
 				probability=probability, impacts=impacts,
 				cei_top_down=np.array(node_data['cei_top_down'], dtype=np.float64),
 				cei_bottom_up=np.array(node_data['cei_bottom_up'], dtype=np.float64),
-				pending_choices=pending_choices
+				pending_choices=pending_choices, pending_natures=pending_natures
 			)
 
 		elif tree_type == "StrategyViewPoint":
@@ -67,7 +68,8 @@ class ExecutionTree:
 				impacts_names=impacts_names, parent=parent,
 				probability=probability, impacts=impacts,
 				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
-				expected_time=np.float64(node_data['expected_time'])
+				expected_time=np.float64(node_data['expected_time']),
+				pending_choices=pending_choices, pending_natures=pending_natures
 			)
 			'''
 			TODO
@@ -183,6 +185,8 @@ def validate_json(data: dict):
 			},
 			"natures": {"type": "array", "items": {"type": "integer"}},
 			"choices": {"type": "array", "items": {"type": "integer"}},
+			"pending_natures": {"type": "array", "items": {"type": "integer"}},
+			"pending_choices": {"type": "array", "items": {"type": "integer"}},
 			"is_final_state": {"type": "boolean"}
 		},
 		"required": ["id", "type", "decisions", "transitions", "natures", "choices", "is_final_state"]

@@ -27,7 +27,7 @@ def saturate_execution_decisions(region_tree: ParseTree, states: States, pending
 		if k > 0:
 			raise Exception("saturate_execution:StepsException" + str(k))
 
-		choices, natures, branches = create_branches(states, pending_choices, pending_natures)
+		choices, natures, pending_choices, pending_natures, branches = create_branches(states, pending_choices, pending_natures)
 
 	#if len(branches) > 0:
 		#print("create_branches:", states_info(states))
@@ -35,4 +35,4 @@ def saturate_execution_decisions(region_tree: ParseTree, states: States, pending
 	#print("Branches:" + str(len(branches)))
 	#print("Root activity state: ", states.activityState[region_tree.root], states_info(states))
 
-	return states, choices, natures, branches
+	return states, choices, natures, pending_choices, pending_natures, branches

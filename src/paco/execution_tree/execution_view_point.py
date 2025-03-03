@@ -6,9 +6,9 @@ from paco.execution_tree.view_point import ViewPoint
 
 class ExecutionViewPoint(ViewPoint):
 	def __init__(self, id: int, states: States, decisions: tuple[ParseNode], choices:tuple, natures: tuple,
-				 is_final_state: bool, probability: np.float64, impacts: np.ndarray, cei_top_down: np.ndarray, cei_bottom_up: np.ndarray, pending_choices: set, parent = None):
+				 is_final_state: bool, probability: np.float64, impacts: np.ndarray, cei_top_down: np.ndarray, cei_bottom_up: np.ndarray, pending_choices: set, pending_natures:set, parent = None):
 
-		super().__init__(id, states, decisions, is_final_state, natures, choices, pending_choices, parent)
+		super().__init__(id, states, decisions, is_final_state, natures, choices, pending_choices, pending_natures, parent)
 
 		self.probability = probability
 		self.impacts = impacts
@@ -17,7 +17,6 @@ class ExecutionViewPoint(ViewPoint):
 
 		#TODO check
 		'''
-		pending_choices = [*choices]
 		pending_activities = [node for node in states.activityState if node.parent not in pending_choices and states.activityState[node] == ActivityState.WAITING]
 
 		self.possible_expected_impacts, self.branches_possible_expected_impacts = evaluate_possible_decisions(self.probability, self.impacts, pending_activities, pending_choices, len(impacts_names))
@@ -57,29 +56,45 @@ class ExecutionViewPoint(ViewPoint):
 		return result
 
 	def dot_info_str(self):
+		nature_label = ""
+		for nature in self.natures:
+			nature_label += f"{nature.name}, "
+
 		label = f"Impacts: {self.impacts}\n"
 		if self.probability != 1:
 			label += f"Probability: {round(self.probability, 2)}\n"
+
 		label += f"EI Current: {self.cei_top_down}\n"
-		#if not self.is_final_state:
-		label += f"EI Max: {self.cei_bottom_up}\n"
+		if len(self.pending_choices) + len(self.choices) > 0:
+			label += f"EI Max: {self.cei_bottom_up}\n"
+
+
+		choice_label = ""
+		for choice in self.choices:
+			choice_label += f"{choice.name}, "
+		if choice_label != "":
+			label += "Actual Choice: " + choice_label[:-2] + "\n"
+		if nature_label != "":
+			label += "Actual Nature: " + nature_label[:-2] + "\n"
+		choice_label = ""
+		for choice in self.pending_choices:
+			choice_label += f"{choice.name}, "
+		if choice_label != "":
+			label += f"Pending Choices: {choice_label[:-2]}\n"
+		nature_label = ""
+		for nature in self.pending_natures:
+			nature_label += f"{nature.name}, "
+		if nature_label != "":
+			label += f"Pending Natures: {nature_label[:-2]}\n"
+
+		if not self.is_final_state and self.is_leaf:
+			label += "Not terminal state\n"
+
 		#TODO
 		'''
 		label += f"Guaranteed Impacts Max: {self.possible_expected_impacts[1]}\n"
 		label += f"Guaranteed Impacts Min: {self.possible_expected_impacts[0]}\n"
 		'''
-		choice_label = ""
-		nature_label = ""
-
-		for choice in self.choices:
-			choice_label += f"{choice.name}, "
-		for nature in self.natures:
-			nature_label += f"{nature.name}, "
-
-		if nature_label != "":
-			label += "Nature: " + nature_label[:-2] + "\n"
-		if choice_label != "":
-			label += "Choice: " + choice_label[:-2] + "\n"
 
 		return self.dot_str(full=False) + "_description", f" [label=\"{label}\", shape=rect];\n"
 
