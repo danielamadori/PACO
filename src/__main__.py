@@ -273,7 +273,7 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
         return HTTPException(status_code=500, detail=str(e))
 
 @app.get("/create_execution_tree")
-async def get_excecution_tree(bpmn:BPMNDefinition = None) -> dict:
+async def get_execution_tree(bpmn:BPMNDefinition = None) -> dict:
     """
     Get the execution tree.
 
@@ -293,14 +293,19 @@ async def get_excecution_tree(bpmn:BPMNDefinition = None) -> dict:
     try:
         bpmn = dict(bpmn) 
         bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])       
-        parse_tree, execution_tree , time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(bpmn)
-        
-        return {
-            "execution_tree": str(execution_tree),
-            "time_create_parse_tree": time_create_parse_tree,
-            "time_create_execution_tree": time_create_execution_tree,
-            "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree
+        parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn)
+        print(type(parse_tree))
+        print(type(execution_tree))
+        tmp = ParseTree.from_json(parse_tree.to_json(), len(bpmn[IMPACTS_NAMES]), 0)
+        print(tmp)
+        print("ciao")
+        results = {
+            "parse_tree": parse_tree.to_json(),
+            "execution_tree": execution_tree.to_json()
         }
+        results.update(times)
+        return results
+
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
