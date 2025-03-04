@@ -8,14 +8,14 @@ from utils.env import IMPACTS_NAMES
 def create(bpmn: dict):
     print(f"{datetime.now()} CreateParseTree:")
     t = datetime.now()
-    parse_tree = create_parse_tree(bpmn)
+    parse_tree, pending_choices, pending_natures = create_parse_tree(bpmn)
     t1 = datetime.now()
     time_create_parse_tree = (t1 - t).total_seconds()*1000
     print(f"{t1} CreateParseTree:completed: {time_create_parse_tree} ms")
 
     print(f"{datetime.now()} CreateExecutionTree:")
     t = datetime.now()
-    execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES])
+    execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
     t1 = datetime.now()
     time_create_execution_tree = (t1 - t).total_seconds()*1000
     print(f"{t1} CreateExecutionTree:completed: {time_create_execution_tree} ms")
