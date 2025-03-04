@@ -6,8 +6,11 @@ from paco.parser.parse_node import Choice
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 	root = solution_tree.root
 	# root.cei_top_down = root.probability * root.impacts #Useless, already done in the constructor
-	if root.is_final_state:
+	#Print the root
+	#print("evaluate_cumulative_expected_impacts:id:", root.id, "cei_top_down:", root.cei_top_down)
+	if root.is_final_state:# or root.is_leaf: #TODO Daniel: earlyStop
 		root.cei_bottom_up = copy.deepcopy(root.cei_top_down)
+		#print("evaluate_cumulative_expected_impacts:id:", root.id, "cei_bottom_up:", root.cei_bottom_up)
 		return
 
 	onlyChoice = True
@@ -27,19 +30,7 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 			choices_transitions = tuple(choices_transitions)
 			if choices_transitions not in choices_cei_bottom_up:
 				choices_cei_bottom_up[choices_transitions] = copy.deepcopy(subTree.root.cei_bottom_up)
-				'''
-				message = ""
-				for t in range(len(choices_transitions)):
-					message += str(choices_transitions[t][0].id) + "->" + str(choices_transitions[t][1].id) + ", "
-				print(message[:-2] + " = " + str(result[choices_transitions]))
-				'''
 			else:
-				'''
-				message = ""
-				for t in range(len(choices_transitions)):
-					message += str(choices_transitions[t][0].id) + "->" + str(choices_transitions[t][1].id) + ", "
-				print(message[:-2] + " = " + str(result[choices_transitions]) + " + " + str(subTree.root.cei_bottom_up))
-				'''
 				choices_cei_bottom_up[choices_transitions] += subTree.root.cei_bottom_up
 
 	'''
@@ -58,5 +49,3 @@ def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):
 		for i in range(len(root.impacts)):
 			if root.cei_bottom_up[i] < choices_cei_bottom_up[c][i]:
 				root.cei_bottom_up[i] = choices_cei_bottom_up[c][i]
-
-

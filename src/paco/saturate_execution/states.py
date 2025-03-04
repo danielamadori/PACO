@@ -37,12 +37,14 @@ class States:
 		if previousStates is None:
 			for state in sorted(self.activityState.keys(), key=lambda x: x.id):
 				result_s += str(state.id) + ":" + str(self.activityState[state]) + ";"
-				result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+				if state in self.executed_time:
+					result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
 		else:
 			for state in sorted(self.activityState.keys(), key=lambda x: x.id):
 				if state not in previousStates.activityState or self.activityState[state] != previousStates.activityState[state]:
 					result_s += str(state.id) + ":" + str(self.activityState[state]) + ";"
-					result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
+					if state in self.executed_time:
+						result_d += str(state.id) + ":" + str(self.executed_time[state]) + ";"
 
 		# Remove last  ";"
 		return result_s[:-1], result_d[:-1]
@@ -51,6 +53,18 @@ class States:
 		s, d = self.str()
 		return s + " | " + d
 
+	def to_dict(self):
+		return {
+			"activityState": {k.id: v for k, v in self.activityState.items()},
+			"executed_time": {k.id: v for k, v in self.executed_time.items()}
+		}
+
+	@staticmethod
+	def from_dict(data: dict, parseTreeNodes: dict):
+		states = States()
+		states.activityState.update({parseTreeNodes[int(k)]: ActivityState(v) for k, v in data["activityState"].items()})
+		states.executed_time.update({parseTreeNodes[int(k)]: v for k, v in data["executed_time"].items()})
+		return states
 
 def node_info(node: ParseNode, states: States):
 	name = "" if not (isinstance(node, Sequential) and isinstance(node, Parallel)) else "name:" + node.name + '; '

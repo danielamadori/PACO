@@ -10,7 +10,7 @@ from utils.env import PATH_STRATEGY_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEG
 	PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME
 
 
-def saturate_execution(region_tree: ParseTree, states: States) -> (States, bool, list[ParseNode], list[ParseNode]):
+def saturate_execution(region_tree: ParseTree, states: States, pending_choices:set, pending_natures:set) -> (States, bool, list[ParseNode], list[ParseNode]):
 	while states.activityState[region_tree.root] < ActivityState.COMPLETED:
 		#print("step_to_saturation:")
 		#print("start:", states_info(states))
@@ -41,10 +41,12 @@ def saturate_execution(region_tree: ParseTree, states: States) -> (States, bool,
 					and states.activityState[node.dx_child] == ActivityState.WAITING):
 				natures.append(node)
 
+		pending_choices = pending_choices - set(choices)
+		pending_natures = pending_natures - set(natures)
 		if len(choices) > 0 or len(natures) > 0:
-			return states, False, choices, natures
+			return states, False, choices, natures, pending_choices, pending_natures
 
-	return states, True, [], []
+	return states, True, [], [], pending_choices, pending_natures
 
 
 def write_strategy_tree(solution_tree: ExecutionTree):

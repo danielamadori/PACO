@@ -21,6 +21,10 @@ class ParseNode(ABC):
 	def to_dict(self) -> dict:
 		return {"id": self.id, "index_in_parent": self.index_in_parent, "type": self.__class__.__name__}
 
+	@abstractmethod
+	def to_dict_id_node(self) -> dict:
+		pass
+
 	def __eq__(self, other: 'ParseNode(ABC)') -> bool:
 		if isinstance(other, Task) or isinstance(other, Sequential) or isinstance(other, Parallel) or isinstance(other, Nature) or isinstance(other, Choice):
 			return self.id == other.id
@@ -43,6 +47,12 @@ class Gateway(ParseNode, ABC):
 		super().__init__(parent, index_in_parent, id)
 		self.sx_child = None
 		self.dx_child = None
+
+	def to_dict_id_node(self) -> dict:
+		tmp = {self.id: self}
+		tmp.update(self.sx_child.to_dict_id_node() if self.sx_child else {})
+		tmp.update(self.dx_child.to_dict_id_node() if self.dx_child else {})
+		return tmp
 
 	def set_children(self, sx_child:ParseNode, dx_child:ParseNode) -> None:
 		self.sx_child = sx_child
@@ -161,3 +171,6 @@ class Task(ParseNode):
 			"duration": self.duration,
 		})
 		return base
+
+	def to_dict_id_node(self) -> dict:
+		return {self.id: self}
