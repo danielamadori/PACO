@@ -14,7 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install jupyter
 
-COPY src /app
+COPY src /app/src
+COPY main.ipynb /app
 
 EXPOSE 8000
 EXPOSE 8888
