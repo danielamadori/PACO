@@ -70,7 +70,7 @@ If interested in only the server please follow these steps:
 1. Pull and start the Docker:
     ```bash
     docker pull echini/paco-server:1.0.0
-    docker run -d -p 8000:8000 -it --name PACO echini/paco-server:1.0.0
+    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO echini/paco-server:1.0.0
     docker logs PACO
     ```
    Note: Replace latest with a specific version number if needed.
