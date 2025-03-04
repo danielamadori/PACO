@@ -250,18 +250,15 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
         bound = np.array(request.bound, dtype=np.float64)            
         if request.algo == list(ALGORITHMS.keys())[0]:
             text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, choices, times = paco(bpmn, bound)
-            #TODO JSON
-            parse_tree_json = parse_tree.to_json()
-            execution_tree_json = execution_tree.to_json()
-            print(f"{datetime.now()} parse_tree_json: ", parse_tree_json)
-            print(f"{datetime.now()} execution_tree_json: ", execution_tree_json)
 
             result = {
                 "result": text_result,
+                "parse_tree": parse_tree.to_json(),
+                "execution_tree": execution_tree.to_json(),
                 "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
                 "possible_min_solution": str(possible_min_solution),
-                "solutions": str(solutions),
-                "choices": str(choices),
+                #"solutions": str(solutions),
+                #"choices": str(choices),
             }
             result.update(times)
             return result
