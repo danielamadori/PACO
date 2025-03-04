@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from paco.parser.bpmn_parser import parse, SESE_PARSER, create_parse_tree
+from paco.parser.bpmn_parser import create_parse_tree
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, states_info, ActivityState
 from paco.parser.parse_tree import ParseTree
