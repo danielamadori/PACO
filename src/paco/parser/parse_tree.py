@@ -41,9 +41,8 @@ class ParseTree:
 		graph.write_svg(outfile + '.svg')
 		#graph.write_png(outfile)
 
-	def to_json(self, outfile:str = PATH_PARSE_TREE) -> None:
-		dictionary = self.root.to_dict()
-		open(outfile + '.json', 'w').write(json.dumps(dictionary, indent=2))
+	def to_json(self) -> str:
+		return json.dumps(self.root.to_dict(), indent=2)
 
 	def to_dict(self) -> dict:
 		return self.root.to_dict()
@@ -111,8 +110,7 @@ class ParseTree:
 		return node, pending_choice, pending_natures
 
 	@staticmethod
-	def from_json(filename: str = PATH_PARSE_TREE, impact_size: int = -1, non_cumulative_impact_size: int = -1) -> 'ParseTree':
-		data = json.load(open(filename + '.json', 'r'))
+	def from_json(data:str, impact_size: int = -1, non_cumulative_impact_size: int = -1) -> 'ParseTree':
 		validate_json(data, impact_size, non_cumulative_impact_size)
 		root, pending_choice, pending_natures = ParseTree.create_node(data)
 		return ParseTree(root), pending_choice, pending_natures

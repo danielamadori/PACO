@@ -1,28 +1,22 @@
-import json
-import os
 import numpy as np
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
-from paco.searcher.search import search
+from paco.searcher.search import search, search
 from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS, PATH_BPMN, PATH_EXPLAINER, PATH_EXPLAINER_BDD
+from utils.env import IMPACTS_NAMES, DURATIONS
 from datetime import datetime
-from paco.parser.print_sese_diagram import print_sese_diagram
 
 
-def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID):
-	#print(f'{datetime.now()} Testing PACO...')
+def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pending_natures=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID):
 	print(f'{datetime.now()} Bound {bound}')
-
 	#print(f'{datetime.now()} bpmn + cpi {bpmn}')
-	if parse_tree is None or execution_tree is None:
-		#open(PATH_BPMN + '.json', 'w').write(json.dumps(bpmn, indent=2))
-		bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
-		parse_tree, execution_tree, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(bpmn)
+	bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 
-	expected_impacts, possible_min_solution, solutions, strategy, found_strategy_time, build_strategy_time = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
+	parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures, execution_tree)
 
+
+	expected_impacts, possible_min_solution, solutions, strategy, times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
 	if expected_impacts is None:
 		text_result = ""
 		for i in range(len(possible_min_solution)):
@@ -33,24 +27,21 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 			text_result += f"Guaranteed Bound {i}:\t{np.ceil(solutions[i])}\n"
 
 		print(str(datetime.now()) + " " + text_result)
-		return text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, [], found_strategy_time, build_strategy_time, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree, None, None, None
-
-	if os.path.exists(PATH_EXPLAINER):
-		for file in os.listdir(PATH_EXPLAINER):
-			os.remove(os.path.join(PATH_EXPLAINER, file))
+		return text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, [], times
 
 
 	if strategy is None:
 		text_result = f"Any choice taken will provide a winning strategy with an expected impact of: "
 		text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
 		print(str(datetime.now()) + " " + text_result)
-		return text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, [], found_strategy_time, build_strategy_time, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree, None, None, None
+		return text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, [], times
 
-	strategy_tree, expected_impacts, strategy_expected_time, choices, time_explain_strategy, strategy_tree_time = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES])
+
+	strategy_tree, expected_impacts, strategy_expected_time, choices, explain_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
+	times.update(explain_times)
 
 	text_result = f"This is the strategy, with an expected impact of: "
 	text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
 
-	#TODO Return strategy tree if found
 	print(str(datetime.now()) + " " + text_result)
-	return text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, choices, found_strategy_time, build_strategy_time, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree, strategy_expected_time, time_explain_strategy, strategy_tree_time
+	return text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, choices, times

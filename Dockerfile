@@ -6,17 +6,22 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+#RUN apt-get install -y redis-server
+
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && rm -f requirements.txt
 
 RUN pip install jupyter
 
 COPY src /app/src
+
 COPY main.ipynb /app
 
 EXPOSE 8000
 EXPOSE 8888
 CMD ["sh", "-c", "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root & python3 -u src"]
+
+# CMD ["sh", "-c", "redis-server --daemonize yes && python3 -u src"]

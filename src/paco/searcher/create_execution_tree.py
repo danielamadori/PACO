@@ -99,7 +99,9 @@ def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionT
 	solution_tree.save_dot(PATH_EXECUTION_TREE_TIME + '.dot', state=False, executed_time=True)
 	write_image(frontier, PATH_EXECUTION_TREE_TIME)
 
+	'''
 	os.remove(PATH_EXECUTION_TREE_STATE + '.dot')
 	os.remove(PATH_EXECUTION_TREE_STATE_TIME + '.dot')
 	os.remove(PATH_EXECUTION_TREE_STATE_TIME_EXTENDED + '.dot')
 	os.remove(PATH_EXECUTION_TREE_TIME + '.dot')
+	'''

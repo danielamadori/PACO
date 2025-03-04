@@ -34,8 +34,8 @@ class ExecutionTree:
 		Source(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff),
 			   format='pdf').render(path, cleanup=True)
 
-	def to_json(self, outfile:str = PATH_EXECUTION_TREE[:-1]) -> None:
-		open(outfile + '.json', 'w').write(json.dumps(self.to_dict(), indent=2))
+	def to_json(self) -> str:
+		return json.dumps(self.to_dict(), indent=2)
 
 	@staticmethod
 	def create_tree(node_data: dict, tree_type:str, parseTreeNodes:dict, impacts_names:list, parent = None) -> 'ExecutionTree':
@@ -98,8 +98,7 @@ class ExecutionTree:
 		return tree
 
 	@staticmethod
-	def from_json(parseTree: 'ParseTree', impacts_names: list, filename: str = PATH_EXECUTION_TREE[:-1]) -> 'ExecutionTree':
-		data = json.load(open(filename + '.json', 'r'))
+	def from_json(parseTree: 'ParseTree', data:str, impacts_names: list) -> 'ExecutionTree':
 		#TODO validation
 		#validate_json(data)
 		parseTreeNodes = parseTree.root.to_dict_id_node()

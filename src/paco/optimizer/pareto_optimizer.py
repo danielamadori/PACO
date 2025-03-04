@@ -9,6 +9,8 @@ from utils.env import IMPACTS_NAMES
 def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_number: int = 0):
 	parse_tree = None
 	execution_tree = None
+	pending_choices = None
+	pending_natures = None
 	min_solutions = []
 	possible_min_solution = []
 	if max_bound is None:
@@ -50,7 +52,7 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{bound}\n")
 
-		text_result, parse_tree, execution_tree, expected_impacts, new_possible_min_solution, new_min_solutions, choices = paco(bpmn, bound, parse_tree, execution_tree, search_only=not found_optimal)
+		text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, new_possible_min_solution, new_min_solutions, choices, times = paco(bpmn, bound, parse_tree=parse_tree, execution_tree=execution_tree, pending_choices=pending_choices, pending_natures=pending_natures, search_only=not found_optimal)
 
 		if found_optimal:
 			print("Optimal solution found")

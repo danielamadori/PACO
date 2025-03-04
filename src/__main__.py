@@ -249,28 +249,22 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
     try:
         bound = np.array(request.bound, dtype=np.float64)            
         if request.algo == list(ALGORITHMS.keys())[0]:
-            text_result, parse_tree, execution_tree, expected_impacts, possible_min_solution, solutions, choices, found_strategy_time, build_strategy_time, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree, strategy_expected_time, time_explain_strategy, strategy_tree_time = paco(bpmn, bound)
+            text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, choices, times = paco(bpmn, bound)
             #TODO JSON
             parse_tree_json = parse_tree.to_json()
             execution_tree_json = execution_tree.to_json()
             print(f"{datetime.now()} parse_tree_json: ", parse_tree_json)
             print(f"{datetime.now()} execution_tree_json: ", execution_tree_json)
 
-            return {
+            result = {
                 "result": text_result,
                 "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
                 "possible_min_solution": str(possible_min_solution),
                 "solutions": str(solutions),
                 "choices": str(choices),
-                "found_strategy_time": found_strategy_time,
-                "build_strategy_time": build_strategy_time,
-                "time_create_parse_tree": time_create_parse_tree,
-                "time_create_execution_tree": time_create_execution_tree,
-                "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree,
-                "strategy_expected_time": strategy_expected_time,
-                "time_explain_strategy": time_explain_strategy,
-                "strategy_tree_time": strategy_tree_time
             }
+            result.update(times)
+            return result
         # elif request.algo == list(ALGORITHMS.keys())[1]:
         #     text_result, found, choices = None, None, None, None
         # elif request.algo == list(ALGORITHMS.keys())[2]:
