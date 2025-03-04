@@ -32,6 +32,15 @@ class Bdd:
 				result += str(node) + ", "
 		return "{" + result[:-2] + "}"
 
+	def to_dict(self):
+		return {
+			"choice": self.choice.id,
+			"class_0": self.class_0.id,
+			"class_1": self.class_1.id if self.class_1 is not None else None,
+			#"nodes": [node.to_dict() for node in self.nodes] if self.nodes is not None else None
+			"typeStrategy": self.typeStrategy
+		}
+
 	def transitions_str(self):
 		result = ""
 		for node in self.nodes:

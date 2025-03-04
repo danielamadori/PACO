@@ -1,8 +1,15 @@
 import numpy as np
+
+from paco.execution_tree.execution_tree import ExecutionTree
+from paco.parser.parse_tree import ParseTree
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROB, LOOP_ROUND
 from paco.solver import paco
 
 
+#parse_tree = ParseTree.from_json()
+#execution_tree = ExecutionTree.from_json(parse_tree, ["cost", "hours"])
+parse_tree = None
+execution_tree = None
 
 bpmn_new_example = {
     "bpmn": [{
@@ -308,7 +315,9 @@ bpmn_ex = {
 }
 def test(name, bpmn, bound):
     print('Type bpmn: ', name)
-    text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices = paco(bpmn, np.array(bound, dtype=np.float64))
+    global parse_tree, execution_tree
+    text_result, parse_tree, execution_tree, found, min_expected_impacts, max_expected_impacts, choices = paco(bpmn, np.array(bound, dtype=np.float64), parse_tree=parse_tree, execution_tree=execution_tree)
+
     print('Type bpmn: ', name)
 
 
@@ -377,7 +386,7 @@ bpmn_paper_example = {
 
 #test_calc_strategy_paco(bpmn_paper_example, 0)
 
-test_calc_strategy_paco(bpmn_ex, 3)
+test_calc_strategy_paco(bpmn_ex, 2)
 
 #test_calc_strategy_paco(bpmn_ex, 14)
 
