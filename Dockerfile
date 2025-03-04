@@ -18,4 +18,4 @@ COPY src /app
 
 EXPOSE 8000
 EXPOSE 8888
-CMD ["sh", "-c", "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root & python3 -u server.py"]
+CMD ["sh", "-c", "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root & python3 -u __main__.py"]

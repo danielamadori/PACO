@@ -46,12 +46,18 @@ To start the application using Python, follow these steps:
     ```bash
     pip install -r requirements.txt
     ```
-2. Run the application:
+2. Run the PACO server:
     ```bash
-    cd src
-    python3 app.py
+    python3 src
     ```
-3. Open a browser and go to `http://127.0.0.1:8050` to view the app.
+   Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
+   The docs are available at `http://127.0.0.1:8000/docs`
+
+3. Run the jupyter notebook ì:
+    ```bash
+    jupyter notebook --port=8888
+    ```
+4. Open a browser and go to `http://127.0.0.1:8080` and go to ServerNotebook to view the notebook.
 
 ### Using Docker
 
@@ -60,17 +66,7 @@ To start the application using Docker, follow these steps:
 1. Pull and start the Docker:
     ```bash
     docker pull danielamadori/paco:latest
-    docker run -d -p 8050:8050 -it --name PACO danielamadori/paco:latest
-    docker logs PACO
-    ```
-   Note: Replace latest with a specific version number if needed.
-2. Open a browser and navigate to `http://127.0.0.1:8050` to access the application.
-
-If interested in only the server please follow these steps:
-1. Pull and start the Docker:
-    ```bash
-    docker pull echini/paco-server:1.0.0
-    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO echini/paco-server:1.0.0
+    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO danielamadori/paco:latest
     docker logs PACO
     ```
    Note: Replace latest with a specific version number if needed.

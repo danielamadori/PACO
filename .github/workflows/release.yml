@@ -34,7 +34,7 @@ jobs:
           docker_image_url="https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/paco/tags?page=1&name=${{ github.ref_name }}"
           release_body="To use the image:\n\n\
           docker pull ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}\n\
-          docker run -d -p 8050:8050 -it --name PACO ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}\n\
+          docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}\n\
           docker logs PACO\n\n\
           Docker image available at [link](${docker_image_url})"
           curl -s \
