@@ -53,11 +53,11 @@ To start the application using Python, follow these steps:
    Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
 
-3. Run the jupyter notebook ì:
+3. Run the jupyter notebook:
     ```bash
     jupyter notebook --port=8888
     ```
-4. Open a browser and go to `http://127.0.0.1:8080` and go to ServerNotebook to view the notebook.
+4. Open a browser and go to `http://127.0.0.1:8080` and go to the desired notebook to interact with the server
 
 ### Using Docker
 
@@ -72,6 +72,7 @@ To start the application using Docker, follow these steps:
    Note: Replace latest with a specific version number if needed.
 2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API. 
    The docs are available at `http://127.0.0.1:8000/docs` 
+3. Open a browser and go to `http://127.0.0.1:8080` and go to the desired notebook to interact with the server.
 
 ---
 NB! This application is currently under development. There may be some issues and bugs.
