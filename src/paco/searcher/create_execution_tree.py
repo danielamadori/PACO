@@ -14,13 +14,15 @@ from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_EXECUTION_TREE_STATE
 
 def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:States, pending_choices:set, pending_natures:set, solution_tree:ExecutionTree, impacts_size:int) -> (ExecutionViewPoint, dict[tuple[ParseNode], (States,set,set)]):
 	states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)
-
+	probability, impacts = evaluate_expected_impacts(states, impacts_size)
 	cei_bottom_up = np.zeros(impacts_size, dtype=np.float64)
 
 	earlyStop = len(pending_choices) + len(choices) == 0 and len(pending_natures) + len(natures) > 0
-	earlyStop = False
+	earlyStop = False # TODO Daniel: earlyStop
 	if earlyStop:
 		print(f"EarlyStop:id:{id}: No pending choices, pending nature: {[n.name for n in pending_natures]}, nature: {[n.name for n in natures]}")
+		for nature in natures:
+			cei_bottom_up += evaluate_expected_impacts_from_parseNode(nature, impacts_size)
 		for node in list(states.activityState.keys()):
 			if states.activityState[node] == ActivityState.WAITING:
 				cei_bottom_up += evaluate_expected_impacts_from_parseNode(node, impacts_size)
@@ -28,8 +30,10 @@ def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:Stat
 
 		branches = {}
 
-	probability, impacts = evaluate_expected_impacts(states, impacts_size)
-	impacts += cei_bottom_up
+	#cei_bottom_up = probability * (cei_bottom_up + impacts)
+	#impacts += cei_bottom_up
+	#print("cei_bottom_up:", cei_bottom_up)
+	#print("Impacts + cei_bottom_up:", impacts)
 
 	return (ExecutionTree(ExecutionViewPoint(
 				id=id, states=states, decisions=decisions, choices=choices, natures=natures,

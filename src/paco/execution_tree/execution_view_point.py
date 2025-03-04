@@ -65,7 +65,7 @@ class ExecutionViewPoint(ViewPoint):
 			label += f"Probability: {round(self.probability, 2)}\n"
 
 		label += f"EI Current: {self.cei_top_down}\n"
-		if len(self.pending_choices) + len(self.choices) > 0:
+		if not self.is_final_state:
 			label += f"EI Max: {self.cei_bottom_up}\n"
 
 

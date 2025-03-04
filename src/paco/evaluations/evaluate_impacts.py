@@ -57,8 +57,28 @@ def evaluate_unavoidable_impacts(root: ParseNode, states: States, current_impact
 
 	return unavoidableImpacts
 
+'''
+def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode) -> (np.float64, np.ndarray):
+	if isinstance(parseNode, Task):
+		return np.float64(1), parseNode.impact
 
+	if not isinstance(parseNode, Gateway):
+		raise Exception("Unexpected node type")
+
+	sx_probability, dx_probability = np.float64(1), np.float64(1)
+	if isinstance(parseNode, Nature):
+		sx_probability *= parseNode.probability
+		dx_probability *= (1 - parseNode.probability)
+
+	sx_probability, sx_impacts = evaluate_expected_impacts_from_parseNode(parseNode.sx_child)
+	dx_probability, dx_impacts = evaluate_expected_impacts_from_parseNode(parseNode.dx_child)
+
+	return sx_probability * dx_probability, sx_impacts + dx_impacts
+
+'''
 def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode, impacts_size: int) -> (np.float64, np.ndarray):
+	probability = np.float64(1)
+
 	if isinstance(parseNode, Task):
 		return parseNode.impact
 
@@ -66,7 +86,6 @@ def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode, impacts_size:
 	if isinstance(parseNode, Gateway):
 		sx_expected_impacts = evaluate_expected_impacts_from_parseNode(parseNode.sx_child, impacts_size)
 		dx_expected_impacts = evaluate_expected_impacts_from_parseNode(parseNode.dx_child, impacts_size)
-
 		if isinstance(parseNode, Nature):
 			sx_expected_impacts *= parseNode.probability
 			dx_expected_impacts *= (1 - parseNode.probability)

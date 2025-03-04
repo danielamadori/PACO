@@ -39,7 +39,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_tasks")
 
 
@@ -69,7 +69,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_nature_task")
 
         s1 = Sequential(None, 0, 0)
@@ -129,7 +129,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_task_nature")
 
         s1 = Sequential(None, 0, 0)
@@ -188,7 +188,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_choice_task")
 
         s1 = Sequential(None, 0, 0)
@@ -247,7 +247,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
 
         self.info(parse_tree, states, "sequential_task_choice")
 
@@ -309,7 +309,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_sequential_nature")
 
         s1 = Sequential(None, 0, 0)
@@ -363,7 +363,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_sequential_choice")
 
         s1 = Sequential(None, 0, 0)
@@ -416,7 +416,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_sequential_choice_delay")
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE, "The root should be active")
@@ -466,7 +466,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_eq_task2")
 
         p1 = Parallel(None, 0, 0)
@@ -496,7 +496,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_lt_task2")
 
 
@@ -521,7 +521,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_gt_task2")
 
         self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
@@ -546,7 +546,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_eq_task")
 
         p1 = Parallel(None, 0, 0)
@@ -606,7 +606,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_lt_task")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
@@ -660,7 +660,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 2}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_gt_task")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
@@ -716,7 +716,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_natures")
 
         p1 = Parallel(None, 0, 0)
@@ -812,7 +812,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_eq_choice")
 
         p1 = Parallel(None, 0, 0)
@@ -908,7 +908,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_lt_choice")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
@@ -969,7 +969,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 2, "C2": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_gt_choice")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
@@ -1030,7 +1030,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1", 'C2':'C2'}, DELAYS: {"C2": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_nature_eq_choice")
 
         p1 = Parallel(None, 0, 0)
@@ -1126,7 +1126,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_lt_choice")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
@@ -1189,8 +1189,9 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["cost", "hours"],
             PROBABILITIES: {"N2": 0.6, "N3": 0.7}, NAMES: {'C1':'C1', "N2":"N2", "N3":"N3"}, DELAYS: {"C1": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_eq_nature_eq_nature")
+
 
         p1 = Parallel(None, 0, 0)
         p2 = Parallel(p1, 0, 1)
@@ -1372,7 +1373,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_sequential_nature")
 
         p1 = Parallel(None, 0, 0)
@@ -1427,7 +1428,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_sequential_nature")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE, "The root should be active")
@@ -1475,7 +1476,7 @@ class TestSaturateExecution(unittest.TestCase):
             IMPACTS_NAMES: ["a", "b"],
             PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
         })
-        states, choices, natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
+        states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_sequential_nature")
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE, "The root should be active")
