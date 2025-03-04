@@ -17,7 +17,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, execution_tree=None, sear
 
 	#print(f'{datetime.now()} bpmn + cpi {bpmn}')
 	if parse_tree is None or execution_tree is None:
-		open(PATH_BPMN + '.json', 'w').write(json.dumps(bpmn, indent=2))
+		#open(PATH_BPMN + '.json', 'w').write(json.dumps(bpmn, indent=2))
 		bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 		parse_tree, execution_tree, time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(bpmn)
 
