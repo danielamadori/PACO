@@ -2,7 +2,7 @@ from itertools import product
 import numpy as np
 from paco.parser.parse_node import ParseNode, Task, ExclusiveGateway, Nature
 
-
+ #TODO Daniel: on the fly implementation
 
 def evaluate_min_max_impacts(node: ParseNode):
 	if isinstance(node, Task):
