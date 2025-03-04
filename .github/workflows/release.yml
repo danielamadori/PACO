@@ -23,7 +23,7 @@ jobs:
 
       - name: Build and push Docker image for server
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }} -f server/Dockerfile server
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }} .
           docker push ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }}
 
       - name: Update release with Docker image links
@@ -36,7 +36,7 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }}\n\
           docker run -d -p 8050:8050 -it --name PACO_SERVER ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }}\n\
           docker logs PACO_SERVER\n\n\
-          Docker image available at [link](${server_docker_image_url})\n\n\
+          Docker image available at [link](${server_docker_image_url})\n\n\"
           
           curl -s \
             -X PATCH \
