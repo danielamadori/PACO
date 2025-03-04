@@ -66,6 +66,17 @@ To start the application using Docker, follow these steps:
    Note: Replace latest with a specific version number if needed.
 2. Open a browser and navigate to `http://127.0.0.1:8050` to access the application.
 
+If interested in only the server please follow these steps:
+1. Pull and start the Docker:
+    ```bash
+    docker pull echini/paco-server:1.0.0
+    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO echini/paco-server:1.0.0
+    docker logs PACO
+    ```
+   Note: Replace latest with a specific version number if needed.
+2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API. 
+   The docs are available at `http://127.0.0.1:8000/docs` 
+
 ---
 NB! This application is currently under development. There may be some issues and bugs.
 

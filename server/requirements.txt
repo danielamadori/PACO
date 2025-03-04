@@ -1,0 +1,14 @@
+lark
+pydot
+jsonschema
+ipython
+numpy
+graphviz
+pandas
+fastapi
+pydantic
+openai
+langchain
+langchain_openai
+uvicorn
+pillow

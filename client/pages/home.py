@@ -1,22 +1,16 @@
 import base64
-import zipfile
 from datetime import datetime
+import json
 import os
 import dash
-from dash import Input, Output,State, callback
-from utils.solver_selector import check_input
-from utils.utils_preparing_diagram import *
+from dash import html, dcc, Input, Output,State, callback
+import dash_bootstrap_components as dbc
+import pandas as pd
+from api.api import calc_strat
 from utils import check_syntax as cs
-from utils import solver_selector as at
-import json
-from utils.env import ALGORITHMS, BOUND, IMPACTS_NAMES, LOOP_ROUND, LOOP_PROB, \
-    STRATEGY, TASK_SEQ, IMPACTS, H, DURATIONS, PROBABILITIES, NAMES, DELAYS, \
-    PATH_IMAGE_BPMN_FOLDER, PATH_STRATEGY_TREE_TIME, PATH_BPMN, PATH_EXPLAINER_BDD, PATH_STRATEGIES
-from paco.parser.print_sese_diagram import print_sese_diagram
-
-
-##### AGGIUNGERE TABS dove una si mette tutto e l'altra si usa come visualizzatore
-
+from utils.print_sese_diagram import print_sese_diagram
+from utils.utils_preparing_diagram import prepare_task_delays, prepare_task_duration, prepare_task_impacts, prepare_task_loops, prepare_task_probabilities
+from env import ALGORITHMS, BOUND, DELAYS, DURATIONS, H, IMPACTS, IMPACTS_NAMES, LOOP_PROB, LOOP_ROUND, NAMES, PATH_BPMN, PATH_STRATEGY_TREE_STATE_TIME, PROBABILITIES, STRATEGY, TASK_SEQ
 
 dash.register_page(__name__, path='/')
 # SimpleTask1, Task1 || Task, Task3 ^ Task9
@@ -31,20 +25,8 @@ min_duration = 0
 max_duration = 100
 value_interval = [min_duration, max_duration]
 marks = {j: str(j) for j in range(min_duration, int(max_duration), 10) if j != 0}
-# data = {
-#     'Task': bpmn_lark[TASK_SEQ],
-#     'Duration': dcc.RangeSlider(
-#         id=f'range-slider-',
-#         min=min_duration,
-#         max=max_duration,
-#         value=value_interval,
-#         marks=marks
-#     )
-# }
-
-# img = print_sese_diagram(**bpmn_lark)
-
 spinner = dbc.Spinner(color="primary", type="grow", fullscreen=True)
+
 def layout():
     return html.Div([
         html.Div(id='logging'),
@@ -129,7 +111,9 @@ def layout():
                     #html.Img(id='lark-diagram1', src= 'assets/graph.svg', style={'height': '500', 'width': '1000'}),
                     html.Iframe(id="lark-frame",
                                 src='',#PATH_IMAGE_BPMN_LARK_SVG,
-                                style={"height": "70vh", "width": "95vw", 'border':'none'}), #style={'height': '100%', 'width': '100%'}
+                                style={'height': '100%', 'width': '100%'}
+                                # style={"height": "70vh", "width": "95vw", 'border':'none'}
+                                ), #style={'height': '100%', 'width': '100%'}
                     # html.Embed(
                     #     id="lark-frame",
                     #     src=PATH_IMAGE_BPMN_LARK_SVG,
@@ -138,7 +122,7 @@ def layout():
                     # ),
                     html.Br(),
                     # download diagram as svg
-                    html.A('Download diagram as SVG', id='download-diagram', download='bpmn.svg', href=PATH_BPMN + '.svg', target='_blank'),
+                    html.A('Download diagram as SVG', id='download-diagram', download='diagram.svg', href=PATH_BPMN+'.svg', target='_blank'),
                     html.Br(),
                     dbc.Button('Back', id='back-to-load-cpi'),
                     dbc.Button('Next', id='go-to-define-strategy'),
@@ -218,13 +202,14 @@ def layout():
             #           dbc.Button('Back', id='back-to-load-bpmn'),
             #     ])
             # ])
-        ]),       
+        ]),   
+        
     ]
 )
 
-#######################
-### NAVIGATE TABS  ###
-#######################
+######################
+## NAVIGATE TABS  ###
+######################
 
 @callback(
     Output('tabs', 'value', allow_duplicate=True),
@@ -276,33 +261,34 @@ def navigate_tabs(*args):
 
     return tab_mapping.get(button_id, 'tab-1')  # Default to 'tab-1' if button_id is not found
 
-############################
-
-## UPLOAD JSON FILE
-
 ###########################
+
+# UPLOAD JSON FILE
+
+##########################
 
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
-        print("Json:", filename)
+        print(filename)
         if 'json' in filename:
             # Assume that the user uploaded a json file
             data = json.loads(decoded)
             bpmn_lark = data['bpmn']
             tasks = bpmn_lark[TASK_SEQ]
             print(bpmn_lark)
-            task_duration = prepare_task_duration(tasks_=tasks, durations=bpmn_lark['durations'])
-            task_impacts = prepare_task_impacts(tasks_=tasks, impacts=",".join(bpmn_lark['impacts_names']), impacts_dict=bpmn_lark['impacts'])
-            task_probabilities = prepare_task_probabilities(tasks_=tasks, prob=bpmn_lark['probabilities'])
-            task_delays = prepare_task_delays(tasks_=tasks, delays=bpmn_lark['delays'])
-            task_loops = prepare_task_loops(tasks_=tasks, loops=bpmn_lark['loop_round'])
+            task_duration = prepare_task_duration(tasks_=tasks, durations=bpmn_lark[DURATIONS])
+            task_impacts = prepare_task_impacts(tasks_=tasks, impacts=",".join(bpmn_lark[IMPACTS_NAMES]), impacts_dict=bpmn_lark[IMPACTS])
+            print(task_impacts)
+            task_probabilities = prepare_task_probabilities(tasks_=tasks, prob=bpmn_lark[PROBABILITIES])
+            task_delays = prepare_task_delays(tasks_=tasks, delays=bpmn_lark[DELAYS])
+            task_loops = prepare_task_loops(tasks_=tasks, loops=bpmn_lark[LOOP_ROUND])
             tasks = html.P(f"""Here is provided the bpmn schema from the file: 
                            {tasks} 
                            If you want to modify it, just copy and paste in the textarea below. 
                            Note that this will reset all the other values to the default one.""")
-            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ",".join(bpmn_lark['impacts_names'])
+            return tasks, task_duration, task_impacts, task_probabilities, task_delays, task_loops, bpmn_lark, ", ".join(bpmn_lark[IMPACTS_NAMES])
     except Exception as e:
         print(e)
         return None, None, None, None, None, None, {}, None
@@ -324,17 +310,30 @@ def parse_contents(contents, filename):
     )
 def update_output(list_of_contents, list_of_names):
     if list_of_contents is not None and len(list_of_contents) == 1:
-        children = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names) ]
+        # children = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names) ]
         return parse_contents(list_of_contents[0], list_of_names[0])
-
     return None, None, None, None, None, None, {}, None
 
+######################
 
-#######################
+# Open close collapse
 
-## FIND THE STRATEGY
+######################
 
-#########################
+@callback(
+    Output("collapse", "is_open"),
+    [Input("collapse-button", "n_clicks")],
+    [State("collapse", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+######################
+# FIND THE STRATEGY
+
+########################
 @callback(
     [Output('strategy-founded', 'children'), Output('logging-strategy', 'children'), Output('tabs','value', allow_duplicate=True)],
     Input('find-strategy-button', 'n_clicks'),
@@ -356,44 +355,33 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                     is_open=True,
                 ),'tab-6'
             ]
-    #print(bpmn_lark)
-
-    if not cs.checkCorrectSyntax(bpmn_lark) or not cs.check_algo_is_usable(bpmn_lark[TASK_SEQ],algo):
-        return [None,
+    expected_impacts = None
+    choices = None
+    text_result = ''
+    try:
+        text_result, bound = cs.check_input(bpmn_lark, bound)
+        print(bound)
+        code, resp_json = calc_strat(bpmn_lark, bound, algo, token='neonrejieji')
+        print(resp_json)
+        print(code)
+        if code != 200:
+            return [html.P(f'Insert a bound dictionary to find the strategy.'),
                 dbc.Modal(
                     [
                         dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),
-                        dbc.ModalBody("Seems that your diagram is too complex for this algorithm. Please check your syntax or try with another algorithm."),
+                        dbc.ModalBody(str(resp_json)),
                     ],
                     id="modal",
                     is_open=True,
-                ),'tab-6']
-
-    #print(bpmn_lark)
-    text_result, bound = check_input(bpmn_lark, bound)
-
-    error = False
-    if text_result != "":
+                ),'tab-6'
+            ]
+        strategy_d[BOUND] = resp_json[BOUND]
+        expected_impacts = resp_json['expected_impacts']
+        choices = resp_json['choices']
+        text_result = resp_json['text_result']
+    except Exception as e:
         error = True
-    else:
-        try:
-            text_result, expected_impacts, choices = at.calc_strat(bpmn_lark, bound, algo)
-        except Exception as e:
-            error = True
-            text_result = str(e)
-
-    if error:
-        print(str(datetime.now()) + " " + text_result)
-        return [None,
-                    dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),
-                            dbc.ModalBody(f"Error while calculating the strategy: " + text_result),
-                        ],
-                        id="modal", is_open=True,
-                    ),'tab-6']
-
-    strategy_d[BOUND] = list(cs.extract_values_bound(bound))
+        text_result = str(e)
 
     if expected_impacts is None:
         return [None,
@@ -404,57 +392,37 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
                 id="modal", is_open=True,
             ),'tab-6']
 
-    # TODO save the strategy for the download
-    #strategy_d[STRATEGY] = ....
-
-    filename = PATH_IMAGE_BPMN_FOLDER + f"bpmn_{str(datetime.timestamp(datetime.now()))}"
-    print_sese_diagram(**bpmn_lark, outfile=filename)
-    filename = filename + '.svg'
+    # # TODO save the strategy for the download
+    # #strategy_d[STRATEGY] = ....
 
     s = [
         html.P(text_result),
-        html.Iframe(src=filename, style={'height': '100%', 'width': '100%'}),
+        html.Iframe(src='', style={'height': '100%', 'width': '100%'}),
+        html.A('Download strategy diagram as SVG', id='download-diagram', download='strategy.svg', href=PATH_STRATEGY_TREE_STATE_TIME+'.png', target='_blank'),
     ]
 
-    if not choices:
-        s.append(dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'))
+    if choices:
+        navigate_tabs('go-to-show-strategy')
+        list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
+        s.append(dcc.Tabs(
+            children=[dcc.Tab(label=c, children=[html.Iframe(src=f'assets/explainer/decision_tree_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
+        ))
+        if list_choices_excluded:
+            s.append(dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'))
+
         return [html.Div(s), None, 'tab-7']
 
-
-    list_choices_excluded = list(set(list(bpmn_lark[DELAYS].keys())) - set(choices))
-
-    strategies_zip = PATH_STRATEGIES + '.zip'
-    with zipfile.ZipFile(strategies_zip, 'w') as zipf:
-        for c in choices:
-            file_name = f"{PATH_EXPLAINER_BDD}_{c}.svg"
-            if os.path.exists(file_name):
-                zipf.write(file_name, arcname=os.path.basename(file_name))  # Add file without path
-            else:
-                raise FileNotFoundError(f"BDD File not found: {file_name}")
-
-    s.append(
-        html.A('Download strategy', id='download-diagram', download='strategies.zip', href=strategies_zip, target='_blank'),
-    )
-    navigate_tabs('go-to-show-strategy')
-
-    s.append(dcc.Tabs(
-        children=[dcc.Tab(label=c, children=[html.Iframe(src=f'{PATH_EXPLAINER_BDD}_{c}.svg', style={'height': '100%', 'width': '100%'})]) for c in choices]
-    ))
-    if list_choices_excluded:
-        s.append(dbc.Alert(f" The choices: {list_choices_excluded} are not visited by the explainer. ", color='warning'))
-    else:
-        s.append(html.P("O: the decision with full line\n1: the decision with dashed line"))
-
+    #TODO: create the strategy tree
+    s.append(dbc.Alert(" All the choices presents are not visited by the explainer. ", color='warning'))
     return [html.Div(s), None, 'tab-7']
 
 
 
+######################
 
-#######################
+# UPDATE THE BPMN DIAGRAM
 
-## UPDATE THE BPMN DIAGRAM
-
-#########################
+########################
 
 @callback(
     [Output('logging', 'children'), Output('lark-frame', 'src'), Output('bpmn-lark-store', 'data', allow_duplicate=True)],
@@ -470,20 +438,19 @@ def find_strategy(n_clicks, algo:str, bound:dict, bpmn_lark:dict):
     prevent_initial_call=True,
 )
 def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities = {}, delays = {}, impacts_table = {}, loops = {}, bpmn_lark:dict = {}):
+    print(impacts_table)
     if not bpmn_lark:
         return [ None, None, bpmn_lark]
-
+    # check the syntax of the input if correct print the diagram otherwise an error message
     task = task.replace("\n", "").replace("\t", "")
-    #check the syntax of the input if correct print the diagram otherwise an error message
-
     try:
         if task == '' and bpmn_lark[TASK_SEQ] == '':
             raise Exception
         elif task != '':
-            #print('task non vuota ')
+            print('task non vuota ')            
             bpmn_lark[TASK_SEQ] = task
         else:
-            #print('task  vuota  bpmn no')
+            print('task  vuota  bpmn no')
             task = bpmn_lark[TASK_SEQ]
     except Exception as e:
         print(f'Error at 1st step while parsing the BPMN tasks sequence: {e}')
@@ -498,12 +465,11 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 ),
                 None, bpmn_lark
             ]
-    #print("Impacts names: ", impacts)
     try:
         bpmn_lark[IMPACTS] = cs.extract_impacts_dict(bpmn_lark[IMPACTS_NAMES], impacts_table) 
-        #print(bpmn_lark[IMPACTS])
+        print(bpmn_lark[IMPACTS])
         bpmn_lark[IMPACTS] = cs.impacts_dict_to_list(bpmn_lark[IMPACTS])     
-        #print(bpmn_lark[IMPACTS], ' AS LISTR')   
+        print(bpmn_lark[IMPACTS], ' AS LISTR')   
     except Exception as e:
         print(f'Error at 1st step while parsing the BPMN impacts: {e}')
         return [  # dbc.Alert(f'Error while parsing the bpmn: {e}', color="danger")]
@@ -534,16 +500,16 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 None, bpmn_lark
             ]
     try:
-        list_choices = cs.extract_choises(task)
-        loops_choices = cs.extract_loops(task)
-        choices_nat = cs.extract_choises_nat(task) + loops_choices
-        bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choices_nat, probabilities)
-        bpmn_lark[PROBABILITIES], bpmn_lark[LOOP_PROB] = divide_dict(bpmn_lark[PROBABILITIES], loops_choices)
-        bpmn_lark[NAMES] = cs.create_probabilities_names(list_choices)
+        list_choises = cs.extract_choises(task)        
+        loops_chioses = cs.extract_loops(task) 
+        choises_nat = cs.extract_choises_nat(task) + loops_chioses
+        bpmn_lark[PROBABILITIES] = cs.create_probabilities_dict(choises_nat, probabilities)
+        bpmn_lark[PROBABILITIES], bpmn_lark[LOOP_ROUND] = cs.divide_dict(bpmn_lark[PROBABILITIES], loops_chioses)
+        bpmn_lark[NAMES] = cs.create_probabilities_names(list_choises)
         bpmn_lark[DELAYS] = cs.create_probabilities_dict(cs.extract_choises_user(task), delays)
-        bpmn_lark[LOOP_ROUND] = cs.create_probabilities_dict(loops_choices, loops)
+        bpmn_lark[LOOP_PROB] = cs.create_probabilities_dict(loops_chioses,loops)
     except Exception as e:
-        print(f'Error at 1st step while parsing the BPMN choices: {e}')
+        print(f'Error at 1st step while parsing the BPMN choises: {e}')
         return [
                 dbc.Modal(
                     [
@@ -556,32 +522,31 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 None, bpmn_lark
             ]
     if cs.checkCorrectSyntax(bpmn_lark):
-        bpmn_lark[TASK_SEQ] = bpmn_lark[TASK_SEQ].replace("\n", "").replace("\t", "")
         print(f'bpmn in printing {bpmn_lark}')
         try:
-            print_sese_diagram(**bpmn_lark, outfile=PATH_BPMN)
-            if not os.path.exists(PATH_IMAGE_BPMN_FOLDER):
-                os.makedirs(PATH_IMAGE_BPMN_FOLDER)
+            bpmn_svg_folder = "assets/bpmnSvg/"
+            if not os.path.exists(bpmn_svg_folder):
+                os.makedirs(bpmn_svg_folder)
             # Create a new SESE Diagram from the input
-            filename = PATH_IMAGE_BPMN_FOLDER + f"bpmn_{str(datetime.timestamp(datetime.now()))}"
-            print_sese_diagram(**bpmn_lark, outfile=filename)
-            filename = filename + '.svg'
-
+            name_svg =  bpmn_svg_folder+"bpmn_"+ str(datetime.timestamp(datetime.now())) +".svg"
+            
+            print(name_svg)
+            print_sese_diagram(**bpmn_lark, outfile_svg=name_svg) 
             bpmn_lark[H] = 0
             # add tree creation in a store!
-            return [None, filename, bpmn_lark]
+            return [None, name_svg, bpmn_lark]
         except Exception as e:
-            return [
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),
-                        dbc.ModalBody(f'Error while creating the diagram: {e}'),
-                    ],
-                    id="modal",
-                    is_open=True,
-                ),
-                None, bpmn_lark
-            ]
+            return [ #dbc.Alert(f'Error while creating the diagram: {e}', color="danger")
+                    dbc.Modal(
+                        [
+                            dbc.ModalHeader(dbc.ModalTitle("ERROR"),  class_name="bg-danger"),
+                            dbc.ModalBody(f'Error while creating the diagram: {e}'),
+                        ],
+                        id="modal",
+                        is_open=True,
+                    ),
+                    None,bpmn_lark
+                ]
     else:
         return  [#dbc.Alert(f'Error in the syntax! Please check the syntax of the BPMN diagram.', color="danger")
                 dbc.Modal(
@@ -595,11 +560,11 @@ def create_sese_diagram(n_clicks, task , impacts, durations = {}, probabilities 
                 None, bpmn_lark
                 ]
 
-#######################
+######################
 
-## ADD TASK durations
+# ADD TASK durations
 
-#######################
+######################
 
 @callback(
     [Output('task-duration', 'children',allow_duplicate=True), Output('bpmn-lark-store', 'data', allow_duplicate=True)], 
@@ -621,22 +586,22 @@ def add_task_durations( tasks_,bpmn_lark): #tasks_
     Returns:
     dbc table with the tables
     """
-    #If no tasks are provided, return an empty list
+    print(f' in add_task_durations {tasks_}')
+    # If no tasks are provided, return an empty list
     if not tasks_:
         return [[], {}]
-
     tasks_ = tasks_.replace("\n", "").replace("\t", "")
-
     bpmn_lark[TASK_SEQ] = tasks_
+    
     # Convert the task data list into a DataFrame and then into a Table component
     return [prepare_task_duration(tasks_), bpmn_lark]
 
 
-#######################
+######################
 
-## ADD BOUND
+# ADD BOUND
 
-#######################
+######################
 
 @callback(
     Output('choose-bound-dict', 'children'),
@@ -691,11 +656,11 @@ def add_task(n_clicks, impacts):
     )
 
 
-#######################
+######################
 
-## ADD PROBABILITIES
+# ADD PROBABILITIES
 
-#######################
+######################
 
 @callback(
     Output('probabilities', 'children',allow_duplicate=True),
@@ -719,17 +684,15 @@ def add_probabilities(tasks_):
     # If no tasks are provided, return an empty list
     if not tasks_:
         return []
-
     tasks_ = tasks_.replace("\n", "").replace("\t", "")
-
     return prepare_task_probabilities(tasks_=tasks_)
 
 
-#######################
+######################
 
-## ADD DELAYS
+# ADD DELAYS
 
-#######################
+######################
 
 @callback(
     Output('delays', 'children',allow_duplicate=True),
@@ -753,17 +716,15 @@ def add_delays(tasks_):
     # If no tasks are provided, return an empty list
     if not tasks_:
         return []
-
     tasks_ = tasks_.replace("\n", "").replace("\t", "")
-
     return prepare_task_delays(tasks_=tasks_)
 
 
-#######################
+######################
 
-## ADD IMPACTS
+# ADD IMPACTS
 
-#######################
+######################
 
 @callback(
     [Output('impacts-table', 'children',allow_duplicate=True), Output('bpmn-lark-store', 'data', allow_duplicate=True)], 
@@ -774,6 +735,19 @@ def add_delays(tasks_):
     prevent_initial_call=True
 )
 def add_impacts(tasks_, impacts, bpmn_lark):
+    """
+    This function takes the bpmn and a string of impacts.
+    It converts the string of impacts into a list of impacts and generates a table where each row contains an impact and an input field.
+    The function is decorated with a callback that updates the 'impacts-table' component
+    whenever the 'input-impacts' value changes.
+
+    Parameters:
+    tasks_ (list): The list of tasks.
+    impacts (str): The string of impacts.
+
+    Returns:
+    dbc.Table: A table where each row contains an impact and an input
+    """
     # If no tasks are provided, return an empty list
     if not tasks_ or not impacts:
         return [[], {}]
@@ -782,20 +756,21 @@ def add_impacts(tasks_, impacts, bpmn_lark):
     return [prepare_task_impacts(tasks_=tasks_, impacts=impacts), bpmn_lark]
 
 
-#######################
+######################
 
-## DOWNLOAD 
+# DOWNLOAD 
 
-#######################
+######################
 
 @callback(
     Output("download", "data"),
     Input("btn-download", "n_clicks"),
     State('switches-input', 'value'),
+    State('bpmn-lark-store', 'data'),
     prevent_initial_call=True,
 )
-def func(n_clicks, switches):
-    print(f' in download {switches}')
+def func(n_clicks, switches, bpmn_lark):
+    print(f' in dwonlaoad {switches}')
     content = {}
     for el in switches: 
         if el == 1:
@@ -809,11 +784,11 @@ def func(n_clicks, switches):
 
 
 
-#######################
+######################
 
-## ADD LOOPS ROUNDS
+# ADD LOOPS ROUNDS
 
-#######################
+######################
 
 @callback(
     Output('loops', 'children',allow_duplicate=True),
@@ -834,19 +809,5 @@ def add_loops_number(tasks_):
     # If no tasks are provided, return an empty list
     if not tasks_:
         return []
-
     tasks_ = tasks_.replace("\n", "").replace("\t", "")
     return prepare_task_loops(tasks_=tasks_)
-
-def divide_dict(dictionary, keys):
-    # Initialize an empty dictionary for the loop
-    loop = {}
-
-    # Iterate over the keys
-    for key in keys:
-        # If the key is in the dictionary, remove it and add it to the loop dictionary
-        if key in dictionary:
-            loop[key] = dictionary.pop(key)
-
-    # Return the modified original dictionary and the loop dictionary
-    return dictionary, loop

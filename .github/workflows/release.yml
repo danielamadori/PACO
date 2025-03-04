@@ -21,22 +21,33 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image for server
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }} -f server/Dockerfile server
+          docker push ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }}
 
-      - name: Update release with Docker image link
+      - name: Build and push Docker image for client
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/paco-client:${{ github.ref_name }} -f client/Dockerfile client
+          docker push ${{ secrets.DOCKER_USERNAME }}/paco-client:${{ github.ref_name }}
+
+      - name: Update release with Docker image links
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           release_id=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }} | jq -r .id)
-          docker_image_url="https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/paco/tags?page=1&name=${{ github.ref_name }}"
-          release_body="To use the image:\n\n\
-          docker pull ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}\n\
-          docker run -d -p 8050:8050 -it --name PACO ${{ secrets.DOCKER_USERNAME }}/paco:${{ github.ref_name }}\n\
-          docker logs PACO\n\n\
-          Docker image available at [link](${docker_image_url})"
+          server_docker_image_url="https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/paco-server/tags?page=1&name=${{ github.ref_name }}"
+          client_docker_image_url="https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/paco-client/tags?page=1&name=${{ github.ref_name }}"
+          release_body="To use the server image:\n\n\
+          docker pull ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }}\n\
+          docker run -d -p 8050:8050 -it --name PACO_SERVER ${{ secrets.DOCKER_USERNAME }}/paco-server:${{ github.ref_name }}\n\
+          docker logs PACO_SERVER\n\n\
+          Docker image available at [link](${server_docker_image_url})\n\n\
+          To use the client image:\n\n\
+          docker pull ${{ secrets.DOCKER_USERNAME }}/paco-client:${{ github.ref_name }}\n\
+          docker run -d -p 3000:3000 -it --name PACO_CLIENT ${{ secrets.DOCKER_USERNAME }}/paco-client:${{ github.ref_name }}\n\
+          docker logs PACO_CLIENT\n\n\
+          Docker image available at [link](${client_docker_image_url})"
           curl -s \
             -X PATCH \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
