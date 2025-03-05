@@ -2,7 +2,7 @@ import numpy as np
 import random
 from paco.optimizer.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
 from paco.searcher.found_strategy import compare_bound
-from paco.solver import paco
+from paco.solver import paco, json_to_paco
 from utils.env import IMPACTS_NAMES
 
 
@@ -20,7 +20,12 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 	i = 0
 	found_optimal = False
-	bound = np.zeros(len(bpmn[IMPACTS_NAMES]), dtype=np.float64)
+
+	json_input = {
+		"bpmn": bpmn,
+		"bound": [0] * len(bpmn[IMPACTS_NAMES])
+	}
+
 	while True:
 		s = ""
 		for j in range(len(min_solutions)):
@@ -52,7 +57,21 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{bound}\n")
 
-		text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, new_possible_min_solution, new_min_solutions, choices, times = paco(bpmn, bound, parse_tree=parse_tree, execution_tree=execution_tree, pending_choices=pending_choices, pending_natures=pending_natures, search_only=not found_optimal)
+		json_input = json_to_paco(json_input, search_only=not found_optimal)
+
+		print(json_input["possible_min_solution"])
+		#TODO Fix Daniel
+		new_possible_min_solution = []
+		for x in json_input["possible_min_solution"]:
+			new_possible_min_solution.append(np.array(x))
+		new_min_solutions = []
+		for x in json_input["guaranteed_bound"]:
+			new_min_solutions.append(np.array(x))
+
+		expected_impacts = json_input.get("expected_impacts")
+		if expected_impacts is not None:
+			expected_impacts = np.array(expected_impacts)
+
 
 		if found_optimal:
 			print("Optimal solution found")

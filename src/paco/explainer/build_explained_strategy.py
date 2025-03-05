@@ -1,7 +1,6 @@
 from datetime import datetime
 from paco.explainer.explain_strategy import explain_strategy
 from paco.explainer.full_strategy import full_strategy
-from paco.explainer.strategy_tree import write_strategy_tree
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode
@@ -32,6 +31,6 @@ def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dic
     times["strategy_tree_time"] = strategy_tree_time
 
     print(f"Strategy Expected Impacts: {expected_impacts}\nStrategy Expected Time: {expected_time}")
-    write_strategy_tree(strategy_tree)
+    #write_strategy_tree(strategy_tree)
 
-    return strategy_tree, expected_impacts, expected_time, [choice.name for choice in bdds.keys()], times
+    return strategy_tree, expected_impacts, expected_time, bdds, times

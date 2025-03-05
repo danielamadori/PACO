@@ -1,15 +1,10 @@
 import numpy as np
 
-
+from paco.execution_tree.execution_tree import ExecutionTree
+from paco.explainer.explanation_type import ExplanationType
+from paco.parser.parse_tree import ParseTree
 from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROB, LOOP_ROUND
-from paco.solver import paco
-
-
-#parse_tree = ParseTree.from_json()
-#execution_tree = ExecutionTree.from_json(parse_tree, ["cost", "hours"])
-parse_tree = None
-execution_tree = None
-pending_choices, pending_natures = None, None
+from paco.solver import paco, json_to_paco
 
 bpmn_new_example = {
     "bpmn": [{
@@ -313,26 +308,23 @@ bpmn_ex = {
 
     # TODO "multi condition BDD"
 }
-def test(name, bpmn, bound):
-    print('Type bpmn: ', name)
-    global parse_tree, execution_tree, pending_choices, pending_natures
-    text_result, parse_tree, pending_choices, pending_natures, execution_tree, found, min_expected_impacts, max_expected_impacts, choices, times = paco(bpmn, np.array(bound, dtype=np.float64), parse_tree=parse_tree, execution_tree=execution_tree, pending_choices=pending_choices, pending_natures=pending_natures)
 
-    print('Type bpmn: ', name)
 
 
 def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
     if selected == -1:
         for name, example in bpmn_ex_dicts.items():
-            print(name, example[0], example[1])
-            test(name, example[0], example[1])
+            print(example[0], example[1])
+            print('Type bpmn: ', name)
+            json_to_paco({"bpmn": example[0], "bound": example[1]})
+
             #ask a string in input if the string is not yes exit
             answer = input("Do you want to continue? (yes/no): ")
             if answer != "yes" and answer != "y":
                 break
     else:
         name, example = list(bpmn_ex_dicts.items())[selected]
-        test(name, example[0], example[1])
+        json_to_paco({"bpmn": example[0], "bound": example[1]})
 
 
 bpmn_paper_example = {

@@ -1,47 +1,136 @@
+import json
+
 import numpy as np
+
+from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.create import create
-from paco.searcher.search import search, search
+from paco.parser.parse_tree import ParseTree
+from paco.searcher.search import search
 from utils import check_syntax as cs
 from utils.env import IMPACTS_NAMES, DURATIONS
 from datetime import datetime
 
 
 def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pending_natures=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID):
-	print(f'{datetime.now()} Bound {bound}')
-	#print(f'{datetime.now()} bpmn + cpi {bpmn}')
 	bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 
+	result = {"bpmn": bpmn, "bound": bound}
+
 	parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures, execution_tree)
+	result.update({"parse_tree": parse_tree,
+					"pending_choices": pending_choices,
+					"pending_natures": pending_natures,
+					"execution_tree": execution_tree})
 
+	frontier_solution, expected_impacts, possible_min_solution, frontier_values, strategy, times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
+	result.update({"possible_min_solution": possible_min_solution,
+				   "guaranteed_bound": frontier_values})
 
-	expected_impacts, possible_min_solution, solutions, strategy, times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
-	if expected_impacts is None:
+	if frontier_solution is None:# Also expected_impacts is None
 		text_result = ""
 		for i in range(len(possible_min_solution)):
 			text_result += f"Exp. Impacts {i}:\t{np.round(possible_min_solution[i], 2)}\n"
 
 		text_result = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nPossible Bound Impacts:\t{bound}\n" + text_result
-		for i in range(len(solutions)):
-			text_result += f"Guaranteed Bound {i}:\t{np.ceil(solutions[i])}\n"
+		for i in range(len(frontier_values)):
+			text_result += f"Guaranteed Bound {i}:\t{np.ceil(frontier_values[i])}\n"
 
 		print(str(datetime.now()) + " " + text_result)
-		return text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, [], times
+		return text_result, result, times
 
+	result.update({"frontier_solution": frontier_solution,
+				   "expected_impacts": expected_impacts})
 
 	if strategy is None:
 		text_result = f"Any choice taken will provide a winning strategy with an expected impact of: "
 		text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
 		print(str(datetime.now()) + " " + text_result)
-		return text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, [], times
+		return text_result, result, times
 
 
-	strategy_tree, expected_impacts, strategy_expected_time, choices, explain_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
+	strategy_tree, strategy_expected_impacts, strategy_expected_time, strategy_bdds, explain_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
 	times.update(explain_times)
 
 	text_result = f"This is the strategy, with an expected impact of: "
-	text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
-
+	text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in strategy_expected_impacts]))
 	print(str(datetime.now()) + " " + text_result)
-	return text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, choices, times
+
+	result.update({"strategy_tree": strategy_tree,
+				   "strategy_expected_impacts": strategy_expected_impacts,
+				   "strategy_expected_time": strategy_expected_time})
+				   #"strategy_bdds": strategy_bdds})
+
+	return text_result, result, times
+
+
+
+def json_to_paco(json_input:dict, search_only = False, type_strategy=ExplanationType.HYBRID):
+	x, y = json_input.get("bpmn"), json_input.get("bound")
+	if not x and not y:
+		raise ValueError("Missing BPMN and Bound")
+	else:
+		bpmn = x
+		bound = np.array(y, dtype=np.float64)
+
+	# Create
+	x = json_input.get("parse_tree")
+	if x:
+		print("Cache system")
+		parse_tree, pending_choices, pending_natures = ParseTree.from_json(x, len(bpmn[IMPACTS_NAMES]),0)
+	else:
+		parse_tree, pending_choices, pending_natures = None, None, None
+
+	x = json_input.get("execution_tree")
+	if x:
+		execution_tree = ExecutionTree.from_json(parse_tree, x,bpmn[IMPACTS_NAMES])
+	else:
+		execution_tree = None
+
+	text_result, result, times = paco(bpmn, bound,
+									  parse_tree=parse_tree, pending_choices=pending_choices,
+									  pending_natures=pending_natures, execution_tree=execution_tree,
+									  search_only=search_only, type_strategy=type_strategy)
+
+	result_json = {
+		"result": text_result, "times": times,
+		"bpmn": result["bpmn"], "bound": str(result["bound"]),
+		#"parse_tree": result["parse_tree"].to_json(),
+		#"execution_tree": result["execution_tree"].to_json(),
+	}
+
+	#Search
+	x = result.get("possible_min_solution")
+	y = result.get("guaranteed_bound")
+	if x is not None and y is not None:# Search Done
+		result_json.update({
+			"possible_min_solution": str(x),
+			"guaranteed_bound": str(y)
+		})
+
+	x = result.get("expected_impacts")
+	y = result.get("frontier_solution")
+	if x is not None and y is not None:# Search Win
+		result_json.update({
+			#"expected_impacts" : str(x),
+			#"frontier_solution" : str(choice.id for choice in y)
+		})
+
+	x = result.get("strategy_tree")
+	y = result.get("strategy_expected_impacts")
+	z = result.get("strategy_expected_time")
+	w = result.get("strategy_bdds")
+	if x is not None and y is not None and z is not None: #and w is not None: # Strategy Explained Done
+		result_json.update({
+			#"strategy_tree": x.to_json(),
+			#"strategy_expected_impacts": y,
+			"strategy_expected_time": str(z),
+			#"strategy_bdds":
+		})
+
+	print(result_json.keys())
+
+	json_test = json.dumps(result_json, indent=4)
+	print(json_test)
+	return result_json
