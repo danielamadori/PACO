@@ -1,16 +1,15 @@
+import json
+
 import numpy as np
 import random
+import ast
 from paco.optimizer.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
 from paco.searcher.found_strategy import compare_bound
-from paco.solver import paco
+from paco.solver import paco, json_to_paco
 from utils.env import IMPACTS_NAMES
 
 
 def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_number: int = 0):
-	parse_tree = None
-	execution_tree = None
-	pending_choices = None
-	pending_natures = None
 	min_solutions = []
 	possible_min_solution = []
 	if max_bound is None:
@@ -20,8 +19,14 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 	i = 0
 	found_optimal = False
-	bound = np.zeros(len(bpmn[IMPACTS_NAMES]), dtype=np.float64)
+
+	json_input = json.dumps({
+		"bpmn": bpmn,
+		"bound": str([0] * len(bpmn[IMPACTS_NAMES]))
+	})
+
 	while True:
+		json_input = json.loads(json_input)
 		s = ""
 		for j in range(len(min_solutions)):
 			s += f"Impacts {j}:\t{min_solutions[j]}\n"
@@ -41,21 +46,36 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 			if len(solutions) > 0:
 				print("Max bound found")
-				bound = solutions.pop(random.randint(0, len(solutions)-1))
+				json_input["bound"] = solutions.pop(random.randint(0, len(solutions)-1))
 
 			if len(min_solutions) > 0:
 				print("Min solutions found")
-				bound = min_solutions.pop(random.randint(0, len(min_solutions)-1))
+				json_input["bound"] = min_solutions.pop(random.randint(0, len(min_solutions)-1))
 
 		else:
 			bound = possible_min_solution.pop(random.randint(0, len(possible_min_solution)-1))
 
-		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{bound}\n")
+		print(f"Attempt {i}:\t{bpmn[IMPACTS_NAMES]}\nSelected:\t{json_input["bound"]}\n")
+		json_input.update({"bound": str(bound)})
 
-		text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, new_possible_min_solution, new_min_solutions, choices, times = paco(bpmn, bound, parse_tree=parse_tree, execution_tree=execution_tree, pending_choices=pending_choices, pending_natures=pending_natures, search_only=not found_optimal)
+		json_input = json_to_paco(json_input, search_only=not found_optimal)
+
+		dict_output = json.loads(json_input)
+
+		print(dict_output["times"])
+
+		tmp = ast.literal_eval(dict_output["possible_min_solution"])
+		new_possible_min_solution = [np.fromstring(item.strip("[]"), sep=" ") for item in tmp]
+
+		tmp = ast.literal_eval(dict_output["guaranteed_bounds"])
+		new_min_solutions = [np.fromstring(item.strip("[]"), sep=" ") for item in tmp]
+
+		expected_impacts = None
+		if "expected_impacts" in dict_output.keys():
+			expected_impacts = np.array(dict_output["expected_impacts"], dtype=np.float64)
 
 		if found_optimal:
-			print("Optimal solution found")
+			print("Optimal solution found after", i, "attempts")
 			break
 
 		#a: Finds the vectors in new_possible_min_solution dominated by vectors in new_min_solutions.
@@ -73,7 +93,6 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 		possible_min_solution = get_max_dominating_vectors(possible_min_solution)
 		min_solutions = get_min_dominated_impacts(min_solutions)
-
 		i += 1
 
-	return bound, expected_impacts, min_solutions, parse_tree, execution_tree, choices
+	return dict_output, bound, expected_impacts, min_solutions

@@ -53,8 +53,7 @@ class ExecutionTree:
 		if tree_type == "ExecutionViewPoint":
 			viewPoint = ExecutionViewPoint(
 				id=id, states=states, decisions=decisions, choices=choices,
-				natures=natures, is_final_state=is_final_state,
-				impacts_names=impacts_names, parent=parent,
+				natures=natures, is_final_state=is_final_state, parent=parent,
 				probability=probability, impacts=impacts,
 				cei_top_down=np.array(node_data['cei_top_down'], dtype=np.float64),
 				cei_bottom_up=np.array(node_data['cei_bottom_up'], dtype=np.float64),
@@ -98,7 +97,9 @@ class ExecutionTree:
 		return tree
 
 	@staticmethod
-	def from_json(parseTree: 'ParseTree', data:str, impacts_names: list) -> 'ExecutionTree':
+	def from_json(parseTree: 'ParseTree', data, impacts_names: list) -> 'ExecutionTree':
+		if isinstance(data, str):
+			data = json.loads(data)
 		#TODO validation
 		#validate_json(data)
 		parseTreeNodes = parseTree.root.to_dict_id_node()

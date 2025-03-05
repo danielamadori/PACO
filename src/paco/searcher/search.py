@@ -12,7 +12,7 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
 
     print(f"{datetime.now()} FoundStrategy:")
     t = datetime.now()
-    frontier_solution, expected_impacts, solutions, possible_min_solution = found_strategy([execution_tree], bound)
+    frontier_solution, expected_impacts, frontier_values, possible_min_solution = found_strategy([execution_tree], bound)
     t1 = datetime.now()
     found_strategy_time = (t1 - t).total_seconds()*1000
     print(f"{t1} FoundStrategy:completed: {found_strategy_time} ms")
@@ -20,13 +20,13 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
 
     if frontier_solution is None:
         #TODO plot_pareto_frontier
-        return None, possible_min_solution, solutions, [], times
+        return None, None, possible_min_solution, frontier_values, [], times
 
     print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{expected_impacts}")
-    write_execution_tree(execution_tree, frontier_solution)
+    #write_execution_tree(execution_tree, frontier_solution)
 
     if search_only:
-        return expected_impacts, possible_min_solution, solutions, None, times
+        return frontier_solution, expected_impacts, possible_min_solution, frontier_values, None, times
 
     print(f'{datetime.now()} BuildStrategy:')
     t = datetime.now()
@@ -36,4 +36,4 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
     print(f"{t1} Build Strategy:completed: {build_strategy_time} ms")
     times["build_strategy_time"] = build_strategy_time
 
-    return expected_impacts, possible_min_solution, solutions, None if len(strategy) == 0 else strategy, times
+    return frontier_solution, expected_impacts, possible_min_solution, frontier_values, None if len(strategy) == 0 else strategy, times

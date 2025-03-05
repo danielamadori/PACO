@@ -15,7 +15,7 @@ from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_tree import ParseTree
 from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME, PATH_EXPLAINER_BDD, PATH_EXPLAINER_DECISION_TREE, PATH_PARSE_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME, PROBABILITIES
-from paco.solver import paco
+from paco.solver import paco, json_to_paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
 from fastapi.middleware.cors import CORSMiddleware
 from utils import check_syntax as cs
@@ -247,21 +247,16 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
     if not check_algo_is_usable(bpmn, request.algo):
         return HTTPException(status_code=400, detail="The algorithm is not usable")       
     try:
-        bound = np.array(request.bound, dtype=np.float64)            
         if request.algo == list(ALGORITHMS.keys())[0]:
-            text_result, parse_tree, pending_choices, pending_natures, execution_tree, expected_impacts, possible_min_solution, solutions, choices, times = paco(bpmn, bound)
-
-            result = {
-                "result": text_result,
-                "parse_tree": parse_tree.to_json(),
-                "execution_tree": execution_tree.to_json(),
-                "expected_impacts": str(expected_impacts) if expected_impacts is not None else None,
-                "possible_min_solution": str(possible_min_solution),
-                #"solutions": str(solutions),
-                #"choices": str(choices),
+            json_input = {
+                "bpmn": bpmn,
+                "bound": str(request.bound)
             }
-            result.update(times)
-            return result
+
+            json_output = json_to_paco(json_input)
+            print(type(json_output))#Is a string
+
+            return json_output
         # elif request.algo == list(ALGORITHMS.keys())[1]:
         #     text_result, found, choices = None, None, None, None
         # elif request.algo == list(ALGORITHMS.keys())[2]:
@@ -273,7 +268,7 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
         return HTTPException(status_code=500, detail=str(e))
 
 @app.get("/create_execution_tree")
-async def get_excecution_tree(bpmn:BPMNDefinition = None) -> dict:
+async def get_execution_tree(bpmn:BPMNDefinition = None) -> dict:
     """
     Get the execution tree.
 
@@ -293,14 +288,15 @@ async def get_excecution_tree(bpmn:BPMNDefinition = None) -> dict:
     try:
         bpmn = dict(bpmn) 
         bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])       
-        parse_tree, execution_tree , time_create_parse_tree, time_create_execution_tree, time_evaluate_cei_execution_tree = create(bpmn)
-        
-        return {
-            "execution_tree": str(execution_tree),
-            "time_create_parse_tree": time_create_parse_tree,
-            "time_create_execution_tree": time_create_execution_tree,
-            "time_evaluate_cei_execution_tree": time_evaluate_cei_execution_tree
+        parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn)
+
+        results = {
+            "parse_tree": parse_tree.to_json(),
+            "execution_tree": execution_tree.to_json()
         }
+        results.update(times)
+        return results
+
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
