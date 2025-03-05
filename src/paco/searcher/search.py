@@ -26,7 +26,7 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
     #write_execution_tree(execution_tree, frontier_solution)
 
     if search_only:
-        return expected_impacts, possible_min_solution, frontier_values, None, times
+        return frontier_solution, expected_impacts, possible_min_solution, frontier_values, None, times
 
     print(f'{datetime.now()} BuildStrategy:')
     t = datetime.now()

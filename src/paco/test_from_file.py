@@ -7,11 +7,9 @@ from utils.env import IMPACTS_NAMES, TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NA
 bpmn = json.load(open('test' + '.json'))
 bpmn = {eval(k):v  for k, v in bpmn.items()}
 
-bound = np.ones(len(bpmn[IMPACTS_NAMES]), dtype=np.float64)
-
 json_input = {
 	"bpmn": bpmn,
-	"bound": bound
+	"bound": str([0.1] * len(bpmn[IMPACTS_NAMES]))
 }
 
 json_results = json_to_paco(json_input)
