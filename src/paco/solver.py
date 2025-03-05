@@ -38,7 +38,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 		for i in range(len(frontier_values)):
 			text_result += f"Guaranteed Bound {i}:\t{np.ceil(frontier_values[i])}\n"
 
-		print(str(datetime.now()) + " " + text_result)
+		#print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
 	result.update({"frontier_solution": frontier_solution,
@@ -47,10 +47,10 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 	if strategy is None:
 		text_result = f"Any choice taken will provide a winning strategy with an expected impact of: "
 		text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
-		print(str(datetime.now()) + " " + text_result)
+		#print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
-	print(str(datetime.now()) + " Here")
+
 	strategy_tree, strategy_expected_impacts, strategy_expected_time, strategy_bdds, explain_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
 	times.update(explain_times)
 
