@@ -1,5 +1,4 @@
 import json
-
 import numpy as np
 
 from paco.execution_tree.execution_tree import ExecutionTree
@@ -24,9 +23,11 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 					"pending_natures": pending_natures,
 					"execution_tree": execution_tree})
 
-	frontier_solution, expected_impacts, possible_min_solution, frontier_values, strategy, times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
+	frontier_solution, expected_impacts, possible_min_solution, frontier_values, strategy, search_times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
+
 	result.update({"possible_min_solution": possible_min_solution,
-				   "guaranteed_bound": frontier_values})
+				   "guaranteed_bounds": frontier_values})
+	times.update(search_times)
 
 	if frontier_solution is None:# Also expected_impacts is None
 		text_result = ""
@@ -49,7 +50,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 		print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
-
+	print(str(datetime.now()) + " Here")
 	strategy_tree, strategy_expected_impacts, strategy_expected_time, strategy_bdds, explain_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
 	times.update(explain_times)
 
@@ -66,25 +67,27 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 
 
 
-def json_to_paco(json_input:dict, search_only = False, type_strategy=ExplanationType.HYBRID):
+def json_to_paco(json_input, search_only = False, type_strategy=ExplanationType.HYBRID):
+	if isinstance(json_input, str):
+		json_input = json.loads(json_input)
+
 	x, y = json_input.get("bpmn"), json_input.get("bound")
 	if not x and not y:
 		raise ValueError("Missing BPMN and Bound")
 	else:
 		bpmn = x
-		bound = np.array(y, dtype=np.float64)
+		bound = np.fromstring(y.strip("[]"), sep=" ", dtype=np.float64)
 
 	# Create
 	x = json_input.get("parse_tree")
 	if x:
-		print("Cache system")
 		parse_tree, pending_choices, pending_natures = ParseTree.from_json(x, len(bpmn[IMPACTS_NAMES]),0)
 	else:
 		parse_tree, pending_choices, pending_natures = None, None, None
 
 	x = json_input.get("execution_tree")
 	if x:
-		execution_tree = ExecutionTree.from_json(parse_tree, x,bpmn[IMPACTS_NAMES])
+		execution_tree = ExecutionTree.from_json(parse_tree, x, bpmn[IMPACTS_NAMES])
 	else:
 		execution_tree = None
 
@@ -93,28 +96,28 @@ def json_to_paco(json_input:dict, search_only = False, type_strategy=Explanation
 									  pending_natures=pending_natures, execution_tree=execution_tree,
 									  search_only=search_only, type_strategy=type_strategy)
 
-	result_json = {
+	result_dict = {
 		"result": text_result, "times": times,
 		"bpmn": result["bpmn"], "bound": str(result["bound"]),
-		#"parse_tree": result["parse_tree"].to_json(),
-		#"execution_tree": result["execution_tree"].to_json(),
+		"parse_tree": result["parse_tree"].to_json(),
+		"execution_tree": result["execution_tree"].to_json(),
 	}
 
 	#Search
 	x = result.get("possible_min_solution")
-	y = result.get("guaranteed_bound")
+	y = result.get("guaranteed_bounds")
 	if x is not None and y is not None:# Search Done
-		result_json.update({
-			"possible_min_solution": str(x),
-			"guaranteed_bound": str(y)
+		result_dict.update({
+			"possible_min_solution": str([str(bound) for bound in x]),
+			"guaranteed_bounds": str([str(bound) for bound in y])
 		})
 
 	x = result.get("expected_impacts")
 	y = result.get("frontier_solution")
 	if x is not None and y is not None:# Search Win
-		result_json.update({
-			#"expected_impacts" : str(x),
-			#"frontier_solution" : str(choice.id for choice in y)
+		result_dict.update({
+			"expected_impacts" : str(x),
+			"frontier_solution" : str([execution_tree.root.id for execution_tree in y])
 		})
 
 	x = result.get("strategy_tree")
@@ -122,15 +125,11 @@ def json_to_paco(json_input:dict, search_only = False, type_strategy=Explanation
 	z = result.get("strategy_expected_time")
 	w = result.get("strategy_bdds")
 	if x is not None and y is not None and z is not None: #and w is not None: # Strategy Explained Done
-		result_json.update({
+		result_dict.update({
 			#"strategy_tree": x.to_json(),
-			#"strategy_expected_impacts": y,
+			"strategy_expected_impacts": str(y),
 			"strategy_expected_time": str(z),
 			#"strategy_bdds":
 		})
 
-	print(result_json.keys())
-
-	json_test = json.dumps(result_json, indent=4)
-	print(json_test)
-	return result_json
+	return json.dumps(result_dict, indent=2)

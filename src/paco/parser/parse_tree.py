@@ -80,7 +80,7 @@ class ParseTree:
 				name=node_data['name'],
 				max_delay=node_data['max_delay']
 			)
-			pending_choice.update(node)
+			pending_choice.add(node)
 		elif node_type == "Nature":
 			node = Nature(
 				parent=parent,
@@ -89,7 +89,7 @@ class ParseTree:
 				name=node_data['name'],
 				probability=node_data['probability']
 			)
-			pending_natures.update(node)
+			pending_natures.add(node)
 		else:
 			raise ValueError(f"Unsupported node type: {node_type}")
 
@@ -110,7 +110,10 @@ class ParseTree:
 		return node, pending_choice, pending_natures
 
 	@staticmethod
-	def from_json(data:str, impact_size: int = -1, non_cumulative_impact_size: int = -1) -> 'ParseTree':
+	def from_json(data, impact_size: int = -1, non_cumulative_impact_size: int = -1) -> 'ParseTree':
+		if isinstance(data, str):
+			data = json.loads(data)
+
 		validate_json(data, impact_size, non_cumulative_impact_size)
 		root, pending_choice, pending_natures = ParseTree.create_node(data)
 		return ParseTree(root), pending_choice, pending_natures

@@ -247,16 +247,16 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
     if not check_algo_is_usable(bpmn, request.algo):
         return HTTPException(status_code=400, detail="The algorithm is not usable")       
     try:
-        bound = np.array(request.bound, dtype=np.float64)            
         if request.algo == list(ALGORITHMS.keys())[0]:
             json_input = {
                 "bpmn": bpmn,
-                "bound": bound
+                "bound": str(request.bound)
             }
 
-            dict_output = json_to_paco(json_input)
+            json_output = json_to_paco(json_input)
+            print(type(json_output))#Is a string
 
-            return dict_output
+            return json_output
         # elif request.algo == list(ALGORITHMS.keys())[1]:
         #     text_result, found, choices = None, None, None, None
         # elif request.algo == list(ALGORITHMS.keys())[2]:

@@ -38,7 +38,7 @@ def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pendi
 		t1 = datetime.now()
 		time_evaluate_cei_execution_tree = (t1 - t).total_seconds()*1000
 		print(f"{t1} CreateExecutionTree:CEI evaluated: {time_evaluate_cei_execution_tree} ms")
-		write_execution_tree(execution_tree)
+		#write_execution_tree(execution_tree)
 
 	else: #Cache
 		#execution_tree = ExecutionTree.from_json(parse_tree, bpmn[IMPACTS_NAMES])

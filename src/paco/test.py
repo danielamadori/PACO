@@ -43,8 +43,7 @@ try:
     print(name_svg)
     '''
     #print_sese_diagram(**bpmn_ex_article, outfile='test.png')#name_svg)
-    bound, expected_impacts, solutions, parse_tree, execution_tree, choices = pareto_optimal_impacts(bpmn)
-
+    dict_output, bound, expected_impacts, min_solutions = pareto_optimal_impacts(bpmn)
 
 except Exception as e:
     print(f'Error: {e}')
