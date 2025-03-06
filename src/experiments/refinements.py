@@ -1,7 +1,7 @@
 from paco.solver import paco
 import numpy as np
 
-def refinements(bpmn, initial_bounds, num_refinements = 10):
+def refine_bounds(bpmn, initial_bounds, num_refinements = 10):
 	parse_tree = None
 	execution_tree = None
 	pending_choices = None
@@ -42,6 +42,7 @@ def refinements(bpmn, initial_bounds, num_refinements = 10):
 			else:  # Property not satisfied
 				intervals[current_impact][0] = (intervals[current_impact][0] + intervals[current_impact][1]) / 2
 
+	return total_results
 	# Print progress
 	#print_refinement_progress(iteration, current_impact, intervals, test_bounds, result['result']) if verbose else None
 

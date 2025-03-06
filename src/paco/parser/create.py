@@ -24,7 +24,7 @@ def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pendi
 		time_create_parse_tree = 0
 		#print(f"{datetime.now()} CreateParseTree:completed: cache")
 
-	times["time_create_parse_tree"] = time_create_parse_tree
+	#times["time_create_parse_tree"] = time_create_parse_tree
 
 	#print(f"{datetime.now()} CreateExecutionTree:")
 	if execution_tree is None or pending_choices is None:

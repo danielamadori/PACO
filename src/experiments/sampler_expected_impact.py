@@ -1,7 +1,5 @@
 import random
 
-import numpy as np
-
 
 def sample_expected_impact(root_dict, track_choices=False):
 
@@ -16,7 +14,7 @@ def sample_expected_impact(root_dict, track_choices=False):
 	def process_node(node):
 		# Base case: if node is a task, return its impacts (or empty dict if none)
 		if node["type"] == "Task":
-			return node['impact']#np.array(node['impact'])
+			return node['impact']
 
 		# Recursive cases based on node type
 		if node["type"] == "Sequential":
