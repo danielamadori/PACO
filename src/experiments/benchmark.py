@@ -3,7 +3,7 @@ import random
 import json
 import datetime
 from experiments.experiment import single_experiment
-from read import read_cpi_bundles
+from experiments.read import read_cpi_bundles
 
 
 def single_execution(cursor, conn, x, y, w, bundle):
