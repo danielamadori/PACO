@@ -138,7 +138,7 @@ def run_benchmark():
         try:
             for k in range(2, 20):
                 for x in range(1, k-1):
-                    y = k - 1
+                    y = k - x
                     if x <= 10 and y <= 10:
                         bundle = read_cpi_bundles(x=x, y=y)
             
@@ -155,4 +155,5 @@ def run_benchmark():
         # Continue with next iteration regardless of success/failure
         print("\nStarting next benchmark...")
 
-run_benchmark()
+
+
