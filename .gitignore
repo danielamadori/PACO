@@ -12,3 +12,7 @@ src/utils/__pycache__/
 *.svg
 
 .ipynb_checkpoints/
+
+src/CPIs/
+
+src/experiments/CPIs/
