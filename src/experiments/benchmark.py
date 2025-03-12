@@ -65,7 +65,7 @@ def run_benchmarks():
                 y = k - x
 
                 if x <= 10 and y <= 10:
-                    bundle = read_cpi_bundles(x=1, y=6)
+                    bundle = read_cpi_bundles(x=x, y=y)
 
                     if not bundle:
                         s = f"No bundle found for x={x}, y={y}"
@@ -73,14 +73,12 @@ def run_benchmarks():
                         send_telegram_message(s)
 
                     for w in range(0, len(bundle)):
-                        single_execution(cursor, conn, 1, 6, w, bundle)
+                        single_execution(cursor, conn, x, y, w, bundle)
 
                         if time.time() - last_time > 1:
                             last_time = time.time()
                             send_telegram_message(f"x={x}, y={y}, w={w} Done")
 
-
-                    return
     except Exception as e:
         print(str(datetime.now()) + f" Error during benchmark: {str(e)}")
         conn.rollback()

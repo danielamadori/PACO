@@ -20,3 +20,5 @@ src/experiments/CPIs/
 src/experiments/benchmark_output.log
 
 src/experiments/benchmarks.sqlite
+
+src/experiments/telegram_config.json
