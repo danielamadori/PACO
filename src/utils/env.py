@@ -60,4 +60,4 @@ BOUND = 'bound'
 # Experiments
 BENCHMARKS_DB = 'benchmarks.sqlite'
 LOG_FILENAME = 'benchmark_output.log'
-TELEGRAM_CONFIG = "experiments/telegram/telegram_config.json"
+TELEGRAM_CONFIG = "src/experiments/telegram/telegram_config.json"

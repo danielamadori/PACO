@@ -69,15 +69,24 @@ def single_execution(cursor, conn, x, y, w, bundle):
         )
     )
     conn.commit()
-
+    error = ""
     # Run refinement analysis
     print(f"\nRunning benchmark for x={x}, y={y}, w={w}")
+    times = {}
     try:
         times = single_experiment(D, num_refinements=10)
-    except ValueError as e:
+    except Exception as e: 
         s = f"Error during benchmark x={x}, y={y}, w={w}: {str(e)}"
         send_telegram_message(s)
-        raise ValueError(s)
+        error = s
+        times['time_create_execution_tree'] = 0.0
+        times['time_evaluate_cei_execution_tree'] = 0.0
+        times['found_strategy_time'] = 0.0
+        times['build_strategy_time'] = 0.0
+        times['time_explain_strategy'] = 0.0
+        times['strategy_tree_time'] = 0.0
+        times['initial_bounds'] = 0
+        times['final_bounds'] = 0
 
     for k, v in times.items():
         print(f"{k}: {v}")
@@ -92,7 +101,7 @@ def single_execution(cursor, conn, x, y, w, bundle):
 		UPDATE experiments 
 		SET vte = ?, time_create_execution_tree = ?, time_evaluate_cei_execution_tree = ?,
 			found_strategy_time = ?, build_strategy_time = ?, time_explain_strategy = ?, 
-			strategy_tree_time = ?, initial_bounds = ?, final_bounds = ?
+			strategy_tree_time = ?, initial_bounds = ?, final_bounds = ?, error = ?
 		WHERE x = ? AND y = ? AND w = ?
 		""",
         (vte,
@@ -104,6 +113,7 @@ def single_execution(cursor, conn, x, y, w, bundle):
          times['strategy_tree_time'],
          str(times['initial_bounds']),
          str(times['final_bounds']),
+         str(error),
          x, y, w)
     )
     conn.commit()
