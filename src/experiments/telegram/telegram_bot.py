@@ -1,10 +1,9 @@
 import json
 import time
 from datetime import datetime
-
 import requests
 
-TELEGRAM_CONFIG = "telegram_config.json"
+from utils.env import LOG_FILENAME, TELEGRAM_CONFIG
 
 
 def load_subscribers():
@@ -39,8 +38,10 @@ TELEGRAM_UPDATE_URL = "https://api.telegram.org/bot{}/getUpdates".format(TELEGRA
 
 
 def send_telegram_message(message, specific_user_id=None):
-    subscribers = load_subscribers()
+    if TELEGRAM_BOT_TOKEN == '':
+        return
 
+    subscribers = load_subscribers()
     try:
         if specific_user_id:
             requests.post(TELEGRAM_API_URL, data={"chat_id": specific_user_id, "text": message})
@@ -68,6 +69,16 @@ def reply_to_message(message, chat_id):
             send_telegram_message(
                 "You have unsubscribed from benchmark notifications!",
                         specific_user_id=chat_id)
+
+    elif message == "/logs":
+        with open(LOG_FILENAME, "r") as file:
+            s = file.readlines()
+            if s is not None:
+                if len(s) > 10:
+                    send_telegram_message(s[-10:], specific_user_id=chat_id)
+                else:
+                    send_telegram_message(s[-len(s):], specific_user_id=chat_id)
+
     else:
         send_telegram_message(
             "Unknown command.\n Use /start to subscribe and /stop to unsubscribe.",
@@ -75,6 +86,9 @@ def reply_to_message(message, chat_id):
 
 
 def listen_for_messages():
+    if TELEGRAM_BOT_TOKEN == '':
+        return
+
     last_update_id = None
     while True:
         try:

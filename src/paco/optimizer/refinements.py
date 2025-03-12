@@ -6,7 +6,6 @@ from paco.searcher.create_execution_tree import create_execution_tree
 from paco.searcher.found_strategy import found_strategy
 import numpy as np
 from datetime import datetime
-
 from utils.env import IMPACTS_NAMES
 
 
@@ -57,6 +56,8 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 	print(f"{datetime.now()} FoundStrategy: {found_strategy_time} ms")
 	metadata["found_strategy_time"] = cumulative_found_strategy_time
 
+	if final_frontier_solution is None:
+		raise ValueError("No solution found, bounds: " + str(bounds))
 
 	t = datetime.now()
 	_, strategy = build_strategy(final_frontier_solution)

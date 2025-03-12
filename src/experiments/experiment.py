@@ -1,9 +1,11 @@
 import datetime
 import json
+
+from experiments.telegram.telegram_bot import send_telegram_message
 from paco.parser.create import create
 from utils import check_syntax as cs
-from experiments.cpi_translations import cpi_to_standard_format
-from experiments.refinements import refine_bounds
+from experiments.etl.cpi_translations import cpi_to_standard_format
+from paco.optimizer.refinements import refine_bounds
 from experiments.sampler_expected_impact import sample_expected_impact
 from paco.parser.bpmn_parser import create_parse_tree
 from utils.env import DURATIONS
@@ -70,8 +72,13 @@ def single_execution(cursor, conn, x, y, w, bundle):
 
     # Run refinement analysis
     print(f"\nRunning benchmark for x={x}, y={y}, w={w}")
+    try:
+        times = single_experiment(D, num_refinements=10)
+    except ValueError as e:
+        s = f"Error during benchmark x={x}, y={y}, w={w}: {str(e)}"
+        send_telegram_message(s)
+        raise ValueError(s)
 
-    times = single_experiment(D, num_refinements=10)
     for k, v in times.items():
         print(f"{k}: {v}")
 

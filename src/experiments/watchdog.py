@@ -1,13 +1,15 @@
 import os
 import shutil
 import signal
+import sys
 import threading
 import time
 import subprocess
 import sqlite3
 from datetime import datetime
-from experiments.benchmark import BENCHMARKS_DB
-from experiments.telegram_bot import send_telegram_message, listen_for_messages
+
+from utils.env import BENCHMARKS_DB, LOG_FILENAME
+from experiments.telegram.telegram_bot import send_telegram_message, listen_for_messages, TELEGRAM_BOT_TOKEN
 
 
 def clean_stuck_rows(current_threshold):
@@ -28,22 +30,37 @@ def watchdog_handle_termination(signum, frame):
 	s = "Experiment terminated"
 	print(str(datetime.now()) + " " + s)
 	send_telegram_message(s)
+	sys.exit(0)
 
 
-def run(current_threshold, check_interval, log_filename):
+def execute_benchmark():
+	with open(LOG_FILENAME, 'a') as log_file:
+		benchmark_path = os.path.join(
+			os.path.dirname(os.path.abspath(__file__)),
+			"benchmark.py")
+
+		if not os.path.exists(benchmark_path):
+			raise FileNotFoundError(f"benchmark.py not found at {benchmark_path}")
+
+		return subprocess.Popen([os.sys.executable, benchmark_path], stdout=log_file, stderr=log_file, cwd=os.getcwd())
+
+
+
+
+def run(current_threshold, check_interval):
 	global process
 
 	signal.signal(signal.SIGTERM, watchdog_handle_termination)
 	signal.signal(signal.SIGINT, watchdog_handle_termination)
 
 	#Telegram Bot
-	threading.Thread(target=listen_for_messages, daemon=True).start()
+	if TELEGRAM_BOT_TOKEN != '':
+		threading.Thread(target=listen_for_messages, daemon=True).start()
 
 	try:
 
 		while True:
-			with open(log_filename, 'a') as log_file:
-				process = subprocess.Popen([os.sys.executable, 'benchmark.py'], stdout=log_file, stderr=log_file, cwd=os.getcwd())
+			process = execute_benchmark()
 
 			while True:
 				time.sleep(check_interval)
@@ -66,6 +83,12 @@ def run(current_threshold, check_interval, log_filename):
 					time.sleep(1)
 					break
 
+				if current_threshold > 60 * 5:
+					s = "Watchdog reached the maximum threshold of 5 hours"
+					print(str(datetime.now()) + " " + s)
+					send_telegram_message(s)
+					sys.exit(0)
+
 
 	except Exception as e:
 		process.terminate()
@@ -73,11 +96,3 @@ def run(current_threshold, check_interval, log_filename):
 		s = "Watchdog terminated by exception: " + str(e)
 		print(str(datetime.now()) + " " + s)
 		send_telegram_message(s)
-
-
-
-if __name__ == '__main__':
-	while True:
-		run(1, 20, 'benchmark_output.log')
-
-

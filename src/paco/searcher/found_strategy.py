@@ -2,7 +2,7 @@ import enum
 import random
 import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.optimizer.pareto import get_min_dominated_impacts, get_max_dominating_vectors
+from paco.evaluations.pareto import get_min_dominated_impacts, get_max_dominating_vectors
 from paco.parser.parse_node import Choice, Nature
 
 '''
@@ -115,9 +115,9 @@ def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray, typeSearch:
 		if frontier_solution is None:
 			tested_frontier_solution.extend(chose_frontier)
 			frontier_solution_bottom_up.extend(new_frontier_solution_bottom_up)
-			frontier_solution_bottom_up = get_max_dominating_vectors(frontier_solution_bottom_up)
+			#frontier_solution_bottom_up = get_max_dominating_vectors(frontier_solution_bottom_up)
 			frontier_solution_top_down.extend(new_frontier_solution_top_down)
-			frontier_solution_top_down = get_min_dominated_impacts(frontier_solution_top_down)
+			#frontier_solution_top_down = get_min_dominated_impacts(frontier_solution_top_down)
 		else:
 			return frontier_solution, new_frontier_solution, new_frontier_solution_bottom_up, new_frontier_solution_top_down
 

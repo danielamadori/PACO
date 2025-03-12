@@ -54,3 +54,10 @@ RESOLUTION = 300
 # STRATEGY 
 STRATEGY = 'strategy'
 BOUND = 'bound'
+
+
+
+# Experiments
+BENCHMARKS_DB = 'benchmarks.sqlite'
+LOG_FILENAME = 'benchmark_output.log'
+TELEGRAM_CONFIG = "experiments/telegram/telegram_config.json"

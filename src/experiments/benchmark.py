@@ -1,13 +1,12 @@
 import sqlite3
 from datetime import datetime
 from experiments.experiment import single_execution
-from experiments.read import read_cpi_bundles
+from experiments.etl.read import read_cpi_bundles
 import signal
 import sys
 import time
-from experiments.telegram_bot import send_telegram_message
-
-BENCHMARKS_DB = 'benchmarks.sqlite'
+from experiments.telegram.telegram_bot import send_telegram_message
+from utils.env import BENCHMARKS_DB
 
 conn = sqlite3.connect(BENCHMARKS_DB)
 cursor = conn.cursor()
@@ -71,13 +70,13 @@ def run_benchmarks():
                         s = f"No bundle found for x={x}, y={y}"
                         print(str(datetime.now()) + " " + s)
                         send_telegram_message(s)
+                    else:
+                        for w in range(0, len(bundle)):
+                            single_execution(cursor, conn, x, y, w, bundle)
 
-                    for w in range(0, len(bundle)):
-                        single_execution(cursor, conn, x, y, w, bundle)
-
-                        if time.time() - last_time > 1:
-                            last_time = time.time()
-                            send_telegram_message(f"x={x}, y={y}, w={w} Done")
+                            if time.time() - last_time > 1:
+                                last_time = time.time()
+                                send_telegram_message(f"x={x}, y={y}, w={w} Done")
 
     except Exception as e:
         print(str(datetime.now()) + f" Error during benchmark: {str(e)}")
