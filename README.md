@@ -77,6 +77,19 @@ To start the application using Docker, follow these steps:
 ---
 NB! This application is currently under development. There may be some issues and bugs.
 
+## Test
+
+To run the tests, you can use the following command:
+Linux:
+   ```bash
+   chmod +x run_experiments.sh
+   ./run_experiments.sh
+   ```
+Windows:
+   ```batch
+   .\run_experiments.bat
+   ```
+
 ## Authors
 
 * **Daniel Amadori**
