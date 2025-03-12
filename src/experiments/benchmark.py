@@ -1,16 +1,23 @@
 import sqlite3
+from datetime import datetime
 from experiments.experiment import single_execution
 from experiments.read import read_cpi_bundles
 import signal
 import sys
+import time
+from experiments.telegram_bot import send_telegram_message
 
 BENCHMARKS_DB = 'benchmarks.sqlite'
-conn = None
+
+conn = sqlite3.connect(BENCHMARKS_DB)
+cursor = conn.cursor()
+
 
 def handle_termination(signum, frame):
-    conn.close()
     print("Termination signal received. Closing database connection.")
+    conn.close()
     sys.exit(0)
+
 
 def run_benchmarks():
     global conn
@@ -48,7 +55,9 @@ def run_benchmarks():
     ''')
     conn.commit()
 
-    print("Starting benchmark...")
+    print(str(datetime.now()) + " Starting benchmark...")
+
+    last_time = time.time() + 10
 
     try:
         for k in range(2, 20):
@@ -59,17 +68,24 @@ def run_benchmarks():
                     bundle = read_cpi_bundles(x=1, y=6)
 
                     if not bundle:
-                        print(f"No bundle found for x={x}, y={y}")
+                        s = f"No bundle found for x={x}, y={y}"
+                        print(str(datetime.now()) + " " + s)
+                        send_telegram_message(s)
 
                     for w in range(0, len(bundle)):
                         single_execution(cursor, conn, 1, 6, w, bundle)
 
+                        if time.time() - last_time > 1:
+                            last_time = time.time()
+                            send_telegram_message(f"x={x}, y={y}, w={w} Done")
+
+
                     return
     except Exception as e:
-        print(f"Error during benchmark: {str(e)}")
+        print(str(datetime.now()) + f" Error during benchmark: {str(e)}")
         conn.rollback()
 
 if __name__ == '__main__':
     run_benchmarks()
     conn.close()
-    print("Benchmark completed.")
+    print(str(datetime.now()) + " Benchmark completed.")

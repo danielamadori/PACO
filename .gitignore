@@ -18,3 +18,5 @@ src/CPIs/
 src/experiments/CPIs/
 
 src/experiments/benchmark_output.log
+
+src/experiments/benchmarks.sqlite
