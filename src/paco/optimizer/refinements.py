@@ -57,7 +57,7 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 	metadata["found_strategy_time"] = cumulative_found_strategy_time
 
 	if final_frontier_solution is None:
-		raise ValueError("No solution found, bounds: " + str(bounds))
+		raise Exception("No solution found, bounds: " + str(bounds))
 
 	t = datetime.now()
 	_, strategy = build_strategy(final_frontier_solution)

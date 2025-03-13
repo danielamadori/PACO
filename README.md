@@ -39,21 +39,31 @@ To install **Python**, follow the instructions on [Python's official website](ht
 ## Quick Start
 
 ### Using Python
-
 To start the application using Python, follow these steps:
-
-1. Ensure all dependencies are installed:
+1. **Environment Setup**
+- **Using Conda**
+    ```bash
+    conda create --name paco python=3.12
+    conda activate paco
+    ```
+- **Using venv**
+  ```bash
+  python3.12 -m venv paco_env
+  source paco_env/bin/activate  # On macOS/Linux
+  paco_env\Scripts\activate     # On Windows
+  ```
+2. **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
-2. Run the PACO server:
+3. Run the **PACO server**:
     ```bash
     python3 src
     ```
    Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
 
-3. Run the jupyter notebook:
+3. Run the **jupyter notebook**:
     ```bash
     jupyter notebook --port=8888
     ```
@@ -76,6 +86,23 @@ To start the application using Docker, follow these steps:
 
 ---
 NB! This application is currently under development. There may be some issues and bugs.
+
+
+## Running Benchmark
+Ensure that all dependencies are installed and the environment is correctly set up before running the tests.
+
+**Run the script**
+- Linux
+    ```bash
+    chmod +x run_benchmark.sh
+    ./run_benchmark.sh
+    ```
+- Windows
+    ```batch
+    .\run_benchmark.bat
+    ```
+
+These scripts will execute a series of tests to validate the functionality of the application. 
 
 ## Authors
 

@@ -49,6 +49,7 @@ def run_benchmarks():
             strategy_tree_time REAL,
             initial_bounds TEXT,
             final_bounds TEXT,
+            error TEXT,
             PRIMARY KEY (x, y, w)
         )
     ''')
