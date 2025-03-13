@@ -13,3 +13,5 @@ json_input = {
 }
 
 json_results = json_to_paco(json_input)
+
+print(json_results)

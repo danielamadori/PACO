@@ -37,9 +37,24 @@ class Bdd:
 			"choice": self.choice.id,
 			"class_0": self.class_0.id,
 			"class_1": self.class_1.id if self.class_1 is not None else None,
-			#"nodes": [node.to_dict() for node in self.nodes] if self.nodes is not None else None
-			"typeStrategy": self.typeStrategy
+			"typeStrategy": self.typeStrategy,
+			"root": self.root.to_dict() if self.root else None,
+			"nodes": [node.to_dict() for node in self.nodes] if self.nodes else None,
 		}
+
+	@staticmethod
+	def from_dict(data: dict, parseTreeNodes: dict) -> 'Bdd':
+		choice = parseTreeNodes[data["choice"]]
+		class_0 = parseTreeNodes[data["class_0"]]
+		class_1 = parseTreeNodes[data["class_1"]] if data["class_1"] is not None else None
+		typeStrategy = data["typeStrategy"]
+		#TODO refactoring
+		bdd = Bdd(choice, class_0, class_1, [], [], [], typeStrategy)
+		if class_1 is not None:
+			bdd.nodes = {DagNode.from_dict(node_data, parseTreeNodes) for node_data in data["nodes"]} if data["nodes"] else set()
+			bdd.root = DagNode.from_dict(data["root"], parseTreeNodes) if data["root"] else None
+
+		return bdd
 
 	def transitions_str(self):
 		result = ""

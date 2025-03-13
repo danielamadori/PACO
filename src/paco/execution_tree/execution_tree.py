@@ -4,6 +4,7 @@ from jsonschema import validate, ValidationError
 from graphviz import Source
 
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
+from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.strategy_view_point import StrategyViewPoint
 from paco.parser.parse_node import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
@@ -61,6 +62,10 @@ class ExecutionTree:
 			)
 
 		elif tree_type == "StrategyViewPoint":
+			explained_choices = {
+				parseTreeNodes[int(choice_id)]: Bdd.from_dict(bdd, parseTreeNodes)  for choice_id, bdd in node_data['explained_choices'].items()
+			} if 'explained_choices' in node_data else {}
+
 			viewPoint = StrategyViewPoint(
 				id=id, states=states, decisions=decisions, choices=choices,
 				natures=natures, is_final_state=is_final_state,
@@ -68,7 +73,8 @@ class ExecutionTree:
 				probability=probability, impacts=impacts,
 				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
 				expected_time=np.float64(node_data['expected_time']),
-				pending_choices=pending_choices, pending_natures=pending_natures
+				pending_choices=pending_choices, pending_natures=pending_natures,
+				explained_choices = explained_choices
 			)
 			'''
 			TODO

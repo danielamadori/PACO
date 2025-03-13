@@ -104,3 +104,29 @@ class DagNode:
 				break
 
 		return target_t, target_f
+
+	def to_dict(self):
+		return {
+			"index": list(self.index),
+			"class_0": self.class_0.id if self.class_0 else None,
+			"class_1": self.class_1.id if self.class_1 else None,
+			"splittable": self.splittable,
+			"edges": [(target.index, list(edge)) for target, edge in self.edges.items()],
+			"best_test": self.best_test if self.best_test else None,
+			"df": self.df.to_json() if self.df is not None else None,
+		}
+
+	@staticmethod
+	def from_dict(data, parseTreeNodes):
+		"""Creates a DagNode instance from a dictionary."""
+		class_0 = parseTreeNodes[data["class_0"]] if data["class_0"] is not None else None
+		class_1 = parseTreeNodes[data["class_1"]] if data["class_1"] is not None else None
+		df = pd.read_json(data["df"]) if data["df"] is not None else pd.DataFrame()
+
+		node = DagNode(df, class_0, class_1)
+		node.index = frozenset(data["index"])
+		node.splittable = data["splittable"]
+		node.best_test = data["best_test"]
+		node.edges = {parseTreeNodes[target]: set(edge) for target, edge in data["edges"]} if data["edges"] else {}
+
+		return node

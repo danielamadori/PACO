@@ -78,7 +78,6 @@ class StrategyViewPoint(ViewPoint):
 		label += "\", shape=rect];\n"
 		return self.dot_str(full=False) + "__description", label
 
-
 	def to_dict(self) -> dict:
 		base = super().to_dict()
 		base.update({
@@ -90,3 +89,5 @@ class StrategyViewPoint(ViewPoint):
 			"explained_choices": {choice.id: None if bdd is None else bdd.to_dict() for choice, bdd in self.explained_choices.items()}
 		})
 		return base
+
+
