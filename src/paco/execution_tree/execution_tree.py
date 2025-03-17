@@ -39,7 +39,7 @@ class ExecutionTree:
 		return json.dumps(self.to_dict(), indent=2)
 
 	@staticmethod
-	def create_tree(node_data: dict, tree_type:str, parseTreeNodes:dict, impacts_names:list, parent = None) -> 'ExecutionTree':
+	def create_tree(node_data: dict, tree_type:str, parseTree:'ParseTree', parseTreeNodes:dict, impacts_names:list, parent = None) -> 'ExecutionTree':
 		id = node_data['id']
 		states = States.from_dict(node_data['states'], parseTreeNodes)
 		decisions = tuple([parseTreeNodes[decision] for decision in node_data['decisions']])
@@ -66,10 +66,9 @@ class ExecutionTree:
 				parseTreeNodes[int(choice_id)]: Bdd.from_dict(bdd, parseTreeNodes)  for choice_id, bdd in node_data['explained_choices'].items()
 			} if 'explained_choices' in node_data else {}
 
-			viewPoint = StrategyViewPoint(
+			viewPoint = StrategyViewPoint(bpmn_root=parseTree.root,
 				id=id, states=states, decisions=decisions, choices=choices,
-				natures=natures, is_final_state=is_final_state,
-				impacts_names=impacts_names, parent=parent,
+				natures=natures, is_final_state=is_final_state, parent=parent,
 				probability=probability, impacts=impacts,
 				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
 				expected_time=np.float64(node_data['expected_time']),
@@ -88,7 +87,7 @@ class ExecutionTree:
 		viewPoint.transitions = {}
 		for key, transition_data in node_data.get("transitions", {}).items():
 			viewPoint.add_child(
-				ExecutionTree.create_tree(transition_data, tree_type, parseTreeNodes, impacts_names, tree))
+				ExecutionTree.create_tree(transition_data, tree_type, parseTree, parseTreeNodes, impacts_names, tree))
 		'''
 		for key, transition_data in node_data.get("transitions", {}).items():
 			try:
@@ -109,7 +108,7 @@ class ExecutionTree:
 		#TODO validation
 		#validate_json(data)
 		parseTreeNodes = parseTree.root.to_dict_id_node()
-		return ExecutionTree.create_tree(data, data['type'], parseTreeNodes, impacts_names)
+		return ExecutionTree.create_tree(data, data['type'], parseTree, parseTreeNodes, impacts_names)
 
 
 
