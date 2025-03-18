@@ -1,8 +1,9 @@
+import json
 from datetime import datetime
 from paco.explainer.explain_strategy import explain_strategy
 from paco.explainer.full_strategy import full_strategy
 from paco.explainer.explanation_type import ExplanationType
-from paco.explainer.strategy_tree import write_strategy_tree
+from paco.explainer.strategy_tree import write_strategy_tree, bdds_to_json, bdds_from_json
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
@@ -20,8 +21,8 @@ def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dic
 
     s = f": {worst_type_strategy}"
     if type_strategy == ExplanationType.HYBRID:
-        s = f"with worst type of choice{s}\n"
-    print(f"{t1} Strategy {s}"+ "".join(f"{choice.name}:\t{bdd.typeStrategy}\n" for choice, bdd in bdds.items()))
+        s = f"with worst type of choice{s}"
+    print(f"{t1} Strategy {s}\nname\t type\t\n"+ "".join(f"{choice.name}:\t{bdd.typeStrategy}\n" for choice, bdd in bdds.items()))
 
     print(f'{t1} StrategyTree: ')
     t = datetime.now()
@@ -33,8 +34,5 @@ def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dic
 
     print(f"Strategy Expected Impacts: {expected_impacts}\nStrategy Expected Time: {expected_time}")
     #write_strategy_tree(strategy_tree)
-    tmp = strategy_tree.to_dict()
-
-    tmp2 = ExecutionTree.from_json(parse_tree, tmp, impacts_names)
 
     return strategy_tree, expected_impacts, expected_time, bdds, times

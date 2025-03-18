@@ -20,7 +20,8 @@ class ExecutionTree:
 		return result[0] + result[1]
 
 	def to_dict(self) -> dict:
-		dictionary = {"type": self.root.__class__.__name__}
+		root_type = self.root.__class__.__name__
+		dictionary = {"type": root_type}
 		dictionary.update(self.root.to_dict())
 		return dictionary
 
@@ -39,7 +40,7 @@ class ExecutionTree:
 		return json.dumps(self.to_dict(), indent=2)
 
 	@staticmethod
-	def create_tree(node_data: dict, tree_type:str, parseTree:'ParseTree', parseTreeNodes:dict, impacts_names:list, parent = None) -> 'ExecutionTree':
+	def create_tree(node_data: dict, tree_type:str, parseTree:'ParseTree', parseTreeNodes:dict, impacts_names:list, explained_choices:dict[ParseNode:Bdd]={}, parent = None) -> 'ExecutionTree':
 		id = node_data['id']
 		states = States.from_dict(node_data['states'], parseTreeNodes)
 		decisions = tuple([parseTreeNodes[decision] for decision in node_data['decisions']])
@@ -62,10 +63,6 @@ class ExecutionTree:
 			)
 
 		elif tree_type == "StrategyViewPoint":
-			explained_choices = {
-				parseTreeNodes[int(choice_id)]: Bdd.from_dict(bdd, parseTreeNodes)  for choice_id, bdd in node_data['explained_choices'].items()
-			} if 'explained_choices' in node_data else {}
-
 			viewPoint = StrategyViewPoint(bpmn_root=parseTree.root,
 				id=id, states=states, decisions=decisions, choices=choices,
 				natures=natures, is_final_state=is_final_state, parent=parent,
@@ -73,12 +70,9 @@ class ExecutionTree:
 				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
 				expected_time=np.float64(node_data['expected_time']),
 				pending_choices=pending_choices, pending_natures=pending_natures,
-				explained_choices = explained_choices
+				explained_choices ={choice: bdd
+									for choice, bdd in explained_choices.items() if choice in choices}
 			)
-			'''
-			TODO
-			self.explained_choices: dict[ParseNode:Bdd]
-			'''
 
 		else:
 			raise ValueError(f"Unsupported type: {tree_type}")
@@ -87,28 +81,19 @@ class ExecutionTree:
 		viewPoint.transitions = {}
 		for key, transition_data in node_data.get("transitions", {}).items():
 			viewPoint.add_child(
-				ExecutionTree.create_tree(transition_data, tree_type, parseTree, parseTreeNodes, impacts_names, tree))
-		'''
-		for key, transition_data in node_data.get("transitions", {}).items():
-			try:
-				print(f"Key: {key}, type key: {type(key)}")
-				transition_tuple = ast.literal_eval(key)
-				print(f"Transition: {transition_tuple}, type transition: {type(transition_tuple)}")
-				
-				viewPoint.transitions[transition_tuple] = ExecutionTree.create_node(transition_data, tree_type, parseTreeNodes, impacts_names, tree)
-			except (SyntaxError, ValueError) as e:
-				raise ValueError(f"Invalid transition key format: {key}") from e
-		'''
+				ExecutionTree.create_tree(transition_data, tree_type, parseTree, parseTreeNodes, impacts_names, explained_choices, tree))
+
 		return tree
 
 	@staticmethod
-	def from_json(parseTree: 'ParseTree', data, impacts_names: list) -> 'ExecutionTree':
+	def from_json(parseTree: 'ParseTree', explained_choices:dict[ParseNode:Bdd], data, impacts_names: list) -> 'ExecutionTree':
 		if isinstance(data, str):
 			data = json.loads(data)
 		#TODO validation
 		#validate_json(data)
 		parseTreeNodes = parseTree.root.to_dict_id_node()
-		return ExecutionTree.create_tree(data, data['type'], parseTree, parseTreeNodes, impacts_names)
+
+		return ExecutionTree.create_tree(data, data['type'], parseTree, parseTreeNodes, impacts_names, explained_choices)
 
 
 

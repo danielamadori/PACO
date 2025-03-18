@@ -1,4 +1,7 @@
+import json
 import os
+
+from paco.explainer.bdd.bdd import Bdd
 from paco.saturate_execution.next_state import next_state
 from paco.saturate_execution.states import States, ActivityState
 from paco.saturate_execution.step_to_saturation import steps_to_saturation
@@ -47,6 +50,26 @@ def saturate_execution(region_tree: ParseTree, states: States, pending_choices:s
 			return states, False, choices, natures, pending_choices, pending_natures
 
 	return states, True, [], [], pending_choices, pending_natures
+
+
+
+
+
+def bdds_from_json(parseTree: 'ParseTree', data) -> dict[ParseNode:Bdd]:
+	if isinstance(data, str):
+		data = json.loads(data)
+
+	parseTreeNodes = parseTree.root.to_dict_id_node()
+	return {parseTreeNodes[int(choice_id)]: Bdd.from_dict(bdd_data, parseTreeNodes)
+							 for choice_id, bdd_data in data.items()}
+
+
+def bdds_to_dict(bdds: dict[ParseNode:Bdd]) -> dict[int, dict]:
+	return {choice.id: bdd.to_dict() for choice, bdd in bdds.items()}
+
+def bdds_to_json(bdds: dict[ParseNode:Bdd]) -> str:
+	return json.dumps(bdds_to_dict(bdds), indent=2)
+
 
 
 def write_strategy_tree(solution_tree: ExecutionTree):

@@ -1,8 +1,12 @@
+import gzip
 from datetime import datetime
 import os
+
+from fastapi.encoders import jsonable_encoder
+
 from agent import define_agent
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 import json
 from pydantic import BaseModel
 from typing import List, Dict, Optional
@@ -254,9 +258,12 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
             }
 
             json_output = json_to_paco(json_input)
-            print(type(json_output))#Is a string
+            enc = jsonable_encoder(json_output)
+            with open('server.json', 'w') as f:
+                json.dump(json_output, f, indent=4)
 
-            return json_output
+            return enc
+            #return JSONResponse(content=json.loads(json.dumps(json_output, default=str)))
         # elif request.algo == list(ALGORITHMS.keys())[1]:
         #     text_result, found, choices = None, None, None, None
         # elif request.algo == list(ALGORITHMS.keys())[2]:
@@ -266,6 +273,7 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
                 
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/create_execution_tree")
 async def get_execution_tree(bpmn:BPMNDefinition = None) -> dict:

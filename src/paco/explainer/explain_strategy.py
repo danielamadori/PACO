@@ -6,23 +6,22 @@ from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType, write_bdd=False, write_decision_tree=False) -> Bdd:
-	decisions = list(decisions)
-	decision_0 = decisions[0]
-	decision_1 = None
+def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType) -> Bdd:
+	if len(decisions) == 0:
+		raise Exception(f"explain_choice:Choice {choice.name} has no decisions")
+	elif len(decisions) > 2:
+		raise Exception(f"explain_choice:Choice {choice.name} has more than 2 decisions")
+
 	is_unavoidable_decision = len(decisions) == 1
-	if not is_unavoidable_decision:
-		decision_1 = decisions[1]
+	if is_unavoidable_decision:
+		decisions.append(None)
 
-	bdd = Bdd(choice, decision_0, decision_1, impacts, labels, features_names, typeStrategy)
+	bdd = Bdd(choice, decisions[0], decisions[1], typeStrategy,
+			  impacts=impacts, labels=labels, features_names=features_names)
 
-	success = True
-	if not is_unavoidable_decision:
-		success = bdd.build(write=write_decision_tree)
-	if success and write_bdd:
-		bdd.bdd_to_file()
-	elif not success:
-		bdd = None
+	is_separable = bdd.build(debug=True) #Debug write on files
+	if not is_separable:
+		return None
 
 	return bdd
 

@@ -7,28 +7,24 @@ from paco.saturate_execution.states import States
 
 class StrategyViewPoint(ViewPoint):
 	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],
-				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = None):
+				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = {}):
 		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), pending_choices, pending_natures, parent)
 
 		self.probability = probability
 		self.impacts = impacts
 		self.executed_time = states.executed_time[bpmn_root]
+		self.explained_choices = explained_choices
 
-		if explained_choices is None:
-			# Each choice is a key and the value is the bdd (None if arbitrary)
-			self.explained_choices: dict[ParseNode:Bdd] = {choice: None for choice in choices}
-			# initially all choices are arbitrary, will be updated using make_decisions
 		if expected_impacts is None or expected_time is None:
 			self.expected_impacts = probability * impacts
 			self.expected_time = probability * self.executed_time
-
 
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
 		result = super().common_dot_str(full, state, executed_time, previous_node)
 		if full:
 			#print(f"ID: {self.id}, choice: ", len(self.choices), "natures: ", len(self.natures))
-			choices_number = len(self.explained_choices)
+			choices_number = len(self.choices)
 			natures_number = len(self.natures)
 			if choices_number > 0 and natures_number == 0:
 				result += "style=filled, fillcolor=\"orange\""
@@ -56,12 +52,18 @@ class StrategyViewPoint(ViewPoint):
 		if nature_label != "":
 			label += "Actual Nature: " + nature_label[:-2] + "\n"
 
-		if len(self.pending_choices) + len(self.explained_choices) > 0:
+		if len(self.pending_choices) + len(self.choices)  > 0:
 			choice_label = ""
-			for choice, bdd in self.explained_choices.items():
-				choice_label += f"{choice.name}: {'arbitrary' if bdd is None else str(bdd.typeStrategy).replace("_", " ").lower()}\n"
+			for choice in self.choices:
+				choice_label += f"{choice.name}: "
+				if choice in self.explained_choices:
+					bdd = self.explained_choices[choice]
+					choice_label += str(bdd.typeStrategy).replace("_", " ").lower()
+				else:
+					choice_label += 'arbitrary'
+
 			if choice_label != "":
-				label += "Actual Choice:\n" + choice_label
+				label += "Actual Choice:\n" + choice_label + "\n"
 
 			choice_label = ""
 			for choice in self.pending_choices:
@@ -85,9 +87,6 @@ class StrategyViewPoint(ViewPoint):
 			"impacts": self.impacts.tolist(),
 			"executed_time": self.executed_time,
 			"expected_impacts": self.expected_impacts.tolist(),
-			"expected_time": self.expected_time,
-			"explained_choices": {choice.id: None if bdd is None else bdd.to_dict() for choice, bdd in self.explained_choices.items()}
+			"expected_time": self.expected_time
 		})
 		return base
-
-
