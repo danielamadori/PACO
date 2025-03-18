@@ -260,10 +260,10 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
             json_output = json_to_paco(json_input)
             enc = jsonable_encoder(json_output)
             with open('server.json', 'w') as f:
-                json.dump(json_output, f, indent=4)
+                json.dump(enc, f, indent=4)
 
             return enc
-            #return JSONResponse(content=json.loads(json.dumps(json_output, default=str)))
+
         # elif request.algo == list(ALGORITHMS.keys())[1]:
         #     text_result, found, choices = None, None, None, None
         # elif request.algo == list(ALGORITHMS.keys())[2]:
@@ -295,19 +295,19 @@ async def get_execution_tree(bpmn:BPMNDefinition = None) -> dict:
         return HTTPException(status_code=400, detail="Invalid input")
     try:
         bpmn = dict(bpmn) 
-        bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])       
+        bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
         parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn)
 
-        results = {
-            "parse_tree": parse_tree.to_json(),
-            "execution_tree": execution_tree.to_json()
-        }
-        results.update(times)
-        return results
+        return {"parse_tree": parse_tree.to_dict(),
+                "execution_tree": execution_tree.to_dict(),
+                "times": times}
 
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
+
+
+#TODO ask Emanuele
 @app.get("/get_parse_tree")
 async def get_parse_tree() -> JSONResponse:
     """
@@ -322,7 +322,9 @@ async def get_parse_tree() -> JSONResponse:
         return JSONResponse(content=parse_tree_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))  
-     
+
+
+#TODO Daniel
 @app.get("/search_only_strategy")
 async def search_strategy(
     impacts_names: list[str], execution_tree:str,
@@ -402,6 +404,8 @@ async def search_strategy(
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
+
+#TODO Daniel
 @app.get("/explainer")
 async def get_explainer(
     parse_tree: dict, impacts_names: list[str], strategy: dict = {}, type_explainer: int = 3) -> dict:
@@ -516,6 +520,7 @@ async def get_chat_history(session_id: str) -> list:
 #------------------------------------------------------
 #           EXCECUTION TREES
 #------------------------------------------------------
+#TODO ask Emanuele
 @app.get("/get_execution_tree_state")
 async def get_execution_tree_state() -> FileResponse:
     """

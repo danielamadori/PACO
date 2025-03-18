@@ -86,7 +86,7 @@ class ExecutionTree:
 		return tree
 
 	@staticmethod
-	def from_json(parseTree: 'ParseTree', explained_choices:dict[ParseNode:Bdd], data, impacts_names: list) -> 'ExecutionTree':
+	def from_json(parseTree: 'ParseTree', data, impacts_names: list, explained_choices:dict[ParseNode:Bdd]={}) -> 'ExecutionTree':
 		if isinstance(data, str):
 			data = json.loads(data)
 		#TODO validation

@@ -18,6 +18,9 @@ class StrategyViewPoint(ViewPoint):
 		if expected_impacts is None or expected_time is None:
 			self.expected_impacts = probability * impacts
 			self.expected_time = probability * self.executed_time
+		else:
+			self.expected_impacts = expected_impacts
+			self.expected_time = expected_time
 
 
 	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
