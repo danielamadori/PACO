@@ -1,13 +1,11 @@
 from datetime import datetime
 import numpy as np
-
-from paco.searcher.create_execution_tree import write_execution_tree
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.searcher.found_strategy import found_strategy
 from paco.searcher.build_strategy import build_strategy
 
 
-def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list, search_only: bool):
+def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list, search_only: bool, debug=False):
     times = {}
 
     #print(f"{datetime.now()} FoundStrategy:")
@@ -23,7 +21,10 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
         return None, None, possible_min_solution, frontier_values, [], times
 
     print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{expected_impacts}")
-    #write_execution_tree(execution_tree, frontier_solution)
+    if debug:
+        execution_tree.save_dot(
+            state=True, executed_time=True, diff=False,
+            frontier = {tree.root.id for tree in frontier_solution})
 
     if search_only:
         return frontier_solution, expected_impacts, possible_min_solution, frontier_values, None, times

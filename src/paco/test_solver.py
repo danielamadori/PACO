@@ -145,6 +145,7 @@ bpmn_new_example = {
 }
 
 bpmn_ex = {
+    # In Notebook
     "loop_example":  [{
         TASK_SEQ: "T1, <[L1] T2 >",
         H: 0,
@@ -337,15 +338,6 @@ bpmn_paper_example = {
         IMPACTS_NAMES: ["electric energy", "worker hours"],
         PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"}, DELAYS: {"C1": 0, "C2": 0},LOOP_PROB : {}, LOOP_ROUND: {}
         }, [135, 9]], #[135, 7]
-    #TODO loops
-    "loop": [{
-        TASK_SEQ: "(T1, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))))",
-        H: 0,
-        IMPACTS: {"T1": [10, 1], "Bending": [20, 1], "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1], "FD": [30, 1], "RD": [10, 1]},
-        DURATIONS: {"T1": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1]},
-        IMPACTS_NAMES: ["electric energy", "worker hours"],
-        PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "N1": "N1"}, DELAYS: {"C1": 0},LOOP_PROB : {}, LOOP_ROUND: {}
-    }, [100, 7]],
     "Explainer Figure": [{
         TASK_SEQ: "((t0p0 ^[p0] t1p0), (t0p5 /[p5] t1p5), (tp11, (t0p13 /[p13] t1p13),(t0p24 /[p24] t1p24) || (t0p12, tp20, (t0p22 ^[p22] t1p22) ^[p12] t1p12, tp21, (t0p23 ^ [p23] t1p23) ) ) )",
         H: 0,

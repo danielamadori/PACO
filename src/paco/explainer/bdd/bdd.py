@@ -6,7 +6,7 @@ import pandas as pd
 from paco.explainer.bdd.dag_node import DagNode
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_node import ParseNode, Sequential, Parallel, Choice, Nature, Task
-from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_EXPLAINER_BDD
+from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_BDD
 
 
 class Bdd:
@@ -38,7 +38,7 @@ class Bdd:
 		return "{" + result[:-2] + "}"
 
 	def to_dict(self):
-		tmp = {
+		return {
 			"choice": self.choice.id,
 			"class_0": self.class_0.id,
 			"class_1": self.class_1.id if self.class_1 is not None else None,
@@ -46,13 +46,8 @@ class Bdd:
 			"dot": self.dot,
 		}
 
-		print("Bdd:to_dict: ", tmp)
-
-		return tmp
-
 	@staticmethod
 	def from_dict(data: dict, parseTreeNodes: dict):
-		print("Bdd:from_dict: ", data)
 		choice = parseTreeNodes[data['choice']]
 		class_0 = parseTreeNodes[data['class_0']]
 		class_1 = parseTreeNodes[data['class_1']] if data['class_1'] is not None else None
@@ -157,10 +152,10 @@ class Bdd:
 					node.best_test = test
 			node.visited = True
 
-	def build(self, debug=False):#Debug write on files
+	def build(self, debug=False):
 		print(f"Bdd:build:choice:{self.choice.name} typeStrategy: {self.typeStrategy}")
 		if self.typeStrategy == ExplanationType.FORCED_DECISION:
-			self.dot = self.bdd_to_dot(debug=debug)
+			self.dot = self.bdd_to_dot()
 			return True
 
 		print("Root: ", self.root)
@@ -179,15 +174,15 @@ class Bdd:
 			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
 			if debug:
-				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
+				self.save_dag(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
 			i += 1
 
 		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
 		if debug:
-			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
+			self.save_dag(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
 
-		self.dot = self.bdd_to_dot(debug=False)
+		self.dot = self.bdd_to_dot()
 		return True
 
 
@@ -254,7 +249,7 @@ class Bdd:
 
 		return dot
 
-	def dag_to_file(self, file_path:str):
+	def save_dag(self, file_path:str):
 		dot = self.dag_to_dot()
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
@@ -281,7 +276,7 @@ class Bdd:
 
 		return f"({node.best_test[0]} < {node.best_test[1]} ? {left_bdd} : {right_bdd})"
 
-	def bdd_to_dot(self, debug=False) -> str:
+	def bdd_to_dot(self) -> str:
 		dot = graphviz.Digraph()
 
 		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="orange")
@@ -293,12 +288,20 @@ class Bdd:
 			dot.node(label, label=label, shape="box", style="filled", color=Bdd.get_decision_color(self.class_0))
 			dot.edge(str(self.choice), label, label="True", style='')
 
-		if debug:
-			s = PATH_EXPLAINER_BDD + "_" + self.choice.name
-			dot.save(s + '.dot')
-			dot.render(filename=s, format='svg')
-
 		return dot.source
+
+	def save_bdd(self, outfile:str = ""):
+		if outfile == "":
+			outfile = PATH_BDD + "_" + self.choice.name
+
+		directory = os.path.dirname(outfile)
+		if directory:
+			os.makedirs(directory, exist_ok=True)
+
+		dot = self.bdd_to_dot()
+		with open(outfile + ".svg", "wb") as f:
+			f.write(graphviz.Source(dot).pipe(format="svg"))
+
 
 	@staticmethod
 	def get_decision_color(decision: ParseNode):

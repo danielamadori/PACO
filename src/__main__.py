@@ -1,9 +1,5 @@
-import gzip
 from datetime import datetime
-import os
-
 from fastapi.encoders import jsonable_encoder
-
 from agent import define_agent
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -11,14 +7,17 @@ import json
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import numpy as np
+
+from paco.execution_tree.execution_tree import ExecutionTree
+from paco.explainer.bdd.bdds import bdds_to_dict
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.parser.create import create
 from paco.searcher.search import search
-from paco.parser.bpmn_parser import SESE_PARSER
+from paco.parser.bpmn_parser import SESE_PARSER, create_parse_tree
 from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_tree import ParseTree
-from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME, PATH_EXPLAINER_BDD, PATH_EXPLAINER_DECISION_TREE, PATH_PARSE_TREE, PATH_STRATEGY_TREE_STATE, PATH_STRATEGY_TREE_STATE_TIME, PATH_STRATEGY_TREE_STATE_TIME_EXTENDED, PATH_STRATEGY_TREE_TIME, PROBABILITIES
+from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROB, NAMES, PATH_BDD, PATH_EXPLAINER_DECISION_TREE, PATH_PARSE_TREE, PROBABILITIES
 from paco.solver import paco, json_to_paco
 from utils.check_syntax import check_algo_is_usable, checkCorrectSyntax, check_input
 from fastapi.middleware.cors import CORSMiddleware
@@ -167,7 +166,6 @@ async def check_input_bpmn(bpmn: BPMNDefinition, bound: list[float]) -> tuple[st
     if not isinstance(bpmn, BPMNDefinition) or not isinstance(bound, list):
         return HTTPException(status_code=400, detail="Invalid input")
     try:
-
         check_input(dict(bpmn), bound)
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
@@ -252,17 +250,40 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
         return HTTPException(status_code=400, detail="The algorithm is not usable")       
     try:
         if request.algo == list(ALGORITHMS.keys())[0]:
-            json_input = {
-                "bpmn": bpmn,
-                "bound": str(request.bound)
+            bound = np.array(request.bound, dtype=np.float64)
+
+            text_result, result, times = paco(bpmn, bound)
+
+            result_dict = {
+                "result": text_result, "times": times,
+                "bpmn": result["bpmn"], "bound": str(result["bound"]),
+                "parse_tree": result["parse_tree"].to_dict(),
+                "execution_tree": result["execution_tree"].to_dict(),
+                "possible_min_solution": str([str(bound) for bound in result["possible_min_solution"]]),
+                "guaranteed_bounds": str([str(bound) for bound in result["guaranteed_bounds"]])
             }
 
-            json_output = json_to_paco(json_input)
-            enc = jsonable_encoder(json_output)
-            with open('server.json', 'w') as f:
-                json.dump(enc, f, indent=4)
+            x = result.get("expected_impacts")
+            y = result.get("frontier_solution")
+            if x is not None and y is not None:# Search Win
+                result_dict.update({
+                    "expected_impacts" : str(x),
+                    "frontier_solution" : str([execution_tree.root.id for execution_tree in y])
+                })
 
-            return enc
+            x = result.get("strategy_tree")
+            y = result.get("strategy_expected_impacts")
+            z = result.get("strategy_expected_time")
+            w = result.get("bdds")
+            if x is not None and y is not None and z is not None and w is not None: # Strategy Explained Done
+                result_dict.update({
+                    "strategy_tree": x.to_dict(),
+                    "strategy_expected_impacts": str(y),
+                    "strategy_expected_time": str(z),
+                    "bdds": bdds_to_dict(w)
+                })
+
+            return jsonable_encoder(result_dict)
 
         # elif request.algo == list(ALGORITHMS.keys())[1]:
         #     text_result, found, choices = None, None, None, None
@@ -274,6 +295,34 @@ async def calc_strategy_and_explainer(request: StrategyFounderAlgo, ) -> dict:
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/get_parse_tree")
+async def get_parse_tree(bpmn: BPMNDefinition = None) -> dict:
+    """
+    Get the execution tree.
+
+    Args:
+
+        bpmn (BPMNDefinition): The BPMN process.
+
+    Returns:
+        The parse tree.
+
+    Raises:
+        400: If the input is not valid, an exception is raised.
+        500: If an error occurs, an exception is raised.
+    """
+    if not isinstance(bpmn, BPMNDefinition) or bpmn == None:
+        return HTTPException(status_code=400, detail="Invalid input")
+    try:
+        bpmn = dict(bpmn)
+        bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
+        parse_tree, pending_choices, pending_natures = create_parse_tree(bpmn)
+
+        return {"parse_tree": parse_tree.to_dict()}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/create_execution_tree")
 async def get_execution_tree(bpmn:BPMNDefinition = None) -> dict:
@@ -305,30 +354,10 @@ async def get_execution_tree(bpmn:BPMNDefinition = None) -> dict:
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
-
-
-#TODO ask Emanuele
-@app.get("/get_parse_tree")
-async def get_parse_tree() -> JSONResponse:
-    """
-    Get the parse tree from a JSON file.
-
-    Returns:
-        JSONResponse: The parse tree data.
-    """
-    try:
-        with open(PATH_PARSE_TREE + '.json', "r") as file:
-            parse_tree_data = json.load(file)
-        return JSONResponse(content=parse_tree_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  
-
-
-#TODO Daniel
 @app.get("/search_only_strategy")
 async def search_strategy(
-    impacts_names: list[str], execution_tree:str,
-    bound: list[float], search_only: bool = False
+    bpmn: BPMNDefinition, bound: list[float], parse_tree:dict,
+        execution_tree:dict, search_only: bool = False
     ) -> dict:
     """
     calcolate ONLY the strategy.
@@ -347,65 +376,54 @@ async def search_strategy(
         400: If the input is not valid, an exception is raised.
         500: If an error occurs, an exception is raised.
     """
-    if not isinstance(bound, np.ndarray) or not isinstance(search_only, bool):
+    if not isinstance(bpmn, BPMNDefinition) or not isinstance(bound, list) or not isinstance(search_only, bool):
         return HTTPException(status_code=400, detail="Invalid input")
+
     try:
+        bpmn = dict(bpmn)
+        bound = np.array(bound, dtype=np.float64)
+        parse_tree, pending_choices, pending_natures = ParseTree.from_json(parse_tree, impact_size=len(bpmn[IMPACTS_NAMES]), non_cumulative_impact_size=0)
+        execution_tree = ExecutionTree.from_json(parse_tree, execution_tree, pending_choices, pending_natures)
 
-        expected_impacts, possible_min_solution, solutions, strategy, found_strategy_time, build_strategy_time = search(
-            execution_tree, bound, impacts_names, search_only
-        )
+        text_result, result, times = paco(bpmn, bound, parse_tree=parse_tree, execution_tree=execution_tree, search_only=search_only)
 
-        if expected_impacts is None:
-            text_result = ""
-            for i in range(len(possible_min_solution)):
-                text_result += f"Exp. Impacts {i}:\t{np.round(possible_min_solution[i], 2)}\n"
-            #print(f"Failed:\t\t\t{bpmn.impacts_names}\nPossible Bound Impacts:\t{bound}\n" + text_result)
-            text_result = ""
-            for i in range(len(solutions)):
-                text_result += f"Guaranteed Bound {i}:\t{np.ceil(solutions[i])}\n"
-
-            #print(str(datetime.now()) + " " + text_result)
-            return {
-                "text_result": text_result,
-                "expected_impacts": expected_impacts,
-                "possible_min_solution": possible_min_solution,
-                "solutions": solutions,
-                "strategy": [],
-                "found_strategy_time": found_strategy_time,
-                "build_strategy_time": build_strategy_time
-            }
-
-        if strategy is None:
-            text_result = f"Any choice taken will provide a winning strategy with an expected impact of: "
-            text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(impacts_names,  [item for item in expected_impacts]))
-            print(str(datetime.now()) + " " + text_result)
-            return {
-                "text_result": text_result,
-                "expected_impacts": expected_impacts,
-                "possible_min_solution": possible_min_solution,
-                "solutions": solutions,
-                "strategy": [],
-                "found_strategy_time": found_strategy_time,
-                "build_strategy_time": build_strategy_time
-            }
-        text_result = f"This is the strategy, with an expected impact of: "
-        text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(impacts_names,  [item for item in expected_impacts]))
-
-        return {
-            "text_result": text_result,
-            "expected_impacts": expected_impacts,
-            "possible_min_solution": possible_min_solution,
-            "solutions": solutions,
-            "strategy": strategy,
-            "found_strategy_time": found_strategy_time,
-            "build_strategy_time": build_strategy_time
+        result_dict = {
+            "result": text_result, "times": times,
+            "bpmn": result["bpmn"], "bound": str(result["bound"]),
+            "parse_tree": result["parse_tree"].to_dict(),
+            "execution_tree": result["execution_tree"].to_dict(),
+            "possible_min_solution": str([str(bound) for bound in result["possible_min_solution"]]),
+            "guaranteed_bounds": str([str(bound) for bound in result["guaranteed_bounds"]])
         }
+
+        x = result.get("expected_impacts")
+        y = result.get("frontier_solution")
+        if x is not None and y is not None:# Search Win
+            result_dict.update({
+                "expected_impacts" : str(x),
+                "frontier_solution" : str([execution_tree.root.id for execution_tree in y])
+            })
+
+        x = result.get("strategy_tree")
+        y = result.get("strategy_expected_impacts")
+        z = result.get("strategy_expected_time")
+        w = result.get("bdds")
+        if x is not None and y is not None and z is not None and w is not None: # Strategy Explained Done
+            result_dict.update({
+                "strategy_tree": x.to_dict(),
+                "strategy_expected_impacts": str(y),
+                "strategy_expected_time": str(z),
+                "bdds": bdds_to_dict(w)
+            })
+
+        return jsonable_encoder(result_dict)
 
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
 
 #TODO Daniel
+'''
 @app.get("/explainer")
 async def get_explainer(
     parse_tree: dict, impacts_names: list[str], strategy: dict = {}, type_explainer: int = 3) -> dict:
@@ -460,6 +478,9 @@ async def get_explainer(
         }
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
+
+'''
+
 
 #######################################################
 ###             LLMS API                            ###
@@ -621,7 +642,7 @@ async def get_explainer_bdd() -> FileResponse:
     """
     try:
         return FileResponse(
-            PATH_EXPLAINER_BDD+ '.svg', 
+            PATH_BDD + '.svg',
             media_type="image/svg", 
             filename="explainer_bdd.svg"
         )

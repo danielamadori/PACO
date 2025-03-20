@@ -16,6 +16,7 @@ def compare_bound(cei: np.ndarray, bound: np.ndarray):
 	#print("type cei:", cei.dtype, "type bound:", bound.dtype)
 	#return np.where(cei <= bound, 0, 1)
 	return np.where(cei <= bound + np.finfo(np.float64).eps*10, 0, 1) #TODO fix eps value
+	#TODO use numpy.allclose(a, b, rtol=1e-05, atol=1e-08, equal_nan=False)[source]
 
 
 class TypeSearch(enum.IntEnum):

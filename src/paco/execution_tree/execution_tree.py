@@ -1,4 +1,7 @@
 import json
+import os
+
+import graphviz
 import numpy as np
 from jsonschema import validate, ValidationError
 from graphviz import Source
@@ -8,7 +11,7 @@ from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.strategy_view_point import StrategyViewPoint
 from paco.parser.parse_node import ParseNode, Sequential, Parallel
 from paco.saturate_execution.states import States
-from utils.env import PATH_EXECUTION_TREE
+from utils.env import PATH_EXECUTION_TREE, PATH_STRATEGY_TREE
 
 
 class ExecutionTree:
@@ -28,13 +31,20 @@ class ExecutionTree:
 	def state_str(self):
 		return self.root.dot_str(state=True, executed_time=True, previous_node=None).split(' [')[0]
 
-	def save_dot(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
-		with open(path, 'w') as file:
-			file.write(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff))
+	def save_dot(self, outfile="", state: bool = True, executed_time: bool = False, diff: bool = True, frontier: set[int] = set()):
+		if outfile == "":
+			if isinstance(self.root, ExecutionViewPoint):
+				outfile = PATH_EXECUTION_TREE
+			else:
+				outfile = PATH_STRATEGY_TREE
 
-	def save_pdf(self, path, state: bool = True, executed_time: bool = False, diff: bool = True):
-		Source(self.init_dot_graph(state=state, executed_time=executed_time, diff=diff),
-			   format='pdf').render(path, cleanup=True)
+		directory = os.path.dirname(outfile)
+		if directory:
+			os.makedirs(directory, exist_ok=True)
+
+		dot = self.to_dot(state=state, executed_time=executed_time, diff=diff, frontier=frontier)
+		with open(outfile + ".svg", "wb") as f:
+			f.write(graphviz.Source(dot).pipe(format="svg"))
 
 	def to_json(self) -> str:
 		return json.dumps(self.to_dict(), indent=2)
@@ -98,11 +108,15 @@ class ExecutionTree:
 
 
 	def create_dot_graph(self, root: 'ExecutionViewPoint|StrategyViewPoint', state: bool, executed_time: bool, diff: bool,
-						 previous_node: States = None):
+						 frontier: set[int]=set(), previous_node: States = None):
 		if not diff:# print all nodes
 			previous_node = None
 
-		nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
+		if isinstance(root, ExecutionViewPoint):
+			nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node, frontier=frontier)
+		else:
+			nodes_id = root.dot_str(state=state, executed_time=executed_time, previous_node=previous_node)
+
 		transitions_id = ""
 
 		impact_id, impact_label = root.dot_info_str()
@@ -121,18 +135,18 @@ class ExecutionTree:
 			transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
 
 			ids = self.create_dot_graph(next_node, state=state, executed_time=executed_time, diff=diff,
-										previous_node=root.states)
+										frontier=frontier,	previous_node=root.states)
 			nodes_id += ids[0]
 			transitions_id += ids[1]
 
 		return nodes_id, transitions_id
 
 
-	def init_dot_graph(self, state: bool, executed_time: bool, diff: bool):
+	def to_dot(self, state: bool, executed_time: bool, diff: bool, frontier: set[int] = set()):
 		result = "digraph automa {\n"
 
 		node, transition = self.create_dot_graph(self.root, state=state, executed_time=executed_time,
-												 diff=diff)
+												 diff=diff, frontier=frontier)
 
 		result += node
 		result += transition

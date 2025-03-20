@@ -4,11 +4,11 @@ from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumul
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.parser.bpmn_parser import create_parse_tree
 from paco.parser.parse_tree import ParseTree
-from paco.searcher.create_execution_tree import create_execution_tree, write_execution_tree
-from utils.env import IMPACTS_NAMES
+from paco.searcher.create_execution_tree import create_execution_tree
+from utils.env import IMPACTS_NAMES, PATH_EXECUTION_TREE
 
 
-def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pending_natures:set=None, execution_tree:ExecutionTree=None):
+def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pending_natures:set=None, execution_tree:ExecutionTree=None, debug=False):
 	times = {}
 
 	#print(f"{datetime.now()} CreateParseTree:")
@@ -18,6 +18,8 @@ def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pendi
 		t1 = datetime.now()
 		time_create_parse_tree = (t1 - t).total_seconds()*1000
 		#print(f"{t1} CreateParseTree:completed: {time_create_parse_tree} ms")
+		if debug:
+			parse_tree.save_dot()
 
 	else: #Cache
 		#parse_tree, pending_choices, pending_natures = ParseTree.from_json()
@@ -38,7 +40,8 @@ def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pendi
 		t1 = datetime.now()
 		time_evaluate_cei_execution_tree = (t1 - t).total_seconds()*1000
 		#print(f"{t1} CreateExecutionTree:CEI evaluated: {time_evaluate_cei_execution_tree} ms")
-		#write_execution_tree(execution_tree)
+		if debug:
+			execution_tree.save_dot(state=True, executed_time=True, diff=False)
 
 	else: #Cache
 		#execution_tree = ExecutionTree.from_json(parse_tree, bpmn[IMPACTS_NAMES])
