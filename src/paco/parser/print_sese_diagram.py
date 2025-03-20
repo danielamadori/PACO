@@ -1,44 +1,22 @@
 from lark import Tree, Token
-from paco.parser.bpmn_parser import SESE_PARSER
+from utils.env import H, PROBABILITIES, IMPACTS, DURATIONS, NAMES, DELAYS, IMPACTS_NAMES, LOOP_ROUND, \
+    LOOP_PROBABILITY
 
+def print_sese_diagram(bpmn:dict, lark_tree) -> str:
+    h=bpmn[H]
+    probabilities=bpmn[PROBABILITIES]
+    impacts=bpmn[IMPACTS]
+    durations=bpmn[DURATIONS]
+    names=bpmn[NAMES]
+    delays=bpmn[DELAYS]
+    impacts_names=bpmn[IMPACTS_NAMES]
+    loop_round=bpmn[LOOP_ROUND]
+    loop_probability=bpmn[LOOP_PROBABILITY]
 
-def print_sese_diagram(expression, outfile:str = None, h = 0, probabilities={}, impacts={}, loop_thresholds = {},
-                       graph_options = {}, durations = {}, names = {}, delays = {}, impacts_names = [], loop_round = {}, loop_probability={}) -> str | None:
-    """
-    This function takes a SESE diagram expression and returns a graph of the diagram.
-    :param expression: the SESE diagram expression
-    :param outfile: the name of the file where the graph will be saved  
-    :param h: the number of elements to show in the impact list
-    :param probabilities: a dictionary of probabilities for the choices
-    :param impacts: a dictionary of impacts for the tasks
-    :param loop_thresholds: a dictionary of loop thresholds
-    :param graph_options: a dictionary of options for the graph
-    :param durations: a dictionary of durations for the tasks
-    :param names: a dictionary of names for the tasks
-    :param delays: a dictionary of delays for the choices
-    :param impacts_names: a list of names for the impacts
-    :param loop_round: a dictionary of loop rounds
-    :param loop_probability: a dictionary of loop probabilities
-    :return: the graph of the SESE diagram
-    """
-    try:
-        print('expression', expression)
-        tree = SESE_PARSER.parse(expression)    
-    except Exception as e:
-        print('error in parsing tree ',e)
-        return None
-    try:
-        diagram = wrap_sese_diagram(tree=tree, h=h, probabilities= probabilities, impacts= impacts, loop_thresholds=loop_thresholds, durations=durations, names=names, delays=delays, impacts_names=impacts_names)
-    except Exception as e:
-        print('error in creating diagram', e)
-        return None
-    try:
-        global_options = f'graph[ { ", ".join([k+"="+str(graph_options[k]) for k in graph_options])  } ];'
-        dot_string = "digraph my_graph{ \n rankdir=LR; \n" + global_options + "\n" + diagram +"}"
-        return dot_string
-    except Exception as e:
-        print('error in creating graph', e)
-        return None
+    diagram = wrap_sese_diagram(tree=lark_tree, h=h, probabilities= probabilities, impacts= impacts, durations=durations, names=names, delays=delays, impacts_names=impacts_names)
+
+    return "digraph my_graph{ \n rankdir=LR; \n" + diagram +"}"
+
 
 def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
     exit_label = ''

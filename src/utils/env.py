@@ -29,18 +29,17 @@ PATH_STRATEGY_TREE = PATH_ASSETS + 'strategy_tree'
 
 
 ### args for tree LARK
-TASK_SEQ = 'expression'
+EXPRESSION = 'expression'
 IMPACTS = 'impacts'
 NAMES = 'names'
 PROBABILITIES = 'probabilities'
-LOOP_THRESHOLD = 'loop_threshold'
 DURATIONS = 'durations'
 DELAYS = 'delays'
 H = 'h'
 IMPACTS_NAMES ='impacts_names'
 LOOP_ROUND = 'loop_round'
 ### SYNTAX
-LOOP_PROB = 'loop_probability'
+LOOP_PROBABILITY = 'loop_probability'
 # BPMN RESOLUTION #######################
 RESOLUTION = 300
 #############################

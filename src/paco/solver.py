@@ -92,7 +92,7 @@ def json_to_paco(json_input, search_only = False, type_strategy=ExplanationType.
 	text_result, result, times = paco(bpmn, bound,
 									  parse_tree=parse_tree, pending_choices=pending_choices,
 									  pending_natures=pending_natures, execution_tree=execution_tree,
-									  search_only=search_only, type_strategy=type_strategy)
+									  search_only=search_only, type_strategy=type_strategy, debug=True)
 
 
 	result_dict = {
