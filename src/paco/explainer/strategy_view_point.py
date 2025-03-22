@@ -43,18 +43,18 @@ class StrategyViewPoint(ViewPoint):
 
 	def dot_info_str(self):
 		label = f" [label=\""
-		label += f"Time: {self.executed_time}\l"
-		label += f"Impacts: {self.impacts}\l"
+		label += f"Time: {self.executed_time}\n"
+		label += f"Impacts: {self.impacts}\n"
 		if self.probability != 1:
-			label += f"Probability: {round(self.probability, 2)}\l"
-			label += f"Exp. Time: {round(self.expected_time, 2)}\l"
-			label += f"Exp. Impacts: {np.round(self.expected_impacts, 2)}\l"
+			label += f"Probability: {round(self.probability, 2)}\n"
+			label += f"Exp. Time: {round(self.expected_time, 2)}\n"
+			label += f"Exp. Impacts: {np.round(self.expected_impacts, 2)}\n"
 
 		nature_label = ""
 		for nature in self.natures:
 			nature_label += f"{nature.name}, "
 		if nature_label != "":
-			label += "Actual Nature: " + nature_label[:-2] + "\l"
+			label += "Actual Nature: " + nature_label[:-2] + "\n"
 
 		if len(self.pending_choices) + len(self.choices)  > 0:
 			choice_label = ""
@@ -67,19 +67,19 @@ class StrategyViewPoint(ViewPoint):
 					choice_label += 'arbitrary'
 
 			if choice_label != "":
-				label += "Actual Choice:\l" + choice_label + "\l"
+				label += "Actual Choice:\n" + choice_label + "\n"
 
 			choice_label = ""
 			for choice in self.pending_choices:
 				choice_label += f"{choice.name}, "
 			#if choice_label != "":
-			#	label += f"Pending Choices: {choice_label[:-2]}\l"
+			#	label += f"Pending Choices: {choice_label[:-2]}\n"
 
 		nature_label = ""
 		for nature in self.pending_natures:
 			nature_label += f"{nature.name}, "
 		#if nature_label != "":
-		#	label += f"Pending Natures: {nature_label[:-2]}\l"
+		#	label += f"Pending Natures: {nature_label[:-2]}\n"
 
 		label += "\", shape=rect];\n"
 		return self.dot_str(full=False)[:-1] + "description\"", label
