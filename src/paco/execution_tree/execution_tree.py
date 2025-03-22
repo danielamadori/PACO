@@ -143,7 +143,7 @@ class ExecutionTree:
 
 
 	def to_dot(self, state: bool, executed_time: bool, diff: bool, frontier: set[int] = set()):
-		result = "digraph automa {\n"
+		result = "digraph executionTree {\n"
 
 		node, transition = self.create_dot_graph(self.root, state=state, executed_time=executed_time,
 												 diff=diff, frontier=frontier)

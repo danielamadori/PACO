@@ -22,7 +22,7 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 	json_input = json.dumps({
 		"bpmn": bpmn,
-		"bound": str([0] * len(bpmn[IMPACTS_NAMES]))
+		"bound": str([0.0] * len(bpmn[IMPACTS_NAMES]))
 	})
 
 	while True:

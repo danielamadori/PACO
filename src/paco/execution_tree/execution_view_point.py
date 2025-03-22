@@ -82,13 +82,13 @@ class ExecutionViewPoint(ViewPoint):
 		choice_label = ""
 		for choice in self.pending_choices:
 			choice_label += f"{choice.name}, "
-		if choice_label != "":
-			label += f"Pending Choices: {choice_label[:-2]}\l"
+		#if choice_label != "":
+		#	label += f"Pending Choices: {choice_label[:-2]}\l"
 		nature_label = ""
 		for nature in self.pending_natures:
 			nature_label += f"{nature.name}, "
-		if nature_label != "":
-			label += f"Pending Natures: {nature_label[:-2]}\l"
+		#if nature_label != "":
+		#	label += f"Pending Natures: {nature_label[:-2]}\l"
 
 		if not self.is_final_state and self.is_leaf:
 			label += "Not terminal state\l"

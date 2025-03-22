@@ -174,6 +174,7 @@ async def search_strategy(request: dict) -> dict:
             "guaranteed_bounds": str([str(bound) for bound in result["guaranteed_bounds"]])
         }
 
+
         x = result.get("expected_impacts")
         y = result.get("frontier_solution")
         if x is not None and y is not None:# Search Win

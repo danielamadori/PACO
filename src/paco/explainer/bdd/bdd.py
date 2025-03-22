@@ -15,14 +15,15 @@ class Bdd:
 		self.choice = choice
 		self.class_0 = class_0
 		self.class_1 = class_1 # in case is NOT splittable is None
-		is_unavoidable_decision = class_1 is None
-		self.typeStrategy = typeStrategy if not is_unavoidable_decision else ExplanationType.FORCED_DECISION
+		is_forced_decision = class_1 is None
+		self.typeStrategy = typeStrategy if not is_forced_decision else ExplanationType.FORCED_DECISION
 		self.dot = dot
 		self.root = None
 		self.nodes = None
 
-		if (impacts is None or labels is None or features_names is None # Bdd will be created
-			or not is_unavoidable_decision):
+		#If the dot is already provided, the BDD is already built
+		if (not is_forced_decision and
+				(dot is None or impacts is None or labels is None or features_names is None)):
 
 			df = pd.DataFrame(impacts, columns=features_names)
 			df['class'] = labels # The labels are the id of the ParseNode
@@ -153,12 +154,10 @@ class Bdd:
 			node.visited = True
 
 	def build(self, debug=False):
-		print(f"Bdd:build:choice:{self.choice.name} typeStrategy: {self.typeStrategy}")
 		if self.typeStrategy == ExplanationType.FORCED_DECISION:
 			self.dot = self.bdd_to_dot()
 			return True
 
-		print("Root: ", self.root)
 		if not self.is_separable():
 			return False
 
@@ -277,15 +276,18 @@ class Bdd:
 		return f"({node.best_test[0]} < {node.best_test[1]} ? {left_bdd} : {right_bdd})"
 
 	def bdd_to_dot(self) -> str:
+		if self.dot is not None:
+			return self.dot
+
 		dot = graphviz.Digraph()
 
-		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="orange")
+		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="black", fillcolor="orange")
 		if self.class_1 is not None:
 			dot.edge(str(self.choice), str(self.root))
 			self.bdd_to_dot_recursively(dot, self.root)
 		else:
 			label = '0' if self.choice.dx_child == self.class_0 else '1'
-			dot.node(label, label=label, shape="box", style="filled", color=Bdd.get_decision_color(self.class_0))
+			dot.node(label, label=label, shape="box", style="filled", color="black", fillcolor=Bdd.get_decision_color(self.class_0))
 			dot.edge(str(self.choice), label, label="True", style='')
 
 		return dot.source
@@ -323,9 +325,9 @@ class Bdd:
 	def bdd_to_dot_recursively(self, dot, node: DagNode):
 		if not node.splittable:
 			label = '0' if self.choice.dx_child == node.class_0 else '1'
-			dot.node(str(node), label=label, shape="box", style="filled", color=Bdd.get_decision_color(node.class_0))
+			dot.node(str(node), label=label, shape="box", style="filled", color="black", fillcolor=Bdd.get_decision_color(node.class_0))
 		elif node.best_test is None:
-			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
+			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="black", fillcolor="red")
 		else:
 			left_child, right_child = node.get_targets(node.best_test)
 

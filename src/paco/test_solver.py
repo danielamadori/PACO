@@ -155,6 +155,7 @@ bpmn_ex = {
         PROBABILITIES: {}, NAMES: {'L1': 'L1'}, DELAYS: {}, LOOP_PROBABILITY: {'L1': 0.5}, LOOP_ROUND: {'L1': 10}
     }, [19, 19]
     ],
+    # In Notebook
     "decision_based_example" : [{
         EXPRESSION: '((T1 /[C1] T2) || (( (T3 ^[N2] T4), TU1) ^[N1] ( (T5 ^[N3] T6), TU2)))',
         IMPACTS_NAMES: ['a', 'b'],

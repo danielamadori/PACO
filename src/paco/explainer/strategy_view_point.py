@@ -2,6 +2,7 @@ import numpy as np
 
 from paco.execution_tree.view_point import ViewPoint
 from paco.explainer.bdd.bdd import Bdd
+from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States
 
@@ -61,7 +62,7 @@ class StrategyViewPoint(ViewPoint):
 				choice_label += f"{choice.name}: "
 				if choice in self.explained_choices:
 					bdd = self.explained_choices[choice]
-					choice_label += str(bdd.typeStrategy).replace("_", " ").lower()
+					choice_label += str(ExplanationType(bdd.typeStrategy)).replace("_", " ").lower()
 				else:
 					choice_label += 'arbitrary'
 
@@ -71,14 +72,14 @@ class StrategyViewPoint(ViewPoint):
 			choice_label = ""
 			for choice in self.pending_choices:
 				choice_label += f"{choice.name}, "
-			if choice_label != "":
-				label += f"Pending Choices: {choice_label[:-2]}\l"
+			#if choice_label != "":
+			#	label += f"Pending Choices: {choice_label[:-2]}\l"
 
 		nature_label = ""
 		for nature in self.pending_natures:
 			nature_label += f"{nature.name}, "
-		if nature_label != "":
-			label += f"Pending Natures: {nature_label[:-2]}\l"
+		#if nature_label != "":
+		#	label += f"Pending Natures: {nature_label[:-2]}\l"
 
 		label += "\", shape=rect];\n"
 		return self.dot_str(full=False)[:-1] + "description\"", label
