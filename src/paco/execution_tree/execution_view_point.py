@@ -48,9 +48,12 @@ class ExecutionViewPoint(ViewPoint):
 
 		'''
 
-	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, previous_node: States = None):
+	def dot_str(self, full: bool = True, state: bool = True, executed_time: bool = False, frontier:set[int]=set(), previous_node: States = None):
 		result = super().common_dot_str(full, state, executed_time, previous_node)
 		if full:
+			if self.id in frontier:
+				result += " style=filled, fillcolor=\"lightblue\""
+
 			result += "];\n"
 
 		return result
@@ -60,43 +63,43 @@ class ExecutionViewPoint(ViewPoint):
 		for nature in self.natures:
 			nature_label += f"{nature.name}, "
 
-		label = f"Impacts: {self.impacts}\n"
+		label = f"Impacts: {self.impacts}\l"
 		if self.probability != 1:
-			label += f"Probability: {round(self.probability, 2)}\n"
+			label += f"Probability: {round(self.probability, 2)}\l"
 
-		label += f"EI Current: {self.cei_top_down}\n"
+		label += f"EI Current: {self.cei_top_down}\l"
 		if not self.is_final_state:
-			label += f"EI Max: {self.cei_bottom_up}\n"
+			label += f"EI Max: {self.cei_bottom_up}\l"
 
 
 		choice_label = ""
 		for choice in self.choices:
 			choice_label += f"{choice.name}, "
 		if choice_label != "":
-			label += "Actual Choice: " + choice_label[:-2] + "\n"
+			label += "Actual Choice: " + choice_label[:-2] + "\l"
 		if nature_label != "":
-			label += "Actual Nature: " + nature_label[:-2] + "\n"
+			label += "Actual Nature: " + nature_label[:-2] + "\l"
 		choice_label = ""
 		for choice in self.pending_choices:
 			choice_label += f"{choice.name}, "
-		if choice_label != "":
-			label += f"Pending Choices: {choice_label[:-2]}\n"
+		#if choice_label != "":
+		#	label += f"Pending Choices: {choice_label[:-2]}\l"
 		nature_label = ""
 		for nature in self.pending_natures:
 			nature_label += f"{nature.name}, "
-		if nature_label != "":
-			label += f"Pending Natures: {nature_label[:-2]}\n"
+		#if nature_label != "":
+		#	label += f"Pending Natures: {nature_label[:-2]}\l"
 
-		if not self.is_final_state and self.is_leaf:
-			label += "Not terminal state\n"
+		#if not self.is_final_state and self.is_leaf:
+		#	label += "Not terminal state\l"
 
 		#TODO
 		'''
-		label += f"Guaranteed Impacts Max: {self.possible_expected_impacts[1]}\n"
-		label += f"Guaranteed Impacts Min: {self.possible_expected_impacts[0]}\n"
+		label += f"Guaranteed Impacts Max: {self.possible_expected_impacts[1]}\l"
+		label += f"Guaranteed Impacts Min: {self.possible_expected_impacts[0]}\l"
 		'''
 
-		return self.dot_str(full=False) + "_description", f" [label=\"{label}\", shape=rect];\n"
+		return self.dot_str(full=False)[:-1] + "description\"", f" [label=\"{label}\", shape=rect];\n"
 
 	def to_dict(self) -> dict:
 		base = super().to_dict()

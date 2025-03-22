@@ -6,12 +6,12 @@ from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 
-def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], type_strategy: ExplanationType, impacts_names: list,  pending_choices:set, pending_natures:set):
+def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], type_strategy: ExplanationType, impacts_names: list,  pending_choices:set, pending_natures:set, debug=False):
     times = {}
 
     print(f'{datetime.now()} Explain Strategy: ')
     t = datetime.now()
-    worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy)
+    worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy, debug)
     t1 = datetime.now()
     time_explain_strategy = (t1 - t).total_seconds()*1000
     print(f"{t1} Explain Strategy:completed: {time_explain_strategy} ms")
@@ -19,8 +19,8 @@ def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dic
 
     s = f": {worst_type_strategy}"
     if type_strategy == ExplanationType.HYBRID:
-        s = f"with worst type of choice{s}\n"
-    print(f"{t1} Strategy {s}"+ "".join(f"{choice.name}:\t{bdd.typeStrategy}\n" for choice, bdd in bdds.items()))
+        s = f"with worst type of choice{s}"
+    print(f"{t1} Strategy {s}\nname\t type\t\n"+ "".join(f"{choice.name}:\t{bdd.typeStrategy}\n" for choice, bdd in bdds.items()))
 
     print(f'{t1} StrategyTree: ')
     t = datetime.now()
@@ -31,6 +31,8 @@ def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dic
     times["strategy_tree_time"] = strategy_tree_time
 
     print(f"Strategy Expected Impacts: {expected_impacts}\nStrategy Expected Time: {expected_time}")
-    #write_strategy_tree(strategy_tree)
+    if debug:
+        strategy_tree.save_dot(
+            state=True, executed_time=True, diff=False)
 
     return strategy_tree, expected_impacts, expected_time, bdds, times

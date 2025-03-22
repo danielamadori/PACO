@@ -1,9 +1,9 @@
 import json
 import numpy as np
-
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType
+from paco.explainer.bdd.bdds import bdds_to_dict
 from paco.parser.create import create
 from paco.parser.parse_tree import ParseTree
 from paco.searcher.search import search
@@ -12,18 +12,18 @@ from utils.env import IMPACTS_NAMES, DURATIONS
 from datetime import datetime
 
 
-def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pending_natures=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID):
-	bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
-
+def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pending_natures=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID, debug = False):
 	result = {"bpmn": bpmn, "bound": bound}
 
-	parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures, execution_tree)
+	bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
+
+	parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures, execution_tree, debug)
 	result.update({"parse_tree": parse_tree,
 					"pending_choices": pending_choices,
 					"pending_natures": pending_natures,
 					"execution_tree": execution_tree})
 
-	frontier_solution, expected_impacts, possible_min_solution, frontier_values, strategy, search_times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only)
+	frontier_solution, expected_impacts, possible_min_solution, frontier_values, strategy, search_times = search(execution_tree, bound, bpmn[IMPACTS_NAMES], search_only, debug)
 
 	result.update({"possible_min_solution": possible_min_solution,
 				   "guaranteed_bounds": frontier_values})
@@ -51,8 +51,8 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 		return text_result, result, times
 
 
-	strategy_tree, strategy_expected_impacts, strategy_expected_time, strategy_bdds, explain_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
-	times.update(explain_times)
+	strategy_tree, strategy_expected_impacts, strategy_expected_time, bdds, explainer_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures, debug)
+	times.update(explainer_times)
 
 	text_result = f"This is the strategy, with an expected impact of: "
 	text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in strategy_expected_impacts]))
@@ -60,23 +60,21 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 
 	result.update({"strategy_tree": strategy_tree,
 				   "strategy_expected_impacts": strategy_expected_impacts,
-				   "strategy_expected_time": strategy_expected_time})
-				   #"strategy_bdds": strategy_bdds})
+				   "strategy_expected_time": strategy_expected_time,
+				   "bdds": bdds})
 
 	return text_result, result, times
 
 
 
 def json_to_paco(json_input, search_only = False, type_strategy=ExplanationType.HYBRID):
-	if isinstance(json_input, str):
-		json_input = json.loads(json_input)
-
 	x, y = json_input.get("bpmn"), json_input.get("bound")
 	if not x and not y:
 		raise ValueError("Missing BPMN and Bound")
 	else:
 		bpmn = x
-		bound = np.fromstring(y.strip("[]"), sep=" ", dtype=np.float64)
+		print(y)
+		bound = np.array(y.strip("[]").split(","), dtype=np.float64)
 
 	# Create
 	x = json_input.get("parse_tree")
@@ -94,13 +92,14 @@ def json_to_paco(json_input, search_only = False, type_strategy=ExplanationType.
 	text_result, result, times = paco(bpmn, bound,
 									  parse_tree=parse_tree, pending_choices=pending_choices,
 									  pending_natures=pending_natures, execution_tree=execution_tree,
-									  search_only=search_only, type_strategy=type_strategy)
+									  search_only=search_only, type_strategy=type_strategy, debug=True)
+
 
 	result_dict = {
 		"result": text_result, "times": times,
 		"bpmn": result["bpmn"], "bound": str(result["bound"]),
-		"parse_tree": result["parse_tree"].to_json(),
-		"execution_tree": result["execution_tree"].to_json(),
+		"parse_tree": result["parse_tree"].to_dict(),
+		"execution_tree": result["execution_tree"].to_dict(),
 	}
 
 	#Search
@@ -120,16 +119,18 @@ def json_to_paco(json_input, search_only = False, type_strategy=ExplanationType.
 			"frontier_solution" : str([execution_tree.root.id for execution_tree in y])
 		})
 
+
+
 	x = result.get("strategy_tree")
 	y = result.get("strategy_expected_impacts")
 	z = result.get("strategy_expected_time")
-	w = result.get("strategy_bdds")
-	if x is not None and y is not None and z is not None: #and w is not None: # Strategy Explained Done
+	w = result.get("bdds")
+	if x is not None and y is not None and z is not None and w is not None: # Strategy Explained Done
 		result_dict.update({
-			#"strategy_tree": x.to_json(),
+			"strategy_tree": x.to_dict(),
 			"strategy_expected_impacts": str(y),
 			"strategy_expected_time": str(z),
-			#"strategy_bdds":
+			"bdds": bdds_to_dict(w)
 		})
 
-	return json.dumps(result_dict, indent=2)
+	return result_dict

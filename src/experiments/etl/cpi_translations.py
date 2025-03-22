@@ -1,4 +1,4 @@
-from utils.env import TASK_SEQ, IMPACTS_NAMES, IMPACTS, DURATIONS, PROBABILITIES, NAMES, DELAYS, LOOP_ROUND, LOOP_PROB, \
+from utils.env import EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, PROBABILITIES, NAMES, DELAYS, LOOP_ROUND, LOOP_PROBABILITY, \
     H
 
 
@@ -23,7 +23,7 @@ def cpi_to_standard_format(cpi_dict):
     """
     # Initialize result dictionaries
     result = {
-        TASK_SEQ: '',
+        EXPRESSION: '',
         IMPACTS_NAMES: [],
         IMPACTS: {},
         DURATIONS: {},
@@ -31,7 +31,7 @@ def cpi_to_standard_format(cpi_dict):
         NAMES: {},
         DELAYS: {},
         LOOP_ROUND: {},
-        LOOP_PROB: {},
+        LOOP_PROBABILITY: {},
         H: 0
     }
     
@@ -141,6 +141,6 @@ def cpi_to_standard_format(cpi_dict):
     result[IMPACTS_NAMES] = sorted(list(all_impact_names))
     
     # Run second pass to build TASK_SEQ and populate IMPACTS
-    result[TASK_SEQ] = second_pass(cpi_dict)
+    result[EXPRESSION] = second_pass(cpi_dict)
     
     return result

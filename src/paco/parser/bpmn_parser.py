@@ -2,16 +2,16 @@ from lark import Lark
 from paco.parser.grammar import sese_diagram_grammar
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import Sequential, Parallel, Choice, Nature, Task
-from utils.env import LOOP_PROB, TASK_SEQ, IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, LOOP_ROUND
+from utils.env import LOOP_PROBABILITY, EXPRESSION, IMPACTS, NAMES, PROBABILITIES, DURATIONS, DELAYS, H, LOOP_ROUND
 
 SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
 DEFAULT_UNFOLDING_NUMBER = 3
 
 
 def create_parse_tree(bpmn: dict):
-	tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
+	tree = SESE_PARSER.parse(bpmn[EXPRESSION])
 	#print(tree.pretty())
-	root_parse_tree, last_id, pending_choice, pending_natures = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loop_probability=bpmn[LOOP_PROB], loop_round=bpmn[LOOP_ROUND])
+	root_parse_tree, last_id, pending_choice, pending_natures = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[NAMES], bpmn[DELAYS], h=bpmn[H], loop_probability=bpmn[LOOP_PROBABILITY], loop_round=bpmn[LOOP_ROUND])
 	parse_tree = ParseTree(root_parse_tree)
 
 	return parse_tree, pending_choice, pending_natures

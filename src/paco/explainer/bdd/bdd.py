@@ -6,24 +6,30 @@ import pandas as pd
 from paco.explainer.bdd.dag_node import DagNode
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_node import ParseNode, Sequential, Parallel, Choice, Nature, Task
-from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_EXPLAINER_BDD
+from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_BDD
 
 
 class Bdd:
-	def __init__(self, choice: ParseNode, class_0: ParseNode, class_1: ParseNode, impacts:list, labels:list, features_names:list, typeStrategy:ExplanationType):
+	def __init__(self, choice: ParseNode, class_0: ParseNode, class_1: ParseNode, typeStrategy:ExplanationType,
+				 impacts:list = None, labels:list = None, features_names:list = None, dot = None):
 		self.choice = choice
 		self.class_0 = class_0
 		self.class_1 = class_1 # in case is NOT splittable is None
-		self.typeStrategy = typeStrategy
+		is_forced_decision = class_1 is None
+		self.typeStrategy = typeStrategy if not is_forced_decision else ExplanationType.FORCED_DECISION
+		self.dot = dot
+		self.root = None
+		self.nodes = None
 
-		if class_1 is not None:
+		#If the dot is already provided, the BDD is already built
+		if (not is_forced_decision and
+				(dot is None or impacts is None or labels is None or features_names is None)):
+
 			df = pd.DataFrame(impacts, columns=features_names)
-			df['class'] = labels # The labels are the id of the CNode
+			df['class'] = labels # The labels are the id of the ParseNode
 			self.root = DagNode(df, class_0, class_1)
 			self.nodes = {self.root}
-		else:
-			self.root = None
-			self.nodes = None
+
 
 	def __str__(self):
 		result = ""
@@ -37,9 +43,19 @@ class Bdd:
 			"choice": self.choice.id,
 			"class_0": self.class_0.id,
 			"class_1": self.class_1.id if self.class_1 is not None else None,
-			#"nodes": [node.to_dict() for node in self.nodes] if self.nodes is not None else None
-			"typeStrategy": self.typeStrategy
+			"typeStrategy": self.typeStrategy,
+			"dot": self.dot,
 		}
+
+	@staticmethod
+	def from_dict(data: dict, parseTreeNodes: dict):
+		choice = parseTreeNodes[data['choice']]
+		class_0 = parseTreeNodes[data['class_0']]
+		class_1 = parseTreeNodes[data['class_1']] if data['class_1'] is not None else None
+
+		return Bdd(choice, class_0, class_1,
+				   data['typeStrategy'],
+				   dot=data['dot'])
 
 	def transitions_str(self):
 		result = ""
@@ -137,7 +153,11 @@ class Bdd:
 					node.best_test = test
 			node.visited = True
 
-	def build(self, write=False):
+	def build(self, debug=False):
+		if self.typeStrategy == ExplanationType.FORCED_DECISION:
+			self.dot = self.bdd_to_dot()
+			return True
+
 		if not self.is_separable():
 			return False
 
@@ -152,16 +172,18 @@ class Bdd:
 
 			#print(f"step {i}\n", self)
 			#print(self.transitions_str())
-			if write:
-				self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
+			if debug:
+				self.save_dag(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}')
 			i += 1
 
 		#print(f"computed tree: {i}\n", self)
 		self.compute_tree(self.root)
-		if write:
-			self.dag_to_file(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
+		if debug:
+			self.save_dag(f'{PATH_EXPLAINER_DECISION_TREE}_{str(self.choice.name)}_{i}_final')
 
+		self.dot = self.bdd_to_dot()
 		return True
+
 
 	def get_minimum_tree_nodes(self, node: DagNode):
 		nodes = []
@@ -197,7 +219,7 @@ class Bdd:
 
 		return node.class_0
 
-	def dag_to_file(self, file_path: str):
+	def dag_to_dot(self):
 		dot = graphviz.Digraph()
 
 		minimum_tree_nodes = self.get_minimum_tree_nodes(self.root)
@@ -224,6 +246,10 @@ class Bdd:
 			for target_node, edge in node.edges.items():
 				dot.edge(node_name, str(target_node), label=DagNode.edge_str(edge))
 
+		return dot
+
+	def save_dag(self, file_path:str):
+		dot = self.dag_to_dot()
 		dot.save(file_path + '.dot')
 		dot.render(filename=file_path, format='svg')
 		os.remove(file_path)  # tmp dot file
@@ -249,23 +275,34 @@ class Bdd:
 
 		return f"({node.best_test[0]} < {node.best_test[1]} ? {left_bdd} : {right_bdd})"
 
-	def bdd_to_file(self):
+	def bdd_to_dot(self) -> str:
+		if self.dot is not None:
+			return self.dot
+
 		dot = graphviz.Digraph()
 
-		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="orange")
+		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="black", fillcolor="orange")
 		if self.class_1 is not None:
 			dot.edge(str(self.choice), str(self.root))
-			self.bdd_to_file_recursively(dot, self.root)
+			self.bdd_to_dot_recursively(dot, self.root)
 		else:
 			label = '0' if self.choice.dx_child == self.class_0 else '1'
-			dot.node(label, label=label, shape="box", style="filled", color=Bdd.get_decision_color(self.class_0))
+			dot.node(label, label=label, shape="box", style="filled", color="black", fillcolor=Bdd.get_decision_color(self.class_0))
 			dot.edge(str(self.choice), label, label="True", style='')
 
-		file_path = PATH_EXPLAINER_BDD + "_" + str(self.choice.name)
-		dot.save(file_path + '.dot')
-		dot.render(filename=file_path, format='svg')
-		os.remove(file_path)# tmp file
-		#os.remove(file_path + '.dot')  # tmp dot file
+		return dot.source
+
+	def save_bdd(self, outfile:str = ""):
+		if outfile == "":
+			outfile = PATH_BDD + "_" + self.choice.name
+
+		directory = os.path.dirname(outfile)
+		if directory:
+			os.makedirs(directory, exist_ok=True)
+
+		dot = self.bdd_to_dot()
+		with open(outfile + ".svg", "wb") as f:
+			f.write(graphviz.Source(dot).pipe(format="svg"))
 
 
 	@staticmethod
@@ -285,13 +322,12 @@ class Bdd:
 
 		return color
 
-
-	def bdd_to_file_recursively(self, dot, node: DagNode):
+	def bdd_to_dot_recursively(self, dot, node: DagNode):
 		if not node.splittable:
 			label = '0' if self.choice.dx_child == node.class_0 else '1'
-			dot.node(str(node), label=label, shape="box", style="filled", color=Bdd.get_decision_color(node.class_0))
+			dot.node(str(node), label=label, shape="box", style="filled", color="black", fillcolor=Bdd.get_decision_color(node.class_0))
 		elif node.best_test is None:
-			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="red")
+			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="black", fillcolor="red")
 		else:
 			left_child, right_child = node.get_targets(node.best_test)
 
@@ -310,7 +346,7 @@ class Bdd:
 					left_child = right_child
 					right_child = tmp
 
-			dot.edge(str(node), self.bdd_to_file_recursively(dot, left_child), label="True", style="")
-			dot.edge(str(node), self.bdd_to_file_recursively(dot, right_child), label="False", style="")
+			dot.edge(str(node), self.bdd_to_dot_recursively(dot, left_child), label="True", style="")
+			dot.edge(str(node), self.bdd_to_dot_recursively(dot, right_child), label="False", style="")
 
 		return str(node)

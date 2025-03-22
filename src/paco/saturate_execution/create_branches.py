@@ -73,6 +73,7 @@ def create_branches(states: States, pending_choices:set, pending_natures:set) ->
 			branch_states.activityState[inactiveNode] = ActivityState.WILL_NOT_BE_EXECUTED
 			excluded_choice, excluded_nature = get_excluded_gateways(inactiveNode)
 
+
 		branch_pending_choices = set(choice for choice in pending_choices if choice not in excluded_choice)
 		branch_pending_natures = set(nature for nature in pending_natures if nature not in excluded_nature)
 		branches[tuple(decisions)] = (branch_states, branch_pending_choices, branch_pending_natures)
