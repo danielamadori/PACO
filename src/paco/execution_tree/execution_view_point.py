@@ -90,8 +90,8 @@ class ExecutionViewPoint(ViewPoint):
 		#if nature_label != "":
 		#	label += f"Pending Natures: {nature_label[:-2]}\l"
 
-		if not self.is_final_state and self.is_leaf:
-			label += "Not terminal state\l"
+		#if not self.is_final_state and self.is_leaf:
+		#	label += "Not terminal state\l"
 
 		#TODO
 		'''

@@ -129,7 +129,7 @@ async def get_execution_tree(request: dict) -> dict:
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
-@app.get("/search_only_strategy")
+@app.get("/create_strategy")
 async def search_strategy(request: dict) -> dict:
     bpmn = request.get("bpmn")
     bound = request.get("bound")

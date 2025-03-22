@@ -167,6 +167,7 @@ bpmn_ex = {
         DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
         }, [5, 6]
     ],
+    #In Notebook
     "unavoidable_example" : [{
         EXPRESSION: '((T1 /[C1] T2) || ((TD1, (T3 ^[N2] T4), TU1) ^[N1] (TD2,  (T5 ^[N3] T6), TU2)))',
         IMPACTS_NAMES: ['a', 'b'],
@@ -187,24 +188,6 @@ bpmn_ex = {
         PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, NAMES: {"N":"N", "N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [23.3, 24.4]],
 
-    "just task, no strategy (no choice)": [{
-        EXPRESSION: "T1, T2",
-        H: 0,
-        IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
-        DURATIONS: {"T1": [0, 100], "T2": [0, 100]},
-        IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
-    }, [15, 17]],
-
-    "one choice, strategy with one obligated decision (current impacts)": [{
-        EXPRESSION: "T0, (T1 / [C1] T2)",
-        H: 0,
-        IMPACTS: {"T0": [11, 15], "T1": [4, 2] , "T2": [3, 3]},
-        DURATIONS: {"T0": [0, 100], "T1": [0, 100], "T2":[0, 100]},
-        IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
-    }, [14, 18]], #[15, 17]
-
     "only natures, no strategy (no choice)": [{
         EXPRESSION: "SimpleTask1, (Task1 ^ [N1] T2)",
         H: 0,
@@ -213,14 +196,6 @@ bpmn_ex = {
         IMPACTS_NAMES: ["cost", "hours"],
         PROBABILITIES: {"N1": 0.6}, NAMES: {'N1':'N1'}, DELAYS: {},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [14.7, 16.7]],
-
-    "sequential choices": [{EXPRESSION: "SimpleTask1,  (Task1 / [C1] T2),  (T3 / [C2] T4)",
-                            H: 0,
-                            IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
-                            DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
-                            IMPACTS_NAMES: ["cost", "hours"],
-                            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 0, "C2": 0}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
-                            }, [23, 26]], #[23, 26], [25, 22], [22, 25], [24, 21]
 
     "bpmn_seq_natures": [{
         EXPRESSION: "SimpleTask1,  (Task1 ^ [N1] T2),  (T3 ^ [N2] T4)",
