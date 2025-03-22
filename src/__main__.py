@@ -1,26 +1,18 @@
-from datetime import datetime
 from fastapi.encoders import jsonable_encoder
 from agent import define_agent
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse, Response
-import json
 from pydantic import BaseModel
-from typing import List, Dict, Optional
 import numpy as np
 
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.bdd.bdds import bdds_to_dict
-from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.parser.create import create
-from paco.searcher.search import search
 from paco.parser.bpmn_parser import SESE_PARSER, create_parse_tree
 from paco.parser.print_sese_diagram import print_sese_diagram
-from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_tree import ParseTree
-from utils.env import ALGORITHMS, DELAYS, DURATIONS, IMPACTS, IMPACTS_NAMES, LOOP_PROBABILITY, NAMES, PATH_BDD, \
-    PATH_EXPLAINER_DECISION_TREE, PATH_PARSE_TREE, PROBABILITIES, EXPRESSION
-from paco.solver import paco, json_to_paco
-from utils.check_syntax import check_algo_is_usable, check_bpmn_syntax, check_input
+from paco.solver import paco
+from utils.env import DURATIONS, IMPACTS_NAMES, EXPRESSION
+from utils.check_syntax import check_bpmn_syntax
 from fastapi.middleware.cors import CORSMiddleware
 from utils import check_syntax as cs
 import uvicorn
@@ -200,65 +192,6 @@ async def search_strategy(request: dict) -> dict:
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
 
-
-#TODO Daniel
-'''
-@app.get("/explainer")
-async def get_explainer(
-    parse_tree: dict, impacts_names: list[str], strategy: dict = {}, type_explainer: int = 3) -> dict:
-    """
-    Get the explainer.
-
-    Args:
-        parse_tree (json): The parse tree.
-        strategy: The strategy.
-        type_explainer (int): The type of explainer:
-            CURRENT_IMPACTS = 0
-            UNAVOIDABLE_IMPACTS = 1
-            DECISION_BASED = 2
-            HYBRID = 3 default
-        impacts_names (list[str]): The impacts names.        
-
-    Returns:
-        tuple: The strategy tree, expected impacts, strategy expected time, choices, and name svg.
-
-    Raises:
-        400: If the input is not valid, an exception is raised.
-        500: If an error occurs, an exception is raised.
-    """
-    if not isinstance(strategy, dict) or not isinstance(type_explainer, int):
-        return HTTPException(status_code=400, detail="Invalid input")
-    # if strategy == {}:
-    #     return None
-    try:
-        if type_explainer == 0:
-            type_explainer = ExplanationType.CURRENT_IMPACTS
-        elif type_explainer == 1:
-            type_explainer = ExplanationType.UNAVOIDABLE_IMPACTS
-        elif type_explainer == 2:
-            type_explainer = ExplanationType.DECISION_BASED
-        else:
-            type_explainer = ExplanationType.HYBRID
-        parse_tree = ParseTree.from_json(parse_tree)
-        print(parse_tree)
-        print(type(parse_tree))
-        print(type_explainer)
-        print(type(type_explainer))
-        strategy_tree, expected_impacts, strategy_expected_time, choices, time_explain_strategy, strategy_tree_time = build_explained_strategy(
-            parse_tree, strategy, type_explainer, impacts_names
-        )
-        return  {
-            "strategy_tree": str(strategy_tree),
-            "expected_impacts": expected_impacts,
-            "strategy_expected_time": strategy_expected_time,
-            "choices": choices,
-            "time_explain_strategy": time_explain_strategy,
-            "strategy_tree_time": strategy_tree_time,
-        }
-    except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
-
-'''
 
 
 #######################################################
