@@ -1,7 +1,4 @@
-import os
 import numpy as np
-import pydot
-
 from paco.evaluations.evaluate_impacts import evaluate_expected_impacts_from_parseNode, evaluate_expected_impacts
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
 from paco.parser.parse_tree import ParseTree
@@ -9,8 +6,6 @@ from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.saturate_execution import saturate_execution_decisions
 from paco.saturate_execution.states import States, ActivityState
 from paco.execution_tree.execution_tree import ExecutionTree
-from utils.env import PATH_EXECUTION_TREE, RESOLUTION, PATH_EXECUTION_TREE_STATE, PATH_EXECUTION_TREE_STATE_TIME, \
-	PATH_EXECUTION_TREE_STATE_TIME_EXTENDED, PATH_EXECUTION_TREE_TIME
 
 def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:States, pending_choices:set, pending_natures:set, solution_tree:ExecutionTree, impacts_size:int) -> (ExecutionViewPoint, dict[tuple[ParseNode], (States,set,set)]):
 	states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)
@@ -63,45 +58,3 @@ def create_execution_viewpoint(region_tree: ParseTree, decisions: tuple[ParseNod
 		id = create_execution_viewpoint(region_tree, decisions, branch_states, new_solution_tree, id + 1, pending_choices, pending_natures, impacts_names)
 
 	return id
-
-
-def write_image(frontier: list[ExecutionTree], path: str):
-	graph = pydot.graph_from_dot_file(path + '.dot')[0]
-
-	for tree in frontier:
-		node = tree.root
-		dot_node = graph.get_node(str(node.id))
-		if len(dot_node) == 0:
-			raise Exception("Node of thee frontier not found in the dot file")
-		dot_node = dot_node[0]
-		dot_node.set_style('filled')
-		dot_node.set_fillcolor('lightblue')
-
-	graph.write_svg(path + '.svg')
-
-	#graph.set('dpi', RESOLUTION)
-	#graph.write_png(path + '.png')
-
-
-def write_execution_tree(solution_tree: ExecutionTree, frontier: list[ExecutionTree] = []):
-	if not os.path.exists(PATH_EXECUTION_TREE):
-		os.makedirs(PATH_EXECUTION_TREE)
-
-	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE + '.dot', diff=False)
-	write_image(frontier, PATH_EXECUTION_TREE_STATE)
-
-	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE_TIME + '.dot', executed_time=True)
-	write_image(frontier, PATH_EXECUTION_TREE_STATE_TIME)
-
-	solution_tree.save_dot(PATH_EXECUTION_TREE_STATE_TIME_EXTENDED + '.dot', executed_time=True, diff=False)
-	write_image(frontier, PATH_EXECUTION_TREE_STATE_TIME_EXTENDED)
-
-	solution_tree.save_dot(PATH_EXECUTION_TREE_TIME + '.dot', state=False, executed_time=True)
-	write_image(frontier, PATH_EXECUTION_TREE_TIME)
-
-	'''
-	os.remove(PATH_EXECUTION_TREE_STATE + '.dot')
-	os.remove(PATH_EXECUTION_TREE_STATE_TIME + '.dot')
-	os.remove(PATH_EXECUTION_TREE_STATE_TIME_EXTENDED + '.dot')
-	os.remove(PATH_EXECUTION_TREE_TIME + '.dot')
-	'''

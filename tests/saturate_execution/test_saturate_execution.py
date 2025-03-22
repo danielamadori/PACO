@@ -8,7 +8,7 @@ from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import Sequential, Task, Nature, Choice, Parallel
 
 from utils import check_syntax as cs
-from utils.env import TASK_SEQ, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROB, LOOP_ROUND
+from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
 
 
 def test_create_parse_tree(bpmn: dict) -> ParseTree:
@@ -32,12 +32,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_tasks(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1, T2",
+            EXPRESSION: "T1, T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_tasks")
@@ -62,12 +62,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_nature_task(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1 ^ [N1] T2), T3",
+            EXPRESSION: "(T1 ^ [N1] T2), T3",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_nature_task")
@@ -122,12 +122,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_task_nature(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1, (T2 ^ [N1] T3)",
+            EXPRESSION: "T1, (T2 ^ [N1] T3)",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_task_nature")
@@ -181,12 +181,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_choice_task(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1 / [C1] T2), T3",
+            EXPRESSION: "(T1 / [C1] T2), T3",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_choice_task")
@@ -240,12 +240,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_task_choice(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1, (T2 / [C1] T3)",
+            EXPRESSION: "T1, (T2 / [C1] T3)",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
 
@@ -302,12 +302,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_sequential_nature(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1, T2,(T3 ^ [N1] T4)",
+            EXPRESSION: "T1, T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             DURATIONS: {"T1": [0, 0], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             IMPACTS_NAMES: ["a", "b"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_sequential_nature")
@@ -356,12 +356,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_sequential_sequential_choice(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1, T2,(T3 / [C1] T4)",
+            EXPRESSION: "T1, T2,(T3 / [C1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             DURATIONS: {"T1": [0, 0], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             IMPACTS_NAMES: ["a", "b"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 0}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_sequential_choice")
@@ -409,12 +409,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         # Considering choice delay
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1, T2,(T3 / [C1] T4)",
+            EXPRESSION: "T1, T2,(T3 / [C1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             DURATIONS: {"T1": [0, 0], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             IMPACTS_NAMES: ["a", "b"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "sequential_sequential_choice_delay")
@@ -459,12 +459,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_parallel_tasks(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1 || T2",
+            EXPRESSION: "T1 || T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 1]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_eq_task2")
@@ -489,12 +489,12 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1 || T2",
+            EXPRESSION: "T1 || T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_lt_task2")
@@ -514,12 +514,12 @@ class TestSaturateExecution(unittest.TestCase):
                          "T2 should be completed at time 2")
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1 || T2",
+            EXPRESSION: "T1 || T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
             DURATIONS: {"T1": [0, 2], "T2": [0, 1]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_gt_task2")
@@ -539,12 +539,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_parallel_choice_task(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T2 / [C1] T3) || T1",
+            EXPRESSION: "(T2 / [C1] T3) || T1",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 10], "T3": [1, 20]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_eq_task")
@@ -599,12 +599,12 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T2 / [C1] T3) || T1",
+            EXPRESSION: "(T2 / [C1] T3) || T1",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 2], "T2": [0, 10], "T3": [1, 20]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 1}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_lt_task")
@@ -653,12 +653,12 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T2 / [C1] T3) || T1",
+            EXPRESSION: "(T2 / [C1] T3) || T1",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 10], "T3": [1, 20]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 2}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1'}, DELAYS: {"C1": 2}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_gt_task")
@@ -709,12 +709,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_parallel_natures(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A ^[N1] T1B) || (T2A ^[N2] T2B)",
+            EXPRESSION: "(T1A ^[N1] T1B) || (T2A ^[N2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_natures")
@@ -805,12 +805,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_parallel_choices(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 1}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_eq_choice")
@@ -901,12 +901,12 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_lt_choice")
@@ -962,12 +962,12 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 2, "C2": 1}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 2, "C2": 1}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_gt_choice")
@@ -1023,12 +1023,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_parallel_nature_choice(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A ^[N1] T1B) || (T2A /[C2] T2B)",
+            EXPRESSION: "(T1A ^[N1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1", 'C2':'C2'}, DELAYS: {"C2": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1", 'C2':'C2'}, DELAYS: {"C2": 0}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_nature_eq_choice")
@@ -1119,12 +1119,12 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
+            EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {}, NAMES: {'C1':'C1', 'C2':'C2'}, DELAYS: {"C1": 1, "C2": 2}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_lt_choice")
@@ -1182,12 +1182,12 @@ class TestSaturateExecution(unittest.TestCase):
 
     def test_parallel_choice_nature_nature(self):
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "(T1A /[C1] T1B) || (T2A ^[N2] T2B) || (T3A ^[N3] T3B)",
+            EXPRESSION: "(T1A /[C1] T1B) || (T2A ^[N2] T2B) || (T3A ^[N3] T3B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4], "T3A": [0, 5], "T3B": [0, 6]},
             DURATIONS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4], "T3A": [0, 5], "T3B": [0, 6]},
             IMPACTS_NAMES: ["cost", "hours"],
-            PROBABILITIES: {"N2": 0.6, "N3": 0.7}, NAMES: {'C1':'C1', "N2":"N2", "N3":"N3"}, DELAYS: {"C1": 0}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N2": 0.6, "N3": 0.7}, NAMES: {'C1':'C1', "N2":"N2", "N3":"N3"}, DELAYS: {"C1": 0}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_choice_eq_nature_eq_nature")
@@ -1366,12 +1366,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         # T1 T2 ended and N1 start at the same time
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1 || T2,(T3 ^ [N1] T4)",
+            EXPRESSION: "T1 || T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             IMPACTS_NAMES: ["a", "b"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_sequential_nature")
@@ -1421,12 +1421,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         # T1 ended first
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1 || T2,(T3 ^ [N1] T4)",
+            EXPRESSION: "T1 || T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             DURATIONS: {"T1": [0, 1], "T2": [0, 2], "T3": [0, 2], "T4": [0, 3]},
             IMPACTS_NAMES: ["a", "b"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_sequential_nature")
@@ -1469,12 +1469,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         # T2 ended first
         parse_tree, pending_choice, pending_natures = test_create_parse_tree({
-            TASK_SEQ: "T1 || T2,(T3 ^ [N1] T4)",
+            EXPRESSION: "T1 || T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
             DURATIONS: {"T1": [0, 2], "T2": [0, 1], "T3": [0, 2], "T4": [0, 3]},
             IMPACTS_NAMES: ["a", "b"],
-            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROB: {}, LOOP_ROUND: {}
+            PROBABILITIES: {"N1": 0.6}, NAMES: {"N1":"N1"}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
         })
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_sequential_nature")

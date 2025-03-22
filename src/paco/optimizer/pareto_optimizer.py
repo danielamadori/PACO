@@ -3,9 +3,9 @@ import json
 import numpy as np
 import random
 import ast
-from paco.optimizer.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
+from paco.evaluations.pareto import get_min_dominated_impacts, get_max_dominating_vectors, get_dominated_vectors
 from paco.searcher.found_strategy import compare_bound
-from paco.solver import paco, json_to_paco
+from paco.solver import json_to_paco
 from utils.env import IMPACTS_NAMES
 
 
@@ -22,7 +22,7 @@ def pareto_optimal_impacts(bpmn: dict, max_bound:np.ndarray= None, decimal_numbe
 
 	json_input = json.dumps({
 		"bpmn": bpmn,
-		"bound": str([0] * len(bpmn[IMPACTS_NAMES]))
+		"bound": str([0.0] * len(bpmn[IMPACTS_NAMES]))
 	})
 
 	while True:

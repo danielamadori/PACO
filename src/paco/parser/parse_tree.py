@@ -1,7 +1,11 @@
+import os
+
+import graphviz
 import pydot
 import json
 from abc import ABC
 
+from paco.evaluations.sampler_expected_impact import sample_expected_impact
 from paco.parser.json_schema.json_validator import validate_json
 from paco.parser.parse_node import Gateway, Sequential, Parallel, Choice, Nature, Task
 from utils.env import PATH_PARSE_TREE
@@ -9,6 +13,11 @@ from utils.env import PATH_PARSE_TREE
 class ParseTree:
 	def __init__(self, root: 'ParseNode(ABC)') -> None:
 		self.root = root
+
+	def sample_expected_impact(self):
+		return sample_expected_impact(
+			json.loads(self.to_json()),
+			track_choices=False)
 
 	def copy(self) -> 'ParseTree':
 		return ParseTree(self.root.copy())
@@ -25,21 +34,30 @@ class ParseTree:
 		dot_code += root.dot()
 
 		sx_edge_label = ''
+		sx_style = ''
 		dx_edge_label = ''
 		if isinstance(root, Nature):
 			sx_edge_label = f'{root.probability}'
 			dx_edge_label = f'{round((1 - root.probability), 2)}'
+		if isinstance(root, Choice):
+			sx_style = 'dashed'
 
-		dot_code += f'\n node_{root.id} -> node_{root.sx_child.id} [label="{sx_edge_label}"];'
+		dot_code += f'\n node_{root.id} -> node_{root.sx_child.id} [label="{sx_edge_label}" style="{sx_style}"];'
 		dot_code += f'\n node_{root.id} -> node_{root.dx_child.id} [label="{dx_edge_label}"];'
 
 		return dot_code
 
-	def print(self, outfile=PATH_PARSE_TREE):
-		dot_string = "digraph my_graph{"+ self.dot_tree() +"}"
-		graph = pydot.graph_from_dot_data(dot_string)[0]
-		graph.write_svg(outfile + '.svg')
-		#graph.write_png(outfile)
+	def to_dot(self):
+		return "digraph my_graph{"+ self.dot_tree() +"}"
+
+	def save_dot(self, outfile=PATH_PARSE_TREE):
+		directory = os.path.dirname(outfile)
+		if directory:
+			os.makedirs(directory, exist_ok=True)
+
+		dot = self.to_dot()
+		with open(outfile + ".svg", "wb") as f:
+			f.write(graphviz.Source(dot).pipe(format="svg"))
 
 	def to_json(self) -> str:
 		return json.dumps(self.root.to_dict(), indent=2)

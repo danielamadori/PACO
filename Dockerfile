@@ -18,7 +18,7 @@ RUN pip install jupyter
 
 COPY src /app/src
 
-COPY main.ipynb /app
+COPY *.ipynb /app/
 
 EXPOSE 8000
 EXPOSE 8888

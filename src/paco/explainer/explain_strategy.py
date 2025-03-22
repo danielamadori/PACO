@@ -6,28 +6,30 @@ from paco.parser.parse_node import ParseNode
 from paco.execution_tree.execution_tree import ExecutionTree
 
 
-def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType, write_decision_tree=False) -> Bdd:
-	decisions = list(decisions)
-	decision_0 = decisions[0]
-	decision_1 = None
+def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType, debug=False) -> Bdd:
+	if len(decisions) == 0:
+		raise Exception(f"explain_choice:Choice {choice.name} has no decisions")
+	elif len(decisions) > 2:
+		raise Exception(f"explain_choice:Choice {choice.name} has more than 2 decisions")
+
 	is_unavoidable_decision = len(decisions) == 1
-	if not is_unavoidable_decision:
-		decision_1 = decisions[1]
+	if is_unavoidable_decision:
+		decisions.append(None)
 
-	bdd = Bdd(choice, decision_0, decision_1, impacts, labels, features_names, typeStrategy)
+	bdd = Bdd(choice, decisions[0], decisions[1], typeStrategy,
+			  impacts=impacts, labels=labels, features_names=features_names)
 
-	success = True
-	if not is_unavoidable_decision:
-		success = bdd.build(write=write_decision_tree)
-	if success:
-		bdd.bdd_to_file()
-	else:
-		bdd = None
+	is_separable = bdd.build(debug=debug) #Debug write on files
+	if not is_separable:
+		return None
+
+	if debug:
+		bdd.save_bdd()
 
 	return bdd
 
 
-def explain_strategy_full(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.CURRENT_IMPACTS) -> (ExplanationType, dict[ParseNode, Bdd]):
+def explain_strategy_full(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.CURRENT_IMPACTS, debug=False) -> (ExplanationType, dict[ParseNode, Bdd]):
 	bdds = dict[ParseNode, Bdd]()
 	for choice, decisions_taken in strategy.items():
 		#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer:")
@@ -42,7 +44,7 @@ def explain_strategy_full(region_tree: ParseTree, strategy: dict[ParseNode, dict
 		else:
 			raise Exception(f"Choice {choice.name} is impossible to explain")
 
-		bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
+		bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy, debug)
 
 		if bdd is None:
 			#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
@@ -54,7 +56,7 @@ def explain_strategy_full(region_tree: ParseTree, strategy: dict[ParseNode, dict
 	return typeStrategy, bdds
 
 
-def explain_strategy_hybrid(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str]) -> (ExplanationType, dict[ParseNode, Bdd]):
+def explain_strategy_hybrid(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], debug=False) -> (ExplanationType, dict[ParseNode, Bdd]):
 	bdds = dict[ParseNode, Bdd]()
 
 	worstType = ExplanationType.CURRENT_IMPACTS
@@ -66,21 +68,21 @@ def explain_strategy_hybrid(region_tree: ParseTree, strategy: dict[ParseNode, di
 
 		if typeStrategy == ExplanationType.CURRENT_IMPACTS:
 			vectors, labels = current_impacts(decisions_taken)
-			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
+			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy, debug)
 			if bdd is None:
 				#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
 				typeStrategy = ExplanationType(typeStrategy + 1)
 
 		if typeStrategy == ExplanationType.UNAVOIDABLE_IMPACTS:
 			vectors, labels = unavoidable_impacts(region_tree, decisions_taken)
-			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
+			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy, debug)
 			if bdd is None:
 				#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
 				typeStrategy = ExplanationType(typeStrategy + 1)
 
 		if typeStrategy == ExplanationType.DECISION_BASED:
 			features_names, vectors, labels = decision_based(region_tree, decisions_taken)
-			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy)
+			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy, debug)
 			if bdd is None:
 				raise Exception(f"Choice {choice.name} is impossible to explain")
 
@@ -93,10 +95,10 @@ def explain_strategy_hybrid(region_tree: ParseTree, strategy: dict[ParseNode, di
 	return worstType, bdds
 
 
-def explain_strategy(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.HYBRID) -> (ExplanationType, dict[ParseNode, Bdd]):
+def explain_strategy(region_tree: ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], impacts_names: list[str], typeStrategy: ExplanationType = ExplanationType.HYBRID, debug=False) -> (ExplanationType, dict[ParseNode, Bdd]):
 	if typeStrategy == ExplanationType.HYBRID:
-		return explain_strategy_hybrid(region_tree, strategy, impacts_names)
+		return explain_strategy_hybrid(region_tree, strategy, impacts_names, debug)
 
-	return explain_strategy_full(region_tree, strategy, impacts_names, typeStrategy)
+	return explain_strategy_full(region_tree, strategy, impacts_names, typeStrategy, debug)
 
 

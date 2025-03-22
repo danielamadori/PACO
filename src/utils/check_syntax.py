@@ -2,27 +2,46 @@
 """
    File that checks things and useful things 
 """
-from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, TASK_SEQ
+from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, EXPRESSION, DELAYS, IMPACTS_NAMES, \
+    PROBABILITIES, NAMES, LOOP_PROBABILITY, LOOP_ROUND, H
 from paco.parser.grammar import ALL_SYNTAX
 from paco.parser.bpmn_parser import SESE_PARSER
 import re
 import json
 from datetime import datetime
 
-def checkCorrectSyntax(bpmn:dict) -> bool:
+def check_bpmn_syntax(bpmn:dict) -> bool:
     """
     Check if the syntax of the BPMN file is correct.
     """
-    print(f'{datetime.now()}: checking syntax in progress... ')
-    if bpmn[TASK_SEQ] == '' or bpmn[TASK_SEQ] is None:
-        return False
-    if not isinstance(bpmn[DURATIONS], dict):
-        return False
-    if not isinstance(bpmn[IMPACTS], dict):
-        return False
-    # tree = SESE_PARSER.parse(bpmn[TASK_SEQ])
-    # print((tree).pretty())
-    return True
+    REQUIRED_KEYS = {
+        EXPRESSION: str,
+        DURATIONS: dict,
+        IMPACTS: dict,
+        DELAYS: dict,
+        IMPACTS_NAMES: list,
+        PROBABILITIES: dict,
+        NAMES: dict,
+        LOOP_PROBABILITY: dict,
+        LOOP_ROUND: dict,
+        H: int,
+    }
+
+    for key, expected_type in REQUIRED_KEYS.items():
+        if key not in bpmn:
+            raise ValueError(f"Missing required key: '{key}'")
+
+        value = bpmn[key]
+
+        if key == "EXPRESSION":
+            if not isinstance(value, str) or not value:
+                raise ValueError("The expression is empty, None, or not a valid string")
+        elif not isinstance(value, expected_type):
+            raise ValueError(f"'{key}' has an invalid type. Expected {expected_type.__name__}, got {type(value).__name__}")
+
+    lark_tree = SESE_PARSER.parse(bpmn[EXPRESSION])
+    # print((lark_tree).pretty())
+    return lark_tree
 
 def check_input(bpmn:dict, bound:dict) -> tuple[str, list]:
     bound_list = []

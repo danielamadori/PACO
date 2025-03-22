@@ -8,6 +8,7 @@ from paco.evaluations.evaluate_impacts import evaluate_unavoidable_impacts
 
 
 class ExplanationType(enum.IntEnum):
+	FORCED_DECISION = -1
 	CURRENT_IMPACTS = 0
 	UNAVOIDABLE_IMPACTS = 1
 	DECISION_BASED = 2
