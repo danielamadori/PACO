@@ -38,6 +38,22 @@ To install **Python**, follow the instructions on [Python's official website](ht
 
 ## Quick Start
 
+### Using Docker
+
+To start the application using Docker, follow these steps:
+
+1. Pull and start the Docker:
+    ```bash
+    docker pull danielamadori/paco:latest
+    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO danielamadori/paco:latest
+    docker logs PACO
+    ```
+   Note: Replace latest with a specific version number if needed.
+2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
+   The docs are available at `http://127.0.0.1:8000/docs`
+3. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+   You will find multiple `.ipynb` notebooks available — **we recommend starting with `tutorial.ipynb`**, which provides a guided walkthrough of the main functionalities.
+
 ### Using Python
 To start the application using Python, follow these steps:
 1. **Environment Setup**
@@ -67,22 +83,8 @@ To start the application using Python, follow these steps:
     ```bash
     jupyter notebook --port=8888
     ```
-4. Open a browser and go to `http://127.0.0.1:8080` and go to the desired notebook to interact with the server
-
-### Using Docker
-
-To start the application using Docker, follow these steps:
-
-1. Pull and start the Docker:
-    ```bash
-    docker pull danielamadori/paco:latest
-    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO danielamadori/paco:latest
-    docker logs PACO
-    ```
-   Note: Replace latest with a specific version number if needed.
-2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API. 
-   The docs are available at `http://127.0.0.1:8000/docs` 
-3. Open a browser and go to `http://127.0.0.1:8080` and go to the desired notebook to interact with the server.
+4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+   You will find multiple `.ipynb` notebooks available — **we recommend starting with `tutorial.ipynb`**, which provides a guided walkthrough of the main functionalities.
 
 ---
 NB! This application is currently under development. There may be some issues and bugs.
