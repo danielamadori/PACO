@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from paco.solver import paco, json_to_paco
-from utils.env import IMPACTS_NAMES, EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, LOOP_PROBABILITY, DELAYS, PROBABILITIES, LOOP_ROUND, NAMES
+from utils.env import IMPACTS_NAMES, EXPRESSION, H, IMPACTS, DURATIONS, LOOP_PROBABILITY, DELAYS, PROBABILITIES, LOOP_ROUND
 
 # Read bpmn dict from file
 bpmn = json.load(open('test' + '.json'))

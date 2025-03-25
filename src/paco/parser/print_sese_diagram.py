@@ -1,5 +1,5 @@
 from lark import Tree, Token
-from utils.env import H, PROBABILITIES, IMPACTS, DURATIONS, NAMES, DELAYS, IMPACTS_NAMES, LOOP_ROUND, \
+from utils.env import H, PROBABILITIES, IMPACTS, DURATIONS, DELAYS, IMPACTS_NAMES, LOOP_ROUND, \
     LOOP_PROBABILITY
 
 def print_sese_diagram(bpmn:dict, lark_tree) -> str:
@@ -7,18 +7,17 @@ def print_sese_diagram(bpmn:dict, lark_tree) -> str:
     probabilities=bpmn[PROBABILITIES]
     impacts=bpmn[IMPACTS]
     durations=bpmn[DURATIONS]
-    names=bpmn[NAMES]
     delays=bpmn[DELAYS]
     impacts_names=bpmn[IMPACTS_NAMES]
     loop_round=bpmn[LOOP_ROUND]
     loop_probability=bpmn[LOOP_PROBABILITY]
 
-    diagram = wrap_sese_diagram(tree=lark_tree, h=h, probabilities= probabilities, impacts= impacts, durations=durations, names=names, delays=delays, impacts_names=impacts_names)
+    diagram = wrap_sese_diagram(tree=lark_tree, h=h, probabilities= probabilities, impacts= impacts, durations=durations, delays=delays, impacts_names=impacts_names)
 
     return "digraph my_graph{ \n rankdir=LR; \n" + diagram +"}"
 
 
-def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], names = {}, choices_list = {}, explainer = False):
+def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], choices_list = {}, explainer = False):
     exit_label = ''
     if type(t) == Token:
         label = t.value        
@@ -96,8 +95,8 @@ def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, im
                     exit_label = exit_labels[1]             
     return code, id_enter, id_exit, exit_label
 
-def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, durations={}, names={}, delays={}, impacts_names=[],  choices_list = {}, explainer = False):
-    code, id_enter, id_exit, exit_label = dot_sese_diagram(tree, 0, h, probabilities, impacts, loop_thresholds, durations, imp_names = impacts_names, names=names, choices_list = choices_list, explainer = explainer)   
+def wrap_sese_diagram(tree, h = 0, probabilities={}, impacts={}, loop_thresholds = {}, durations={}, delays={}, impacts_names=[],  choices_list = {}, explainer = False):
+    code, id_enter, id_exit, exit_label = dot_sese_diagram(tree, 0, h, probabilities, impacts, loop_thresholds, durations, imp_names = impacts_names, choices_list = choices_list, explainer = explainer)
     code = '\n start[label="" style="filled" shape=circle fillcolor=palegreen1]' +   '\n end[label="" style="filled" shape=doublecircle fillcolor=orangered] \n' + code
     code += f'\n start -> node_{id_enter};'
     code += f'\n node_{id_exit} -> end [label="{exit_label}"];'

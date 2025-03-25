@@ -31,7 +31,6 @@ PATH_STRATEGY_TREE = PATH_ASSETS + 'strategy_tree'
 ### args for tree LARK
 EXPRESSION = 'expression'
 IMPACTS = 'impacts'
-NAMES = 'names'
 PROBABILITIES = 'probabilities'
 DURATIONS = 'durations'
 DELAYS = 'delays'

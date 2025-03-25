@@ -1,7 +1,7 @@
 import random
 import re
 from paco.optimizer.pareto_optimizer import pareto_optimal_impacts
-from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, LOOP_PROBABILITY, DELAYS, PROBABILITIES, LOOP_ROUND, NAMES
+from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, LOOP_PROBABILITY, DELAYS, PROBABILITIES, LOOP_ROUND
 
 #fare replacement di ^ con nature o choice
 
@@ -29,7 +29,6 @@ bpmn = {
     LOOP_PROBABILITY: {},
     DELAYS: {choice: random.randint(delay_range[0], delay_range[1]) for choice in choices},
     PROBABILITIES: {nature: round(random.uniform(0.1, 0.9), 2) for nature in natures},
-    NAMES: {choice: choice for choice in choices} | {nature: nature for nature in natures},
     LOOP_ROUND: {}
 }
 

@@ -53,8 +53,9 @@ class Bdd:
 		class_0 = parseTreeNodes[data['class_0']]
 		class_1 = parseTreeNodes[data['class_1']] if data['class_1'] is not None else None
 
+
 		return Bdd(choice, class_0, class_1,
-				   data['typeStrategy'],
+				   ExplanationType(data['typeStrategy']),
 				   dot=data['dot'])
 
 	def transitions_str(self):

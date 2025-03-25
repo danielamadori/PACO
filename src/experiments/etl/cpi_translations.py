@@ -10,7 +10,6 @@ def cpi_to_standard_format(cpi_dict):
     - IMPACTS: Dictionary mapping task names to impact values
     - DURATIONS: Dictionary mapping task names to duration ranges [0, duration]
     - PROBABILITIES: Dictionary mapping nature node names to probability values
-    - NAMES: Dictionary mapping choice/nature node names to themselves
     - DELAYS: Dictionary with delay value 1 for each choice
     - LOOP_ROUND: Empty dictionary (placeholder)
     - H: 0 (placeholder)
@@ -28,7 +27,6 @@ def cpi_to_standard_format(cpi_dict):
         IMPACTS: {},
         DURATIONS: {},
         PROBABILITIES: {},
-        NAMES: {},
         DELAYS: {},
         LOOP_ROUND: {},
         LOOP_PROBABILITY: {},

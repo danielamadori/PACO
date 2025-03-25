@@ -3,7 +3,7 @@
    File that checks things and useful things 
 """
 from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, EXPRESSION, DELAYS, IMPACTS_NAMES, \
-    PROBABILITIES, NAMES, LOOP_PROBABILITY, LOOP_ROUND, H
+    PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, H
 from paco.parser.grammar import ALL_SYNTAX
 from paco.parser.bpmn_parser import SESE_PARSER
 import re
@@ -21,7 +21,6 @@ def check_bpmn_syntax(bpmn:dict) -> bool:
         DELAYS: dict,
         IMPACTS_NAMES: list,
         PROBABILITIES: dict,
-        NAMES: dict,
         LOOP_PROBABILITY: dict,
         LOOP_ROUND: dict,
         H: int,

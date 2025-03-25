@@ -3,7 +3,7 @@ import numpy as np
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_tree import ParseTree
-from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, NAMES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
+from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
 from paco.solver import paco, json_to_paco
 
 bpmn_new_example = {
@@ -60,20 +60,6 @@ bpmn_new_example = {
                 "ImplementationChoice": 0,
                 "SalesChoice": 0
             },
-            "names": {
-                "ProjectSelection": "Project Selection Decision",
-                "ProjectRiskA": "Risk for Project A",
-                "OverCostAndDelayA": "OverCost and Delay for Project A",
-                "NoProblemA": "No Problem for Project A",
-                "ProjectRiskB": "Risk for Project B",
-                "OverCostAndDelayB": "OverCost and Delay for Project B",
-                "NoProblemB": "No Problem for Project B",
-                "SupplyChainPlanning": "Supply Chain Planning",
-                "DistributionChoice": "DistributionChoice",
-                "MarketingChoice": "MarketingChoice",
-                "ImplementationChoice": "Implementation Strategy",
-                "SalesChoice": "Sales Strategy"
-            },
             "loop_round": {},
             "loop_probability": {},
             H:0
@@ -126,17 +112,6 @@ bpmn_new_example = {
             "ThermalOrElectric": 0,
             "ElectricOrHybrid": 0
         },
-        "names":{
-            "RoadOutsource": "RoadOutsource",
-            "RoadCompany": "RoadCompany",
-            "TrainCompany": "TrainCompany",
-            "TrainCompanyAB": "TrainCompanyAB",
-            "TrainCompanyCD": "TrainCompanyCD",
-            "DeliveryChoice": "DeliveryChoice",
-            "ThermalOrElectric": "ThermalOrElectric",
-            "ElectricOrHybrid": "ElectricOrHybrid",
-            "TransportType": "TransportType"
-        },
         "loop_round": {},
         "loop_probability": {},
         H: 0
@@ -152,7 +127,7 @@ bpmn_ex = {
         IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
         DURATIONS: {"T1": [0, 100], "T2": [0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {}, NAMES: {'L1': 'L1'}, DELAYS: {}, LOOP_PROBABILITY: {'L1': 0.5}, LOOP_ROUND: {'L1': 10}
+        PROBABILITIES: {}, DELAYS: {}, LOOP_PROBABILITY: {'L1': 0.5}, LOOP_ROUND: {'L1': 10}
     }, [19, 19]
     ],
     # In Notebook
@@ -163,7 +138,6 @@ bpmn_ex = {
         DURATIONS: {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1]},
         PROBABILITIES: {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
         LOOP_PROBABILITY: {},
-        NAMES: {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
         DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
         }, [5, 6]
     ],
@@ -175,7 +149,6 @@ bpmn_ex = {
         DURATIONS: {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1], 'TD1': [0, 2], 'TD2': [0, 2]},
         PROBABILITIES: {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
         LOOP_PROBABILITY: {},
-        NAMES: {'C1': 'C1', 'N2': 'N2', 'N1': 'N1', 'N3': 'N3'},
         DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
     }, [5, 6]
     ],
@@ -185,7 +158,7 @@ bpmn_ex = {
         IMPACTS: {"Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
         DURATIONS: {"Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, NAMES: {"N":"N", "N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
+        PROBABILITIES: {"N": 0.5, "N1": 0.6, "N2": 0.7}, DELAYS: {}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [23.3, 24.4]],
 
     "only natures, no strategy (no choice)": [{
@@ -194,7 +167,7 @@ bpmn_ex = {
         IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1]},
         DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N1": 0.6}, NAMES: {'N1':'N1'}, DELAYS: {},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
+        PROBABILITIES: {"N1": 0.6}, DELAYS: {},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [14.7, 16.7]],
 
     "bpmn_seq_natures": [{
@@ -203,7 +176,7 @@ bpmn_ex = {
         IMPACTS: {"SimpleTask1": [11, 15], "Task1": [4, 2], "T2": [3, 1] , "T3": [8, 9], "T4": [10, 5]},
         DURATIONS: {"SimpleTask1": [0, 100], "Task1": [0, 100], "T2":[0, 100], "T3":[0, 100], "T4":[0, 100]},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N1": 0.6, "N2": 0.7}, NAMES: {"N1":"N1", "N2":"N2"}, DELAYS: {}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
+        PROBABILITIES: {"N1": 0.6, "N2": 0.7}, DELAYS: {}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [23.3, 24.4]],
 
     "bpmn_choices_natures": [{
@@ -213,7 +186,6 @@ bpmn_ex = {
         DURATIONS: {"Cutting": 1, "HP": 1, "LP": 1, "FD": 1, "RD":1 , "HPHS": 1, "LPLS": 1},
         IMPACTS_NAMES: ["cost", "hours"],
         PROBABILITIES: {"N1": 0.6},
-        NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"},
         DELAYS: {"C1": 0, "C2": 0}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [26, 33.3]],
 
@@ -225,7 +197,6 @@ bpmn_ex = {
         IMPACTS_NAMES: ["cost", "r", "s", "e"],
         PROBABILITIES: {"N1": 0.5, "N2": 0.5},
         LOOP_PROBABILITY: {},
-        NAMES: {"N1": "N1", "N2": "N2", "c1": "c1"},
         DELAYS: {"c1": 0}, LOOP_ROUND: {}
     }, [1, 1, 1, 1]],
 
@@ -235,7 +206,7 @@ bpmn_ex = {
         IMPACTS: {"TaskA": [10], "TaskB": [10], "Task2": [10]},
         DURATIONS: {"TaskA": 100, "TaskB": 100, "Task2": 100},
         IMPACTS_NAMES: ["cost"],
-        PROBABILITIES: {"C1": 0.5}, NAMES: {"C1": "C1"}, DELAYS: {"C1": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
+        PROBABILITIES: {"C1": 0.5}, DELAYS: {"C1": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [20]],
 
     "bpmn_unavoidable_tasks2": [{
@@ -246,7 +217,6 @@ bpmn_ex = {
         IMPACTS_NAMES: ["cost", "r", "s", "e"],
         PROBABILITIES: {"N1": 0.5, "N2": 0.5},
         LOOP_PROBABILITY: {},
-        NAMES: {"N1": "N1", "N2": "N2", "c1": "c1"},
         DELAYS: {"c1": 0}, LOOP_ROUND: {}
     }, [2, 2, 2, 2]],
 
@@ -258,7 +228,6 @@ bpmn_ex = {
         IMPACTS_NAMES: ["cost", "r", "s", "e"],
         PROBABILITIES: {"N1": 0.5, "N2": 0.5},
         LOOP_PROBABILITY: {},
-        NAMES: {"N1": "N1", "N2": "N2", "c1": "c1"},
         DELAYS: {"c1": 0}, LOOP_ROUND: {}
     }, [3, 3, 3, 3]],
 
@@ -268,7 +237,7 @@ bpmn_ex = {
         IMPACTS: {"T1": [11, 15], "TA_N1": [4, 2], "TB_N1": [3, 1] , "TA_C1": [8, 9], "TB_C1": [10, 5] , "TA_C2": [4, 7], "TB_C2": [3, 8]},
         DURATIONS: {"T1": 1, "TA_N1": 1, "TB_N1": 1, "TA_C1": 1, "TB_C1":1 , "TA_C2": 1, "TB_C2": 1},
         IMPACTS_NAMES: ["cost", "hours"],
-        PROBABILITIES: {"N1": 0.6}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"},
+        PROBABILITIES: {"N1": 0.6},
         DELAYS: {"C1": 0, "C2": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [30, 30]],
 
@@ -279,7 +248,7 @@ bpmn_ex = {
         IMPACTS: {"T1": [1, 2], "TA_N1": [10, 5], "TB_N1": [5, 10] , "TA_C1": [20, 10], "TB_C1": [21, 11] , "TA_C2": [20, 10], "TB_C2": [10, 20], "TA_N2": [10, 5], "TB_N2": [5, 10]},
         DURATIONS: {"T1": 1, "TA_N1": 1, "TB_N1": 1, "TA_C1": 1, "TB_C1":1 , "TA_C2": 1, "TB_C2": 1, "TA_N2": 1, "TB_N2": 1},
         IMPACTS_NAMES: ["A", "B"],
-        PROBABILITIES: {"N1": 0.6, "N2": 0.5}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1", "N2": "N2"},
+        PROBABILITIES: {"N1": 0.6, "N2": 0.5},
         DELAYS: {"C1": 1, "C2": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [57, 48]],
 
@@ -312,7 +281,7 @@ bpmn_paper_example = {
         IMPACTS: {"Cutting": [10, 1], "Bending": [20, 1], "Milling": [50, 1], "HP": [5, 4], "LP": [8, 1], "FD": [30, 1], "RD": [10, 1], "HPHS": [40, 1], "LPLS": [20, 3]},
         DURATIONS: {"Cutting": [0, 1], "Bending": [0, 1], "Milling": [0, 1], "HP": [0, 2], "LP": [0, 1], "FD": [0, 1], "RD": [0, 1], "HPHS": [0, 1], "LPLS": [0, 2]},
         IMPACTS_NAMES: ["electric energy", "worker hours"],
-        PROBABILITIES: {"N1": 0.2}, NAMES: {"C1": "C1", "C2": "C2", "N1": "N1"}, DELAYS: {"C1": 0, "C2": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
+        PROBABILITIES: {"N1": 0.2}, DELAYS: {"C1": 0, "C2": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
         }, [135, 9]], #[135, 7]
     "Explainer Figure": [{
         EXPRESSION: "((t0p0 ^[p0] t1p0), (t0p5 /[p5] t1p5), (tp11, (t0p13 /[p13] t1p13),(t0p24 /[p24] t1p24) || (t0p12, tp20, (t0p22 ^[p22] t1p22) ^[p12] t1p12, tp21, (t0p23 ^ [p23] t1p23) ) ) )",
@@ -324,7 +293,7 @@ bpmn_paper_example = {
 
         DURATIONS: {"t0p0": [0, 1], "t1p0": [0, 1], "t0p5": [0, 1], "t1p5": [0, 1], "tp11": [0, 1], "t0p13": [0, 1], "t1p13": [0, 1], "t0p24": [0, 1], "t1p24": [0, 1], "t0p12": [0, 2], "t1p12": [0, 2], "t0p23": [0, 1], "t1p23": [0, 1], "t0p22": [0, 1], "t1p22": [0, 1], "tp20": [0, 1], "tp21": [0, 1] },
         IMPACTS_NAMES: ["A", "B", "C", "D", "E", "F"],
-        PROBABILITIES: {"p0": 0.5, "p12": 0.5, "p22": 0.99, "p23":0.01}, NAMES: {"p0": "p0", "p5": "p5", "p13": "p13", "p12": "p12", "p24": "p24", "p22": "p22", "p23": "p23"}, DELAYS: {"p5": 0, "p13": 0, "p24": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
+        PROBABILITIES: {"p0": 0.5, "p12": 0.5, "p22": 0.99, "p23":0.01}, DELAYS: {"p5": 0, "p13": 0, "p24": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [10,10,8,8,7,7]],
     "Explainer Figure_1": [{
         EXPRESSION: "((p1 ^[p0] p2), (p6 /[p5] p7), ((p16, (p28 /[p21] p29),(p35 /[p33] p36)) || (p19, p26 ^[p15] p20, p27) || (p13, (p22 ^[p17] p23) ^[p11] p14, (p24 ^ [p18] p25) )) )",
@@ -339,7 +308,6 @@ bpmn_paper_example = {
                     },
         IMPACTS_NAMES: ["A", "B", "C", "D", "E", "F"],
         PROBABILITIES: {"p0": 0.5, "p11": 0.5, "p15": 0.5, "p17": 0.99, "p18":0.01},
-        NAMES: {"p0": "p0", "p5": "p5", "p11": "p11", "p15": "p15", "p17": "p17", "p18": "p18", "p21": "p21", "p33":"p33"},
         DELAYS: {"p5": 0, "p21": 0, "p33": 0}, LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [3.5, 3.5,11, 12, 9.5, 9.5]], #[3,3,8,8,7,7]
 }
