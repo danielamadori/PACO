@@ -96,7 +96,7 @@ Ensure all dependencies are installed and your environment is correctly configur
 
 ### Preparing CPI Bundle
 
-Place your CPI bundle into the `CPIs` folder. If you don't have a CPI bundle, you can create one by following the instructions in the repository [synthetic-cpi-generation](https://github.com/danielamadori98/synthetic-cpi-generation), or you can download the pre-built bundle used in the paper for validation [here]( ).
+Place your CPI bundle into the `CPIs` folder. If you don't have a CPI bundle, you can create one by following the instructions in the repository [synthetic-cpi-generation](https://github.com/danielamadori98/synthetic-cpi-generation), or you can download the pre-built bundle used in the paper for validation [here](https://univr-my.sharepoint.com/:f:/g/personal/emanuele_chini_univr_it/EuMjJi6L03lCp0e348YPAYwBMJ5jTGO1lojwuIlOAhpaaA?e=u9oXl1).
 
 ### Running the Script
 

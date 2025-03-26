@@ -135,6 +135,8 @@ async def search_strategy(request: dict) -> dict:
         raise HTTPException(status_code=400, detail="Invalid BPMN format, expected a dictionary")
     if bound is None or not isinstance(bound, list):
         raise HTTPException(status_code=400, detail="Invalid 'bound' format, expected a list of float")
+    if len(bound) != len(bpmn[IMPACTS_NAMES]):
+        raise HTTPException(status_code=400, detail="Invalid 'bound' format, expected a list of float with the same size of impacts")
     if parse_tree is None:
         raise HTTPException(status_code=400, detail="No parse tree provided")
     if execution_tree is None:

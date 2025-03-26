@@ -265,7 +265,7 @@ class Bdd:
 
 		dot = graphviz.Digraph()
 
-		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="black", fillcolor="orange")
+		dot.node(str(self.choice.name), label=f"{self.choice.name}", shape="box", style="filled", color="black", fillcolor="orange")
 
 		if self.typeStrategy != ExplanationType.FORCED_DECISION:
 			dot.edge(str(self.choice), str(self.root))
@@ -279,7 +279,7 @@ class Bdd:
 				next_task, names, color = get_next_task(self.choice.sx_child)
 
 			dot.node(label, label=label, shape="box", style="filled", color="black", fillcolor=color)
-			dot.edge(str(self.choice), label, label="True", style='')
+			dot.edge(str(self.choice.name), label, label="True", style='')
 
 		return dot.source
 
