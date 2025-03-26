@@ -268,7 +268,7 @@ class Bdd:
 		dot.node(str(self.choice.name), label=f"{self.choice.name}", shape="box", style="filled", color="black", fillcolor="orange")
 
 		if self.typeStrategy != ExplanationType.FORCED_DECISION:
-			dot.edge(str(self.choice), str(self.root))
+			dot.edge(str(self.choice.name), str(self.root))
 			self.bdd_to_dot_recursively(dot, self.root)
 		else:
 			if self.choice.dx_child == self.class_0:
