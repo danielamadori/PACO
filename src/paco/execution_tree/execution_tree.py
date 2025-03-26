@@ -4,12 +4,12 @@ import os
 import graphviz
 import numpy as np
 from jsonschema import validate, ValidationError
-from graphviz import Source
 
 from paco.execution_tree.execution_view_point import ExecutionViewPoint
+from paco.execution_tree.view_point import get_next_task
 from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.strategy_view_point import StrategyViewPoint
-from paco.parser.parse_node import ParseNode, Sequential, Parallel
+from paco.parser.parse_node import ParseNode
 from paco.saturate_execution.states import States
 from utils.env import PATH_EXECUTION_TREE, PATH_STRATEGY_TREE
 
@@ -73,10 +73,12 @@ class ExecutionTree:
 			)
 
 		elif tree_type == "StrategyViewPoint":
+			unavoidable_impacts = np.array(node_data['unavoidable_impacts'], dtype=np.float64)
+
 			viewPoint = StrategyViewPoint(bpmn_root=parseTree.root,
 				id=id, states=states, decisions=decisions, choices=choices,
 				natures=natures, is_final_state=is_final_state, parent=parent,
-				probability=probability, impacts=impacts,
+				probability=probability, impacts=impacts, unavoidable_impacts=unavoidable_impacts,
 				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
 				expected_time=np.float64(node_data['expected_time']),
 				pending_choices=pending_choices, pending_natures=pending_natures,
@@ -127,10 +129,9 @@ class ExecutionTree:
 			next_node = root.transitions[transition].root
 			x = ""
 			for t in transition:
-				next = get_sequential_first_task(t[1])
-				x += str(t[0].name) + '->' + str(next.id if (isinstance(next, Parallel) or isinstance(next, Sequential)) else next.name) + ';'
+				next_task, next_name, next_color = get_next_task(t[1])
+				x += f'{t[0].name}->{next_name};'
 			#x += str(t[0].id) + '->' + str(t[1].id) + ';'
-			#x += str(t)[1:-1].replace(',', '->') + ";"
 
 			transitions_id += f"{root.dot_str(full=False)} -> {next_node.dot_str(full=False)} [label=\"{x[:-1]}\"];\n"
 
@@ -154,26 +155,19 @@ class ExecutionTree:
 
 		starting_node_names = ""
 		for n in self.root.decisions:
-			n = get_sequential_first_task(n)
-			node_name = n.id if (isinstance(n, Parallel) or isinstance(n, Sequential)) else n.name
-			starting_node_names += f"{node_name};"
+			node, name, color = get_next_task(n)
+			starting_node_names += f"{name};"
 
 		if len(self.root.choices) + len(self.root.natures) > 0:  #Just if we don't have decisions
 			starting_node_names = starting_node_names[:-1] + "->"
 			for c in self.root.choices:
-				starting_node_names += f"{c.name if c.name else c.id};"
+				starting_node_names += f"{c.name};"
 			for n in self.root.natures:
-				starting_node_names += f"{n.name if n.name else n.id};"
+				starting_node_names += f"{n.name};"
 
 		result += f"__start0 -> {self.root.dot_str(full=False)}  [label=\"{starting_node_names[:-1]}\"];\n" + "}"
 		return result
 
-
-def get_sequential_first_task(node: ParseNode):
-	if isinstance(node, Sequential):
-		return get_sequential_first_task(node.sx_child)
-
-	return node
 
 
 def validate_json(data: dict):

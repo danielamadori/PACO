@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 
-from paco.parser.parse_node import ParseNode
+from paco.parser.parse_node import ParseNode, Sequential, Choice, Nature, Parallel, Task
 from paco.saturate_execution.states import States, states_info
 
 
@@ -106,6 +106,28 @@ class ViewPoint(ABC):
 		}
 		return s
 
+
+
+def get_next_task(node: ParseNode):
+	if isinstance(node, Sequential):
+		return get_next_task(node.sx_child)
+
+	if isinstance(node, Parallel):
+		sx_node, sx_name, sx_color = get_next_task(node.sx_child)
+		dx_node, dx_name, dx_color = get_next_task(node.dx_child)
+
+		return node, f"{sx_name} || {dx_name}", 'white'
+
+	if isinstance(node, Choice):
+		color = 'orange'
+	elif isinstance(node, Nature):
+		color = 'yellowgreen'
+	elif isinstance(node, Task):
+		color = 'lightblue'
+	else:
+		raise Exception(f"view_point:get_next_task: type {node} not recognized")
+
+	return node, node.name, color
 
 
 def view_point_node_info(node: ViewPoint) -> str:

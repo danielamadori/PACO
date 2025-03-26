@@ -118,10 +118,12 @@ def full_strategy(region_tree: ParseTree, explained_choices: dict[ParseNode, Bdd
 	states, is_final, choices, natures, pending_choices, pending_natures = saturate_execution(region_tree, states, pending_choices, pending_natures)
 	probability, impacts = evaluate_expected_impacts(states, impacts_size)
 
+	unavoidable_impacts = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
+
 	strategyViewPoint = StrategyViewPoint(bpmn_root=region_tree.root, id=id, states=states,
-										  decisions=decisions_taken,
-										  choices=choices,
+										  decisions=decisions_taken, choices=choices,
 										  natures=natures, is_final_state=is_final,
+										  unavoidable_impacts= unavoidable_impacts,
 										  impacts=impacts, probability=probability,
 										  pending_choices=pending_choices,
 										  pending_natures=pending_natures)

@@ -3,9 +3,11 @@ import os
 import graphviz
 import numpy as np
 import pandas as pd
+
+from paco.execution_tree.view_point import get_next_task
 from paco.explainer.bdd.dag_node import DagNode
 from paco.explainer.explanation_type import ExplanationType
-from paco.parser.parse_node import ParseNode, Sequential, Parallel, Choice, Nature, Task
+from paco.parser.parse_node import ParseNode
 from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_BDD
 
 
@@ -256,25 +258,6 @@ class Bdd:
 		os.remove(file_path)  # tmp dot file
 		#os.remove(file_path + '.dot')  # tmp dot file
 
-	def get_bdd(self):
-		return self.get_bdd_recursively(self.root)
-
-	def get_bdd_recursively(self, node: DagNode):
-		if not node.splittable:
-			return f"Class: {node.class_0.name if node.class_0.name else node.class_0.id}"
-		if node.best_test is None:
-			return "Undetermined"
-		left_child, right_child = node.get_targets(node.best_test)
-		#The left is always the true condition
-		if not node.best_test[2]: # Swap to keep always < instead of >=
-			tmp = left_child
-			left_child = right_child
-			right_child = tmp
-
-		left_bdd = self.get_bdd_recursively(left_child)
-		right_bdd = self.get_bdd_recursively(right_child)
-
-		return f"({node.best_test[0]} < {node.best_test[1]} ? {left_bdd} : {right_bdd})"
 
 	def bdd_to_dot(self) -> str:
 		if self.dot is not None:
@@ -283,15 +266,23 @@ class Bdd:
 		dot = graphviz.Digraph()
 
 		dot.node(str(self.choice), label=f"{self.choice.name}", shape="box", style="filled", color="black", fillcolor="orange")
-		if self.class_1 is not None:
+
+		if self.typeStrategy != ExplanationType.FORCED_DECISION:
 			dot.edge(str(self.choice), str(self.root))
 			self.bdd_to_dot_recursively(dot, self.root)
 		else:
-			label = '0' if self.choice.dx_child == self.class_0 else '1'
-			dot.node(label, label=label, shape="box", style="filled", color="black", fillcolor=Bdd.get_decision_color(self.class_0))
+			if self.choice.dx_child == self.class_0:
+				label = '0'
+				next_task, names, color = get_next_task(self.choice.dx_child)
+			else:
+				label = '1'
+				next_task, names, color = get_next_task(self.choice.sx_child)
+
+			dot.node(label, label=label, shape="box", style="filled", color="black", fillcolor=color)
 			dot.edge(str(self.choice), label, label="True", style='')
 
 		return dot.source
+
 
 	def save_bdd(self, outfile:str = ""):
 		if outfile == "":
@@ -306,27 +297,16 @@ class Bdd:
 			f.write(graphviz.Source(dot).pipe(format="svg"))
 
 
-	@staticmethod
-	def get_decision_color(decision: ParseNode):
-		if isinstance(decision, Choice):
-			color = 'orange'
-		elif isinstance(decision, Nature):
-			color = 'yellowgreen'
-		elif isinstance(decision, Task):
-			color = 'lightblue'
-		elif isinstance(decision, Sequential):
-			return Bdd.get_decision_color(decision.sx_child)
-		elif isinstance(decision, Parallel):
-			color = 'white'
-		else:
-			raise Exception(f"bdd:get_decision: decision type {decision} not recognized")
-
-		return color
-
 	def bdd_to_dot_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			label = '0' if self.choice.dx_child == node.class_0 else '1'
-			dot.node(str(node), label=label, shape="box", style="filled", color="black", fillcolor=Bdd.get_decision_color(node.class_0))
+			if node.class_0 == self.choice.dx_child:
+				label = '0'
+				next_task, names, color = get_next_task(self.choice.sx_child)
+			else:
+				label = '1'
+				next_task, names, color = get_next_task(self.choice.dx_child)
+
+			dot.node(str(node), label=label, shape="box", style="filled", color="black", fillcolor=color)
 		elif node.best_test is None:
 			dot.node(str(node), label="Undetermined", shape="box", style="filled", color="black", fillcolor="red")
 		else:
@@ -341,6 +321,9 @@ class Bdd:
 					left_child = right_child
 					right_child = tmp
 			else:
+				#decisions_names = [f"{d.parent.name}_{'0' if d.parent.sx_child == d else '1'}" for d in decisions]
+				# node.best_test[0] is like N1_0 or N1_1 look at find_all_decisions
+				print(f"Best test: {node.best_test}?")
 				dot.node(str(node), label=f"Exec: {node.best_test[0]}?", shape="ellipse")
 				if node.best_test[2]: # Swap to keep always to check if active instead of not active
 					tmp = left_child

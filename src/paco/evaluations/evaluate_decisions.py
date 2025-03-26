@@ -1,4 +1,6 @@
 import numpy as np
+
+from paco.execution_tree.view_point import get_next_task
 from paco.saturate_execution.states import ActivityState
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode, Gateway, ExclusiveGateway
@@ -23,7 +25,12 @@ def find_all_decisions_rec(node: ParseNode) -> list[ParseNode]:
 
 def find_all_decisions(region_tree: ParseTree) -> (list[ParseNode], list[str]):
 	decisions = sorted(find_all_decisions_rec(region_tree.root), key=lambda d: d.id)
-	decisions_names = [f"{d.parent.name}_{'0' if d.parent.sx_child == d else '1'}" for d in decisions]
+	#decisions_names = [f"{d.parent.name}_{'0' if d.parent.dx_child == d else '1'}" for d in decisions]
+	decisions_names = []
+	for d in decisions:
+		_, decision_name, _ = get_next_task(d)
+		decisions_names.append(f"{d.parent.name}->{decision_name}")
+	print(f"Decisions: {decisions_names}")
 	return decisions, decisions_names
 
 

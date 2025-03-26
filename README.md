@@ -52,7 +52,7 @@ To start the application using Docker, follow these steps:
 2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
 3. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
-   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
+   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori98/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ### Using Python
 To start the application using Python, follow these steps:
@@ -84,7 +84,7 @@ To start the application using Python, follow these steps:
     jupyter notebook --port=8888
     ```
 4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
-   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
+   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori98/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ---
 NB! This application is currently under development. There may be some issues and bugs.
