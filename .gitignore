@@ -11,8 +11,7 @@ src/utils/__pycache__/
 src/assets/
 *.svg
 .ipynb_checkpoints/
-src/experiments/CPIs/
 benchmark_output.log
 benchmarks.sqlite
 src/experiments/telegram/telegram_config.json
-CPIs/
+CPIs/*

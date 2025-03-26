@@ -91,7 +91,16 @@ NB! This application is currently under development. There may be some issues an
 
 
 ## Running Benchmark
-Ensure that all dependencies are installed and the environment is correctly set up before running the tests.
+
+Ensure all dependencies are installed and your environment is correctly configured before running benchmarks.
+
+### Preparing CPI Bundle
+
+Place your CPI bundle into the `CPIs` folder. If you don't have a CPI bundle, you can create one by following the instructions in the repository [synthetic-cpi-generation](https://github.com/danielamadori98/synthetic-cpi-generation), or you can download the pre-built bundle used in the paper for validation [here]( ).
+
+### Running the Script
+
+Execute the benchmark script according to your operating system:
 
 **Run the script**
 - Linux
@@ -104,7 +113,11 @@ Ensure that all dependencies are installed and the environment is correctly set 
     .\run_benchmark.bat
     ```
 
-These scripts will execute a series of tests to validate the functionality of the application. 
+After execution, benchmark results and logs will be generated in the main directory:
+
+- `benchmarks.sqlite` – Benchmark results database
+- `benchmarks_output.log` – Detailed benchmark execution log
+
 
 ## Authors
 

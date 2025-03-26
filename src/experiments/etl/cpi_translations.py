@@ -1,4 +1,4 @@
-from utils.env import EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, PROBABILITIES, NAMES, DELAYS, LOOP_ROUND, LOOP_PROBABILITY, \
+from utils.env import EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, PROBABILITIES, DELAYS, LOOP_ROUND, LOOP_PROBABILITY, \
     H
 
 
@@ -63,9 +63,7 @@ def cpi_to_standard_format(cpi_dict):
             choice_name = f"C{choice_counter}"
             name_mapping[node['id']] = choice_name
             choice_counter += 1
-            
-            # Store in NAMES and DELAYS
-            result[NAMES][choice_name] = choice_name
+
             result[DELAYS][choice_name] = 1
             
             # Process children
@@ -76,9 +74,7 @@ def cpi_to_standard_format(cpi_dict):
             nature_name = f"N{nature_counter}"
             name_mapping[node['id']] = nature_name
             nature_counter += 1
-            
-            # Store in NAMES and PROBABILITIES
-            result[NAMES][nature_name] = nature_name
+
             result[PROBABILITIES][nature_name] = node['probability']
             
             # Process children
