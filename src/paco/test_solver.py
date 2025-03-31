@@ -4,7 +4,7 @@ from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.explanation_type import ExplanationType
 from paco.parser.parse_tree import ParseTree
 from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
-from paco.solver import paco, json_to_paco
+from paco.solver import paco
 
 bpmn_new_example = {
     "bpmn": [{
@@ -262,8 +262,7 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
         for name, example in bpmn_ex_dicts.items():
             print(example[0], example[1])
             print('Type bpmn: ', name)
-            print(str(example[1]))
-            json_to_paco({"bpmn": example[0], "bound": str(example[1])})
+            print(paco(example[0], example[1]))
 
             #ask a string in input if the string is not yes exit
             answer = input("Do you want to continue? (yes/no): ")
@@ -271,7 +270,7 @@ def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
                 break
     else:
         name, example = list(bpmn_ex_dicts.items())[selected]
-        json_to_paco({"bpmn": example[0], "bound": str(example[1])})
+        print(paco(example[0], example[1]))
 
 
 bpmn_paper_example = {

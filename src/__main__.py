@@ -119,7 +119,7 @@ async def get_execution_tree(request: dict) -> dict:
                 "times": times}
 
     except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/create_strategy")
 async def search_strategy(request: dict) -> dict:
@@ -192,7 +192,7 @@ async def search_strategy(request: dict) -> dict:
         return jsonable_encoder(result_dict)
 
     except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -218,7 +218,7 @@ async def get_agent(
        tuple: The agent defined and the configuration.
     """
     if not isinstance(url, str) or not isinstance(api_key, str) or not isinstance(model, str) or not isinstance(temperature, float):
-        return HTTPException(status_code=400, detail="Invalid input")
+        raise HTTPException(status_code=400, detail="Invalid input")
     try:
         llm, config =  define_agent(
             url=url, api_key=api_key, 
@@ -228,7 +228,7 @@ async def get_agent(
             "config": config
         }
     except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/get_chat_history")
 async def get_chat_history(session_id: str) -> list:
@@ -242,11 +242,11 @@ async def get_chat_history(session_id: str) -> list:
         list: The chat history.
     """
     if not isinstance(session_id, str):
-        return HTTPException(status_code=400, detail="Invalid input")
+        raise HTTPException(status_code=400, detail="Invalid input")
     try:
         return chat_histories[session_id]
     except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -275,7 +275,7 @@ async def invoke_agent(request: AgentRequest) ->  dict:
         list[tuple]: The history of the agent.
     """
     if not isinstance(request, AgentRequest):
-        return HTTPException(status_code=400, detail="Invalid input")
+        raise HTTPException(status_code=400, detail="Invalid input")
     print(request)
     try:
         # Retrieve or initialize chat history
@@ -305,7 +305,7 @@ async def invoke_agent(request: AgentRequest) ->  dict:
         return {"session_id": request.session_id, "response": response.content}
 
     except Exception as e:
-        return HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 #######################################################

@@ -1,11 +1,7 @@
-import json
 import numpy as np
-from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.build_explained_strategy import build_explained_strategy
 from paco.explainer.explanation_type import ExplanationType
-from paco.explainer.bdd.bdds import bdds_to_dict
 from paco.parser.create import create
-from paco.parser.parse_tree import ParseTree
 from paco.searcher.search import search
 from utils import check_syntax as cs
 from utils.env import IMPACTS_NAMES, DURATIONS
@@ -65,72 +61,3 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 
 	return text_result, result, times
 
-
-
-def json_to_paco(json_input, search_only = False, type_strategy=ExplanationType.HYBRID):
-	x, y = json_input.get("bpmn"), json_input.get("bound")
-	if not x and not y:
-		raise ValueError("Missing BPMN and Bound")
-	else:
-		bpmn = x
-		print(y)
-		bound = np.array(y.strip("[]").split(","), dtype=np.float64)
-
-	# Create
-	x = json_input.get("parse_tree")
-	if x:
-		parse_tree, pending_choices, pending_natures = ParseTree.from_json(x, len(bpmn[IMPACTS_NAMES]),0)
-	else:
-		parse_tree, pending_choices, pending_natures = None, None, None
-
-	x = json_input.get("execution_tree")
-	if x:
-		execution_tree = ExecutionTree.from_json(parse_tree, x, bpmn[IMPACTS_NAMES])
-	else:
-		execution_tree = None
-
-	text_result, result, times = paco(bpmn, bound,
-									  parse_tree=parse_tree, pending_choices=pending_choices,
-									  pending_natures=pending_natures, execution_tree=execution_tree,
-									  search_only=search_only, type_strategy=type_strategy, debug=True)
-
-
-	result_dict = {
-		"result": text_result, "times": times,
-		"bpmn": result["bpmn"], "bound": str(result["bound"]),
-		"parse_tree": result["parse_tree"].to_dict(),
-		"execution_tree": result["execution_tree"].to_dict(),
-	}
-
-	#Search
-	x = result.get("possible_min_solution")
-	y = result.get("guaranteed_bounds")
-	if x is not None and y is not None:# Search Done
-		result_dict.update({
-			"possible_min_solution": str([str(bound) for bound in x]),
-			"guaranteed_bounds": str([str(bound) for bound in y])
-		})
-
-	x = result.get("expected_impacts")
-	y = result.get("frontier_solution")
-	if x is not None and y is not None:# Search Win
-		result_dict.update({
-			"expected_impacts" : str(x),
-			"frontier_solution" : str([execution_tree.root.id for execution_tree in y])
-		})
-
-
-
-	x = result.get("strategy_tree")
-	y = result.get("strategy_expected_impacts")
-	z = result.get("strategy_expected_time")
-	w = result.get("bdds")
-	if x is not None and y is not None and z is not None and w is not None: # Strategy Explained Done
-		result_dict.update({
-			"strategy_tree": x.to_dict(),
-			"strategy_expected_impacts": str(y),
-			"strategy_expected_time": str(z),
-			"bdds": bdds_to_dict(w)
-		})
-
-	return result_dict
