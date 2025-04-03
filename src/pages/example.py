@@ -3,7 +3,6 @@ import dash
 from dash import html, dcc,Input, Output, State, callback
 import dash_bootstrap_components as dbc
 
-from api.api import get_image_content
 
 dash.register_page(__name__, path='/example')
 

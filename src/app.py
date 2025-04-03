@@ -166,10 +166,14 @@ app.layout = html.Div([
 def update_output(n_clicks, prompt, token, chat_history,  verbose = False):
     if not token:
         return html.P("Please log in first")
+
+    return html.P("TODO")
+    #TODO
     if prompt:
         if verbose:
             print(prompt)
         try:      
+
             global llm
             if llm is None:
                 return dbc.Alert("Please configure AI model first.", color="danger") 
@@ -211,6 +215,8 @@ def save_config(n_clicks, api_key, model_url, token,model, temperature):
     if api_key and model_url:
         try:
             global llm, config_llm
+            #TODO
+            '''
             llm, config_llm = get_agent_definition(
                 api_key=api_key, 
                 url=model_url, 
@@ -218,19 +224,11 @@ def save_config(n_clicks, api_key, model_url, token,model, temperature):
                 temperature=temperature,
                 token='token'
             )
+            '''
             return dbc.Alert("Configuration saved successfully!", color="success")
         except Exception as e:
             return dbc.Alert(f"Error: {e}", color="danger")
 
-@app.callback(
-    Output("collapse", "is_open"),
-    [Input("collapse-button", "n_clicks")],
-    [State("collapse", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
 
 @app.callback(
     Output("collapse-config", "is_open"),

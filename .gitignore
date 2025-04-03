@@ -13,3 +13,4 @@ server/tests/output_files
 /src/pages/__pycache__
 *.svg
 test.ipynb
+.ipynb_checkpoints/

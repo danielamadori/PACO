@@ -41,7 +41,7 @@ sese_diagram_grammar = r"""
 SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
 
 ### args for tree LARK
-TASK_SEQ = 'expression'
+EXPRESSION = 'expression'
 IMPACTS = 'impacts'
 NAMES = 'names'
 PROBABILITIES = 'probabilities'

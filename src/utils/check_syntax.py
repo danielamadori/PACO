@@ -2,7 +2,7 @@
 """
    File that checks things and useful things 
 """
-from env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, TASK_SEQ, ALL_SYNTAX, SESE_PARSER
+from env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, EXPRESSION, ALL_SYNTAX, SESE_PARSER
 import re
 import json
 from datetime import datetime
@@ -12,7 +12,7 @@ def checkCorrectSyntax(bpmn:dict) -> bool:
     Check if the syntax of the BPMN file is correct.
     """
     print(f'{datetime.now()}: checking syntax in progress... ')
-    if bpmn[TASK_SEQ] == '' or bpmn[TASK_SEQ] is None:
+    if bpmn[EXPRESSION] == '' or bpmn[EXPRESSION] is None:
         return False
     if not isinstance(bpmn[DURATIONS], dict):
         return False
@@ -403,27 +403,6 @@ def create_probabilities_dict(list_choises, prob:dict):
     dict_prob = {}
     for i, c in enumerate(list_choises):
         dict_prob[c] = prob[i]
-    return dict_prob
-
-
-def create_probabilities_names(list_choises):    
-    """
-    Create a dictionary of probabilities with the given list of choices.
-
-    Args:
-        list_choises (list): A list of choices.
-
-    Returns:
-        dict: A dictionary of probabilities where each choice is mapped to itself.
-
-    Example:
-        >>> choices = ['A', 'B', 'C']
-        >>> create_probabilities_names(choices)
-        {'A': 'A', 'B': 'B', 'C': 'C'}
-    """
-    dict_prob = {}
-    for c in list_choises:
-        dict_prob[c] = c
     return dict_prob
 
 def impacts_dict_to_list(impacts: dict):
