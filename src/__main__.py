@@ -68,7 +68,6 @@ async def check_bpmn(request: dict) -> dict:
 
     try:
         lark_tree = check_bpmn_syntax(dict(bpmn))
-        SESE_PARSER.parse(bpmn[EXPRESSION])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -86,7 +85,6 @@ async def get_parse_tree(request: dict) -> dict:
 
     try:
         lark_tree = check_bpmn_syntax(dict(bpmn))
-        SESE_PARSER.parse(bpmn[EXPRESSION])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -108,7 +106,6 @@ async def get_execution_tree(request: dict) -> dict:
         bpmn = dict(bpmn)
         bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
         lark_tree = check_bpmn_syntax(bpmn)
-        SESE_PARSER.parse(bpmn[EXPRESSION])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -148,8 +145,7 @@ async def search_strategy(request: dict) -> dict:
     try:
         bpmn = dict(bpmn)  # Ensure BPMN is a dictionary
         bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])  # Modify durations
-        lark_tree = check_bpmn_syntax(bpmn)  # Validate BPMN syntax
-        SESE_PARSER.parse(bpmn[EXPRESSION])  # Parse the BPMN expression
+        lark_tree = check_bpmn_syntax(bpmn)  # Validate BPMN syntax and Parse the BPMN expression
         bound = np.array(bound, dtype=np.float64)
         parse_tree, pending_choices, pending_natures = ParseTree.from_json(parse_tree, impact_size=len(bpmn[IMPACTS_NAMES]), non_cumulative_impact_size=0)
         execution_tree = ExecutionTree.from_json(parse_tree, execution_tree, pending_choices, pending_natures)
