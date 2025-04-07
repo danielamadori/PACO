@@ -62,6 +62,17 @@ def save_expression_on_tab_change(tab_value, current_expression, data):
 
         print(f"Updated Expression: {current_expression}")
 
+
+    if data.get(EXPRESSION, '') != '':
+        resp = requests.get(API_URL, json={'bpmn': data}, headers=HEADERS)
+        resp.raise_for_status()
+        dot = resp.json().get('bpmn_dot', '')
+        svg = graphviz.Source(dot).pipe(format='svg').decode('utf-8')
+        #write the svg file
+        with open('test.svg', 'w') as f:
+            f.write(svg)
+        #return html.Div(svg, dangerously_allow_html=True), False, "", ""
+
     return data
 
 
