@@ -1,11 +1,9 @@
 import re
 import json
-from datetime import datetime
+
+from lark import ParseTree
+
 from core.config import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, EXPRESSION, ALL_SYNTAX, SESE_PARSER
-
-
-
-
 
 
 def check_algo_is_usable(expression: str, algo: str) -> bool:
@@ -24,7 +22,7 @@ def check_algo_is_usable(expression: str, algo: str) -> bool:
 
 
 
-def extract_nodes(lark_tree) -> list[str]:
+def extract_nodes(lark_tree: ParseTree) -> (list, list, list, list):
     tasks = []
     choices = []
     natures = []
@@ -65,31 +63,6 @@ def extract_nodes(lark_tree) -> list[str]:
     return tasks, choices, natures, loops
 
 
-def string_to_dict(string) -> dict:
-    print("string_to_dict", string)
-    """
-    Convert a JSON string to a dictionary.
-
-    Parameters:
-    string (str): A JSON string.
-
-    Returns:
-    dict: The dictionary obtained from the JSON string.
-    """
-    return json.loads(string)
-
-
-
-###############
-    
-## IMPACTS
-    
-################
-
-
-# This function takes a dictionary as input, converts its values to a list,
-# and checks if all values are integers. If all values are integers, it returns the list.
-# Otherwise, it returns an empty list.
 def impacts_from_dict_to_list(dictionary:dict):
     """
     Convert the values of a dictionary to a list and check if all values are integers.
@@ -114,86 +87,6 @@ def impacts_from_dict_to_list(dictionary:dict):
 
 
 #######################
-
-## BOUNDS
-
-########################
-
-
-#######################
-
-## PROBABILITIES
-
-########################
-def extract_choises_nat(input_string):
-    """
-    This function takes a string and extracts all non-empty substrings that are inserted as ^ [...] simbolising the natural choises.
-
-    Parameters:
-    input_string (str): The input string.
-
-    Returns:
-    list: A list of substrings found between square brackets.
-    """
-    # Use a regular expression to find all substrings between square brackets
-    choises = re.findall(r'\^\s*\[(.*?)\]', input_string)
-
-    # Filter out empty strings
-    choises = [c for c in choises if c]
-
-    return choises
-def extract_loops(input_string):
-    """
-    This function takes a string and extracts all non-empty substrings that are inserted as ^ [...] simbolising the natural choises.
-
-    Parameters:
-    input_string (str): The input string.
-
-    Returns:
-    list: A list of substrings found between square brackets.
-    """
-    # Use a regular expression to find all substrings between square brackets
-    loops = re.findall(r'\<\s*\[(.*?)\]', input_string) #re.findall(r'<(.*?)>', input_string)
-
-    # Filter out empty strings
-    loops = [f'{c}' for c in loops if c]
-
-    return loops
-def extract_choises_user(input_string):
-    """
-    This function takes a string and extracts all non-empty substrings that are inserted as / [...] simbolising the natural choises.
-
-    Parameters:
-    input_string (str): The input string.
-
-    Returns:
-    list: A list of substrings found between square brackets.
-    """
-    # Use a regular expression to find all substrings between square brackets
-    choises = re.findall(r'\/\s*\[(.*?)\]', input_string)
-
-    # Filter out empty strings
-    choises = [c for c in choises if c]
-
-    return choises
-def extract_choises(input_string):
-    """
-    This function takes a string and extracts all non-empty substrings that are inserted between square brackets.
-
-    Parameters:
-    input_string (str): The input string.
-
-    Returns:
-    list: A list of substrings found between square brackets.
-    """
-    # Use a regular expression to find all substrings between square brackets
-    choises = re.findall(r'\[(.*?)\]', input_string)
-
-    # Filter out empty strings
-    choises = [c for c in choises if c]
-
-    return choises
-
 
 def impacts_dict_to_list(impacts: dict):
     return {key: list(inner_dict.values()) for key, inner_dict in impacts.items()}

@@ -7,10 +7,6 @@ from core.config import URL_SERVER
 headers = {
     "Content-Type": "application/json",
 }
-#################################
-# API FILE
-#################################
-
 
 ########################
 # LLM - AI
@@ -79,83 +75,3 @@ async def authorization_function(username = '', password = '', server = None):
     
 
 
-########################
-# BPMN 
-########################
-
-
-def get_image_content(name: str, type: str = 'png', token: str = None) -> str:
-    """
-    Get image content from the API synchronously
-    
-    Args:
-        name (str): Name of the image
-        type (str): Image type ('png' or 'svg')
-        token (Optional[str]): Authentication token
-        
-    Returns:
-        Optional[str]: Base64 encoded image content or None if failed
-    """
-    try:
-        print('url', f'{URL_SERVER}bpmn_example_img')
-        response = requests.get(
-            f'{URL_SERVER}bpmn_example_img',
-            params={'name': name, 'type': type, 'token': token},
-            headers=headers,
-        )
-        if response.status_code == 200:
-            return base64.b64encode(response.content).decode()
-        return None
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching image: {e}")
-        return None
-
-
-def get_bpmn_grammar(token = None):
-    bpmn_grammar = requests.get(
-        f'{URL_SERVER}bpmn_grammar',
-        params={'token': token},
-        headers=headers,
-    )
-    if bpmn_grammar.status_code == 200:
-        return bpmn_grammar.json()['grammar']
-    return None
-
-
-def calc_strat(bpmn_lark:dict, bound:list, algo:str, token:str =None):
-    data = {
-        'bpmn': bpmn_lark ,          
-        'bound': bound,
-        'algo': algo
-    }
-    strat = requests.get(
-        f'{URL_SERVER}calc_strategy_general',
-        json=data,
-        params={'token': token},
-        headers=headers,
-    )    
-    print('strat', strat.status_code)
-    print('strat', strat.json())
-    return strat.status_code, strat.json()
-
-def get_bpmn_correct(
-    bpmn_lark: dict, impacts_table, 
-    durations, task: str,
-    loops, probabilities, delays, token: str = None
-):
-    data = {
-       'bpmn_lark' :bpmn_lark,
-         'impacts_table': impacts_table,
-         'durations': durations,
-         'task': task,
-         'loops': loops,
-         'probabilities': probabilities,
-         'delays': delays,
-    }
-    resp = requests.post(
-        f'{URL_SERVER}set_bpmn',
-        data=data,
-        params={'token': token},
-        headers=headers,
-    )
-    return resp.status_code, resp.json()

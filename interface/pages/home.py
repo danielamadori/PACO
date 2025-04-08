@@ -3,7 +3,6 @@ import dash
 from dash import html, dcc, Input, Output,State, callback
 import dash_bootstrap_components as dbc
 from dash import dcc
-from core.api.remote_api import calc_strat
 from core.config import ALGORITHMS, BOUND, DELAYS, DURATIONS, H, IMPACTS, PATH_BPMN, PATH_STRATEGY_TREE_STATE_TIME, \
     STRATEGY, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, LOOP_PROBABILITY, SESE_PARSER
 from core.grammar.syntax import extract_nodes
@@ -24,7 +23,7 @@ DEFAULT_DURATION = 1
 
 def save_expression_on_tab_change(tab_value, current_expression, data):
     print(f"Tab changed to: {tab_value}, current expression: {current_expression}")
-    if current_expression is None:
+    if current_expression is None or current_expression == '':
         return data
 
     current_expression = current_expression.replace("\n", "").replace("\t", "")
@@ -69,8 +68,7 @@ def save_expression_on_tab_change(tab_value, current_expression, data):
         dot = resp.json().get('bpmn_dot', '')
         svg = graphviz.Source(dot).pipe(format='svg').decode('utf-8')
         #write the svg file
-        with open('test.svg', 'w') as f:
-            f.write(svg)
+        #return html.Div(svg, dangerously_allow_html=True)
         #return html.Div(svg, dangerously_allow_html=True), False, "", ""
 
     return data
@@ -79,7 +77,6 @@ def save_expression_on_tab_change(tab_value, current_expression, data):
 
 
 spinner = dbc.Spinner(color="primary", type="grow", fullscreen=True)
-
 
 
 def layout():
@@ -171,11 +168,8 @@ def layout():
             ### BPMN DIAGRAM USING LARK ###
             ###############################
             dcc.Tab(label='Show BPMN', value='tab-5', children=[
-
-dbc.Button('Create diagram', id='create-diagram-button'),
-dbc.Spinner(html.Div(id='api-diagram-output'), color="primary"),
-
-
+                dbc.Button('Create diagram', id='create-diagram-button'),
+                dbc.Spinner(html.Div(id='api-diagram-output'), color="primary"),
                 html.Div([
                     html.H3("BPMN diagram in lark:"),
                     #html.Img(id='lark-diagram1', src= 'assets/graph.svg', style={'height': '500', 'width': '1000'}),
@@ -204,7 +198,6 @@ dbc.Spinner(html.Div(id='api-diagram-output'), color="primary"),
             ################
             dcc.Tab(label='Define Strategy',  value='tab-6', children=[
                 html.Div([
-
                     html.Div(id="strategy", children=[
                         html.H3("Choose the algorithm to use:"),
                         dcc.Dropdown(
