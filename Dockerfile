@@ -12,8 +12,8 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src /app #TODO
+COPY src /app
 
 EXPOSE 8050
 
-CMD ["python3", "-u", "app.py"]
+CMD ["python3", "-u", "main.py"]

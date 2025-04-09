@@ -1,6 +1,10 @@
 from lark import Lark
 
+APP_NAME = "PACO GUI"
+
 URL_SERVER = 'http://127.0.0.1:8000/' #'http://host.docker.internal:8000/'
+API_URL = URL_SERVER + "create_bpmn"
+HEADERS = {"Content-Type": "application/json"}
 
 ###############
 # MODEL
@@ -45,18 +49,13 @@ EXPRESSION = 'expression'
 IMPACTS = 'impacts'
 NAMES = 'names'
 PROBABILITIES = 'probabilities'
-LOOP_THRESHOLD = 'loop_threshold'
 DURATIONS = 'durations'
 DELAYS = 'delays'
 H = 'h'
 IMPACTS_NAMES ='impacts_names'
 LOOP_ROUND = 'loop_round'
-### SYNTAX
 LOOP_PROBABILITY = 'loop_probability'
-LOOP_ROUND = 'loop_round'
-# BPMN RESOLUTION #######################
-RESOLUTION = 300
-#############################
+
 # STRATEGY 
 STRATEGY = 'strategy'
 BOUND = 'bound'
@@ -109,3 +108,4 @@ ALGORITHMS_MISSING_SYNTAX = {
 }
 
 ALL_SYNTAX = ['^', '/', '||', '<', '>', '[', ']', ',', '', '(', ')'] # all syntax characters available
+

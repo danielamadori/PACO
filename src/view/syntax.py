@@ -2,11 +2,11 @@ import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-from core.config import sese_diagram_grammar
+from src.env import sese_diagram_grammar
 
-dash.register_page(__name__)
 
-layout = html.Div([
+def layout():
+    return html.Div([
     dcc.Markdown('''
             
         # Syntax and Basic Components

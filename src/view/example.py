@@ -1,12 +1,10 @@
-import asyncio
 import dash
-from dash import html, dcc,Input, Output, State, callback
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 
-dash.register_page(__name__, path='/example')
-
-layout = html.Div([
+def layout():
+    return html.Div([
     dcc.Markdown('''
         # Example of a BPMN+CPI
             The BPMN diagram (shonw in figure) depicts a metal manufacturing process that involves cutting, milling,
