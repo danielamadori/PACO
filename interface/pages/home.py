@@ -1,18 +1,15 @@
-import json
+import base64
 import dash
-from dash import html, callback, Output, Input, dcc, State, ALL
 import dash_bootstrap_components as dbc
-from dash import dcc
-from core.config import ALGORITHMS, DELAYS, DURATIONS, H, IMPACTS, PATH_BPMN, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, LOOP_PROBABILITY, SESE_PARSER
-from core.grammar.syntax import extract_nodes
 
-dash.register_page(__name__, path='/')
+API_URL = "http://127.0.0.1:8000/create_bpmn"
+HEADERS = {"Content-Type": "application/json"}
 
 from dash import Input, Output, State, callback
-from copy import deepcopy
 
 DEFAULT_DURATION = 1
 
+dash.register_page(__name__, path='/')
 
 def update_bpmn_data(data):
     alert = ''
@@ -69,12 +66,9 @@ def update_bpmn_data(data):
     except requests.exceptions.RequestException as e:
         return data, dbc.Alert(f"Processing error: {str(e)}", color="danger", dismissable=True)
 
-    svg = graphviz.Source(dot).pipe(format='svg').decode('utf-8')
-    #write the svg file
-    with open('test.svg', 'w') as f:
-        f.write(svg)
-    #return html.Div(svg, dangerously_allow_html=True)
-    #return html.Div(svg, dangerously_allow_html=True), False, "", ""
+    svg = graphviz.Source(dot).pipe(format='svg')
+    encoded_svg = base64.b64encode(svg).decode('utf-8')
+    data["svg"] = f"data:image/svg+xml;base64,{encoded_svg}"
 
     return data, alert
 
@@ -109,313 +103,159 @@ def validate_expression_and_update(current_expression, data):
     return update_bpmn_data(data)
 
 
+@callback(
+    Output('input-bpmn', 'value', allow_duplicate=True),
+    Input('bpmn-lark-store', 'data'),
+    State('input-bpmn', 'value'),
+    prevent_initial_call='initial_duplicate'
+)
+def sync_input_with_store(store_data, current_value):
+    if not current_value:#if empty
+        return store_data[EXPRESSION]
+    return dash.no_update
+
+
 
 spinner = dbc.Spinner(color="primary", type="grow", fullscreen=True)
 
+import json
+import dash
+from dash import html, callback, Output, Input, dcc, State, ALL
+import dash_bootstrap_components as dbc
+from dash import dcc
+from core.config import DELAYS, DURATIONS, H, IMPACTS, PATH_BPMN, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, LOOP_PROBABILITY, SESE_PARSER, ALGORITHMS
+from core.grammar.syntax import extract_nodes
+import graphviz
+import requests
+
+dash.register_page(__name__, path='/')
+
+from dash import Input, Output, State, callback
+from copy import deepcopy
 
 def layout():
     return html.Div([
         dcc.Store(id='bpmn-lark-store', data={
-            EXPRESSION: '',
+            EXPRESSION: 'Task',
             H: 0,
             IMPACTS: {},
             DURATIONS: {},
-            IMPACTS_NAMES : [],
+            IMPACTS_NAMES : ['impact'],
             DELAYS: {},
             PROBABILITIES: {},
             LOOP_PROBABILITY: {},
-            LOOP_ROUND: {}
+            LOOP_ROUND: {},
+            "svg": ""
         }, storage_type='session'),
 
-        html.Div(id='logging'),
-        html.Div(id='logging-strategy'),
-        dcc.Tabs(id="tabs", value='tab-1', children=[
-            ################################
-            ### DEFINING THE BPMN + CPI  ###
-            ################################
-            dcc.Tab(label='BPMN+CPI', value='tab-1', children=[
-                html.Div([
-                    html.H1('Insert your BPMN here:'),
-                    html.Div(id='bpmn-alert'),
-                    dcc.Upload(
-                        id='upload-data',
-                        children=html.Div([
-                            'Drag and Drop or ',
-                            html.A('Select a JSON File')
-                        ]),
-                        style={
-                            'width': '100%',
-                            'height': '60px',
-                            'lineHeight': '60px',
-                            'borderWidth': '1px',
-                            'borderStyle': 'dashed',
-                            'borderRadius': '5px',
-                            'textAlign': 'center',
-                            'margin': '10px'
-                        },
-                        # Allow multiple files to be uploaded
-                        multiple=True
-                    ),
-                    html.Div(id='output-data-upload'),
-                    html.Br(),
-                    html.P("""Here is an example of a BPMN complete diagram: Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)"""),
-                    html.Br(),
-                    html.Div(id='loaded-bpmn-file'),
-                    html.Br(),
-                    dcc.Input(type="text", debounce=True, id='input-bpmn', style={'width': '90%'}),
-                    html.Div([
-                        html.Div(id='task-duration'),
-                        html.Div(id='choice-table'),
-                        html.Div(id='nature-table'),
-                        html.Div(id='loop-table'),
-                    ], style={
-                        "display": "flex",
-                        "gap": "20px",
-                        "flexWrap": "wrap",
-                        "justifyContent": "center"
-                    }),
-                    html.A('Download diagram as SVG', id='download-diagram', download='diagram.svg', href=PATH_BPMN+'.svg', target='_blank'),
-                    dbc.Button('Next', id='go-to-define-durations'),
-                ])
-            ]),
-            dcc.Tab(label='Durations', value='tab-2', children=[
-                html.Div([
-                    dbc.Button('Back', id='back-to-load-bpmn'),
-                    dbc.Button('Next', id='go-to-impacts-bpmn'),
-                ])
-            ]),
-            dcc.Tab(label='CPI: Choices and natures', value='tab-4', children=[
-                html.Div([
-                    html.P('Insert the probabilities for each natural choice, if any. The values have to be between 0 and 1.'),
-                    html.Div(id= 'probabilities'),
-                    html.Br(),
-                    html.P('Insert the delays for each natural choice, if any. The values have to be between 0 and 100.'),
-                    html.Div(id= 'delays'),
-                    html.Br(),
-                    html.P('Insert the number of maximum loops round, if any. The value have to be between 1 and 100.'),
-                    html.Div(id= 'loops'),
-                    html.Br(),
-                    dbc.Button('Back', id='back-to-impacts'),
-                    dbc.Button('Next', id='go-to-show-bpmn'),
-                ])
-            ]),
-            ###############################
-            ### BPMN DIAGRAM USING LARK ###
-            ###############################
-            dcc.Tab(label='Show BPMN', value='tab-5', children=[
-                dbc.Button('Create diagram', id='create-diagram-button'),
-                dbc.Spinner(html.Div(id='api-diagram-output'), color="primary"),
-                html.Div([
-                    html.H3("BPMN diagram in lark:"),
-                    #html.Img(id='lark-diagram1', src= 'assets/graph.svg', style={'height': '500', 'width': '1000'}),
-                    html.Iframe(id="lark-frame",
-                                src='',#PATH_IMAGE_BPMN_LARK_SVG,
-                                style={'height': '100%', 'width': '100%'}
-                                # style={"height": "70vh", "width": "95vw", 'border':'none'}
-                                ), #style={'height': '100%', 'width': '100%'}
-                    # html.Embed(
-                    #     id="lark-frame",
-                    #     src=PATH_IMAGE_BPMN_LARK_SVG,
-                    #     type="image/svg+xml",
-                    #     style={"height": "100vh", "width": "100vw", "border": "none"}
-                    # ),
-                    html.Br(),
-                    # download diagram as svg
-                    html.Br(),
-                    dbc.Button('Back', id='back-to-load-cpi'),
-                    dbc.Button('Next', id='go-to-define-strategy'),
-                ]),
-                html.Br(),
-            ]),
-            ################
-            ### STRATEGY ###
-            ################
-            dcc.Tab(label='Define Strategy',  value='tab-6', children=[
-                html.Div([
-                    html.Div(id="strategy", children=[
-                        html.H3("Choose the algorithm to use:"),
-                        dcc.Dropdown(
-                            id='choose-strategy',
-                            options=[
-                                {'label': value, 'value': key}
-                                for key, value in ALGORITHMS.items()
-                            ],
-                            value= list(ALGORITHMS.keys())[0] # default value
-                        ),
-                        html.H3('Insert the bound'),
-                        html.Div(id= 'choose-bound-dict'),
-                        html.Br(),
-                        html.Br(),
-                        dbc.Button('Find strategy', id='find-strategy-button'),
+
+
+        dbc.Row([
+            dbc.Col([
+                dcc.Tabs(id='bpmn-tabs', value='tab-bpmn', children=[
+                    dcc.Tab(label='BPMN + CPI', value='tab-bpmn', children=[
+                        html.Div([
+                            html.Div(id='bpmn-alert'),
+                            dcc.Upload(
+                                id='upload-data',
+                                children=html.Div([
+                                    'Drag and Drop or ',
+                                    html.A('Select a JSON File')
+                                ]),
+                                style={
+                                    'width': '100%',
+                                    'height': '60px',
+                                    'lineHeight': '60px',
+                                    'borderWidth': '1px',
+                                    'borderStyle': 'dashed',
+                                    'borderRadius': '5px',
+                                    'textAlign': 'center',
+                                    'margin': '10px'
+                                },
+                                multiple=True
+                            ),
+                            html.Div(id='output-data-upload'),
+                            html.Br(),
+                            html.P("""Here is an example of a BPMN complete diagram:\n Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)"""),
+                            html.Br(),
+                            html.Div(id='loaded-bpmn-file'),
+                            html.Br(),
+                            dcc.Input(type="text", debounce=True, id='input-bpmn', style={'width': '90%'}, value=''),
+                            html.Div([
+                                html.Div([
+                                    dbc.Input(
+                                        id='new-impact-name',
+                                        placeholder='New impact',
+                                        debounce=True,
+                                        style={'flexGrow': 1, 'marginRight': '4px'}
+                                    ),
+                                    dbc.Button(
+                                        "+",
+                                        id='add-impact-button',
+                                        n_clicks=0,
+                                        color="success",
+                                        size="sm",
+                                        style={"padding": "0.25rem 0.4rem", "lineHeight": "1"}
+                                    ),
+                                ], style={'width': '180px', 'display': 'flex', 'alignItems': 'center'}),
+                                html.Div(id='task-duration'),
+                                html.Div(id='choice-table'),
+                                html.Div(id='nature-table'),
+                                html.Div(id='loop-table'),
+                            ], style={
+                                "display": "flex",
+                                "gap": "20px",
+                                "flexWrap": "wrap",
+                                "justifyContent": "center"
+                            }),
+                        ])
                     ]),
-                    html.Br(),
-                    html.Br(),
-                    dbc.Button('Back', id='back-to-show-bpmn'),
-                    dbc.Button('Next', id='go-to-show-strategy'),
+                    dcc.Tab(label='Define Strategy', value='tab-strategy', children=[
+                        html.Div([
+                            html.Div(id="strategy", children=[
+                                html.H4("Choose the algorithm to use:"),
+                                dcc.Dropdown(
+                                    id='choose-strategy',
+                                    options=[
+                                        {'label': value, 'value': key}
+                                        for key, value in ALGORITHMS.items()
+                                    ],
+                                    value=list(ALGORITHMS.keys())[0]
+                                ),
+                                html.H3('Insert the bound'),
+                                html.Div(id='choose-bound-dict'),
+                                html.Br(),
+                                html.Br(),
+                                dbc.Button('Find strategy', id='find-strategy-button'),
+                            ]),
+                        ])
+                    ])
                 ])
-            ]),
-            dcc.Tab(label='Show Strategy',  value='tab-7', children=[
-                html.Div([
-                    html.Div(
-                        children = [
-                            dcc.Loading(
-                                id="loading-strategy",
-                                children=[html.Div([html.Div(id="strategy-founded")])],
-                                type="circle", #'graph', 'cube', 'circle', 'dot', 'default'
-                                # fullscreen=True,
-                            )
-                        ]
-                    ),
-                    dbc.Button('Back', id='back-to-strategy'),
-                    dbc.Button('Next', id='go-to-download'),
-                ])
-            ]),
-            dcc.Tab(label='Download data',  value='tab-8', children=[
-                ########################
-                ### DOWNLOAD EXAMPLE ###
-                ########################
-                html.Div(id="download-example", children=[
-                    html.H1("Download the example:"),
-                    dbc.Checklist(
-                        options=[
-                            {"label": "BPMN + CPI", "value": 1},
-                            {"label": "Bound", "value": 2},
-                            {"label": "Strategy", "value": 3},
-                        ],
-                        value=[1, 2],
-                        id="switches-input",
-                        switch=True,
-                    ),
-                    dbc.Button("Download", id="btn-download"),
-                    dcc.Download(id="download"),
-                    html.Br(),
-                    dbc.Button('Back', id='back-to-show-strategy'),
-                    # dbc.Button('Next', id='go-to-define-strategy'),
-                ]),
-            ]),
-            # dcc.Tab(label='Strategy Explainer', value='tab-6', children=[
-            #     html.Div([
-            #         html.H1("Explaining strategy"),
-            #           dbc.Button('Back', id='back-to-load-bpmn'),
-            #     ])
-            # ])
-        ]),
+            ], width='auto', style={"borderRight": "1px solid #ccc", "padding": "1rem", "maxWidth": "500px"}),
 
-    ]
-)
-
-######################
-## NAVIGATE TABS  ###
-######################
-
-@callback(
-    Output('tabs', 'value', allow_duplicate=True),
-    [
-     Input('back-to-load-bpmn', 'n_clicks'),
-     Input('go-to-show-bpmn', 'n_clicks'),
-     Input('back-to-load-cpi', 'n_clicks'),
-     Input('go-to-define-strategy', 'n_clicks'),
-     Input('back-to-show-bpmn', 'n_clicks'),
-     Input('go-to-show-strategy', 'n_clicks'),
-     Input('back-to-strategy', 'n_clicks'),
-     Input('go-to-define-durations', 'n_clicks'),
-     Input('go-to-impacts-bpmn', 'n_clicks'),
-     Input('back-to-durations', 'n_clicks'),
-     Input('go-to-cp', 'n_clicks'),
-     Input('back-to-impacts', 'n_clicks'),
-     Input('back-to-show-strategy', 'n_clicks'),
-     Input('go-to-download', 'n_clicks'),
-    ],
-    prevent_initial_call=True
-)
-def navigate_tabs(*args):
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        # No button was clicked yet
-        return 'tab-1'
-    else:
-        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
-    # Mapping from button ID to tab value
-    tab_mapping = {
-        'go-to-define-durations': 'tab-2',
-        'go-to-impacts-bpmn': 'tab-3',
-        'back-to-durations': 'tab-2',
-        'go-to-cp': 'tab-4',
-        'back-to-impacts': 'tab-3',
-        'go-to-define-cpi': 'tab-2',
-        'back-to-load-bpmn': 'tab-1',
-        'go-to-show-bpmn': 'tab-5',
-        'back-to-load-cpi': 'tab-4',
-        'go-to-define-strategy': 'tab-6',
-        'back-to-show-bpmn': 'tab-5',
-        'go-to-show-strategy': 'tab-7',
-        'back-to-strategy': 'tab-6',
-        'back-to-show-strategy': 'tab-7',
-        'go-to-download': 'tab-8',
-    }
-
-    return tab_mapping.get(button_id, 'tab-1')  # Default to 'tab-1' if button_id is not found
-
+            dbc.Col([
+                dbc.Spinner(
+                    html.Div(id="svg-container"),
+                    color="primary",
+                    type="grow",
+                    fullscreen=False,  # oppure True se vuoi che copra tutto lo schermo
+                    spinner_style={"width": "4rem", "height": "4rem"}
+                )
+            ], width=True, style={"padding": "2rem"})
+        ])
+    ])
 
 
 @callback(
-    Output("collapse", "is_open"),
-    [Input("collapse-button", "n_clicks")],
-    [State("collapse", "is_open")],
+    Output("svg-container", "children"),
+    Input("bpmn-lark-store", "data")
 )
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+def update_svg(data):
+    if not data or not data.get("svg"):
+        return ""
 
+    return html.Iframe(src=data["svg"], style={"width": "100%", "height": "600px", "border": "none"})
 
-
-@callback(
-    Output("download", "data"),
-    Input("btn-download", "n_clicks"),
-    State('switches-input', 'value'),
-    State('bpmn-lark-store', 'data'),
-    prevent_initial_call=True,
-)
-def func(n_clicks, switches, bpmn_lark):
-    print(f' in dwonlaoad {switches}')
-    content = {}
-    for el in switches:
-        if el == 1:
-            content['bpmn'] = bpmn_lark
-        '''
-        elif el == 2:
-            content['bound'] = strategy_d[BOUND]
-        elif el == 3:
-            content['strategy'] = strategy_d[STRATEGY]
-        '''
-    content = json.dumps(content)
-    return dict(content=content, filename="bpmn_cpi_strategy.json")
-
-
-import requests, graphviz
-from dash import Output, Input, State
-
-API_URL = "http://127.0.0.1:8000/create_bpmn"
-HEADERS = {"Content-Type": "application/json"}
-
-@callback(
-    Output('api-diagram-output', 'children'),
-    Input('create-diagram-button', 'n_clicks'),
-    State('bpmn-lark-store', 'data'),
-    prevent_initial_call=True
-)
-def generate_bpmn_diagram(n_clicks, bpmn_data):
-    try:
-        response = requests.get(API_URL, json={'bpmn': bpmn_data}, headers=HEADERS)
-        response.raise_for_status()
-        dot_diagram = response.json().get('bpmn_dot', '')
-        svg = graphviz.Source(dot_diagram).pipe(format='svg').decode('utf-8')
-        return html.Div(svg, dangerously_allow_html=True)
-    except Exception as e:
-        return dbc.Alert(f"API Error: {str(e)}", color="danger")
 
 
 @callback(
@@ -423,6 +263,7 @@ def generate_bpmn_diagram(n_clicks, bpmn_data):
     Input('bpmn-lark-store', 'data'),
     prevent_initial_call=True
 )
+
 def generate_duration_table(data):
     if DURATIONS not in data:
         return dash.no_update
@@ -437,68 +278,49 @@ def generate_duration_table(data):
 
         (min_d, max_d) = data[DURATIONS][task]
 
-        impact_inputs = [
-            html.Td(dcc.Input(
-                value=data[IMPACTS].get(task, {}).get(impact_name, 0.0),
-                type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"},
-            id={'type': f'impact-{impact_name}', 'index': task}
-            )) for impact_name in data[IMPACTS_NAMES]
-        ]
+        impact_inputs = []
+        if data[IMPACTS_NAMES]:
+            impact_inputs = [
+                html.Td(dcc.Input(
+                    value=data[IMPACTS].get(task, {}).get(impact_name, 0.0),
+                    type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"},
+                    id={'type': f'impact-{impact_name}', 'index': task}
+                )) for impact_name in sorted(data[IMPACTS_NAMES])
+            ]
 
         row = html.Tr([
-                html.Td(html.Span(task, style={"whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "minWidth": "100px", "display": "inline-block"})),
-                html.Td(dcc.Input(value=min_d, type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"}, id={'type': 'min-duration', 'index': task})),
-                html.Td(dcc.Input(value=max_d, type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"}, id={'type': 'max-duration', 'index': task})),
-              ] + impact_inputs)
+                          html.Td(html.Span(task, style={"whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "minWidth": "100px", "display": "inline-block"})),
+                          html.Td(dcc.Input(value=min_d, type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"}, id={'type': 'min-duration', 'index': task})),
+                          html.Td(dcc.Input(value=max_d, type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"}, id={'type': 'max-duration', 'index': task})),
+                      ] + impact_inputs)
         rows.append(row)
 
-    new_impacts_element = html.Div([
-        dbc.Input(
-            id='new-impact-name',
-            placeholder='New impact',
-            debounce=True,
-            style={'flexGrow': 1, 'marginRight': '4px'}
-        ),
-        dbc.Button(
-            "+",
-            id='add-impact-button',
-            n_clicks=0,
-            color="success",
-            size="sm",
-            style={"padding": "0.25rem 0.4rem", "lineHeight": "1"}
-        ),
-    ], style={'width': '180px', 'display': 'flex', 'alignItems': 'center'})
-
-
-    impacts_sub_columns = [
-        html.Th([
-            html.Div([
-                html.Span(name, style={"whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "maxWidth": "80px", "display": "inline-block"}),
-                dbc.Button("×", id={'type': 'remove-impact', 'index': name},
-                           n_clicks=0, color="danger", size="sm", className="ms-1", style={"padding": "2px 6px"})
-            ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'})
-        ]) for name in data[IMPACTS_NAMES]
+    header_rows = [
+        html.Tr([
+                    html.Th(html.H3("Tasks"), rowSpan=2, style={'vertical-align': 'middle'}),
+                    html.Th("Duration", colSpan=2, style={'vertical-align': 'middle', 'textAlign': 'center'}),
+                ] + ([html.Th("Impacts", colSpan=len(data[IMPACTS_NAMES]), style={'vertical-align': 'middle', 'textAlign': 'center'})] if data[IMPACTS_NAMES] else []))
     ]
 
-
-    if len(data[IMPACTS_NAMES]) < 3:
-        impacts_sub_columns.append(html.Th([ new_impacts_element ]))
-
-    header = html.Thead([
-        html.Tr([
-            html.Th(html.H3("Tasks"), rowSpan=2, style={'vertical-align': 'middle'}),
-            html.Th("Duration", colSpan=2, style={'vertical-align': 'middle', 'textAlign': 'center'}),
-            html.Th("Impacts", colSpan=len(data[IMPACTS_NAMES]) + 2, style={'vertical-align': 'middle', 'textAlign': 'center'})
-        ]),
-        html.Tr([
+    if data[IMPACTS_NAMES]:
+        header_rows.append(html.Tr([
+                                       html.Th("Min", style={'width': '80px', 'vertical-align': 'middle'}),
+                                       html.Th("Max", style={'width': '80px', 'vertical-align': 'middle'}),
+                                   ] + [html.Th(html.Div([
+            html.Span(name, style={"whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "maxWidth": "80px", "display": "inline-block"}),
+            dbc.Button("×", id={'type': 'remove-impact', 'index': name},
+                       n_clicks=0, color="danger", size="sm", className="ms-1", style={"padding": "2px 6px"})
+        ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'})) for name in sorted(data[IMPACTS_NAMES])])
+                           )
+    else:
+        header_rows.append(html.Tr([
             html.Th("Min", style={'width': '80px', 'vertical-align': 'middle'}),
             html.Th("Max", style={'width': '80px', 'vertical-align': 'middle'})
-        ] + impacts_sub_columns)
-    ])
+        ]))
 
     table = [html.Div([
         dbc.Table(
-            [header] + rows,
+            [html.Thead(header_rows)] + rows,
             bordered=True,
             hover=True,
             responsive=True,
@@ -516,15 +338,11 @@ def generate_duration_table(data):
         html.Div(id='add-impact-alert', className='mt-2')
     ]
 
-    if len(data[IMPACTS_NAMES]) > 2:
-        table.insert(1, new_impacts_element)
-
     return html.Div(table)
-
 
 @callback(
     Output('bpmn-lark-store', 'data', allow_duplicate=True),
-    Output('add-impact-alert', 'children'),
+    Output('bpmn-alert', 'children', allow_duplicate=True),
     Input('add-impact-button', 'n_clicks'),
     State('new-impact-name', 'value'),
     State('bpmn-lark-store', 'data'),
@@ -607,9 +425,8 @@ def update_duration_from_inputs(min_values, max_values, ids, data):
         return update_bpmn_data(data)
     return data, ''
 
-def create_table(title, columns, rows, table_id):
+def create_table(columns, rows, table_id):
     return html.Div([
-        html.H5(title, style={'textAlign': 'center'}),
         dbc.Table(
             [html.Thead(html.Tr([html.Th(col) for col in columns]))] + rows,
             bordered=True,
@@ -640,15 +457,18 @@ def create_table(title, columns, rows, table_id):
 )
 def generate_choice_table(data):
     _, choices, _, _ = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
+    if len(choices) == 0:
+        return dash.no_update
 
     rows = [
         html.Tr([
             html.Td(name),
-            html.Td(dcc.Input(value=data[PROBABILITIES][name], type="number", min=0, max=1, step=0.01, debounce=True,
-                              id={'type': 'choice-prob', 'index': name}))
+            html.Td(dcc.Input(value=data[DELAYS][name], type="number", min=0, step=1, debounce=True,
+                              id={'type': 'choice-delay', 'index': name}, style={'width': '7ch'}))
         ]) for name in choices
     ]
-    return create_table("Choices", ["Name", "Probability"], rows, 'choice-table')
+
+    return create_table(["Choices", "Delay"], rows, 'choice-table')
 
 
 @callback(
@@ -658,15 +478,17 @@ def generate_choice_table(data):
 )
 def generate_nature_table(data):
     _, _, natures, _ = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
+    if len(natures) == 0:
+        return dash.no_update
 
     rows = [
         html.Tr([
             html.Td(name),
-            html.Td(dcc.Input(value=data[DELAYS][name], type="number", min=0, max=100, step=1, debounce=True,
-                              id={'type': 'nature-delay', 'index': name}))
+            html.Td(dcc.Input(value=data[PROBABILITIES][name], type="number", min=0, max=1, step=0.01, debounce=True,
+                              id={'type': 'nature-prob', 'index': name}))
         ]) for name in natures
     ]
-    return create_table("Natures", ["Name", "Delay"], rows, 'nature-table')
+    return create_table(["Natures", "Probability"], rows, 'nature-table')
 
 
 @callback(
@@ -676,6 +498,8 @@ def generate_nature_table(data):
 )
 def generate_loop_table(data):
     _, _, _, loops = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
+    if len(loops) == 0:
+        return dash.no_update
 
     rows = [
         html.Tr([
@@ -686,34 +510,33 @@ def generate_loop_table(data):
                               id={'type': 'loop-round', 'index': name}))
         ]) for name in loops
     ]
-    return create_table("Loops", ["Name", "Prob.", "Max Rounds"], rows, 'loop-table')
+    return create_table(["Loops", "Probability", "Max Iteration"], rows, 'loop-table')
 
 
 @callback(
     Output('bpmn-lark-store', 'data', allow_duplicate=True),
     Output('bpmn-alert', 'children', allow_duplicate=True),
-    Input({'type': 'choice-prob', 'index': ALL}, 'value'),
-    State({'type': 'choice-prob', 'index': ALL}, 'id'),
+    Input({'type': 'choice-delay', 'index': ALL}, 'value'),
+    State({'type': 'choice-delay', 'index': ALL}, 'id'),
     State('bpmn-lark-store', 'data'),
     prevent_initial_call='initial_duplicate'
 )
 def update_choices(values, ids, data):
     for value, id_obj in zip(values, ids):
-        data[PROBABILITIES][id_obj['index']] = value
+        data[DELAYS][id_obj['index']] = value
     return update_bpmn_data(data)
-
 
 @callback(
     Output('bpmn-lark-store', 'data', allow_duplicate=True),
     Output('bpmn-alert', 'children', allow_duplicate=True),
-    Input({'type': 'nature-delay', 'index': ALL}, 'value'),
-    State({'type': 'nature-delay', 'index': ALL}, 'id'),
+    Input({'type': 'nature-prob', 'index': ALL}, 'value'),
+    State({'type': 'nature-prob', 'index': ALL}, 'id'),
     State('bpmn-lark-store', 'data'),
     prevent_initial_call='initial_duplicate'
 )
 def update_natures(values, ids, data):
     for value, id_obj in zip(values, ids):
-        data[DELAYS][id_obj['index']] = value
+        data[PROBABILITIES][id_obj['index']] = value
     return update_bpmn_data(data)
 
 
