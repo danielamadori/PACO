@@ -6,3 +6,5 @@ aiohttp~=3.11.12
 lark~=1.2.2
 dash-bootstrap-components~=1.6.0
 dash_auth~=2.3.0
+pony
+

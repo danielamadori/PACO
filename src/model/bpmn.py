@@ -5,6 +5,8 @@ import dash_bootstrap_components as dbc
 import graphviz
 import requests
 from lark import ParseTree
+from src.model.sqlite import save_diagram_if_absent
+from src.controller.db import load_svg_if_cached
 
 from env import URL_SERVER
 from src.env import EXPRESSION, SESE_PARSER, IMPACTS, IMPACTS_NAMES, DURATIONS, DELAYS, PROBABILITIES, \
@@ -65,6 +67,11 @@ def update_bpmn_data(data):
         return data, dbc.Alert(f"Add an impacts", color="danger", dismissable=True)
 
     bpmn = filter_bpmn(data, tasks, choices, natures, loops)
+
+    data, cached = load_svg_if_cached(data, bpmn)
+    if cached:
+        return data, alert
+
     try:
         resp = requests.get(URL_SERVER + "create_bpmn", json={'bpmn': bpmn}, headers=HEADERS)
         resp.raise_for_status()
@@ -75,6 +82,7 @@ def update_bpmn_data(data):
     svg = graphviz.Source(dot).pipe(format='svg')
     encoded_svg = base64.b64encode(svg).decode('utf-8')
     data["svg"] = f"data:image/svg+xml;base64,{encoded_svg}"
+    save_diagram_if_absent(bpmn, data["svg"])
 
     return data, alert
 

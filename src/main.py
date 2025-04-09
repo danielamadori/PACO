@@ -7,6 +7,11 @@ from src.view.home import layout as home_layout
 from src.view.syntax import layout as syntax_layout
 from src.view.example import layout as example_layout
 from src.view.not_found import layout as not_found_layout
+from src.model.sqlite import init_db
+
+
+init_db("bpmn_cpi.sqlite")
+
 
 app = dash.Dash(
     __name__,
