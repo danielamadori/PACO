@@ -6,8 +6,27 @@ import graphviz
 import requests
 from lark import ParseTree
 
+from env import URL_SERVER
 from src.env import EXPRESSION, SESE_PARSER, IMPACTS, IMPACTS_NAMES, DURATIONS, DELAYS, PROBABILITIES, \
-	LOOP_PROBABILITY, LOOP_ROUND, API_URL, HEADERS
+	LOOP_PROBABILITY, LOOP_ROUND, HEADERS
+
+
+def filter_bpmn(data, tasks, choices, natures, loops):
+    # Filter the data to keep only the relevant tasks, choices, natures, and loops
+    bpmn = deepcopy(data)
+    bpmn[IMPACTS_NAMES] = sorted(data[IMPACTS_NAMES])
+    bpmn[IMPACTS] = {
+        task: [data[IMPACTS][task][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
+        for task in tasks if task in data[IMPACTS]
+    }
+    bpmn[DURATIONS] = {task: data[DURATIONS][task] for task in tasks if task in data[DURATIONS]}
+    bpmn[DELAYS] = {choice: data[DELAYS][choice] for choice in choices if choice in data[DELAYS]}
+    bpmn[PROBABILITIES] = {nature: data[PROBABILITIES][nature] for nature in natures if nature in data[PROBABILITIES]}
+    bpmn[LOOP_PROBABILITY] = {loop: data[LOOP_PROBABILITY][loop] for loop in loops if loop in data[LOOP_PROBABILITY]}
+    bpmn[LOOP_ROUND] = {loop: data[LOOP_ROUND][loop] for loop in loops if loop in data[LOOP_ROUND]}
+
+    return bpmn
+
 
 
 def update_bpmn_data(data):
@@ -45,21 +64,9 @@ def update_bpmn_data(data):
     if len(data[IMPACTS_NAMES]) < 1:
         return data, dbc.Alert(f"Add an impacts", color="danger", dismissable=True)
 
-    # Filter the data to keep only the relevant tasks, choices, natures, and loops
-    bpmn = deepcopy(data)
-    bpmn[IMPACTS_NAMES] = sorted(data[IMPACTS_NAMES])
-    bpmn[IMPACTS] = {
-        task: [data[IMPACTS][task][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
-        for task in tasks if task in data[IMPACTS]
-    }
-    bpmn[DURATIONS] = {task: data[DURATIONS][task] for task in tasks if task in data[DURATIONS]}
-    bpmn[DELAYS] = {choice: data[DELAYS][choice] for choice in choices if choice in data[DELAYS]}
-    bpmn[PROBABILITIES] = {nature: data[PROBABILITIES][nature] for nature in natures if nature in data[PROBABILITIES]}
-    bpmn[LOOP_PROBABILITY] = {loop: data[LOOP_PROBABILITY][loop] for loop in loops if loop in data[LOOP_PROBABILITY]}
-    bpmn[LOOP_ROUND] = {loop: data[LOOP_ROUND][loop] for loop in loops if loop in data[LOOP_ROUND]}
-
+    bpmn = filter_bpmn(data, tasks, choices, natures, loops)
     try:
-        resp = requests.get(API_URL, json={'bpmn': bpmn}, headers=HEADERS)
+        resp = requests.get(URL_SERVER + "create_bpmn", json={'bpmn': bpmn}, headers=HEADERS)
         resp.raise_for_status()
         dot = resp.json().get('bpmn_dot', '')
     except requests.exceptions.RequestException as e:

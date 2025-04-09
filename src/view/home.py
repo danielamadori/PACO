@@ -2,10 +2,13 @@ import dash
 from dash import html, callback, Output, Input
 import dash_bootstrap_components as dbc
 from dash import dcc
+
+from controller.bound_table import register_bound_callbacks
 from src.env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, LOOP_PROBABILITY
 from src.controller.expression import register_expression_callbacks
 from src.controller.gateways_table import register_gateway_callbacks
 from src.controller.tasks_table import register_task_callbacks
+from src.controller.strategy import register_strategy_callbacks
 from src.view.components.tabs import getTabs
 
 
@@ -46,6 +49,8 @@ def layout():
 register_task_callbacks(dash.callback)
 register_gateway_callbacks(dash.callback)
 register_expression_callbacks(dash.callback)
+register_bound_callbacks(dash.callback)
+register_strategy_callbacks(dash.callback)
 
 @callback(
     Output("svg-container", "children"),

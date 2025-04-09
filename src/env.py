@@ -3,7 +3,6 @@ from lark import Lark
 APP_NAME = "PACO GUI"
 
 URL_SERVER = 'http://127.0.0.1:8000/' #'http://host.docker.internal:8000/'
-API_URL = URL_SERVER + "create_bpmn"
 HEADERS = {"Content-Type": "application/json"}
 
 ###############

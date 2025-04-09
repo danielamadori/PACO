@@ -18,8 +18,6 @@ app = dash.Dash(
 
 server = app.server
 app.title = APP_NAME
-
-# Layout con Navbar e Router
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar(),
