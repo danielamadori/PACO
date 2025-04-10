@@ -60,7 +60,7 @@ def get_Strategy_tab():
 				html.Div(id='bound-table'),
 				html.Br(),
 				dbc.Button('Find strategy', id='find-strategy-button'),
-				html.Div(id='execution-tree-svg')
+				html.Div(id='find_strategy_message')
 			]),
 		])
 	])

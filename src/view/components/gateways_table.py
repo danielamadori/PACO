@@ -1,7 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
-
-from utils.env import DELAYS, PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND
+from env import DELAYS, PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND
 
 
 def create_table(columns, rows, table_id):

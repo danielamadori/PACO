@@ -1,10 +1,11 @@
 import dash
-from dash import html, callback, Output, Input
 import dash_bootstrap_components as dbc
-from dash import dcc
+from dash import dcc, html
 
 from controller.bound_table import register_bound_callbacks
-from src.env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, LOOP_PROBABILITY
+from controller.render_svg import register_render_svg
+from src.env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, \
+    LOOP_PROBABILITY, BOUND
 from src.controller.expression import register_expression_callbacks
 from src.controller.gateways_table import register_gateway_callbacks
 from src.controller.tasks_table import register_task_callbacks
@@ -24,9 +25,9 @@ def layout():
             PROBABILITIES: {},
             LOOP_PROBABILITY: {},
             LOOP_ROUND: {},
-            "svg": ""
         }, storage_type='session'),
-
+        dcc.Store(id='dot-store', data={"bpmn": "", "execution_tree": "", "strategy": "", "bdds": ""}, storage_type='session'),
+        dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
 
         dbc.Row([
             dbc.Col([
@@ -35,12 +36,15 @@ def layout():
 
             dbc.Col([
                 dbc.Spinner(
-                    html.Div(id="svg-container"),
+                html.Div(id="svg-bpmn"),
                     color="primary",
                     type="grow",
-                    fullscreen=False,  # oppure True se vuoi che copra tutto lo schermo
+                    fullscreen=False,
                     spinner_style={"width": "4rem", "height": "4rem"}
-                )
+                ),
+                html.Div(id="svg-execution-tree"),
+                html.Div(id="svg-strategy"),
+                html.Div(id="svg-bdds"),
             ], width=True, style={"padding": "2rem"})
         ])
     ])
@@ -51,13 +55,7 @@ register_gateway_callbacks(dash.callback)
 register_expression_callbacks(dash.callback)
 register_bound_callbacks(dash.callback)
 register_strategy_callbacks(dash.callback)
+register_render_svg(dash.callback)
 
-@callback(
-    Output("svg-container", "children"),
-    Input("bpmn-store", "data")
-)
-def update_svg(data):
-    if not data or not data.get("svg"):
-        return ""
 
-    return html.Iframe(src=data["svg"], style={"width": "100%", "height": "600px", "border": "none"})
+

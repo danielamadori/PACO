@@ -1,49 +1,73 @@
-import requests
-from dash import Input, Output, State, callback, html
+import ast
 
-from controller.db import get_execution_and_parse_tree
-from env import URL_SERVER, HEADERS, EXPRESSION, IMPACTS_NAMES
+import requests
+from dash import Input, Output, State, html
+from controller.db import load_parse_and_execution_tree
+from env import URL_SERVER, HEADERS, EXPRESSION, IMPACTS_NAMES, BOUND
 from model.bpmn import SESE_PARSER, extract_nodes, filter_bpmn
 
 
+def strategy_results(response:dict):
+	elements = [
+		html.P(response["result"]),
+		html.Br()
+	]
 
-def create_execution_tree(bpmn):
-	resp = requests.get(URL_SERVER + "create_execution_tree", json={"bpmn": bpmn}, headers=HEADERS)
-	resp.raise_for_status()
+	if 'expected_impacts' in response:
+		elements.append(html.H5(f"Expected Impacts: {response['expected_impacts']}"))
+	else:
+		elements.append(html.H5("Guaranteed Bounds"))
 
-	r = resp.json()
+		guaranteed_bounds = [
+			[float(x) for x in s.strip('[]').split()]
+			for s in ast.literal_eval(response['guaranteed_bounds'])
+		]
+		for bound in guaranteed_bounds:
+			elements.append(html.P(f"Bound: {bound}"))
 
-	return r["parse_tree"], r["execution_tree"]
+
+		elements.append(html.H5("Possible Min Solution"))
+		possible_min_solution = [
+			[float(x) for x in s.strip('[]').split()]
+			for s in ast.literal_eval(response['possible_min_solution'])
+		]
+		for bound in possible_min_solution:
+			elements.append(html.P(f"Bound: {bound}"))
+
+	#strategy_tree = response["strategy_tree"]
+	#bdds = response["bdds"]
+	#save_strategy_results(bpmn, json.dumps(strategy_tree), json.dumps(bdds))
+
+	#'possible_min_solution',  'frontier_solution', 'strategy_expected_impacts', 'strategy_expected_time'
+	return html.Div(elements)
+
 
 
 
 def register_strategy_callbacks(strategy_callback):
-
 	@strategy_callback(
-		Output('execution-tree-svg', 'children'),
-		Input('find-strategy-button', 'n_clicks'),
-		State('bpmn-store', 'data'),
+		Output("find_strategy_message", "children", allow_duplicate=True),
+		Input("find-strategy-button", "n_clicks"),
+		State("bpmn-store", "data"),
+		State("bound-store", "data"),
 		prevent_initial_call=True
 	)
-	def compute_execution_tree(n_clicks, data):
-		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
-		bpmn = filter_bpmn(data, tasks, choices, natures, loops)
+	def find_strategy(n_clicks, bpmn_store, bound_store):
+		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
+		bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
+		bound = [bound_store[BOUND][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
 
-		execution_tree, parse_tree = get_execution_and_parse_tree(bpmn)
 		try:
-			if execution_tree is None or parse_tree is None:
-				parse_tree, execution_tree = create_execution_tree(bpmn)
+			parse_tree, execution_tree = load_parse_and_execution_tree(bpmn)
 
-
-			bound = [data["bound"][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
-
-			resp = requests.get(URL_SERVER + "create_strategy", json={"bpmn": bpmn, "bound": bound, "parse_tree": parse_tree, "execution_tree": execution_tree}, headers=HEADERS)
+			resp = requests.get(URL_SERVER + "create_strategy",
+								json={"bpmn": bpmn, "bound": bound,
+									  "parse_tree": parse_tree, "execution_tree": execution_tree},
+								headers=HEADERS)
 			resp.raise_for_status()
 
 			response = resp.json()
+			return strategy_results(response)
 
-			print(response.keys())
-
-			return html.P(response["result"])
 		except requests.exceptions.HTTPError as e:
 			return html.Div(f"HTTP Error ({resp.status_code}): {resp.text}", style={"color": "red"})

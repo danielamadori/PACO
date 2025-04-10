@@ -1,110 +1,99 @@
-import base64
 from copy import deepcopy
 
+import dash
 import dash_bootstrap_components as dbc
-import graphviz
-import requests
 from lark import ParseTree
-from src.model.sqlite import save_diagram_if_absent
-from src.controller.db import load_svg_if_cached
-
-from env import URL_SERVER
+from src.controller.db import load_bpmn_dot
 from src.env import EXPRESSION, SESE_PARSER, IMPACTS, IMPACTS_NAMES, DURATIONS, DELAYS, PROBABILITIES, \
 	LOOP_PROBABILITY, LOOP_ROUND, HEADERS
 
 
-def filter_bpmn(data, tasks, choices, natures, loops):
+def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
     # Filter the data to keep only the relevant tasks, choices, natures, and loops
-    bpmn = deepcopy(data)
-    bpmn[IMPACTS_NAMES] = sorted(data[IMPACTS_NAMES])
+    bpmn = deepcopy(bpmn_store)
+    bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
     bpmn[IMPACTS] = {
-        task: [data[IMPACTS][task][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
-        for task in tasks if task in data[IMPACTS]
+        task: [bpmn_store[IMPACTS][task][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
+        for task in tasks if task in bpmn_store[IMPACTS]
     }
-    bpmn[DURATIONS] = {task: data[DURATIONS][task] for task in tasks if task in data[DURATIONS]}
-    bpmn[DELAYS] = {choice: data[DELAYS][choice] for choice in choices if choice in data[DELAYS]}
-    bpmn[PROBABILITIES] = {nature: data[PROBABILITIES][nature] for nature in natures if nature in data[PROBABILITIES]}
-    bpmn[LOOP_PROBABILITY] = {loop: data[LOOP_PROBABILITY][loop] for loop in loops if loop in data[LOOP_PROBABILITY]}
-    bpmn[LOOP_ROUND] = {loop: data[LOOP_ROUND][loop] for loop in loops if loop in data[LOOP_ROUND]}
+    bpmn[DURATIONS] = {task: bpmn_store[DURATIONS][task] for task in tasks if task in bpmn_store[DURATIONS]}
+    bpmn[DELAYS] = {choice: bpmn_store[DELAYS][choice] for choice in choices if choice in bpmn_store[DELAYS]}
+    bpmn[PROBABILITIES] = {nature: bpmn_store[PROBABILITIES][nature] for nature in natures if nature in bpmn_store[PROBABILITIES]}
+    bpmn[LOOP_PROBABILITY] = {loop: bpmn_store[LOOP_PROBABILITY][loop] for loop in loops if loop in bpmn_store[LOOP_PROBABILITY]}
+    bpmn[LOOP_ROUND] = {loop: bpmn_store[LOOP_ROUND][loop] for loop in loops if loop in bpmn_store[LOOP_ROUND]}
 
     return bpmn
 
 
 
-def update_bpmn_data(data):
+def update_bpmn_data(bpmn_store):
     alert = ''
 
-    if data[EXPRESSION] == '':
-        return data, alert
+    if bpmn_store[EXPRESSION] == '':
+        return dash.no_update, dash.no_update, alert
 
-    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
+    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
     for task in tasks:
-        if task not in data[IMPACTS]:
-            data[IMPACTS][task] = {}
+        if task not in bpmn_store[IMPACTS]:
+            bpmn_store[IMPACTS][task] = {}
 
-        for impact_name in data[IMPACTS_NAMES]:
-            if impact_name in data[IMPACTS][task]:
+        for impact_name in bpmn_store[IMPACTS_NAMES]:
+            if impact_name in bpmn_store[IMPACTS][task]:
                 continue
-            data[IMPACTS][task][impact_name] = 0.0
+            bpmn_store[IMPACTS][task][impact_name] = 0.0
 
-        if task not in data[DURATIONS]:
-            data[DURATIONS][task] = [0, 1]
+        if task not in bpmn_store[DURATIONS]:
+            bpmn_store[DURATIONS][task] = [0, 1]
+
+    for task in tasks:
+        bpmn_store.setdefault(IMPACTS, {}).setdefault(task, {})
+        for impact_name in bpmn_store[IMPACTS_NAMES]:
+            bpmn_store[IMPACTS][task].setdefault(impact_name, 0.0)
+
 
     for choice in choices:
-        if choice not in data[DELAYS]:
-            data[DELAYS][choice] = 0
+        if choice not in bpmn_store[DELAYS]:
+            bpmn_store[DELAYS][choice] = 0
     for nature in natures:
-        if nature not in data[PROBABILITIES]:
-            data[PROBABILITIES][nature] = 0.5
+        if nature not in bpmn_store[PROBABILITIES]:
+            bpmn_store[PROBABILITIES][nature] = 0.5
     for loop  in loops:
-        if loop not in data[LOOP_PROBABILITY]:
-            data[LOOP_PROBABILITY][loop] = 0.5
-        if loop not in data[LOOP_ROUND]:
-            data[LOOP_ROUND][loop] = 1
+        if loop not in bpmn_store[LOOP_PROBABILITY]:
+            bpmn_store[LOOP_PROBABILITY][loop] = 0.5
+        if loop not in bpmn_store[LOOP_ROUND]:
+            bpmn_store[LOOP_ROUND][loop] = 1
 
 
-    if len(data[IMPACTS_NAMES]) < 1:
-        return data, dbc.Alert(f"Add an impacts", color="danger", dismissable=True)
+    if len(bpmn_store[IMPACTS_NAMES]) == 0:
+        return bpmn_store, dash.no_update, dbc.Alert(f"Add an impacts", color="danger", dismissable=True)
 
-    bpmn = filter_bpmn(data, tasks, choices, natures, loops)
+    bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
 
-    data, cached = load_svg_if_cached(data, bpmn)
-    if cached:
-        return data, alert
+    bpmn_dot, exception = load_bpmn_dot(bpmn)
+    if bpmn_dot is None:
+        alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
-    try:
-        resp = requests.get(URL_SERVER + "create_bpmn", json={'bpmn': bpmn}, headers=HEADERS)
-        resp.raise_for_status()
-        dot = resp.json().get('bpmn_dot', '')
-    except requests.exceptions.RequestException as e:
-        return data, dbc.Alert(f"Processing error: {str(e)}", color="danger", dismissable=True)
-
-    svg = graphviz.Source(dot).pipe(format='svg')
-    encoded_svg = base64.b64encode(svg).decode('utf-8')
-    data["svg"] = f"data:image/svg+xml;base64,{encoded_svg}"
-    save_diagram_if_absent(bpmn, data["svg"])
-
-    return data, alert
+    return bpmn_store, {"bpmn" : bpmn_dot}, alert
 
 
-def validate_expression_and_update(current_expression, data):
-    print(f"Current expression: {current_expression}, data: {data}")
+def validate_expression_and_update(current_expression, bpmn_store):
+    print(f"Current expression: {current_expression}, data: {bpmn_store}")
     alert = ''
     if current_expression is None:
-        return data, alert
+        return bpmn_store, None, alert
 
     current_expression = current_expression.replace("\n", "").replace("\t", "").strip().replace(" ", "")
     if current_expression == '':
-        return data, dbc.Alert("The expression is empty.", color="warning", dismissable=True)
+        return bpmn_store, dbc.Alert("The expression is empty.", color="warning", dismissable=True)
 
-    if current_expression != data.get(EXPRESSION, ''):
+    if current_expression != bpmn_store.get(EXPRESSION, ''):
         try:
             SESE_PARSER.parse(current_expression)
         except Exception as e:
-            return data, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True)
-        data[EXPRESSION] = current_expression
+            return bpmn_store, None, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True)
+        bpmn_store[EXPRESSION] = current_expression
 
-    return update_bpmn_data(data)
+    return update_bpmn_data(bpmn_store)
 
 
 def extract_nodes(lark_tree: ParseTree) -> (list, list, list, list):

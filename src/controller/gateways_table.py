@@ -21,6 +21,7 @@ def register_gateway_callbacks(gateway_callbacks):
 
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
+		Output("dot-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Input({'type': 'choice-delay', 'index': ALL}, 'value'),
 		State({'type': 'choice-delay', 'index': ALL}, 'id'),
@@ -46,6 +47,7 @@ def register_gateway_callbacks(gateway_callbacks):
 
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
+		Output("dot-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Input({'type': 'nature-prob', 'index': ALL}, 'value'),
 		State({'type': 'nature-prob', 'index': ALL}, 'id'),
@@ -71,6 +73,7 @@ def register_gateway_callbacks(gateway_callbacks):
 
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
+		Output("dot-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Input({'type': 'loop-prob', 'index': ALL}, 'value'),
 		Input({'type': 'loop-round', 'index': ALL}, 'value'),
