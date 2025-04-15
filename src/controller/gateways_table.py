@@ -1,10 +1,11 @@
 import dash
 from dash import Input, Output, State, ALL
-from src.env import EXPRESSION, SESE_PARSER
-from src.model.bpmn import extract_nodes, update_bpmn_data
-from utils.env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS
-from src.view.components.gateways_table import choices_table, natures_table, loops_table
 
+from controller.db import load_bpmn_dot
+from src.env import EXPRESSION, SESE_PARSER
+from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS, extract_nodes
+from src.view.components.gateways_table import choices_table, natures_table, loops_table
+import dash_bootstrap_components as dbc
 
 def register_gateway_callbacks(gateway_callbacks):
 	@gateway_callbacks(
@@ -28,10 +29,16 @@ def register_gateway_callbacks(gateway_callbacks):
 		State('bpmn-store', 'data'),
 		prevent_initial_call='initial_duplicate'
 	)
-	def update_choices(values, ids, data):
+	def update_choices(values, ids, bpmn_store):
 		for value, id_obj in zip(values, ids):
-			data[DELAYS][id_obj['index']] = value
-		return update_bpmn_data(data)
+			bpmn_store[DELAYS][id_obj['index']] = value
+
+		try:
+			bpmn_dot = load_bpmn_dot(bpmn_store)
+		except Exception as exception:
+			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
+
+		return bpmn_store, {"bpmn" : bpmn_dot}, ''
 
 	@gateway_callbacks(
 		Output('nature-table', 'children'),
@@ -54,10 +61,16 @@ def register_gateway_callbacks(gateway_callbacks):
 		State('bpmn-store', 'data'),
 		prevent_initial_call='initial_duplicate'
 	)
-	def update_natures(values, ids, data):
+	def update_natures(values, ids, bpmn_store):
 		for value, id_obj in zip(values, ids):
-			data[PROBABILITIES][id_obj['index']] = value
-		return update_bpmn_data(data)
+			bpmn_store[PROBABILITIES][id_obj['index']] = value
+
+		try:
+			bpmn_dot = load_bpmn_dot(bpmn_store)
+		except Exception as exception:
+			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
+
+		return bpmn_store, {"bpmn" : bpmn_dot}, ''
 
 	@gateway_callbacks(
 		Output('loop-table', 'children'),
@@ -81,9 +94,16 @@ def register_gateway_callbacks(gateway_callbacks):
 		State('bpmn-store', 'data'),
 		prevent_initial_call='initial_duplicate'
 	)
-	def update_loops(probs, rounds, ids, data):
+	def update_loops(probs, rounds, ids, bpmn_store):
 		for p, r, id_obj in zip(probs, rounds, ids):
 			loop = id_obj['index']
-			data[LOOP_PROBABILITY][loop] = p
-			data[LOOP_ROUND][loop] = r
-		return update_bpmn_data(data)
+			bpmn_store[LOOP_PROBABILITY][loop] = p
+			bpmn_store[LOOP_ROUND][loop] = r
+
+		try:
+			bpmn_dot = load_bpmn_dot(bpmn_store)
+		except Exception as exception:
+			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
+
+		return bpmn_store, {"bpmn" : bpmn_dot}, ''
+

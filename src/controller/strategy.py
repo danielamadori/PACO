@@ -2,9 +2,8 @@ import ast
 
 import requests
 from dash import Input, Output, State, html
-from controller.db import load_parse_and_execution_tree
-from env import URL_SERVER, HEADERS, EXPRESSION, IMPACTS_NAMES, BOUND
-from model.bpmn import SESE_PARSER, extract_nodes, filter_bpmn
+from controller.db import load_parse_and_execution_tree, filter_bpmn
+from env import URL_SERVER, HEADERS, EXPRESSION, IMPACTS_NAMES, BOUND, extract_nodes, SESE_PARSER
 
 
 def strategy_results(response:dict):
@@ -70,4 +69,4 @@ def register_strategy_callbacks(strategy_callback):
 			return strategy_results(response)
 
 		except requests.exceptions.HTTPError as e:
-			return html.Div(f"HTTP Error ({resp.status_code}): {resp.text}", style={"color": "red"})
+			return html.Div(f"HTTP Error ({e}", style={"color": "red"})

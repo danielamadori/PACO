@@ -50,7 +50,7 @@ def tasks_table(data, tasks):
 			dbc.Button("×", id={'type': 'remove-impact', 'index': name},
 					   n_clicks=0, color="danger", size="sm", className="ms-1", style={"padding": "2px 6px"})
 		], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'})) for name in sorted(data[IMPACTS_NAMES])])
-						   )
+		)
 	else:
 		header_rows.append(html.Tr([
 			html.Th("Min", style={'width': '80px', 'vertical-align': 'middle'}),

@@ -1,7 +1,8 @@
 import dash
 from dash import Output, Input, State
-from src.model.bpmn import validate_expression_and_update
-from src.env import EXPRESSION
+import dash_bootstrap_components as dbc
+from src.controller.db import load_bpmn_dot
+from src.env import EXPRESSION, SESE_PARSER
 
 
 def register_expression_callbacks(expression_callbacks):
@@ -14,11 +15,31 @@ def register_expression_callbacks(expression_callbacks):
         prevent_initial_call=True
     )
     def update_expression(current_expression, bpmn_store):
-        bpmn_store, bpmn_dot, alert = validate_expression_and_update(current_expression, bpmn_store)
-        if bpmn_dot is None:
-            bpmn_dot = dash.no_update
+        alert = ''
+        if current_expression is None:
+            return dash.no_update, dash.no_update, alert
 
-        return bpmn_store, bpmn_dot, alert
+        current_expression = current_expression.replace("\n", "").replace("\t", "").strip().replace(" ", "")
+        if current_expression == '':
+            return bpmn_store, dash.no_update, dbc.Alert("The expression is empty.", color="warning", dismissable=True)
+
+        if current_expression != bpmn_store.get(EXPRESSION, ''):
+            try:
+                SESE_PARSER.parse(current_expression)
+            except Exception as e:
+                return dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True)
+            bpmn_store[EXPRESSION] = current_expression
+
+        if bpmn_store[EXPRESSION] == '':
+            return dash.no_update, dash.no_update, alert
+
+        try:
+            bpmn_dot = load_bpmn_dot(bpmn_store[EXPRESSION])
+            return bpmn_store, {"bpmn" : bpmn_dot}, alert
+        except Exception as exception:
+            alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
+
+        return bpmn_store, dash.no_update, alert
 
 
     @expression_callbacks(

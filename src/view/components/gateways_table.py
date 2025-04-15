@@ -3,11 +3,11 @@ from dash import html, dcc
 from env import DELAYS, PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND
 
 
-def create_table(columns, rows, table_id):
+def create_table(columns, rows):
 	return html.Div([
 		dbc.Table(
 			[html.Thead(html.Tr([html.Th(col) for col in columns]))] + rows,
-			bordered=True,
+			bordered=False,
 			hover=True,
 			responsive=True,
 			striped=True,
@@ -32,33 +32,33 @@ def choices_table(data, choices):
 	rows = [
 		html.Tr([
 			html.Td(name),
-			html.Td(dcc.Input(value=data[DELAYS][name], type="number", min=0, step=1, debounce=True,
-							  id={'type': 'choice-delay', 'index': name}, style={'width': '7ch'}))
+			html.Td(dcc.Input(value=data[DELAYS].get(name, 0), type="number", min=0, step=1, debounce=True,
+							  id={'type': 'choice-delay', 'index': name}, style={'width': '7ch', "border": "none"}))
 		]) for name in choices
 	]
 
-	return create_table(["Choices", "Delay"], rows, 'choice-table')
+	return create_table(["Choices", "Delay"], rows)
 
 
 def natures_table(data, natures):
 	rows = [
 		html.Tr([
 			html.Td(name),
-			html.Td(dcc.Input(value=data[PROBABILITIES][name], type="number", min=0, max=1, step=0.01, debounce=True,
-							  id={'type': 'nature-prob', 'index': name}))
+			html.Td(dcc.Input(value=data[PROBABILITIES].get(name, 0.5), type="number", min=0, max=1, step=0.001, debounce=True,
+							  id={'type': 'nature-prob', 'index': name}, style={'width': '7ch', "border": "none"}))
 		]) for name in natures
 	]
-	return create_table(["Natures", "Probability"], rows, 'nature-table')
+	return create_table(["Natures", "Probability"], rows)
 
 
 def loops_table(data, loops):
 	rows = [
 		html.Tr([
 			html.Td(name),
-			html.Td(dcc.Input(value=data[LOOP_PROBABILITY][name], type="number", min=0, max=1, step=0.01, debounce=True,
-							  id={'type': 'loop-prob', 'index': name})),
-			html.Td(dcc.Input(value=data[LOOP_ROUND][name], type="number", min=1, max=100, step=1, debounce=True,
-							  id={'type': 'loop-round', 'index': name}))
+			html.Td(dcc.Input(value=data[LOOP_PROBABILITY].get(name, 0.5), type="number", min=0, max=1, step=0.001, debounce=True,
+							  id={'type': 'loop-prob', 'index': name}, style={'width': '7ch', "border": "none"})),
+			html.Td(dcc.Input(value=data[LOOP_ROUND].get(name, 1), type="number", min=1, max=100, step=1, debounce=True,
+							  id={'type': 'loop-round', 'index': name}, style={'width': '7ch', "border": "none"}))
 		]) for name in loops
 	]
-	return create_table(["Loops", "Probability", "Max Iteration"], rows, 'loop-table')
+	return create_table(["Loops", "Probability", "Max Iteration"], rows)
