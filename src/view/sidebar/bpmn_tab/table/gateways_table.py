@@ -4,6 +4,9 @@ from env import DELAYS, PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND
 
 
 def create_table(columns, rows):
+	if len(rows) == 0:
+		return html.Div()
+
 	return html.Div([
 		dbc.Table(
 			[html.Thead(html.Tr([html.Th(col) for col in columns]))] + rows,
@@ -28,11 +31,15 @@ def create_table(columns, rows):
 	})
 
 
-def choices_table(data, choices):
+def create_choices_table(bpmn_store, choices):
+	for name in choices:
+		if name not in bpmn_store[DELAYS]:
+			bpmn_store[DELAYS][name] = 0
+
 	rows = [
 		html.Tr([
 			html.Td(name),
-			html.Td(dcc.Input(value=data[DELAYS].get(name, 0), type="number", min=0, step=1, debounce=True,
+			html.Td(dcc.Input(value=bpmn_store[DELAYS][name], type="number", min=0, step=1, debounce=True,
 							  id={'type': 'choice-delay', 'index': name}, style={'width': '7ch', "border": "none"}))
 		]) for name in choices
 	]
@@ -40,24 +47,34 @@ def choices_table(data, choices):
 	return create_table(["Choices", "Delay"], rows)
 
 
-def natures_table(data, natures):
+def create_natures_table(bpmn_store, natures):
+	for name in natures:
+		if name not in bpmn_store[PROBABILITIES]:
+			bpmn_store[PROBABILITIES][name] = 0.5
+
 	rows = [
 		html.Tr([
 			html.Td(name),
-			html.Td(dcc.Input(value=data[PROBABILITIES].get(name, 0.5), type="number", min=0, max=1, step=0.001, debounce=True,
+			html.Td(dcc.Input(value=bpmn_store[PROBABILITIES][name], type="number", min=0, max=1, step=0.001, debounce=True,
 							  id={'type': 'nature-prob', 'index': name}, style={'width': '7ch', "border": "none"}))
 		]) for name in natures
 	]
 	return create_table(["Natures", "Probability"], rows)
 
 
-def loops_table(data, loops):
+def create_loops_table(bpmn_store, loops):
+	for name in loops:
+		if name not in bpmn_store[LOOP_PROBABILITY]:
+			bpmn_store[LOOP_PROBABILITY][name] = 0.5
+		if name not in bpmn_store[LOOP_ROUND]:
+			bpmn_store[LOOP_ROUND][name] = 1
+
 	rows = [
 		html.Tr([
 			html.Td(name),
-			html.Td(dcc.Input(value=data[LOOP_PROBABILITY].get(name, 0.5), type="number", min=0, max=1, step=0.001, debounce=True,
+			html.Td(dcc.Input(value=bpmn_store[LOOP_PROBABILITY][name], type="number", min=0, max=1, step=0.001, debounce=True,
 							  id={'type': 'loop-prob', 'index': name}, style={'width': '7ch', "border": "none"})),
-			html.Td(dcc.Input(value=data[LOOP_ROUND].get(name, 1), type="number", min=1, max=100, step=1, debounce=True,
+			html.Td(dcc.Input(value=bpmn_store[LOOP_ROUND][name], type="number", min=1, max=100, step=1, debounce=True,
 							  id={'type': 'loop-round', 'index': name}, style={'width': '7ch', "border": "none"}))
 		]) for name in loops
 	]

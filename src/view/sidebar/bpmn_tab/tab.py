@@ -1,6 +1,6 @@
 from dash import dcc, html
 
-from view.components.bpmn_inputs import get_bpmn_view
+from view.sidebar.bpmn_tab.inputs import get_bpmn_view
 
 
 def get_BPMN_CPI_tab():

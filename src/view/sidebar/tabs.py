@@ -1,6 +1,6 @@
 from dash import dcc
-from view.components.bpmn_tab import get_BPMN_CPI_tab
-from view.components.strategy_tab import get_Strategy_tab
+from view.sidebar.bpmn_tab.tab import get_BPMN_CPI_tab
+from view.sidebar.strategy_tab.strategy_tab import get_Strategy_tab
 
 
 def getTabs():

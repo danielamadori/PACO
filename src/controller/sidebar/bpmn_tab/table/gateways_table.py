@@ -2,24 +2,10 @@ import dash
 from dash import Input, Output, State, ALL
 
 from controller.db import load_bpmn_dot
-from src.env import EXPRESSION, SESE_PARSER
-from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS, extract_nodes
-from src.view.components.gateways_table import choices_table, natures_table, loops_table
+from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS
 import dash_bootstrap_components as dbc
 
 def register_gateway_callbacks(gateway_callbacks):
-	@gateway_callbacks(
-		Output('choice-table', 'children'),
-		Input('bpmn-store', 'data'),
-		prevent_initial_call=True
-	)
-	def generate_choice_table(data):
-		_, choices, _, _ = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
-		if len(choices) == 0:
-			return dash.no_update
-
-		return choices_table(data, choices)
-
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
 		Output("dot-store", "data", allow_duplicate=True),
@@ -41,18 +27,6 @@ def register_gateway_callbacks(gateway_callbacks):
 		return bpmn_store, {"bpmn" : bpmn_dot}, ''
 
 	@gateway_callbacks(
-		Output('nature-table', 'children'),
-		Input('bpmn-store', 'data'),
-		prevent_initial_call=True
-	)
-	def generate_nature_table(data):
-		_, _, natures, _ = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
-		if len(natures) == 0:
-			return dash.no_update
-
-		return natures_table(data, natures)
-
-	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
 		Output("dot-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
@@ -72,17 +46,6 @@ def register_gateway_callbacks(gateway_callbacks):
 
 		return bpmn_store, {"bpmn" : bpmn_dot}, ''
 
-	@gateway_callbacks(
-		Output('loop-table', 'children'),
-		Input('bpmn-store', 'data'),
-		prevent_initial_call=True
-	)
-	def generate_loop_table(data):
-		_, _, _, loops = extract_nodes(SESE_PARSER.parse(data[EXPRESSION]))
-		if len(loops) == 0:
-			return dash.no_update
-
-		return loops_table(data, loops)
 
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),

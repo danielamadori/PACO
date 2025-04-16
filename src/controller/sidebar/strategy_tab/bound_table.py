@@ -1,7 +1,7 @@
 import dash
 from dash import Input, Output, State, ALL
 from env import IMPACTS_NAMES
-from view.components.bound_table import bound_table
+from view.sidebar.strategy_tab.bound_table import bound_table
 
 
 def register_bound_callbacks(bound_callbacks):
