@@ -4,7 +4,7 @@ from dash import html, dcc
 
 def get_bpmn_view():
 	return html.Div([
-		dcc.Input(type="text", debounce=True, id='input-bpmn', style={'width': '90%'}, value=''),
+		dcc.Input(type="text", debounce=True, id='expression-bpmn', style={'width': '90%'}, value=''),
 		html.Div([
 			dbc.Input(
 				id='new-impact-name',
@@ -21,7 +21,7 @@ def get_bpmn_view():
 				style={"padding": "0.25rem 0.4rem", "lineHeight": "1"}
 			),
 		], style={'width': '180px', 'display': 'flex', 'alignItems': 'center'}),
-		html.Div(id='task-duration'),
+		html.Div(id='task-table'),
 		html.Div(id='choice-table'),
 		html.Div(id='nature-table'),
 		html.Div(id='loop-table'),

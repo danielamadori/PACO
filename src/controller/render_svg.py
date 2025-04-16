@@ -1,5 +1,5 @@
 from dash import Output, Input
-from view.components.render_svg import render
+from view.render_svg import render
 
 
 def register_render_svg(render_svg_callback):

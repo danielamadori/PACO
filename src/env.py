@@ -1,4 +1,4 @@
-from lark import Lark
+from lark import Lark, ParseTree
 
 APP_NAME = "PACO GUI"
 
@@ -108,3 +108,53 @@ ALGORITHMS_MISSING_SYNTAX = {
 
 ALL_SYNTAX = ['^', '/', '||', '<', '>', '[', ']', ',', '', '(', ')'] # all syntax characters available
 
+
+def extract_nodes(lark_tree: ParseTree) -> (list, list, list, list):
+    tasks, choices, natures, loops = extract_nodes_set(lark_tree)
+    return list(tasks), list(choices), list(natures), list(loops)
+
+def extract_nodes_set(lark_tree: ParseTree) -> (set, set, set, set):
+    tasks = set()
+    choices = set()
+    natures = set()
+    loops = set()
+
+    def add_unique(s: set, value: str, label: str):
+        if value in s:
+            raise ValueError(f"Duplicate {label} detected: {value}")
+        s.add(value)
+
+    if lark_tree.data == 'task':
+        value = lark_tree.children[0].value
+        return {value}, set(), set(), set()
+
+    if lark_tree.data in {'choice', 'natural'}:
+        if lark_tree.data == 'choice':
+            add_unique(choices, lark_tree.children[1].value, "choice")
+        else:
+            add_unique(natures, lark_tree.children[1].value, "nature")
+
+        left_task, left_choices, left_natures, left_loops = extract_nodes_set(lark_tree.children[0])
+        right_task, right_choices, right_natures, right_loops = extract_nodes_set(lark_tree.children[2])
+
+    elif lark_tree.data in {'sequential', 'parallel'}:
+        left_task, left_choices, left_natures, left_loops = extract_nodes_set(lark_tree.children[0])
+        right_task, right_choices, right_natures, right_loops = extract_nodes_set(lark_tree.children[1])
+    elif lark_tree.data == 'loop':
+        left_task, left_choices, left_natures, left_loops = extract_nodes_set(lark_tree.children[0])
+        right_task, right_choices, right_natures, right_loops = set(), set(), set(), set()
+    elif lark_tree.data == 'loop_probability':
+        add_unique(loops, lark_tree.children[0].value, "loop")
+        left_task, left_choices, left_natures, left_loops = set(), set(), set(), set()
+        right_task, right_choices, right_natures, right_loops = extract_nodes_set(lark_tree.children[1])
+
+    for val in left_task.union(right_task):
+        add_unique(tasks, val, "task")
+    for val in left_choices.union(right_choices):
+        add_unique(choices, val, "choice")
+    for val in left_natures.union(right_natures):
+        add_unique(natures, val, "nature")
+    for val in left_loops.union(right_loops):
+        add_unique(loops, val, "loop")
+
+    return tasks, choices, natures, loops
