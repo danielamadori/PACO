@@ -29,6 +29,8 @@ def get_BPMN_CPI_tab():
 			html.Br(),
 			html.P("""Here is an example of a BPMN complete diagram:\n Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)"""),
 			html.Br(),
-			get_bpmn_view()
+			get_bpmn_view(),
+			html.Br(),
+			html.Br()
 		])
 	])
