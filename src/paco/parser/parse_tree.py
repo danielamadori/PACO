@@ -48,7 +48,7 @@ class ParseTree:
 		return dot_code
 
 	def to_dot(self):
-		return "digraph my_graph{"+ self.dot_tree() +"}"
+		return "digraph parse_tree{"+ self.dot_tree() +"}"
 
 	def save_dot(self, outfile=PATH_PARSE_TREE):
 		directory = os.path.dirname(outfile)

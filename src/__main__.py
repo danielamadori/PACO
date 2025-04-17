@@ -182,7 +182,8 @@ async def search_strategy(request: dict) -> dict:
                 "strategy_tree": x.to_dict(),
                 "strategy_expected_impacts": str(y),
                 "strategy_expected_time": str(z),
-                "bdds": bdds_to_dict(w)
+                "bdds": bdds_to_dict(w),
+                "bdds_dot": [bdd.bdd_to_dot() for bdd in w]
             })
 
         return jsonable_encoder(result_dict)

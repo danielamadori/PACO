@@ -14,7 +14,7 @@ def print_sese_diagram(bpmn:dict, lark_tree) -> str:
 
     diagram = wrap_sese_diagram(tree=lark_tree, h=h, probabilities= probabilities, impacts= impacts, durations=durations, delays=delays, impacts_names=impacts_names)
 
-    return "digraph my_graph{ \n rankdir=LR; \n" + diagram +"}"
+    return "digraph bpmn_cpi{ \n rankdir=LR; \n" + diagram +"}"
 
 
 def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], choices_list = {}, explainer = False):
@@ -113,7 +113,7 @@ def dot_task(id, name, h=0, imp=None, dur=None, imp_names = []):
     if imp is not None: # modifica per aggiungere impatti e durate in modo leggibile 
         if h == 0:
             imp =  ", ".join(f"{key}: {value}" for key, value in zip(imp_names, imp))
-            label += f", \n impacts: {imp}"
+            label += f", \n impacts:\n {imp}"
             label += f", \n dur: {str(dur)}"  
         else: 
             label += str(imp[0:-h])
