@@ -22,26 +22,29 @@ app = dash.Dash(
 
 server = app.server
 app.title = APP_NAME
+
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    navbar(),
+    html.Div(id='navbar-container'),
     html.Div(id='page-content')
 ])
 
-
 @app.callback(
+    Output('navbar-container', 'children'),
     Output('page-content', 'children'),
     Input('url', 'pathname')
 )
 def display_page(pathname):
+    nav = navbar(pathname)
+
     if pathname == '/syntax':
-        return syntax_layout()
+        return nav, syntax_layout()
     elif pathname == '/example':
-        return example_layout()
+        return nav, example_layout()
     elif pathname == '/':
-        return home_layout()
+        return nav, home_layout()
     else:
-        return html.Div([
+        return nav, html.Div([
             html.H1("404 - Page not found"),
         ])
 

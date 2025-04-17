@@ -14,3 +14,4 @@ server/tests/output_files
 *.svg
 test.ipynb
 .ipynb_checkpoints/
+*.sqlite

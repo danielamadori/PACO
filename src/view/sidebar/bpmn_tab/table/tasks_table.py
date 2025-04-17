@@ -17,12 +17,12 @@ def create_tasks_table(bpmn_store, tasks):
 		(min_d, max_d) = bpmn_store[DURATIONS][task]
 
 		if task not in bpmn_store[IMPACTS]:
-			bpmn_store[IMPACTS][task] = {impact_name : 0 for impact_name in bpmn_store[IMPACTS_NAMES]}
+			bpmn_store[IMPACTS][task] = {impact_name : 0.0 for impact_name in bpmn_store[IMPACTS_NAMES]}
 
 		impact_inputs = [
 			html.Td(dcc.Input(
-				value=bpmn_store[IMPACTS].get(task, {}).get(impact_name, 0.0),
-				type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"},
+				value=bpmn_store[IMPACTS][task][impact_name],
+				type='number', min=0.0, step=0.001, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"},
 				id={'type': f'impact-{impact_name}', 'index': task}
 			)) for impact_name in sorted(bpmn_store[IMPACTS_NAMES])
 		]
