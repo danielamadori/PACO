@@ -1,8 +1,8 @@
 import dash
 from dash import Input, Output, State, ALL
 
-from controller.db import load_bpmn_dot
-from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS, IMPACTS
+from model.etl import load_bpmn_dot
+from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS
 import dash_bootstrap_components as dbc
 
 def register_gateway_callbacks(gateway_callbacks):

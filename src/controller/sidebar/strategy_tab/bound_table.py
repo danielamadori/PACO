@@ -16,7 +16,7 @@ def register_bound_callbacks(bound_callbacks):
 		if len(bpmn_store[IMPACTS_NAMES]) == 0:
 			return dash.no_update
 
-		return bound_table(bound_store, bpmn_store[IMPACTS_NAMES])
+		return bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))
 
 	@bound_callbacks(
 		Output('bound-store', 'data', allow_duplicate=True),
@@ -27,5 +27,5 @@ def register_bound_callbacks(bound_callbacks):
 	)
 	def update_bounds(values, ids, bound_store):
 		for value, id_obj in zip(values, ids):
-			bound_store.setdefault("bound", {})[id_obj["index"]] = value
+			bound_store.setdefault("bound", {})[id_obj["index"]] = float(value)
 		return bound_store

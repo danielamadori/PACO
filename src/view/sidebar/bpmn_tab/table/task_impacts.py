@@ -39,13 +39,15 @@ def get_impacts_table_header(bpmn_store):
 
 
 def get_impacts_table_row(task, bpmn_store):
+	sorted_impacts_names = sorted(bpmn_store[IMPACTS_NAMES])
+
 	if task not in bpmn_store[IMPACTS]:
-		bpmn_store[IMPACTS][task] = {impact_name : 0.0 for impact_name in bpmn_store[IMPACTS_NAMES]}
+		bpmn_store[IMPACTS][task] = {impact_name : 0.0 for impact_name in sorted_impacts_names}
 
 	return [
 		html.Td(dcc.Input(
 			value=bpmn_store[IMPACTS][task][impact_name],
 			type='number', min=0.0, step=0.001, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"},
 			id={'type': f'impact-{impact_name}', 'index': task}
-		)) for impact_name in sorted(bpmn_store[IMPACTS_NAMES])
+		)) for impact_name in sorted_impacts_names
 	]

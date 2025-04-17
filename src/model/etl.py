@@ -1,20 +1,22 @@
 import json
+import ast
 from copy import deepcopy
-from src.model.sqlite import fetch_diagram_by_bpmn, save_parse_and_execution_tree
+from model.sqlite import fetch_strategy, save_strategy
+from src.model.sqlite import fetch_bpmn, save_parse_and_execution_tree
 import base64
 import graphviz
 import requests
 from src.model.sqlite import save_bpmn_dot
 from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
-	LOOP_PROBABILITY, LOOP_ROUND, extract_nodes
+	LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND
 
 
 def load_bpmn_dot(bpmn):
 	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
 	bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
-	print(f"Data: {bpmn}")
+	#print(f"Data: {bpmn}")
 
-	record = fetch_diagram_by_bpmn(bpmn)
+	record = fetch_bpmn(bpmn)
 	if record and record.bpmn_dot:
 		return record.bpmn_dot
 
@@ -31,10 +33,8 @@ def load_bpmn_dot(bpmn):
 	return bpmn_dot
 
 
-
-
-def load_parse_and_execution_tree(bpmn):
-	record = fetch_diagram_by_bpmn(bpmn)
+def load_parse_and_execution_tree(bpmn):#BPMN must be filtered
+	record = fetch_bpmn(bpmn)
 	if record and record.execution_tree and record.parse_tree:
 		return record.parse_tree, record.execution_tree
 
@@ -47,6 +47,52 @@ def load_parse_and_execution_tree(bpmn):
 	save_parse_and_execution_tree(bpmn, json.dumps(parse_tree), json.dumps(execution_tree))
 
 	return parse_tree, execution_tree
+
+
+def load_strategy(bpmn_store, bound_store):
+	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
+	bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
+
+	bound = [float(bound_store[BOUND][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]#Already sorted
+
+	record = fetch_strategy(bpmn, bound)
+	#if record and record.bdds:
+	#	return record.bdds
+
+	parse_tree, execution_tree = load_parse_and_execution_tree(bpmn)
+
+	resp = requests.get(URL_SERVER + "create_strategy",
+						json={"bpmn": bpmn, "bound": bound,
+							  "parse_tree": parse_tree, "execution_tree": execution_tree},
+						headers=HEADERS)
+
+	resp.raise_for_status()
+	response = resp.json()
+
+	expected_impacts = []
+	if "expected_impacts" in response: # Solution found
+		expected_impacts = [float(x) for x in response["expected_impacts"].strip('[]').split()]
+
+	guaranteed_bounds = [
+		[float(x) for x in s.strip('[]').split()]
+		for s in ast.literal_eval(response['guaranteed_bounds'])
+	]
+
+	possible_min_solution = [
+		[float(x) for x in s.strip('[]').split()]
+		for s in ast.literal_eval(response['possible_min_solution'])
+	]
+
+	bdds = []
+	if "bdds_dot" in response:# Solution Explained
+		bdds = ast.literal_eval(response["bdds_dot"])
+
+	save_strategy(bpmn, bound, response["result"],
+				  str(expected_impacts), response['guaranteed_bounds'],
+			response['possible_min_solution'], bdds)
+
+	return response["result"], expected_impacts, guaranteed_bounds, possible_min_solution, bdds
+
 
 
 def filter_bpmn(bpmn_store, tasks, choices, natures, loops):

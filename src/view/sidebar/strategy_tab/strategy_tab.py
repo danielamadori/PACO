@@ -4,10 +4,9 @@ from dash import dcc, html
 from env import ALGORITHMS
 
 
-def get_Strategy_tab():
-	return dcc.Tab(label='Define Strategy', value='tab-strategy', style={'flex': 1, 'textAlign': 'center'}, children=[
-		html.Div([
-			html.Div(id="strategy", children=[
+def get_strategy_input():
+	return html.Div([
+		html.Div(children=[
 				html.Br(),
 				html.H5("Choose the algorithm to use:"),
 				html.Br(),
@@ -31,12 +30,21 @@ def get_Strategy_tab():
 				),
 				html.Div(id='bound-table'),
 				html.Br(),
-				html.Div(id='find_strategy_message')
-			]),
+			])
 		], style={
-			"display": "flex",
-			"gap": "20px",
-			"flexWrap": "wrap",
-			"justifyContent": "center"
-		})
+		"display": "flex",
+		"gap": "20px",
+		"flexWrap": "wrap",
+		"justifyContent": "center"
+	})
+
+
+def get_strategy_tab():
+	return dcc.Tab(label='Define Strategy', value='tab-strategy', style={'flex': 1, 'textAlign': 'center'}, children=[
+		html.Div([
+			dcc.Store(id="sort_store_guaranteed", data={"sort_by": None, "sort_order": "asc"}),
+			dcc.Store(id="sort_store_possible_min", data={"sort_by": None, "sort_order": "asc"}),
+			get_strategy_input(),
+			html.Div(id='strategy_output')
+		])
 	])

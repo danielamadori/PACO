@@ -5,6 +5,8 @@ APP_NAME = "PACO GUI"
 URL_SERVER = 'http://127.0.0.1:8000/' #'http://host.docker.internal:8000/'
 HEADERS = {"Content-Type": "application/json"}
 
+DB_PATH = 'bpmn_cpi.sqlite'
+
 ###############
 # MODEL
 ###############
@@ -96,17 +98,10 @@ PATH_STRATEGY_TREE_TIME = PATH_STRATEGY_TREE + 'time'
 #############################
 ALGORITHMS = {  # strategies with labels
     's1': 'PACO',
-    's2': 'Strategy 2',
-    's3': 'Strategy 3'
+    #'s2': 'Strategy 2',
+    #'s3': 'Strategy 3'
 }
 
-ALGORITHMS_MISSING_SYNTAX = {
-    's1': [],
-    's2': [],
-    's3': []
-}
-
-ALL_SYNTAX = ['^', '/', '||', '<', '>', '[', ']', ',', '', '(', ')'] # all syntax characters available
 
 
 def extract_nodes(lark_tree: ParseTree) -> (list, list, list, list):

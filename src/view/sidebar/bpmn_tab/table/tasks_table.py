@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html
-
 from src.env import IMPACTS_NAMES
+from view.sidebar.bpmn_tab.table.new_impact_button import get_new_impact_button
 from view.sidebar.bpmn_tab.table.task_duration import get_duration_table_header, get_duration_table_row
 from view.sidebar.bpmn_tab.table.task_impacts import get_impacts_table_header, get_impacts_table_row
 
@@ -33,7 +33,7 @@ def create_tasks_table(bpmn_store, tasks):
 			html.Tr(get_duration_table_header())
 		)
 
-	table = [html.Div([
+	table = html.Div([html.Div([
 		dbc.Table(
 			[html.Thead(header_rows)] + rows,
 			bordered=True,
@@ -49,8 +49,8 @@ def create_tasks_table(bpmn_store, tasks):
 		"border": "1px solid #ccc",
 		"borderRadius": "10px",
 		"marginTop": "20px"
-	}),
-		html.Div(id='add-impact-alert', className='mt-2')
-	]
+	})])
 
-	return html.Div(table)
+	return html.Div([table, html.Br(),
+					 get_new_impact_button(),
+					 html.Br(),])

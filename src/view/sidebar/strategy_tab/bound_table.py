@@ -4,10 +4,10 @@ from dash import html, dcc
 from env import BOUND
 
 
-def bound_table(bound_store, impacts_names):
+def bound_table(bound_store, sorted_impacts_names):
 	bounds = {
-		name: bound_store.get(BOUND, {}).get(name, 1.0)
-		for name in impacts_names
+		name: float(bound_store.get(BOUND, {}).get(name, 1.0))
+		for name in sorted_impacts_names
 	}
 
 	header = html.Tr([
@@ -18,12 +18,9 @@ def bound_table(bound_store, impacts_names):
 				"textOverflow": "ellipsis",
 				"maxWidth": "80px",
 				"display": "inline-block"
-			}),
-			dbc.Button("×", id={'type': 'remove-bound', 'index': name},
-					   n_clicks=0, color="danger", size="sm",
-					   className="ms-1", style={"padding": "2px 6px"})
+			})
 		], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'}))
-		for name in impacts_names
+		for name in sorted_impacts_names
 	])
 
 	row = html.Tr([
@@ -33,7 +30,7 @@ def bound_table(bound_store, impacts_names):
 			debounce=True,
 			style={'width': '80px', "border": "none", "padding": "0.4rem"},
 			id={'type': 'bound-input', 'index': name}
-		)) for name in impacts_names
+		)) for name in sorted_impacts_names
 	])
 
 	return html.Div([

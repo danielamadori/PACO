@@ -1,9 +1,8 @@
 import dash
 from dash import Output, Input, State
 import dash_bootstrap_components as dbc
-from src.controller.db import load_bpmn_dot
+from model.etl import load_bpmn_dot
 from src.env import EXPRESSION, SESE_PARSER, extract_nodes
-from utils.env import IMPACTS
 from view.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
 from view.sidebar.bpmn_tab.table.tasks_table import create_tasks_table
 

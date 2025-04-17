@@ -3,7 +3,7 @@ from dash import Input, Output, State, ALL
 import dash_bootstrap_components as dbc
 
 from controller.sidebar.bpmn_tab.table.tasks_impacts import register_task_impacts_callbacks
-from controller.db import load_bpmn_dot
+from model.etl import load_bpmn_dot
 from src.env import DURATIONS, IMPACTS
 
 def register_task_callbacks(tasks_callbacks):

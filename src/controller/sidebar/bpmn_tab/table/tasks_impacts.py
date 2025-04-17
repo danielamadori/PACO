@@ -1,8 +1,7 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Output, Input, State, ALL
-
-from controller.db import load_bpmn_dot
+from model.etl import load_bpmn_dot
 from env import IMPACTS_NAMES, extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS
 from view.sidebar.bpmn_tab.table.tasks_table import create_tasks_table
 
@@ -59,7 +58,6 @@ def register_task_impacts_callbacks(tasks_callbacks):
 	def remove_impact_column(n_clicks_list, bpmn_store, id_list):
 		changed = False
 		tasks_table = dash.no_update
-		last_impacts = ''
 		alert = ''
 		for n_clicks, id_obj in zip(n_clicks_list, id_list):
 			if n_clicks > 0:
@@ -68,14 +66,8 @@ def register_task_impacts_callbacks(tasks_callbacks):
 					bpmn_store[IMPACTS_NAMES].remove(impact_to_remove)
 					last_impacts = impact_to_remove
 					changed = True
-				else:
-					return dash.no_update, dash.no_update, dbc.Alert(f"Impact '{impact_to_remove}' does not exist.", color="warning", dismissable=True), tasks_table
 
 		if changed:
-			if len(bpmn_store[IMPACTS_NAMES]) == 0:
-				bpmn_store[IMPACTS_NAMES].append(last_impacts)
-				alert = dbc.Alert("At least one impact must be present.", color="danger", dismissable=False)
-
 			tasks, _, _, _ = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 			tasks_table = create_tasks_table(bpmn_store, tasks)
 

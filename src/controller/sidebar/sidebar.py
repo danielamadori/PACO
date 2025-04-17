@@ -23,5 +23,6 @@ def register_sidebar_callbacks(callback):
         Input("sidebar-visible", "data"),
         State("sidebar-width", "data")
     )
-    def update_splitpane_size(visible, width):
+    def update_split_pane_size(visible, width):
         return width if visible else 0
+
