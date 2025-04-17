@@ -1,5 +1,5 @@
 from view.sidebar.bpmn_tab.tab import get_BPMN_CPI_tab
-from view.sidebar.strategy_tab.strategy_tab import get_strategy_tab
+from view.sidebar.strategy_tab.tab import get_strategy_tab
 from dash import dcc, html
 
 def get_sidebar():

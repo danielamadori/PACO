@@ -1,10 +1,9 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
-
 from env import BOUND
 
 
-def bound_table(bound_store, sorted_impacts_names):
+def get_bound_table(bound_store, sorted_impacts_names):
 	bounds = {
 		name: float(bound_store.get(BOUND, {}).get(name, 1.0))
 		for name in sorted_impacts_names

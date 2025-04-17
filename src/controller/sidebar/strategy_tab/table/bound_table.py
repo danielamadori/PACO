@@ -1,7 +1,7 @@
 import dash
 from dash import Input, Output, State, ALL
 from env import IMPACTS_NAMES
-from view.sidebar.strategy_tab.bound_table import bound_table
+from view.sidebar.strategy_tab.table.bound_table import get_bound_table
 
 
 def register_bound_callbacks(bound_callbacks):
@@ -16,7 +16,7 @@ def register_bound_callbacks(bound_callbacks):
 		if len(bpmn_store[IMPACTS_NAMES]) == 0:
 			return dash.no_update
 
-		return bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))
+		return get_bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))
 
 	@bound_callbacks(
 		Output('bound-store', 'data', allow_duplicate=True),

@@ -1,8 +1,16 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
-
 from env import ALGORITHMS
 
+def get_strategy_tab():
+	return dcc.Tab(label='Define Strategy', value='tab-strategy', style={'flex': 1, 'textAlign': 'center'}, children=[
+		html.Div([
+			dcc.Store(id="sort_store_guaranteed", data={"sort_by": None, "sort_order": "asc"}),
+			dcc.Store(id="sort_store_possible_min", data={"sort_by": None, "sort_order": "asc"}),
+			get_strategy_input(),
+			html.Div(id='strategy_output')
+		])
+	])
 
 def get_strategy_input():
 	return html.Div([
@@ -37,14 +45,3 @@ def get_strategy_input():
 		"flexWrap": "wrap",
 		"justifyContent": "center"
 	})
-
-
-def get_strategy_tab():
-	return dcc.Tab(label='Define Strategy', value='tab-strategy', style={'flex': 1, 'textAlign': 'center'}, children=[
-		html.Div([
-			dcc.Store(id="sort_store_guaranteed", data={"sort_by": None, "sort_order": "asc"}),
-			dcc.Store(id="sort_store_possible_min", data={"sort_by": None, "sort_order": "asc"}),
-			get_strategy_input(),
-			html.Div(id='strategy_output')
-		])
-	])
