@@ -34,7 +34,10 @@ def layout():
         dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
         dcc.Store(id="sidebar-visible", data=True),
         dcc.Store(id="sidebar-width", data=sidebar_min_width),
+<<<<<<< HEAD
         dcc.Store(id="svg-zoom", data=1.0),
+=======
+>>>>>>> origin/sidebar
         dcc.Interval(id="interval", interval=1000, n_intervals=0),
 
         DashSplitPane(
@@ -46,9 +49,14 @@ def layout():
                 get_sidebar(),
                 get_main_content()
             ],
+<<<<<<< HEAD
             style={"height": "calc(100vh - 60px)", "display": "flex", "flexDirection": "row"}
 
     )
+=======
+            style={"height": "100vh", "display": "flex", "flexDirection": "row"}
+        )
+>>>>>>> origin/sidebar
     ])
 
 
