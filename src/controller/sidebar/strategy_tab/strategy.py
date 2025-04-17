@@ -54,7 +54,7 @@ def register_strategy_callbacks(strategy_callback):
 	def find_strategy(n_clicks, bpmn_store, bound_store):
 		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 		bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
-		bound = [bound_store[BOUND][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
+		bound = [float(bound_store[BOUND][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]
 
 		try:
 			parse_tree, execution_tree = load_parse_and_execution_tree(bpmn)
