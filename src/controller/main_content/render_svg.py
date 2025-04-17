@@ -1,32 +1,12 @@
 from dash import Output, Input, State, ctx, html
 from dash.exceptions import PreventUpdate
+from view.main_content.zoom import ZOOM_MAX, ZOOM_MIN
 
-def get_visible_marks(zoom, min_zoom=0.1, max_zoom=3.0):
-	zoom = round(zoom, 1)
-	distance = 0.4
-	marks = set()
-
-	marks.add(zoom)
-
-	lower = round(zoom - 0.5, 1)
-	if lower >= min_zoom + distance:
-		marks.add(lower)
-
-	upper = round(zoom + 0.5, 1)
-	if upper <= max_zoom - distance:
-		marks.add(upper)
-
-
-	marks.add(min_zoom)
-	marks.add(max_zoom)
-
-	return {v: str(v) for v in sorted(marks)}
 
 def register_render_svg(callback):
 	@callback(
 		Output("svg-bpmn", "children"),
 		Output("zoom-slider", "value"),
-		Output("zoom-slider", "marks"),
 		Input("dot-store", "data"),
 		Input("zoom-slider", "value"),
 		Input("reset-zoom", "n_clicks"),
@@ -45,14 +25,13 @@ def register_render_svg(callback):
 		triggered = ctx.triggered_id
 		zoom = zoom_value
 
-		if triggered == "dot-store" or triggered == "reset-zoom":
+		#if triggered == "dot-store" or triggered == "reset-zoom":
+		if triggered == "reset-zoom":
 			zoom = 1.0
 		elif triggered == "increase-zoom":
-			zoom = round(min(3.0, zoom + 0.1), 1)
+			zoom = round(min(ZOOM_MAX, zoom + 0.1), 1)
 		elif triggered == "decrease-zoom":
-			zoom = round(max(0.1, zoom - 0.1), 1)
-
-		marks = get_visible_marks(zoom)
+			zoom = round(max(ZOOM_MIN, zoom - 0.1), 1)
 
 		return html.ObjectEl(
 			data=svg,
@@ -64,4 +43,4 @@ def register_render_svg(callback):
 				"transformOrigin": "0 0",
 				"cursor": "grab"
 			}
-		), zoom, marks
+		), zoom
