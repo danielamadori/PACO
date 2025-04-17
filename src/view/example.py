@@ -11,9 +11,9 @@ def layout():
             bending, polishing, depositioning, and painting a metal piece. 
                  
             The diagram in our syntax will be written as: (Cutting, ( (Bending, (HP ^ [N1]LP ) ) || ( Milling, ( FD / [C1] RD))), (HPHS / [C2] LPLS))
-            The associated impacts are: {"Cutting": {"cost": 10, "working_hours": 1}, "Bending":{"cost": 20, "working_hours": 1}, "Milling":{"cost": 50, "working_hours": 1},
-            "HP":{"cost": 5, "working_hours": 4},"LP":{"cost": 5, "working_hours": 1}, "FD":{"cost": 30, "working_hours": 1}, 
-            "RD":{"cost": 10, "working_hours": 1}, "HPHS":{"cost": 40, "working_hours": 1}, "LPLS":{"cost": 20, "working_hours": 3}}
+            The associated impacts are: {"Cutting": {"cost": 10.0, "working_hours": 1.0}, "Bending":{"cost": 20.0, "working_hours": 1.0}, "Milling":{"cost": 50.0, "working_hours": 1.0},
+            "HP":{"cost": 5.0, "working_hours": 4.0},"LP":{"cost": 5.0, "working_hours": 1.0}, "FD":{"cost": 30.0, "working_hours": 1.0}, 
+            "RD":{"cost": 10.0, "working_hours": 1.0}, "HPHS":{"cost": 40.0, "working_hours": 1.0}, "LPLS":{"cost": 20.0, "working_hours": 3.0}}
             
     '''),
     dbc.Alert(" Remember to put the () brackets around the regions to enhance  readability and secure the parsing. ", color='info'),

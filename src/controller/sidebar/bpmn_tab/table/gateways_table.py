@@ -2,7 +2,7 @@ import dash
 from dash import Input, Output, State, ALL
 
 from controller.db import load_bpmn_dot
-from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS
+from env import PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, DELAYS, IMPACTS
 import dash_bootstrap_components as dbc
 
 def register_gateway_callbacks(gateway_callbacks):
@@ -20,6 +20,7 @@ def register_gateway_callbacks(gateway_callbacks):
 			bpmn_store[DELAYS][id_obj['index']] = value
 
 		try:
+			#print(f"gateways_table.py choice: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
@@ -37,9 +38,10 @@ def register_gateway_callbacks(gateway_callbacks):
 	)
 	def update_natures(values, ids, bpmn_store):
 		for value, id_obj in zip(values, ids):
-			bpmn_store[PROBABILITIES][id_obj['index']] = value
+			bpmn_store[PROBABILITIES][id_obj['index']] = float(value)
 
 		try:
+			#print(f"gateways_table.py natures: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
@@ -60,10 +62,11 @@ def register_gateway_callbacks(gateway_callbacks):
 	def update_loops(probs, rounds, ids, bpmn_store):
 		for p, r, id_obj in zip(probs, rounds, ids):
 			loop = id_obj['index']
-			bpmn_store[LOOP_PROBABILITY][loop] = p
+			bpmn_store[LOOP_PROBABILITY][loop] = float(p)
 			bpmn_store[LOOP_ROUND][loop] = r
 
 		try:
+			#print(f"gateways_table.py loops: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)

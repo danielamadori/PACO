@@ -38,6 +38,7 @@ def register_task_impacts_callbacks(tasks_callbacks):
 		tasks_table = create_tasks_table(bpmn_store, tasks)
 
 		try:
+			#print(f"tasks_impacts.py add: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True), tasks_table
@@ -79,6 +80,7 @@ def register_task_impacts_callbacks(tasks_callbacks):
 			tasks_table = create_tasks_table(bpmn_store, tasks)
 
 			try:
+				#print(f"tasks_impacts.py remove: {bpmn_store[IMPACTS]}")
 				bpmn_dot = load_bpmn_dot(bpmn_store)
 			except Exception as exception:
 				if alert == '':

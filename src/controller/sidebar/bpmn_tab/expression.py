@@ -3,6 +3,7 @@ from dash import Output, Input, State
 import dash_bootstrap_components as dbc
 from src.controller.db import load_bpmn_dot
 from src.env import EXPRESSION, SESE_PARSER, extract_nodes
+from utils.env import IMPACTS
 from view.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
 from view.sidebar.bpmn_tab.table.tasks_table import create_tasks_table
 
@@ -53,6 +54,7 @@ def register_expression_callbacks(expression_callbacks):
         loops_table = create_loops_table(bpmn_store, loops)
 
         try:
+            #print(f"expression.py: {bpmn_store[IMPACTS]}")
             bpmn_dot = load_bpmn_dot(bpmn_store[EXPRESSION])
 
             return bpmn_store, {"bpmn" : bpmn_dot}, alert, tasks_table, choices_table, natures_table, loops_table

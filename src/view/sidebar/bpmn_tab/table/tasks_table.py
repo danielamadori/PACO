@@ -1,7 +1,9 @@
 import dash_bootstrap_components as dbc
-from dash import html, dcc
+from dash import html
 
-from src.env import DURATIONS, IMPACTS_NAMES, IMPACTS
+from src.env import IMPACTS_NAMES
+from view.sidebar.bpmn_tab.table.task_duration import get_duration_table_header, get_duration_table_row
+from view.sidebar.bpmn_tab.table.task_impacts import get_impacts_table_header, get_impacts_table_row
 
 
 def create_tasks_table(bpmn_store, tasks):
@@ -11,28 +13,9 @@ def create_tasks_table(bpmn_store, tasks):
 	rows = []
 
 	for task in sorted(tasks):
-		if task not in bpmn_store[DURATIONS]:
-			bpmn_store[DURATIONS][task] = (0, 1)
-
-		(min_d, max_d) = bpmn_store[DURATIONS][task]
-
-		if task not in bpmn_store[IMPACTS]:
-			bpmn_store[IMPACTS][task] = {impact_name : 0.0 for impact_name in bpmn_store[IMPACTS_NAMES]}
-
-		impact_inputs = [
-			html.Td(dcc.Input(
-				value=bpmn_store[IMPACTS][task][impact_name],
-				type='number', min=0.0, step=0.001, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"},
-				id={'type': f'impact-{impact_name}', 'index': task}
-			)) for impact_name in sorted(bpmn_store[IMPACTS_NAMES])
-		]
-
-		row = html.Tr([
-				  html.Td(html.Span(task, style={"whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "minWidth": "100px", "display": "inline-block"})),
-				  html.Td(dcc.Input(value=min_d, type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"}, id={'type': 'min-duration', 'index': task})),
-				  html.Td(dcc.Input(value=max_d, type='number', min=0, debounce=True, style={'width': '80px', "border": "none", "padding": "0.4rem"}, id={'type': 'max-duration', 'index': task})),
-			  ] + impact_inputs)
-		rows.append(row)
+		rows.append(
+			html.Tr(get_duration_table_row(task, bpmn_store) + get_impacts_table_row(task, bpmn_store))
+		)
 
 	header_rows = [
 		html.Tr([
@@ -42,20 +25,13 @@ def create_tasks_table(bpmn_store, tasks):
 	]
 
 	if bpmn_store[IMPACTS_NAMES]:
-		header_rows.append(html.Tr([
-									   html.Th("Min", style={'width': '80px', 'vertical-align': 'middle'}),
-									   html.Th("Max", style={'width': '80px', 'vertical-align': 'middle'}),
-								   ] + [html.Th(html.Div([
-			html.Span(name, style={"whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "maxWidth": "80px", "display": "inline-block"}),
-			dbc.Button("×", id={'type': 'remove-impact', 'index': name},
-					   n_clicks=0, color="danger", size="sm", className="ms-1", style={"padding": "2px 6px"})
-		], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'})) for name in sorted(bpmn_store[IMPACTS_NAMES])])
+		header_rows.append(
+			html.Tr(get_duration_table_header() + get_impacts_table_header(bpmn_store))
 		)
 	else:
-		header_rows.append(html.Tr([
-			html.Th("Min", style={'width': '80px', 'vertical-align': 'middle'}),
-			html.Th("Max", style={'width': '80px', 'vertical-align': 'middle'})
-		]))
+		header_rows.append(
+			html.Tr(get_duration_table_header())
+		)
 
 	table = [html.Div([
 		dbc.Table(

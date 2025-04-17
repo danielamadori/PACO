@@ -11,7 +11,7 @@ def layout():
             
         # Syntax and Basic Components
            
-        In the following section, you can check the syntax of a BPMN file and the basic components of the language togheter with useful examples. 
+        In the following section, you can check the syntax of a BPMN file and the basic components of the language together with useful examples. 
         The BPMN language is transformed in a lark grammar and the syntax is checked using the lark parser. 
         Here is the complete grammar:
     '''),
@@ -41,7 +41,7 @@ def layout():
         html.Br(),
         html.H3('Task example of an adversary'),
         html.Img(src=dash.get_asset_url('examples/_SimpleAdversaryTask.png')),
-        dbc.Alert("Attention: The adversary here presented is only a theoretical concept. It has not been implemented nor it is found in the aformentioned grammar. ", color="warning"),        
+        dbc.Alert("Attention: The adversary here presented is only a theoretical concept. It has not been implemented nor it is found in the aforementioned grammar. ", color="warning"),
         html.Br(),
         dcc.Markdown('''
                Each task has also a duration and an impact factor. Both are mandatory.
@@ -71,11 +71,11 @@ def layout():
                A Gateway represents an intersection where multiple paths converge or diverge.
                The type of gateway can be specified with the following syntax:
                - Exclusive (X): splits the flow in different paths and only one is chosen given a certain condition and is indicated with a X inside the diamond. Here is also marked as orange. In our notation is defined as ^.
-               In our notation the consition is defined as Task1 ^ Task2, where ^ is the exclusive gateway.
+               In our notation the condition is defined as Task1 ^ Task2, where ^ is the exclusive gateway.
                 - Loops are a particular type of gateways. They are used to repeat a task until a certain condition is met. Here are also marked as yellow.
-                In our notation the consition is defined as < SomeTask >, where < ... > is the exclusive gateway.
+                In our notation the condition is defined as < SomeTask >, where < ... > is the exclusive gateway.
                - Parallel (+) : all the outgoing flows are followed and in the merging all the activities of the incoming flows must be completed before continuing with the process and it is indicated as + inside the diamond. Here is also marked as green. 
-                In our notation the consition is defined as Task1 || Task2, where || is the parallel gateway.
+                In our notation the condition is defined as Task1 || Task2, where || is the parallel gateway.
                
         '''),
         
@@ -90,29 +90,6 @@ def layout():
         html.Img(src=dash.get_asset_url('examples/loop.png')),
         dbc.Alert("Attention: The loop has not been implemented yet. ", color="warning"),        
         html.Br(),
-        dcc.Markdown('''
-
-            ## Choices:
-            for each type of gateway, the choices are defined based on who or what takes the decision which are (only for XOR):
-
-            - `^` : Exclusive gateway
-                - Person: the decision is taken by a person and no further notetion is needed.
-                    - Example: `Task1 ^ Task2`
-                - Nature: the decision is taken given a certain probability:
-                    - Example: `Task1 ^ [0.3]Task2 ` --> the probability of choosing Task1 is 0.3 and Task2 is 0.7
-                - Adversary: the decision is taken by an adversary.
-                     - Example: `Task1 ^ []Task2` --> the adversary will choose for this gateway.            
-            - < ... > : Loop gateway
-                - Person: the decision is taken by a person and no further notetion is needed.
-                    - Example: `< Task1 >`
-                - Nature: the decision is taken given a certain probability:
-                    - Example: `< [0.3]Task1 >` --> the probability of choosing Task1 is 0.3 and Task2 is 0.7
-                - Adversary: the decision is taken by an adversary.
-                     - Example: `< []Task1 >` --> the adversary will choose for this gateway.
-            
-            ### Examples natural choice    
-                          
-        '''),
         html.Img(src=dash.get_asset_url('examples/natural_xor.png')),
     
         ], style={'padding': 10, 'flex': 1}

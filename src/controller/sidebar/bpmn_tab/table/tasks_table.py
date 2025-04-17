@@ -31,10 +31,11 @@ def register_task_callbacks(tasks_callbacks):
 					bpmn_store[IMPACTS][task] = {}
 					value = 0.0
 
-				bpmn_store[IMPACTS][task][impact_name] = value
+				bpmn_store[IMPACTS][task][impact_name] = float(value)
 
 		if updated:
 			try:
+				#print(f"tasks_table.py impacts: {bpmn_store[IMPACTS]}")
 				bpmn_dot = load_bpmn_dot(bpmn_store)
 			except Exception as exception:
 				return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
@@ -61,6 +62,7 @@ def register_task_callbacks(tasks_callbacks):
 
 
 		try:
+			#print(f"tasks_impacts.py duration: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)

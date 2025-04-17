@@ -10,9 +10,9 @@ from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMP
 
 
 def load_bpmn_dot(bpmn):
-	print(f"Data: {bpmn}")
 	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
 	bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
+	print(f"Data: {bpmn}")
 
 	record = fetch_diagram_by_bpmn(bpmn)
 	if record and record.bpmn_dot:
@@ -54,9 +54,10 @@ def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
     bpmn = deepcopy(bpmn_store)
     bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
     bpmn[IMPACTS] = {
-        task: [bpmn_store[IMPACTS][task][impact_name] for impact_name in bpmn[IMPACTS_NAMES]]
-        for task in tasks if task in bpmn_store[IMPACTS]
+		task: [float(bpmn_store[IMPACTS][task][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]
+		for task in tasks if task in bpmn_store[IMPACTS]
     }
+
     bpmn[DURATIONS] = {task: bpmn_store[DURATIONS][task] for task in tasks if task in bpmn_store[DURATIONS]}
     bpmn[DELAYS] = {choice: bpmn_store[DELAYS][choice] for choice in choices if choice in bpmn_store[DELAYS]}
     bpmn[PROBABILITIES] = {nature: bpmn_store[PROBABILITIES][nature] for nature in natures if nature in bpmn_store[PROBABILITIES]}

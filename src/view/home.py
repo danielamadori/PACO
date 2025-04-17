@@ -20,7 +20,7 @@ def layout():
 
     return html.Div([
         dcc.Store(id='bpmn-store', data={
-            EXPRESSION: 'Task',
+            EXPRESSION: '',
             H: 0,
             IMPACTS: {},
             DURATIONS: {},
