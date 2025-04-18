@@ -12,7 +12,7 @@ def render_table(headers, rows, include_button=False, button_prefix="", sort_by=
 	for i, row in enumerate(rows):
 		cells = [html.Td(value) for value in row]
 		if include_button:
-			button_id = {"type": button_prefix, "index": i}
+			button_id = {"type": button_prefix, "index": i, "table": table}
 			cells.append(
 				html.Td(
 					dbc.Button("Select", id=button_id, color="primary", size="sm"),

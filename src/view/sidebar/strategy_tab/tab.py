@@ -28,7 +28,7 @@ def get_strategy_input():
 				),
 				html.Br(),
 				html.Div([
-					html.H5('Insert the bound'),
+					html.H5('Insert bound'),
 					dbc.Button('Find strategy', id='find-strategy-button')],
 					style={
 						"display": "flex",

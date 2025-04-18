@@ -17,6 +17,7 @@ from view.sidebar.sidebar import get_sidebar
 
 def layout():
     sidebar_min_width = 450
+    impacts_names = 'impact'
 
     return html.Div([
         dcc.Store(id='bpmn-store', data={
@@ -24,14 +25,14 @@ def layout():
             H: 0,
             IMPACTS: {},
             DURATIONS: {},
-            IMPACTS_NAMES: ['impact'],
+            IMPACTS_NAMES: [impacts_names],
             DELAYS: {},
             PROBABILITIES: {},
             LOOP_PROBABILITY: {},
             LOOP_ROUND: {},
         }, storage_type='session'),
         dcc.Store(id='dot-store', data={"bpmn": "", "bdds": ""}, storage_type='session'),
-        dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
+        dcc.Store(id='bound-store', data={BOUND: {impacts_names:0.0}}, storage_type='session'),
         dcc.Store(id="sidebar-visible", data=True),
         dcc.Store(id="sidebar-width", data=sidebar_min_width),
         dcc.Store(id="svg-zoom", data=1.0),

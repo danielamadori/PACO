@@ -11,7 +11,6 @@ def create_tasks_table(bpmn_store, tasks):
 		return html.Div()
 
 	rows = []
-
 	for task in sorted(tasks):
 		rows.append(
 			html.Tr(get_duration_table_row(task, bpmn_store) + get_impacts_table_row(task, bpmn_store))

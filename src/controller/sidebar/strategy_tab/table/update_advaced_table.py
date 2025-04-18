@@ -53,3 +53,4 @@ def register_advance_table_callbacks(table_callback):
 			include_button=True, button_prefix="selected_bound",
 			sort_by=sort_by, sort_order=new_order, table="possible_min"
 		), p
+
