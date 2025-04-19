@@ -18,6 +18,7 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
 
     if frontier_solution is None:
         #TODO plot_pareto_frontier
+        print(f"Failed:\t\t{impacts_names}\nBound Impacts:\t{bound}")
         return None, None, possible_min_solution, frontier_values, [], times
 
     print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{expected_impacts}")

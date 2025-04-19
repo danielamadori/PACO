@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import numpy as np
 
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.explainer.bdd.bdds import bdds_to_dict
+from paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from paco.parser.create import create
 from paco.parser.bpmn_parser import SESE_PARSER, create_parse_tree
 from paco.parser.print_sese_diagram import print_sese_diagram
