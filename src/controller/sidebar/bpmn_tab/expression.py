@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from controller.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
 from model.etl import load_bpmn_dot
 from src.env import EXPRESSION, SESE_PARSER, extract_nodes
+from utils.env import IMPACTS_NAMES
 from view.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
 from view.sidebar.bpmn_tab.table.tasks_table import create_tasks_table
 
@@ -45,21 +46,26 @@ def register_expression_callbacks(expression_callbacks):
                 return dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True), tasks_table, choices_table, natures_table, loops_table
             bpmn_store[EXPRESSION] = current_expression
 
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+
         if bpmn_store[EXPRESSION] == '':
             return dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_table, choices_table, natures_table, loops_table
 
 
         tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
-
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         tasks_table = create_tasks_table(bpmn_store, tasks)
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         choices_table = create_choices_table(bpmn_store, choices)
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         natures_table = create_natures_table(bpmn_store, natures)
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         loops_table = create_loops_table(bpmn_store, loops)
 
         try:
             #print(f"expression.py: {bpmn_store[IMPACTS]}")
             bpmn_dot = load_bpmn_dot(bpmn_store[EXPRESSION])
-
+            print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
             return bpmn_store, {"bpmn" : bpmn_dot}, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_table, choices_table, natures_table, loops_table
         except Exception as exception:
             alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)

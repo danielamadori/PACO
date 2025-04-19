@@ -83,9 +83,18 @@ def load_strategy(bpmn_store, bound_store):
 		for s in ast.literal_eval(response['possible_min_solution'])
 	]
 
-	bdds = []
-	if "bdds_dot" in response:# Solution Explained
-		bdds = ast.literal_eval(response["bdds_dot"])
+	bdds = {}
+	if "bdds" in response:# Solution Explained
+		print(response["bdds"])
+		#tmp = ast.literal_eval(response["bdds"])
+		for choice, v in response["bdds"].items():
+			type_strategy, bdd_dot = v
+			bdds[choice] = (
+				type_strategy,
+				f"data:image/svg+xml;base64,{base64.b64encode(graphviz.Source(bdd_dot).pipe(format='svg')).decode('utf-8')}"
+			)
+
+
 
 	save_strategy(bpmn, bound, response["result"],
 				  str(expected_impacts), response['guaranteed_bounds'],

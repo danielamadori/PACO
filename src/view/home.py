@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html
 from dash_split_pane import DashSplitPane
 
+from controller.sidebar.llm_tab.chat import register_llm_callbacks
 from controller.sidebar.sidebar import register_sidebar_callbacks
 from controller.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
 from controller.main_content.render_svg import register_render_svg
@@ -33,6 +34,11 @@ def layout():
         }, storage_type='session'),
         dcc.Store(id='dot-store', data={"bpmn": "", "bdds": ""}, storage_type='session'),
         dcc.Store(id='bound-store', data={BOUND: {impacts_names:0.0}}, storage_type='session'),
+
+        dcc.Store(id='chat-history', data=[]),
+        dcc.Store(id='pending-message', data=None),
+        dcc.Store(id='reset-trigger', data=False),
+
         dcc.Store(id="sidebar-visible", data=True),
         dcc.Store(id="sidebar-width", data=sidebar_min_width),
         dcc.Store(id="svg-zoom", data=1.0),
@@ -60,3 +66,4 @@ register_bound_callbacks(dash.callback)
 register_strategy_callbacks(dash.callback)
 register_render_svg(dash.callback)
 register_sidebar_callbacks(dash.callback)
+register_llm_callbacks(dash.callback, dash.clientside_callback)

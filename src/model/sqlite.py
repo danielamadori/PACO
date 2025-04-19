@@ -69,7 +69,7 @@ def save_parse_and_execution_tree(bpmn_dict:dict, parse_tree:str, execution_tree
 
 @db_session
 def save_strategy(bpmn_dict: dict, bound_list: list, result:str, expected_impacts:str,
-                  guaranteed_bounds:str, possible_min_solution:str, bdds: list):
+                  guaranteed_bounds:str, possible_min_solution:str, bdds: dict):
 
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     bound_json = json.dumps(bound_list)

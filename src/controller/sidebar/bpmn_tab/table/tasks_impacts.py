@@ -23,9 +23,9 @@ def register_task_impacts_callbacks(tasks_callbacks):
 	)
 	def add_impact_column(n_clicks, new_impact_name, bpmn_store, bound_store):
 		tasks_table = dash.no_update
-
+		print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		if not new_impact_name or new_impact_name.strip() == '':
-			return bpmn_store, dash.no_update, dash.no_update, "", tasks_table
+			return dash.no_update, dash.no_update, dash.no_update, "", tasks_table
 
 		new_impact_name = new_impact_name.strip()
 		if new_impact_name in bpmn_store[IMPACTS_NAMES]:
@@ -67,20 +67,22 @@ def register_task_impacts_callbacks(tasks_callbacks):
 		changed = False
 		tasks_table = dash.no_update
 		alert = ''
+		print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		for n_clicks, id_obj in zip(n_clicks_list, id_list):
 			if n_clicks > 0:
 				impact_to_remove = id_obj['index']
+				print("*remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 				if impact_to_remove in bpmn_store[IMPACTS_NAMES]:
 					bpmn_store[IMPACTS_NAMES].remove(impact_to_remove)
-					last_impacts = impact_to_remove
 					changed = True
 
+		print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		if changed:
 			tasks, _, _, _ = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 			tasks_table = create_tasks_table(bpmn_store, tasks)
+			print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 
 			try:
-				#print(f"tasks_impacts.py remove: {bpmn_store[IMPACTS]}")
 				bpmn_dot = load_bpmn_dot(bpmn_store)
 			except Exception as exception:
 				if alert == '':
