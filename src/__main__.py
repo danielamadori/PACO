@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import numpy as np
 
 from paco.execution_tree.execution_tree import ExecutionTree
-from paco.explainer.bdd.bdds import bdds_to_dict
+from paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from paco.parser.create import create
 from paco.parser.bpmn_parser import SESE_PARSER, create_parse_tree
 from paco.parser.print_sese_diagram import print_sese_diagram
@@ -183,7 +183,7 @@ async def search_strategy(request: dict) -> dict:
                 "strategy_expected_impacts": str(y),
                 "strategy_expected_time": str(z),
                 "bdds": bdds_to_dict(w),
-                "bdds_dot": [bdd.bdd_to_dot() for bdd in w]
+                "bdds_dot": bdds_to_dict_dot(w)
             })
 
         return jsonable_encoder(result_dict)

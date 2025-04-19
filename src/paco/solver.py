@@ -11,6 +11,7 @@ from datetime import datetime
 def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pending_natures=None, execution_tree=None, search_only=False, type_strategy=ExplanationType.HYBRID, debug = False):
 	result = {"bpmn": bpmn, "bound": bound}
 
+	bpmn[IMPACTS_NAMES] = sorted(bpmn[IMPACTS_NAMES])
 	bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 
 	parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures, execution_tree, debug)

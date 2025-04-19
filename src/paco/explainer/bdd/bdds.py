@@ -20,3 +20,7 @@ def bdds_to_dict(bdds: dict[ParseNode:Bdd]) -> dict[int, dict]:
 
 def bdds_to_json(bdds: dict[ParseNode:Bdd]) -> str:
 	return json.dumps(bdds_to_dict(bdds), indent=2)
+
+
+def bdds_to_dict_dot(bdds: dict[ParseNode:Bdd]) -> dict[str, str]:
+	return {choice.name: (str(bdd.typeStrategy), bdd.bdd_to_dot()) for choice, bdd in bdds.items()}
