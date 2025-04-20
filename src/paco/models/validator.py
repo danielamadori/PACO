@@ -1,6 +1,5 @@
 
-from models.bpmn import BPMNDict
-from typing import Any
+from paco.models.bpmn import BPMNDict
 
 
 def validate_bpmn_dict(bpmn: dict) -> BPMNDict:

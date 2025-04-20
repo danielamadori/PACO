@@ -1,4 +1,3 @@
-
 import json
 import re
 from langchain_openai import ChatOpenAI
@@ -46,7 +45,7 @@ def run_llm_on_bpmn(
         CHAT_MEMORY[session_id] = []
 
     is_first_message = len(CHAT_MEMORY[session_id]) == 0
-    prompt = build_few_shot_prompt(bpmn_dict, message) if is_first_message else              build_followup_prompt(CHAT_MEMORY[session_id], message)
+    prompt = build_few_shot_prompt(bpmn_dict, message) if is_first_message else build_followup_prompt(CHAT_MEMORY[session_id], message)
 
     llm = ChatOpenAI(
         openai_api_base=url,
