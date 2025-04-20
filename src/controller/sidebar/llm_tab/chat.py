@@ -33,19 +33,21 @@ def register_llm_callbacks(callback, clientside_callback):
 	@callback(
 		Output('chat-history', 'data', allow_duplicate=True),
 		Output('pending-message', 'data', allow_duplicate=True),
+		Output('bpmn-store', 'data', allow_duplicate=True),
 		Input('pending-message', 'data'),
 		State('chat-history', 'data'),
+		State('bpmn-store', 'data'),
 		prevent_initial_call=True
 	)
-	def resolve_response(pending_id, history):
+	def resolve_response(pending_id, history, bpmn_store):
 		if not pending_id or not history:
 			raise dash.exceptions.PreventUpdate
 		for i in range(len(history) - 1, -1, -1):
 			if history[i].get('id') == pending_id:
-				history[i]['text'] = llm_response(history[i - 1]['text'])
+				history[i]['text'], bpmn_store = llm_response(bpmn_store, history[i - 1]['text'])
 				del history[i]['id']
 				break
-		return history, None
+		return history, None, bpmn_store
 
 	@callback(
 		Output('chat-output', 'children'),
