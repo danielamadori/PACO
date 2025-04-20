@@ -1,24 +1,23 @@
+from ai.llm_utils import run_llm_on_bpmn
 from fastapi.encoders import jsonable_encoder
+from agent import define_agent
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-from uuid import uuid4
-from datetime import datetime, timedelta, timezone
 import numpy as np
 
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from paco.parser.create import create
-from paco.parser.bpmn_parser import create_parse_tree
+from paco.parser.bpmn_parser import SESE_PARSER, create_parse_tree
 from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.parser.parse_tree import ParseTree
 from paco.solver import paco
 from utils.env import DURATIONS, IMPACTS_NAMES, EXPRESSION
 from utils.check_syntax import check_bpmn_syntax
+from fastapi.middleware.cors import CORSMiddleware
+from models.bpmn import BPMNDict
 from utils import check_syntax as cs
-from ai.llm_utils import run_llm_on_bpmn
 import uvicorn
-
 # https://blog.futuresmart.ai/integrating-google-authentication-with-fastapi-a-step-by-step-guide
 # http://youtube.com/watch?v=B5AMPx9Z1OQ&list=PLqAmigZvYxIL9dnYeZEhMoHcoP4zop8-p&index=26
 # https://www.youtube.com/watch?v=bcYmfHOrOPM
@@ -27,46 +26,54 @@ import uvicorn
 # swaggerui al link  http://127.0.0.1:8000/docs
 # server al link http://127.0.0.1:8000/
 
-
-
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"] 
 )
-
-chat_histories = {}
-SESSION_TIMEOUT = timedelta(days=1)
 
 class LoginRequest(BaseModel):
     username: str
     password: str
 
-class LLMChatRequest(BaseModel):
-    bpmn: dict
-    message: str
-    session_id: str | None = None
-    reset: bool = False
-    url: str = "http://localhost:1234/v1"
-    api_key: str = "lm-studio"
-    model: str = "phi-3.5-mini-instruct"
+
+class AgentRequest(BaseModel):
+    prompt: str
+    session_id: str  # Unique ID to track chat history
+    url: str = 'http://157.27.193.108'
+    api_key: str = 'lm-studio'
+    model: str = 'gpt-3.5-turbo'
     temperature: float = 0.7
     verbose: bool = False
 
+chat_histories = {}
+#######################################################
+############ GET  #####################################
+#######################################################
 @app.get("/")
 async def get():
-    return "welcome to PACO server"
+    """
+    Root endpoint that returns a welcome message
+    Returns:
+        str: Welcome message
+    """
+    return f"welcome to PACO server"
 
 @app.get("/create_bpmn")
 async def check_bpmn(request: dict) -> dict:
     bpmn = request.get("bpmn")
     if bpmn is None:
         raise HTTPException(status_code=400, detail="No BPMN found")
+
     try:
         lark_tree = check_bpmn_syntax(dict(bpmn))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
         return { "bpmn_dot": print_sese_diagram(bpmn, lark_tree) }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -208,10 +215,14 @@ async def llm_bpmn_chat(req: LLMChatRequest):
 
     session_id = req.session_id or str(uuid4())
 
-    if req.reset and session_id in chat_histories:
-        del chat_histories[session_id]
+    if req.reset or session_id not in chat_histories:
+        chat_histories[session_id] = {
+            "history": [],
+            "last_active": datetime.now(timezone.utc)
+        }
 
     try:
+        validate_bpmn_dict(req.bpmn)
         check_bpmn_syntax(req.bpmn)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid input BPMN: {e}")
@@ -220,6 +231,7 @@ async def llm_bpmn_chat(req: LLMChatRequest):
         result = run_llm_on_bpmn(
             bpmn_dict=req.bpmn,
             message=req.message,
+            session_id=session_id,
             model=req.model,
             temperature=req.temperature,
             url=req.url.strip(),
@@ -229,15 +241,15 @@ async def llm_bpmn_chat(req: LLMChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    chat_histories[session_id] = {
-        "last_active": datetime.now(timezone.utc),
-        "history": chat_histories.get(session_id, {}).get("history", []) + [
-            {"user": req.message}, {"assistant": result}
-        ]
-    }
+    chat_histories[session_id]["history"].append({
+        "user": req.message,
+        "assistant": result["message"]
+    })
+    chat_histories[session_id]["last_active"] = datetime.now(timezone.utc)
 
     result["session_id"] = session_id
     return result
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
