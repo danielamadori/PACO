@@ -1,21 +1,24 @@
 from fastapi.encoders import jsonable_encoder
-from agent import define_agent
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from uuid import uuid4
+from datetime import datetime, timedelta, timezone
 import numpy as np
 
 from paco.execution_tree.execution_tree import ExecutionTree
 from paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from paco.parser.create import create
-from paco.parser.bpmn_parser import SESE_PARSER, create_parse_tree
+from paco.parser.bpmn_parser import create_parse_tree
 from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.parser.parse_tree import ParseTree
 from paco.solver import paco
 from utils.env import DURATIONS, IMPACTS_NAMES, EXPRESSION
 from utils.check_syntax import check_bpmn_syntax
-from fastapi.middleware.cors import CORSMiddleware
 from utils import check_syntax as cs
+from ai.llm_utils import run_llm_on_bpmn
 import uvicorn
+
 # https://blog.futuresmart.ai/integrating-google-authentication-with-fastapi-a-step-by-step-guide
 # http://youtube.com/watch?v=B5AMPx9Z1OQ&list=PLqAmigZvYxIL9dnYeZEhMoHcoP4zop8-p&index=26
 # https://www.youtube.com/watch?v=bcYmfHOrOPM
@@ -24,54 +27,46 @@ import uvicorn
 # swaggerui al link  http://127.0.0.1:8000/docs
 # server al link http://127.0.0.1:8000/
 
+
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"] 
+    allow_headers=["*"]
 )
+
+chat_histories = {}
+SESSION_TIMEOUT = timedelta(days=1)
 
 class LoginRequest(BaseModel):
     username: str
     password: str
 
-
-class AgentRequest(BaseModel):
-    prompt: str
-    session_id: str  # Unique ID to track chat history
-    url: str = 'http://157.27.193.108'
-    api_key: str = 'lm-studio'
-    model: str = 'gpt-3.5-turbo'
+class LLMChatRequest(BaseModel):
+    bpmn: dict
+    message: str
+    session_id: str | None = None
+    reset: bool = False
+    url: str = "http://localhost:1234/v1"
+    api_key: str = "lm-studio"
+    model: str = "phi-3.5-mini-instruct"
     temperature: float = 0.7
     verbose: bool = False
 
-chat_histories = {}
-#######################################################
-############ GET  #####################################
-#######################################################
 @app.get("/")
 async def get():
-    """
-    Root endpoint that returns a welcome message
-    Returns:
-        str: Welcome message
-    """
-    return f"welcome to PACO server"
+    return "welcome to PACO server"
 
 @app.get("/create_bpmn")
 async def check_bpmn(request: dict) -> dict:
     bpmn = request.get("bpmn")
     if bpmn is None:
         raise HTTPException(status_code=400, detail="No BPMN found")
-
     try:
         lark_tree = check_bpmn_syntax(dict(bpmn))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    try:
         return { "bpmn_dot": print_sese_diagram(bpmn, lark_tree) }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -191,53 +186,8 @@ async def search_strategy(request: dict) -> dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
-#######################################################
-###             LLMS API                            ###
-#######################################################
-@app.get("/agent_definition")
-async def get_agent(
-    url: str, api_key: str, 
-    model: str, temperature: float,
-    ):
-    """
-    Define the agent with the given parameters.
-
-    Args:
-        url (str): The url of the agent.
-        api_key (str): The api key of the agent.
-        model (str): The model of the agent.
-        temperature (float): The temperature of the agent.
-        
-
-    Returns:
-       tuple: The agent defined and the configuration.
-    """
-    if not isinstance(url, str) or not isinstance(api_key, str) or not isinstance(model, str) or not isinstance(temperature, float):
-        raise HTTPException(status_code=400, detail="Invalid input")
-    try:
-        llm, config =  define_agent(
-            url=url, api_key=api_key, 
-            model=model, temperature=temperature)
-        return {
-            "llm": llm,
-            "config": config
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/get_chat_history")
 async def get_chat_history(session_id: str) -> list:
-    """
-    Get the chat history.
-
-    Args:
-        session_id (str): The session id.
-
-    Returns:
-        list: The chat history.
-    """
     if not isinstance(session_id, str):
         raise HTTPException(status_code=400, detail="Invalid input")
     try:
@@ -245,72 +195,49 @@ async def get_chat_history(session_id: str) -> list:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def clean_old_sessions():
+    now = datetime.now(timezone.utc)
+    expired = [sid for sid, meta in chat_histories.items()
+               if (now - meta["last_active"]) > SESSION_TIMEOUT]
+    for sid in expired:
+        del chat_histories[sid]
 
+@app.post("/llm_bpmn_chat")
+async def llm_bpmn_chat(req: LLMChatRequest):
+    clean_old_sessions()
 
+    session_id = req.session_id or str(uuid4())
 
+    if req.reset and session_id in chat_histories:
+        del chat_histories[session_id]
 
-#######################################################
-############ POST #####################################
-#######################################################
-
-
-
-
-@app.post("/invoke_agent")
-async def invoke_agent(request: AgentRequest) ->  dict:
-    """
-    Invoke the agent with the given prompt.
-
-    Args:
-        prompt (str): The prompt to be used.
-        
-        llm: The agent defined.
-        history: The history of the agent.
-
-    Returns:
-        str: The response from the agent.
-        list[tuple]: The history of the agent.
-    """
-    if not isinstance(request, AgentRequest):
-        raise HTTPException(status_code=400, detail="Invalid input")
-    print(request)
     try:
-        # Retrieve or initialize chat history
-        if request.session_id not in chat_histories:
-            chat_histories[request.session_id] = []
-        
-        # Append new input to history
-        chat_history = chat_histories[request.session_id]
-        chat_history.append({"role": "human", "content": request.prompt})
+        check_bpmn_syntax(req.bpmn)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input BPMN: {e}")
 
-        # Format chat history as input
-        formatted_history = "\n".join(
-            [f"{msg['role']}: {msg['content']}" for msg in chat_history]
+    try:
+        result = run_llm_on_bpmn(
+            bpmn_dict=req.bpmn,
+            message=req.message,
+            model=req.model,
+            temperature=req.temperature,
+            url=req.url.strip(),
+            api_key=req.api_key,
+            verbose=req.verbose
         )
-        # Define agent
-        llm, _ = define_agent(
-            url=request.url,
-            verbose=request.verbose,
-            api_key=request.api_key,
-            model=request.model,
-            temperature=request.temperature
-        )
-
-        response = llm.invoke({"input": formatted_history})
-        chat_history.append({"role": "ai", "content": response.content})
-        print(chat_history)
-        return {"session_id": request.session_id, "response": response.content}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    chat_histories[session_id] = {
+        "last_active": datetime.now(timezone.utc),
+        "history": chat_histories.get(session_id, {}).get("history", []) + [
+            {"user": req.message}, {"assistant": result}
+        ]
+    }
 
-#######################################################
-#### MAIN #############################################
-#######################################################
+    result["session_id"] = session_id
+    return result
 
-if __name__ == '__main__':   
-    uvicorn.run(
-        app, 
-        host="0.0.0.0", port=8000
-    )
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
