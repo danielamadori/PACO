@@ -60,7 +60,6 @@ def register_task_callbacks(tasks_callbacks):
 			task = id_obj['index']
 			bpmn_store[DURATIONS][task] = [min_v or 0, max_v or 1]
 
-
 		try:
 			#print(f"tasks_impacts.py duration: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)

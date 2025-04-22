@@ -1,7 +1,7 @@
+import random
+import time
 import uuid
-
 import requests
-
 from env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES
 from model.etl import filter_bpmn
 
@@ -10,6 +10,10 @@ EXPECTED_FIELDS = {"bpmn", "message", "session_id"}
 SESSION_ID = str(uuid.uuid4())
 
 def llm_response(bpmn_store: dict, user_message: str) -> dict:
+	time.sleep(random.uniform(0.5, 0.7))
+
+	return "It's AI bro", bpmn_store
+
 	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 	bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
 
