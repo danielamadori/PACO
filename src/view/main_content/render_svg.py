@@ -15,7 +15,7 @@ def get_main_content():
 				"height": "100%",
 				"width": "100%"
 			}
-		)
+		),
 	],
 		id="main-content",
 		style={

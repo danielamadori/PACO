@@ -2,7 +2,7 @@ import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-from src.env import sese_diagram_grammar
+from env import sese_diagram_grammar
 
 
 def layout():

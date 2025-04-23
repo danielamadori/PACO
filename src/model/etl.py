@@ -2,11 +2,11 @@ import json
 import ast
 from copy import deepcopy
 from model.sqlite import fetch_strategy, save_strategy
-from src.model.sqlite import fetch_bpmn, save_parse_and_execution_tree
+from model.sqlite import fetch_bpmn, save_parse_and_execution_tree
 import base64
 import graphviz
 import requests
-from src.model.sqlite import save_bpmn_dot
+from model.sqlite import save_bpmn_dot
 from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
 	LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND
 
@@ -85,7 +85,6 @@ def load_strategy(bpmn_store, bound_store):
 
 	bdds = {}
 	if "bdds_dot" in response:# Solution Explained
-		print(response["bdds_dot"])
 		for choice, v in response["bdds_dot"].items():
 			type_strategy, bdd_dot = v
 			bdds[choice] = (

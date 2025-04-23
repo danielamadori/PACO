@@ -18,4 +18,4 @@ def get_new_impact_button():
 			size="sm",
 			style={"padding": "0.25rem 0.4rem", "lineHeight": "1"}
 		),
-	], style={'width': '180px', 'display': 'flex', 'alignItems': 'center'})
+	], style={'width': '100%', 'display': 'flex', 'alignItems': 'center'})

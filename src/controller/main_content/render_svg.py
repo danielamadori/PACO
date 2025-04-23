@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from dash import Output, Input, State, ctx, html
 from dash.exceptions import PreventUpdate
 from view.main_content.zoom import ZOOM_MAX, ZOOM_MIN
@@ -33,14 +35,26 @@ def register_render_svg(callback):
 		elif triggered == "decrease-zoom":
 			zoom = round(max(ZOOM_MIN, zoom - 0.1), 1)
 
-		return html.ObjectEl(
-			data=svg,
-			type="image/svg+xml",
-			style={
-				"width": "100%",
-				"height": "100%",
-				"transform": f"scale({zoom})",
-				"transformOrigin": "0 0",
-				"cursor": "grab"
-			}
-		), zoom
+		return html.Div([
+			html.Div(
+				html.ObjectEl(
+					data=svg,
+					type="image/svg+xml",
+					style={
+						"width": "100%",
+						"height": "100%",
+						"transform": f"scale({zoom})",
+						"transformOrigin": "0 0",
+						"cursor": "grab"
+					}
+				),
+				style={
+					"display": "flex",
+					"alignItems": "center",
+					"justifyContent": "center",
+					"height": "100%",
+					"width": "100%",
+				}
+			)
+		], key=str(uuid4())), zoom
+

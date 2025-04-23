@@ -3,19 +3,18 @@ from dash import html, dcc
 
 def get_input_bar():
 	return html.Div([
-		dcc.Input(
+		dcc.Textarea(
 			id='chat-input',
-			type='text',
 			placeholder='Type your message...',
-			debounce=False,
 			style={
+				'minHeight': '50px',
 				'width': '75%',
 				'display': 'inline-block',
 				'padding': '10px',
 				'borderRadius': '5px',
 				'border': '1px solid #ccc',
 				'marginRight': '10px'
-			}
+			},
 		),
 		html.Button(
 			'Send',

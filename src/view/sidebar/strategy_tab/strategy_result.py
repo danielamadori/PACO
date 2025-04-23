@@ -15,10 +15,17 @@ def strategy_results(result: str, expected_impacts: list, guaranteed_bounds: lis
 		elements.append(html.H5("Expected Impacts", className="mt-3"))
 		elements.append(render_table(sorted_impact_names, [expected_impacts], table="expected"))
 
+
 	if bdds:
 		elements.append(html.H5("BDDs", className="mt-3"))
 		elements.append(html.P("1 is dashed line of BPMN", className="text-body"))
 		elements.append(get_bdds(bdds))
+
+
+	for guaranteed_bound in guaranteed_bounds:
+		if expected_impacts == guaranteed_bound:
+			guaranteed_bounds.remove(guaranteed_bound)
+			break
 
 	if guaranteed_bounds:
 		elements.append(html.H5("Guaranteed Bounds", className="mt-3"))

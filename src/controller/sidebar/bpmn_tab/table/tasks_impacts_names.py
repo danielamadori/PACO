@@ -1,20 +1,19 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Output, Input, State, ALL
-
 from controller.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
 from model.etl import load_bpmn_dot
 from env import IMPACTS_NAMES, extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS
-from view.sidebar.bpmn_tab.table.tasks_table import create_tasks_table
+from view.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 
 
-def register_task_impacts_callbacks(tasks_callbacks):
+def register_task_impacts_names_callbacks(tasks_callbacks):
 	@tasks_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
 		Output("dot-store", "data", allow_duplicate=True),
 		Output("bound-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
-		Output('task-table', 'children', allow_duplicate=True),
+		Output('task-impacts-table', 'children', allow_duplicate=True),
 		Input('add-impact-button', 'n_clicks'),
 		State('new-impact-name', 'value'),
 		State('bpmn-store', 'data'),
@@ -23,7 +22,7 @@ def register_task_impacts_callbacks(tasks_callbacks):
 	)
 	def add_impact_column(n_clicks, new_impact_name, bpmn_store, bound_store):
 		tasks_table = dash.no_update
-		print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+		#print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		if not new_impact_name or new_impact_name.strip() == '':
 			return dash.no_update, dash.no_update, dash.no_update, "", tasks_table
 
@@ -31,17 +30,17 @@ def register_task_impacts_callbacks(tasks_callbacks):
 		if new_impact_name in bpmn_store[IMPACTS_NAMES]:
 			return dash.no_update, dash.no_update, dash.no_update, dbc.Alert(f"Impact '{new_impact_name}' already exists.", color="warning", dismissable=True), tasks_table
 
-		print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+		#print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		bpmn_store[IMPACTS_NAMES].append(new_impact_name)
-		print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+		#print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 
 		tasks, _, _, _ = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 		for task in tasks:
 			if new_impact_name not in bpmn_store[IMPACTS][task]:
 				bpmn_store[IMPACTS][task][new_impact_name] = 0.0
 
-		tasks_table = create_tasks_table(bpmn_store, tasks)
-		print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+		tasks_table = create_tasks_impacts_table(bpmn_store, tasks)
+		#print("add_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		try:
 			#print(f"tasks_impacts.py add: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
@@ -56,7 +55,7 @@ def register_task_impacts_callbacks(tasks_callbacks):
 		Output("dot-store", "data", allow_duplicate=True),
 		Output("bound-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
-		Output('task-table', 'children', allow_duplicate=True),
+		Output('task-impacts-table', 'children', allow_duplicate=True),
 		Input({'type': 'remove-impact', 'index': ALL}, 'n_clicks'),
 		State('bpmn-store', 'data'),
 		State('bound-store', 'data'),
@@ -67,20 +66,20 @@ def register_task_impacts_callbacks(tasks_callbacks):
 		changed = False
 		tasks_table = dash.no_update
 		alert = ''
-		print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+		#print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		for n_clicks, id_obj in zip(n_clicks_list, id_list):
 			if n_clicks > 0:
 				impact_to_remove = id_obj['index']
-				print("*remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+				#print("*remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 				if impact_to_remove in bpmn_store[IMPACTS_NAMES]:
 					bpmn_store[IMPACTS_NAMES].remove(impact_to_remove)
 					changed = True
 
-		print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+		#print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 		if changed:
 			tasks, _, _, _ = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
-			tasks_table = create_tasks_table(bpmn_store, tasks)
-			print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+			tasks_table = create_tasks_impacts_table(bpmn_store, tasks)
+			#print("remove_impact_column: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 
 			try:
 				bpmn_dot = load_bpmn_dot(bpmn_store)
