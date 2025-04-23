@@ -1,12 +1,21 @@
 from datetime import datetime
 from uuid import uuid4
-
 from fastapi import FastAPI, HTTPException
-
 from ai.llm_utils import run_llm_on_bpmn
-from ai.model import chat_histories, SESSION_TIMEOUT, LLMChatRequest
 from paco.models.validator import validate_bpmn_dict
 from utils.check_syntax import check_bpmn_syntax
+from datetime import timedelta
+from pydantic import BaseModel
+
+chat_histories = {}
+SESSION_TIMEOUT = timedelta(days=1)
+
+class LLMChatRequest(BaseModel):
+    bpmn: dict
+    message: str
+    session_id: str | None = None
+    max_attempts: int = 3
+    reset: bool = False
 
 
 def register_api_llm(app: FastAPI):
@@ -49,11 +58,7 @@ def register_api_llm(app: FastAPI):
                 bpmn_dict=req.bpmn,
                 message=req.message,
                 session_id=session_id,
-                model=req.model,
-                temperature=req.temperature,
-                url=req.url.strip(),
-                api_key=req.api_key,
-                verbose=req.verbose
+                max_attempts=req.max_attempts,
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

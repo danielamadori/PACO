@@ -1,5 +1,7 @@
 import json
 import re
+
+import requests
 from langchain_openai import ChatOpenAI
 from ai.prompt import define_role, examples_bpmn
 from utils.check_syntax import check_bpmn_syntax
@@ -34,13 +36,17 @@ def run_llm_on_bpmn(
     bpmn_dict: dict,
     message: str,
     session_id: str,
-    model: str = "deepseek-r1-distill-llama-8b",
-    temperature: float = 0.7,
-    url: str = "http://localhost:1234/v1",
-    api_key: str = "lm-studio",
-    max_attempts: int = 3,
-    verbose: bool = False
+    max_attempts: int
 ) -> dict:
+    try:
+        response = requests.get("http://localhost:1234/v1/models", timeout=max_attempts)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return {
+            "bpmn": bpmn_dict,
+            "message": "I'm offline"
+        }
+
     if session_id not in CHAT_MEMORY:
         CHAT_MEMORY[session_id] = []
 
@@ -48,11 +54,11 @@ def run_llm_on_bpmn(
     prompt = build_few_shot_prompt(bpmn_dict, message) if is_first_message else build_followup_prompt(CHAT_MEMORY[session_id], message)
 
     llm = ChatOpenAI(
-        openai_api_base=url,
-        openai_api_key=api_key,
-        model=model,
-        temperature=temperature,
-        verbose=verbose
+        openai_api_base="http://localhost:1234/v1",
+        openai_api_key="lm-studio",
+        model="deepseek-r1-distill-llama-8b",
+        temperature=0.7,
+        verbose=False
     )
 
     for attempt in range(max_attempts):
