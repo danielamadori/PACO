@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from ai.llm_utils import run_llm_on_bpmn
-from paco.models.validator import validate_bpmn_dict
+from paco.parser.bpmn import validate_bpmn_dict
 from utils.check_syntax import check_bpmn_syntax
 from datetime import timedelta
 from pydantic import BaseModel
