@@ -1,11 +1,11 @@
 import dash
 from dash import html, dcc, Output, Input
 import dash_bootstrap_components as dbc
-from src.env import APP_NAME
+from env import APP_NAME
 from view.navbar import navbar
-from src.view.home import layout as home_layout
-from src.view.syntax import layout as syntax_layout
-from src.view.example import layout as example_layout
+from view.home import layout as home_layout
+from view.syntax import layout as syntax_layout
+from view.example import layout as example_layout
 
 app = dash.Dash(
     __name__,
@@ -42,6 +42,7 @@ def display_page(pathname):
         return nav, html.Div([
             html.H1("404 - Page not found"),
         ])
+
 
 
 if __name__ == "__main__":

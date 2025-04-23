@@ -1,5 +1,4 @@
 from dash import dcc, html
-
 from view.sidebar.bpmn_tab.inputs import get_bpmn_view
 
 
@@ -36,21 +35,3 @@ def get_BPMN_CPI_tab():
 		],
 		className="p-3 sidebar-box")
 	])
-
-'''
-elements.append(html.H5("Expected Impacts", className="mt-2"))
-elements.append(html.P(expected_impacts, className="text-body"))
-else:
-elements.append(html.H5("Guaranteed Bounds", className="mt-3"))
-for bound in guaranteed_bounds:
-	elements.append(html.P(f"• {bound}", className="text-body"))
-
-elements.append(html.H5("Possible Min Solution", className="mt-3"))
-for bound in possible_min_solution:
-	elements.append(html.P(f"• {bound}", className="text-body"))
-
-return html.Div(
-	elements,
-	className="p-3 sidebar-box"
-)
-'''

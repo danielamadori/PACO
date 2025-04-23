@@ -8,7 +8,8 @@ def get_bpmn_view():
 			],
 			style={"width": "100%", "textAlign": "left"}
 		),
-		html.Div(id='task-table'),
+		html.Div(id='task-impacts-table'),
+		html.Div(id='task-durations-table'),
 		html.Div(id='choice-table'),
 		html.Div(id='nature-table'),
 		html.Div(id='loop-table'),

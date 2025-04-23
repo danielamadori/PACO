@@ -2,11 +2,11 @@ import json
 import ast
 from copy import deepcopy
 from model.sqlite import fetch_strategy, save_strategy
-from src.model.sqlite import fetch_bpmn, save_parse_and_execution_tree
+from model.sqlite import fetch_bpmn, save_parse_and_execution_tree
 import base64
 import graphviz
 import requests
-from src.model.sqlite import save_bpmn_dot
+from model.sqlite import save_bpmn_dot
 from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
 	LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND
 
@@ -83,9 +83,14 @@ def load_strategy(bpmn_store, bound_store):
 		for s in ast.literal_eval(response['possible_min_solution'])
 	]
 
-	bdds = []
+	bdds = {}
 	if "bdds_dot" in response:# Solution Explained
-		bdds = ast.literal_eval(response["bdds_dot"])
+		for choice, v in response["bdds_dot"].items():
+			type_strategy, bdd_dot = v
+			bdds[choice] = (
+				type_strategy,
+				f"data:image/svg+xml;base64,{base64.b64encode(graphviz.Source(bdd_dot).pipe(format='svg')).decode('utf-8')}"
+			)
 
 	save_strategy(bpmn, bound, response["result"],
 				  str(expected_impacts), response['guaranteed_bounds'],
