@@ -2,7 +2,9 @@ import dash
 from dash import dcc, html
 from dash_split_pane import DashSplitPane
 
+from controller.sidebar.bpmn_tab.download import register_download_callbacks
 from controller.sidebar.bpmn_tab.table.tasks_impacts_names import register_task_impacts_names_callbacks
+from controller.sidebar.bpmn_tab.upload import register_upload_callbacks
 from controller.sidebar.llm_tab.chat import register_llm_callbacks
 from controller.sidebar.sidebar import register_sidebar_callbacks
 from controller.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
@@ -69,3 +71,5 @@ register_strategy_callbacks(dash.callback)
 register_render_svg(dash.callback)
 register_sidebar_callbacks(dash.callback)
 register_llm_callbacks(dash.callback, dash.clientside_callback)
+register_upload_callbacks(dash.callback)
+register_download_callbacks(dash.callback)

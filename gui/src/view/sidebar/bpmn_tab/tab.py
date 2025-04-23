@@ -22,12 +22,15 @@ def get_BPMN_CPI_tab():
 					'textAlign': 'center',
 					'margin': '10px'
 				},
-				multiple=True
+				multiple=False,
+				accept='.json'
 			),
-			html.Div(id='output-data-upload'),
 			html.Br(),
-			html.P("""Here is an example of a BPMN+CPI expression""", className="text-body"),
-			html.P("""Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)""", className="text-body"),
+			html.Button("Download BPMN", id="download-bpmn-btn", className="btn btn-primary"),
+			dcc.Download(id="download-bpmn"),
+			#html.P("""Here is an example of a BPMN+CPI expression""", className="text-body"),
+			#html.P("""Task0, (Task1 || Task4), (Task3 ^[N1] Task9, Task8 /[C1] Task2)""", className="text-body"),
+			html.Br(),
 			html.Br(),
 			get_bpmn_view(),
 			html.Br(),
