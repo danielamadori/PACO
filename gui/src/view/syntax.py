@@ -37,10 +37,10 @@ def layout():
         
         html.Br(),
         html.H3('Task example of a person'),
-        html.Img(src=dash.get_asset_url('examples/simple_person_task.png')),
+        html.Img(src=dash.get_asset_url('../assets/simple_person_task.png')),
         html.Br(),
         html.H3('Task example of an adversary'),
-        html.Img(src=dash.get_asset_url('examples/_SimpleAdversaryTask.png')),
+        html.Img(src=dash.get_asset_url('../assets/_SimpleAdversaryTask.png')),
         dbc.Alert("Attention: The adversary here presented is only a theoretical concept. It has not been implemented nor it is found in the aforementioned grammar. ", color="warning"),
         html.Br(),
         dcc.Markdown('''
@@ -60,7 +60,7 @@ def layout():
         
         html.Br(),
         html.H3('Example of a task with duration and impact'),
-        html.Img(src=dash.get_asset_url('examples/taskimpacts_duration.png')),
+        html.Img(src=dash.get_asset_url('../assets/taskimpacts_duration.png')),
         ], style={'padding': 10, 'flex': 1}
     ),
     html.Div(children=[
@@ -81,16 +81,16 @@ def layout():
         
         html.Br(),
         html.H3('Exclusive'),
-        html.Img(src=dash.get_asset_url('examples/exclusive.png')),
+        html.Img(src=dash.get_asset_url('../assets/exclusive.png')),
         html.Br(),
         html.H3('Parallel'),
-        html.Img(src=dash.get_asset_url('examples/parallel.png')),
+        html.Img(src=dash.get_asset_url('../assets/parallel.png')),
         html.Br(),
         html.H3('Loop'),
-        html.Img(src=dash.get_asset_url('examples/loop.png')),
+        html.Img(src=dash.get_asset_url('../assets/loop.png')),
         dbc.Alert("Attention: The loop has not been implemented yet. ", color="warning"),        
         html.Br(),
-        html.Img(src=dash.get_asset_url('examples/natural_xor.png')),
+        html.Img(src=dash.get_asset_url('../assets/natural_xor.png')),
     
         ], style={'padding': 10, 'flex': 1}
     ),
@@ -110,10 +110,10 @@ def layout():
         
         html.Br(),
         html.H3('Task example of a person'),
-        html.Img(src=dash.get_asset_url('examples/simple_person_task.png')),
+        html.Img(src=dash.get_asset_url('../assets/simple_person_task.png')),
         html.Br(),
         html.H3('Task example of an adversary'),
-        html.Img(src=dash.get_asset_url('examples/_SimpleAdversaryTask.png')),
+        html.Img(src=dash.get_asset_url('../assets/_SimpleAdversaryTask.png')),
         html.Br(),
         dcc.Markdown('''
                Each task has also a duration and an impact factor. Both are mandatory.
@@ -132,7 +132,7 @@ def layout():
         
         html.Br(),
         html.H3('Example of a task with duration and impact'),
-        html.Img(src=dash.get_asset_url('examples/taskimpacts_duration.png')),
+        html.Img(src=dash.get_asset_url('../assets/taskimpacts_duration.png')),
         ], style={'padding': 10, 'flex': 1}
     ),
     # html.Div(id='Problem' ,children=[
@@ -340,7 +340,7 @@ def layout():
 #         ]), 
 #         html.Br(),
 #         # html.H3('Task example of an adversary'),
-#         # html.Img(src=dash.get_asset_url('examples/_SimpleAdversaryTask.png')),
+#         # html.Img(src=dash.get_asset_url('assets/_SimpleAdversaryTask.png')),
 #         # html.Br(),
 #         # dcc.Markdown('''
 #         #        Each task has also a duration and an impact factor. Both are mandatory.
@@ -359,7 +359,7 @@ def layout():
         
 #         # html.Br(),
 #         # html.H3('Example of a task with duration and impact'),
-#         # html.Img(src=dash.get_asset_url('examples/taskimpacts_duration.png')),
+#         # html.Img(src=dash.get_asset_url('assets/taskimpacts_duration.png')),
 #         ], style={'padding': 10, 'flex': 1}
 #     ),
 #     # html.Div(id='Problem' ,children=[

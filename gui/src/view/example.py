@@ -7,7 +7,7 @@ def layout():
     return html.Div([
     dcc.Markdown('''
         # Example of a BPMN+CPI
-            The BPMN diagram (shonw in figure) depicts a metal manufacturing process that involves cutting, milling,
+            The BPMN diagram (shown in figure) depicts a metal manufacturing process that involves cutting, milling,
             bending, polishing, depositioning, and painting a metal piece. 
                  
             The diagram in our syntax will be written as: (Cutting, ( (Bending, (HP ^ [N1]LP ) ) || ( Milling, ( FD / [C1] RD))), (HPHS / [C2] LPLS))
@@ -21,7 +21,7 @@ def layout():
     html.Div([
         html.Img(
             id='bpmn-example-img',
-            src=dash.get_asset_url('examples/bpmn_example.png'),
+            src=dash.get_asset_url('../assets/bpmn_example.png'),
             width="1000"
         ),
         html.Div(id='image-load-error')
@@ -30,7 +30,7 @@ def layout():
     html.Div([
         html.Img(
             id='lark-bpmn-img',
-            src=dash.get_asset_url('examples/lark_bpmn.svg'),
+            src=dash.get_asset_url('../assets/lark_bpmn.svg'),
             width="1500"
         ),
         html.Div(id='svg-load-error')
