@@ -1,3 +1,5 @@
+import os
+
 ALGORITHMS = {  # strategies with labels
     'paco': 'PACO',
 }
@@ -52,3 +54,11 @@ BOUND = 'bound'
 BENCHMARKS_DB = 'benchmarks.sqlite'
 LOG_FILENAME = 'benchmark_output.log'
 TELEGRAM_CONFIG = "src/experiments/telegram/telegram_config.json"
+
+
+# Logger
+import sys
+
+LOG_TO_FILE = "--log-to-file" in sys.argv
+LOG_PATH = os.getenv("PACO_LOG_PATH", "logs/paco.log")
+
