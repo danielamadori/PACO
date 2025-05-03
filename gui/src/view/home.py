@@ -14,8 +14,9 @@ from controller.sidebar.bpmn_tab.expression import register_expression_callbacks
 from controller.sidebar.bpmn_tab.table.gateways_table import register_gateway_callbacks
 from controller.sidebar.bpmn_tab.table.tasks_impacts_table import register_task_impacts_callbacks
 from controller.sidebar.strategy_tab.strategy import register_strategy_callbacks
-from view.main_content.render_svg import get_main_content
 from view.sidebar.sidebar import get_sidebar
+from view.visualizer.render_svg import RenderSvg
+
 
 
 def layout():
@@ -53,13 +54,12 @@ def layout():
             size=sidebar_min_width,
             children=[
                 get_sidebar(),
-                get_main_content(dash.callback)
+                RenderSvg().get_visualizer(dash.callback)
             ],
             style={"height": "calc(100vh - 60px)", "display": "flex", "flexDirection": "row"}
 
     )
     ])
-
 
 register_task_impacts_callbacks(dash.callback)
 register_task_impacts_names_callbacks(dash.callback)
