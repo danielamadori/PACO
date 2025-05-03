@@ -8,7 +8,6 @@ from controller.sidebar.bpmn_tab.upload import register_upload_callbacks
 from controller.sidebar.llm_tab.chat import register_llm_callbacks
 from controller.sidebar.sidebar import register_sidebar_callbacks
 from controller.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
-from controller.main_content.render_svg import register_render_svg
 from env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, \
     LOOP_PROBABILITY, BOUND
 from controller.sidebar.bpmn_tab.expression import register_expression_callbacks
@@ -54,7 +53,7 @@ def layout():
             size=sidebar_min_width,
             children=[
                 get_sidebar(),
-                get_main_content()
+                get_main_content(dash.callback)
             ],
             style={"height": "calc(100vh - 60px)", "display": "flex", "flexDirection": "row"}
 
@@ -68,7 +67,6 @@ register_gateway_callbacks(dash.callback)
 register_expression_callbacks(dash.callback)
 register_bound_callbacks(dash.callback)
 register_strategy_callbacks(dash.callback)
-register_render_svg(dash.callback)
 register_sidebar_callbacks(dash.callback)
 register_llm_callbacks(dash.callback, dash.clientside_callback)
 register_upload_callbacks(dash.callback)
