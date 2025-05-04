@@ -1,0 +1,39 @@
+{
+    "bpmn": {
+      "expression": "(Cutting, ((Bending, (Heavy_Polishing ^[N1] Light_Polishing)) || (Milling, (Fine_Deposition /[C1] Rough_Deposition))), (HPHS /[C2] LPLS))",
+      "impacts": {
+        "Cutting": [10, 1],
+        "Bending": [20, 1],
+        "Milling": [50, 1],
+        "Heavy_Polishing": [5, 4],
+        "Light_Polishing": [8, 1],
+        "Fine_Deposition": [30, 1],
+        "Rough_Deposition": [10, 1],
+        "HPHS": [40, 1],
+        "LPLS": [20, 3]
+      },
+      "durations": {
+        "Cutting": [0, 1],
+        "Bending": [0, 1],
+        "Milling": [0, 1],
+        "Heavy_Polishing": [0, 2],
+        "Light_Polishing": [0, 1],
+        "Fine_Deposition": [0, 1],
+        "Rough_Deposition": [0, 1],
+        "HPHS": [0, 1],
+        "LPLS": [0, 2]
+      },
+      "impacts_names": ["electric energy", "worker hours"],
+      "probabilities": {
+        "N1": 0.2
+      },
+      "delays": {
+        "C1": 0,
+        "C2": 0
+      },
+      "loop_probability": {},
+      "loop_round": {},
+      "h": 0
+    }
+  }
+  

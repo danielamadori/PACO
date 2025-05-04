@@ -3,9 +3,9 @@ from dash import html, dcc, Output, Input
 import dash_bootstrap_components as dbc
 from env import APP_NAME
 from view.navbar import navbar
-from view.home import layout as home_layout
-from view.syntax import layout as syntax_layout
-from view.example import layout as example_layout
+from view.home.layout import layout as home_layout
+from view.syntax.layout import layout as syntax_layout
+from view.example.layout import layout as example_layout
 
 app = dash.Dash(
     __name__,

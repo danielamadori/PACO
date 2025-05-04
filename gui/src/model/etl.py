@@ -94,25 +94,25 @@ def load_strategy(bpmn_store, bound_store):
 
 	save_strategy(bpmn, bound, response["result"],
 				  str(expected_impacts), response['guaranteed_bounds'],
-			response['possible_min_solution'], bdds)
+				  response['possible_min_solution'], bdds)
 
 	return response["result"], expected_impacts, guaranteed_bounds, possible_min_solution, bdds
 
 
 
 def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
-    # Filter the data to keep only the relevant tasks, choices, natures, and loops
-    bpmn = deepcopy(bpmn_store)
-    bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
-    bpmn[IMPACTS] = {
+	# Filter the data to keep only the relevant tasks, choices, natures, and loops
+	bpmn = deepcopy(bpmn_store)
+	bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
+	bpmn[IMPACTS] = {
 		task: [float(bpmn_store[IMPACTS][task][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]
 		for task in tasks if task in bpmn_store[IMPACTS]
-    }
+	}
 
-    bpmn[DURATIONS] = {task: bpmn_store[DURATIONS][task] for task in tasks if task in bpmn_store[DURATIONS]}
-    bpmn[DELAYS] = {choice: bpmn_store[DELAYS][choice] for choice in choices if choice in bpmn_store[DELAYS]}
-    bpmn[PROBABILITIES] = {nature: bpmn_store[PROBABILITIES][nature] for nature in natures if nature in bpmn_store[PROBABILITIES]}
-    bpmn[LOOP_PROBABILITY] = {loop: bpmn_store[LOOP_PROBABILITY][loop] for loop in loops if loop in bpmn_store[LOOP_PROBABILITY]}
-    bpmn[LOOP_ROUND] = {loop: bpmn_store[LOOP_ROUND][loop] for loop in loops if loop in bpmn_store[LOOP_ROUND]}
+	bpmn[DURATIONS] = {task: bpmn_store[DURATIONS][task] for task in tasks if task in bpmn_store[DURATIONS]}
+	bpmn[DELAYS] = {choice: bpmn_store[DELAYS][choice] for choice in choices if choice in bpmn_store[DELAYS]}
+	bpmn[PROBABILITIES] = {nature: bpmn_store[PROBABILITIES][nature] for nature in natures if nature in bpmn_store[PROBABILITIES]}
+	bpmn[LOOP_PROBABILITY] = {loop: bpmn_store[LOOP_PROBABILITY][loop] for loop in loops if loop in bpmn_store[LOOP_PROBABILITY]}
+	bpmn[LOOP_ROUND] = {loop: bpmn_store[LOOP_ROUND][loop] for loop in loops if loop in bpmn_store[LOOP_ROUND]}
 
-    return bpmn
+	return bpmn

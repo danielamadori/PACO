@@ -114,7 +114,7 @@ def dot_task(id, name, h=0, imp=None, dur=None, imp_names = []):
         if h == 0:
             imp =  ", ".join(f"\n{key}: {value}" for key, value in zip(imp_names, imp))
             label += f", \n impacts:{imp}"
-            label += f", \n dur: {str(dur)}"  
+            label += f", \n duration: {str(dur)}"
         else: 
             label += str(imp[0:-h])
             label += str(imp[-h:]) 
