@@ -28,17 +28,17 @@ def layout():
             dbc.Col([
                 get_first_example("bpmn-example", bpmn, bpmn_dot)
             ], width=12)
-        ]),
+        ], class_name="mb-4"),
         dbc.Row([
             dbc.Col([
                 get_second_example("bpmn-example2", bpmn2, bpmn_dot2)
             ], width=12)
-        ]),
+        ], class_name="mb-4"),
         dbc.Row([
             dbc.Col([
                 get_third_example("bpmn-example3", bpmn3, bpmn_dot3)
             ], width=12)
-        ])
+        ], class_name="mb-4")
     ], fluid=True)
 
 
