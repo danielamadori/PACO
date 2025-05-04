@@ -1,5 +1,4 @@
 from dash import html
-
 from view.sidebar.strategy_tab.bdd import get_bdds
 from view.sidebar.strategy_tab.table.create_advance_table import render_table
 
@@ -17,7 +16,7 @@ def strategy_results(result: str, expected_impacts: list, guaranteed_bounds: lis
 
 
 	if bdds:
-		elements.append(html.H5("BDDs", className="mt-3"))
+		elements.append(html.H5("Explainers", className="mt-3"))
 		elements.append(html.P("1 is dashed line of BPMN", className="text-body"))
 		elements.append(get_bdds(bdds))
 

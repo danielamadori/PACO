@@ -10,7 +10,7 @@ from view.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 def register_task_impacts_names_callbacks(tasks_callbacks):
 	@tasks_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
-		Output("dot-store", "data", allow_duplicate=True),
+		Output({"type": "bpmn-svg-store", "index": "main"}, "data", allow_duplicate=True),
 		Output("bound-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Output('task-impacts-table', 'children', allow_duplicate=True),
@@ -47,12 +47,12 @@ def register_task_impacts_names_callbacks(tasks_callbacks):
 		except Exception as exception:
 			return dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True), tasks_table
 
-		return bpmn_store, {"bpmn" : bpmn_dot}, sync_bound_store_from_bpmn(bpmn_store, bound_store), '', tasks_table
+		return bpmn_store, bpmn_dot, sync_bound_store_from_bpmn(bpmn_store, bound_store), '', tasks_table
 
 
 	@tasks_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
-		Output("dot-store", "data", allow_duplicate=True),
+		Output({"type": "bpmn-svg-store", "index": "main"}, "data", allow_duplicate=True),
 		Output("bound-store", "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Output('task-impacts-table', 'children', allow_duplicate=True),
@@ -89,6 +89,6 @@ def register_task_impacts_names_callbacks(tasks_callbacks):
 
 				return bpmn_store, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_table
 
-			return bpmn_store, {"bpmn" : bpmn_dot}, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_table
+			return bpmn_store, bpmn_dot, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_table
 
 		return bpmn_store, dash.no_update, dash.no_update, alert, tasks_table

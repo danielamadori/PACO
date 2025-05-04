@@ -8,7 +8,7 @@ import dash_bootstrap_components as dbc
 def register_gateway_callbacks(gateway_callbacks):
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
-		Output("dot-store", "data", allow_duplicate=True),
+		Output({"type": "bpmn-svg-store", "index": "main"}, "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Input({'type': 'choice-delay', 'index': ALL}, 'value'),
 		State({'type': 'choice-delay', 'index': ALL}, 'id'),
@@ -25,11 +25,11 @@ def register_gateway_callbacks(gateway_callbacks):
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
-		return bpmn_store, {"bpmn" : bpmn_dot}, ''
+		return bpmn_store, bpmn_dot, ''
 
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
-		Output("dot-store", "data", allow_duplicate=True),
+		Output({"type": "bpmn-svg-store", "index": "main"}, "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Input({'type': 'nature-prob', 'index': ALL}, 'value'),
 		State({'type': 'nature-prob', 'index': ALL}, 'id'),
@@ -46,12 +46,12 @@ def register_gateway_callbacks(gateway_callbacks):
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
-		return bpmn_store, {"bpmn" : bpmn_dot}, ''
+		return bpmn_store, bpmn_dot, ''
 
 
 	@gateway_callbacks(
 		Output('bpmn-store', 'data', allow_duplicate=True),
-		Output("dot-store", "data", allow_duplicate=True),
+		Output({"type": "bpmn-svg-store", "index": "main"}, "data", allow_duplicate=True),
 		Output('bpmn-alert', 'children', allow_duplicate=True),
 		Input({'type': 'loop-prob', 'index': ALL}, 'value'),
 		Input({'type': 'loop-round', 'index': ALL}, 'value'),
@@ -71,5 +71,5 @@ def register_gateway_callbacks(gateway_callbacks):
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
-		return bpmn_store, {"bpmn" : bpmn_dot}, ''
+		return bpmn_store, bpmn_dot, ''
 

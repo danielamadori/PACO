@@ -14,7 +14,7 @@ from view.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 def register_expression_callbacks(expression_callbacks):
     @expression_callbacks(
         Output('bpmn-store', 'data'),
-        Output("dot-store", "data"),
+        Output({"type": "bpmn-svg-store", "index": "main"}, "data"),
         Output("bound-store", "data", allow_duplicate=True),
         Output('bpmn-alert', 'children'),
         Output('task-impacts-table', 'children', allow_duplicate=True),
@@ -75,7 +75,7 @@ def register_expression_callbacks(expression_callbacks):
             #print(f"expression.py: {bpmn_store[IMPACTS]}")
             bpmn_dot = load_bpmn_dot(bpmn_store[EXPRESSION])
             #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
-            return bpmn_store, {"bpmn" : bpmn_dot}, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+            return bpmn_store, bpmn_dot, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
         except Exception as exception:
             alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 

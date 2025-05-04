@@ -3,8 +3,9 @@ from dash import Input, Output, State, html
 from controller.sidebar.strategy_tab.table.update_advaced_table import register_advance_table_callbacks
 from model.etl import load_strategy
 from env import IMPACTS_NAMES
-from view.sidebar.strategy_tab.strategy_result import strategy_results
 import dash
+
+from view.sidebar.strategy_tab.strategy_result import strategy_results
 
 
 def register_strategy_callbacks(strategy_callback):
@@ -26,11 +27,12 @@ def register_strategy_callbacks(strategy_callback):
 			g = {"sort_by": None, "sort_order": "asc", "data": guaranteed_bounds}
 			p ={"sort_by": None, "sort_order": "asc", "data": possible_min_solution}
 
-			return (strategy_results(
-						result, expected_impacts,
-						guaranteed_bounds, possible_min_solution,
-						bdds, sorted(bpmn_store[IMPACTS_NAMES])),
-					g, p)
+			results = strategy_results(
+				result, expected_impacts,
+				guaranteed_bounds, possible_min_solution, bdds,
+				sorted(bpmn_store[IMPACTS_NAMES]))
+
+			return results, g, p
 
 		except requests.exceptions.HTTPError as e:
 			return html.Div(f"HTTP Error ({e})", style={"color": "red"}), dash.no_update, dash.no_update

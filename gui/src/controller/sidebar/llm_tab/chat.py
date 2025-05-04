@@ -41,7 +41,7 @@ def register_llm_callbacks(callback, clientside_callback):
 		Output('pending-message', 'data', allow_duplicate=True),
 		Output('bpmn-store', 'data', allow_duplicate=True),
 		Output('bound-store', 'data', allow_duplicate=True),
-		Output('dot-store', 'data', allow_duplicate=True),
+		Output({"type": "bpmn-svg-store", "index": "main"}, 'data', allow_duplicate=True),
 		Output('task-impacts-table', 'children', allow_duplicate=True),
 		Output('task-durations-table', 'children', allow_duplicate=True),
 		Output('choice-table', 'children', allow_duplicate=True),
@@ -104,7 +104,7 @@ def register_llm_callbacks(callback, clientside_callback):
 		loops_table = create_loops_table(new_bpmn, loops)
 
 		try:
-			bpmn_dot = {"bpmn" : load_bpmn_dot(new_bpmn)}
+			bpmn_dot = load_bpmn_dot(new_bpmn)
 			#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
 			return history, None, new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 

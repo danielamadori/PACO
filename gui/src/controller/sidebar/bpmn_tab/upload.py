@@ -18,7 +18,7 @@ def register_upload_callbacks(callback):
     @callback(
         Output("bpmn-store", "data", allow_duplicate=True),
         Output("bound-store", "data", allow_duplicate=True),
-        Output("dot-store", "data", allow_duplicate=True),
+        Output({"type": "bpmn-svg-store", "index": "main"}, "data", allow_duplicate=True),
         Output("task-impacts-table", "children", allow_duplicate=True),
         Output("task-durations-table", "children", allow_duplicate=True),
         Output("choice-table", "children", allow_duplicate=True),
@@ -65,9 +65,12 @@ def register_upload_callbacks(callback):
             nature_table = create_natures_table(new_bpmn, natures)
             loop_table = create_loops_table(new_bpmn, loops)
 
-            dot_store = {"bpmn": load_bpmn_dot(new_bpmn)}
+            try:
+                bpmn_dot = load_bpmn_dot(new_bpmn)
+            except Exception as exception:
+                return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
-            return new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), dot_store, task_impacts, task_durations, choice_table, nature_table, loop_table, new_bpmn[EXPRESSION], dbc.Alert(f"{filename} uploaded successfully", color="success", dismissable=True)
+            return new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, task_impacts, task_durations, choice_table, nature_table, loop_table, new_bpmn[EXPRESSION], dbc.Alert(f"{filename} uploaded successfully", color="success", dismissable=True)
 
         except Exception as e:
             return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, dbc.Alert(f"Upload error: {e}", color="danger", dismissable=True)

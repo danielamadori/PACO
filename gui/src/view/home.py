@@ -1,7 +1,6 @@
 import dash
 from dash import dcc, html
 from dash_split_pane import DashSplitPane
-
 from controller.sidebar.bpmn_tab.download import register_download_callbacks
 from controller.sidebar.bpmn_tab.table.tasks_impacts_names import register_task_impacts_names_callbacks
 from controller.sidebar.bpmn_tab.upload import register_upload_callbacks
@@ -15,13 +14,14 @@ from controller.sidebar.bpmn_tab.table.gateways_table import register_gateway_ca
 from controller.sidebar.bpmn_tab.table.tasks_impacts_table import register_task_impacts_callbacks
 from controller.sidebar.strategy_tab.strategy import register_strategy_callbacks
 from view.sidebar.sidebar import get_sidebar
-from view.visualizer.render_svg import RenderSvg
-
+from view.visualizer.RenderSVG import RenderSvg
 
 
 def layout():
     sidebar_min_width = 450
     impacts_names = 'impact'
+
+    bpmn_visualizer = RenderSvg(type="bpmn-svg", index="main", zoom_min=0.1, zoom_max=3.5)
 
     return html.Div([
         dcc.Store(id='bpmn-store', data={
@@ -35,16 +35,15 @@ def layout():
             LOOP_PROBABILITY: {},
             LOOP_ROUND: {},
         }, storage_type='session'),
-        dcc.Store(id='dot-store', data={"bpmn": "", "bdds": ""}, storage_type='session'),
+        dcc.Store(id={"type": "bpmn-svg-store", "index": "main"}, data="", storage_type='session'),
         dcc.Store(id='bound-store', data={BOUND: {impacts_names:0.0}}, storage_type='session'),
 
-        dcc.Store(id='chat-history', data=[]),
-        dcc.Store(id='pending-message', data=None),
-        dcc.Store(id='reset-trigger', data=False),
+        dcc.Store(id='chat-history', data=[], storage_type='session'),
+        dcc.Store(id='pending-message', data=None, storage_type='session'),
+        dcc.Store(id='reset-trigger', data=False, storage_type='session'),
 
-        dcc.Store(id="sidebar-visible", data=True),
-        dcc.Store(id="sidebar-width", data=sidebar_min_width),
-        dcc.Store(id="svg-zoom", data=1.0),
+        dcc.Store(id="sidebar-visible", data=True, storage_type='session'),
+        dcc.Store(id="sidebar-width", data=sidebar_min_width, storage_type='session'),
 
         DashSplitPane(
             id="split-pane",
@@ -54,13 +53,16 @@ def layout():
             size=sidebar_min_width,
             children=[
                 get_sidebar(),
-                RenderSvg().get_visualizer(dash.callback)
+                bpmn_visualizer.get_visualizer()
             ],
             style={"height": "calc(100vh - 60px)", "display": "flex", "flexDirection": "row"}
 
     )
     ])
 
+
+RenderSvg.register_callbacks(dash.callback, "bpmn-svg")
+RenderSvg.register_callbacks(dash.callback, "bdd")
 register_task_impacts_callbacks(dash.callback)
 register_task_impacts_names_callbacks(dash.callback)
 register_gateway_callbacks(dash.callback)
