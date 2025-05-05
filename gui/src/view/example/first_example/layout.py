@@ -15,7 +15,7 @@ def get_first_example(id, bpmn, bpmn_dot):
 				dbc.Row([
 					dbc.Col([
 						html.Div([
-							get_description(bpmn, '''The BPMN diagram (shown in figure) depicts a metal manufacturing process that involves cutting, milling, bending, polishing, deposition, and painting a metal piece.''')
+							get_description(bpmn, '''The BPMN diagram (shown in figure) depicts a metal manufacturing process that involves cutting, milling, bending, polishing, deposition, and painting a metal piece.''', warning=True, impacts=True)
 						], style={'width': '100%', 'textAlign': 'left'}
 						)
 					], width=4),

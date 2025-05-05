@@ -20,7 +20,6 @@ def get_bdds_visualizer(choice, type_strategy, svg):
 		index=choice,
 		zoom_bar_placement="right",
 		zoom_bar_height=250,
-		max_height=350
 	)
 
 	return html.Div([

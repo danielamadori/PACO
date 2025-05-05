@@ -12,7 +12,7 @@ def get_third_example(id, bpmn, bpmn_dot):
 				dbc.Row([
 					dbc.Col([
 						html.Div([
-							get_description(bpmn, '''The BPMN diagram (shown in figure) TODO...''')
+							get_description(bpmn, '''The BPMN diagram (shown in figure) TODO...''', impacts=True)
 						], style={'width': '100%', 'textAlign': 'left'}, className="mb-3"),
 						get_download_layout(id + "-download",
 											f'''Now it’s your turn!

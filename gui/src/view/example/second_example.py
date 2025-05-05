@@ -14,7 +14,8 @@ def get_second_example(id, bpmn, bpmn_dot):
 						html.Div([
 							get_description(
 								bpmn,
-								'''The BPMN diagram (shown in figure) TODO...'''
+								'''The BPMN diagram (shown in figure) TODO...''',
+								impacts=True
 							),
 						], style={'width': '100%', 'textAlign': 'left'}, className="mb-3"),
 

@@ -13,7 +13,6 @@ def get_bdds(bdds: dict):
 
 		label = type_strategy.replace("_", " ").title()
 
-
 		card = dbc.Card(
 			[
 				dbc.CardHeader(

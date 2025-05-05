@@ -49,7 +49,7 @@ def register_expression_callbacks(expression_callbacks):
             try:
                 SESE_PARSER.parse(current_expression)
             except Exception as e:
-                return dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+                return dash.no_update, dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
             bpmn_store[EXPRESSION] = current_expression
 
         #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])

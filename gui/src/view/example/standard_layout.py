@@ -5,26 +5,32 @@ from env import EXPRESSION, IMPACTS_NAMES
 from view.visualizer.RenderSVG import RenderSvg
 
 
-def get_description(bpmn, text_description):
+def get_description(bpmn, text_description, warning=False, impacts=False):
+	elements = [
+		html.P(text_description, style={"marginBottom": "15px"}),
+		dcc.Markdown("The expression of the diagram in our syntax will be written as:", style={"marginBottom": "5px"}),
+		dcc.Textarea(
+			value=bpmn[EXPRESSION],
+			readOnly=True,
+			style={
+				"width": "100%",
+				"marginBottom": "15px",
+				"whiteSpace": "pre-wrap"
+			}
+		),
+	]
+	if warning:
+		elements.append(
+			dbc.Alert(" Remember to put the () brackets around the regions to enhance readability and secure the parsing. ", color='info'),
+		)
+	if impacts:
+		elements.append(
+			html.P(f'''Each task has the following impacts: {', '.join(bpmn[IMPACTS_NAMES])}.''', style={"marginBottom": "15px"})
+		)
+
 	return dbc.Card([
 		dbc.CardHeader("Description"),
-		dbc.CardBody([
-			html.P(text_description, style={"marginBottom": "15px"}),
-			html.P("The diagram in our syntax will be written as:", style={"marginBottom": "5px"}),
-			dcc.Textarea(
-				value=bpmn[EXPRESSION],
-				readOnly=True,
-				style={
-					"width": "100%",
-					"height": "100px",
-					"marginBottom": "15px",
-					"whiteSpace": "pre-wrap"
-				}
-			),
-			dbc.Alert(" Remember to put the () brackets around the regions to enhance readability and secure the parsing. ", color='info'),
-			html.P(f'''Each task has a duration and the following impacts: {', '.join(bpmn[IMPACTS_NAMES])}.''',
-				   style={"marginBottom": "15px"})
-		])
+		dbc.CardBody(elements)
 	])
 
 

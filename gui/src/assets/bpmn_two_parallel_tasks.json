@@ -1,0 +1,21 @@
+{
+  "bpmn": {
+    "expression": "(Cutting || Bending), Milling",
+    "impacts": {
+      "Cutting": [10, 1],
+      "Bending": [20, 1],
+      "Milling": [50, 1]
+    },
+    "durations": {
+      "Cutting": [0, 1],
+      "Bending": [0, 1],
+      "Milling": [0, 1]
+    },
+    "impacts_names": ["electric energy", "worker hours"],
+    "probabilities": {},
+    "delays": {},
+    "loop_probability": {},
+    "loop_round": {},
+    "h": 0
+  }
+}
