@@ -1,0 +1,22 @@
+{
+    "bpmn": {
+      "expression": "(Heavy_Polishing ^[N1] Light_Polishing)",
+      "impacts": {
+        "Heavy_Polishing": [5, 4],
+        "Light_Polishing": [8, 1]
+      },
+      "durations": {
+        "Heavy_Polishing": [0, 2],
+        "Light_Polishing": [0, 1]
+      },
+      "impacts_names": ["electric energy", "worker hours"],
+      "probabilities": {
+        "N1": 0.2
+      },
+      "delays": {},
+      "loop_probability": {},
+      "loop_round": {},
+      "h": 0
+    }
+  }
+  

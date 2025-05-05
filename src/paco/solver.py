@@ -26,32 +26,34 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 	times.update(search_times)
 
 	if frontier_solution is None:# Also expected_impacts is None
-		text_result = ""
-		for i in range(len(possible_min_solution)):
-			text_result += f"Exp. Impacts {i}:\t{np.round(possible_min_solution[i], 2)}\n"
+		#text_result = ""
+		#for i in range(len(possible_min_solution)):
+		#	text_result += f"Exp. Impacts {i}:\t{np.round(possible_min_solution[i], 2)}\n"
 
-		text_result = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nPossible Bound Impacts:\t{bound}\n" + text_result
-		for i in range(len(frontier_values)):
-			text_result += f"Guaranteed Bound {i}:\t{np.ceil(frontier_values[i])}\n"
+		#text_result = f"Failed:\t\t\t{bpmn[IMPACTS_NAMES]}\nPossible Bound Impacts:\t{bound}\n" + text_result
+		#for i in range(len(frontier_values)):
+		#	text_result += f"Guaranteed Bound {i}:\t{np.ceil(frontier_values[i])}\n"
 
-		#print(str(datetime.now()) + " " + text_result)
+		text_result = "Failed"
+		print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
 	result.update({"frontier_solution": frontier_solution,
 				   "expected_impacts": expected_impacts})
 
 	if strategy is None:
-		text_result = f"Any choice taken will provide a winning strategy with an expected impact of: "
-		text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
-		#print(str(datetime.now()) + " " + text_result)
+		text_result = f"Any choice taken will provide a winning strategy"# with an expected impact of: "
+		#text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
+		print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
 
 	strategy_tree, strategy_expected_impacts, strategy_expected_time, bdds, explainer_times = build_explained_strategy(parse_tree, strategy, type_strategy, bpmn[IMPACTS_NAMES], pending_choices, pending_natures, debug)
 	times.update(explainer_times)
 
-	text_result = f"This is the strategy, with an expected impact of: "
-	text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in strategy_expected_impacts]))
+	#text_result = f"This is the strategy, with an expected impact of: "
+	#text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in strategy_expected_impacts]))
+	text_result = f"Found, watch the explainers to make decisions"
 	print(str(datetime.now()) + " " + text_result)
 
 	result.update({"strategy_tree": strategy_tree,
