@@ -3,7 +3,7 @@ from dash import Output, Input, State, ctx, html, dcc, MATCH
 import dash_bootstrap_components as dbc
 
 class RenderSvg:
-	def __init__(self, type, index, zoom_min=0.1, zoom_max=2.0, zoom_bar_placement="left", zoom_bar_height=300, default_zoom=1.0):
+	def __init__(self, type, index, zoom_min=0.1, zoom_max=2.0, zoom_bar_placement="left", zoom_bar_height=300, default_zoom=1.0, max_height=0):
 
 		self.type = type
 		self.index = index
@@ -24,14 +24,22 @@ class RenderSvg:
 		self.zoom_bar_placement = zoom_bar_placement
 		self.zoom_bar_height = zoom_bar_height
 
+		self.max_height = max_height
+
 	def get_visualizer(self):
+		svg_div_style = {"height": "100%", "width": "100%", "overflow": "auto"}
+		visualizer_div_style = {"position": "relative", "height": "100%", "width": "100%",
+								"display": "flex", "flexDirection": "column", "flex": "1" }
+
+		if self.max_height > 0:
+			svg_div_style["maxHeight"] = f"{self.max_height}px"
+			visualizer_div_style["maxHeight"] = f"{self.max_height}px"
+
 		return html.Div([
 			dcc.Store(id=self.zoom_settings_id, data={"min": self.zoom_min, "max": self.zoom_max, "default": self.default_zoom}),
-			html.Div(id=self.svg_div_id, style={"height": "100%", "width": "100%", "overflow": "auto"}),
+			html.Div(id=self.svg_div_id, style=svg_div_style),
 			self.get_zoom_bar()
-		], id=self.visualizer_id, style={"position": "relative", "height": "100%", "width": "100%", "display": "flex",
-										 "flexDirection": "column",
-										 "flex": "1" })
+		], id=self.visualizer_id, style=visualizer_div_style)
 
 	def get_zoom_bar(self):
 		marks = {
