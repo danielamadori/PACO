@@ -24,14 +24,26 @@ class RenderSvg:
 		self.zoom_bar_placement = zoom_bar_placement
 		self.zoom_bar_height = zoom_bar_height
 
-	def get_visualizer(self):
-		return html.Div([
+	def get_visualizer(self, zoom_bar_placement=True, height=0):
+		elements = [
 			dcc.Store(id=self.zoom_settings_id, data={"min": self.zoom_min, "max": self.zoom_max, "default": self.default_zoom}),
-			html.Div(id=self.svg_div_id, style={"height": "100%", "width": "100%", "overflow": "auto"}),
-			self.get_zoom_bar()
-		], id=self.visualizer_id, style={"position": "relative", "height": "100%", "width": "100%", "display": "flex",
-										 "flexDirection": "column",
-										 "flex": "1" })
+		]
+
+		svg_style = {"height": "100%", "overflow": "auto"}
+		if zoom_bar_placement:
+			elements.append(self.get_zoom_bar())
+			svg_style["width"] = "100%"
+
+		elements.append(html.Div(id=self.svg_div_id, style=svg_style))
+
+		if height > 0:
+			return html.Div(elements, id=self.visualizer_id,
+					style={"position": "relative", "height": f"{height}px", "width": "calc(100% - 60px)", "display": "flex",
+			"flexDirection": "column", "flex": "1"})
+
+
+		return html.Div(elements, id=self.visualizer_id, style={"position": "relative", "height": "100%", "width": "100%", "display": "flex",
+										 "flexDirection": "column", "flex": "1" })
 
 	def get_zoom_bar(self):
 		marks = {

@@ -19,11 +19,16 @@ def get_bdds_visualizer(choice, type_strategy, svg):
 		type="bdd",
 		index=choice,
 		zoom_bar_placement="right",
-		zoom_bar_height=250,
+		zoom_bar_height=300,
+		zoom_max=3.0
 	)
 
 	return html.Div([
-		dcc.Store(id={"type": "bdd-store", "index": choice}, data=svg),
-		visualizer.get_visualizer()],
-		style={"height": "auto", "maxHeight": "350px", "minHeight": "150px", "width": "100%", "overflow": "auto"}
+			dcc.Store(id={"type": "bdd-store", "index": choice}, data=svg),
+			html.Div(
+				visualizer.get_visualizer(zoom_bar_placement=False, height=350),
+			),
+			visualizer.get_zoom_bar(),
+		],
+		style={"height": "auto", "maxHeight": "500px", "minHeight": "350px", "width": "100%", "overflow": "auto"}
 	)
