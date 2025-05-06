@@ -45,13 +45,16 @@ def render_table(headers, rows, include_button=False, button_prefix="", sort_by=
 	if include_button:
 		header_row.append(html.Th())
 
-	return dbc.Table([
-		html.Thead(html.Tr(header_row)),
-		html.Tbody(table_rows)
-	],
-		bordered=True,
-		hover=True,
-		responsive=True,
-		striped=True,
-		className="mt-2"
+	return html.Div(
+		dbc.Table([
+			html.Thead(html.Tr(header_row)),
+			html.Tbody(table_rows)
+		],
+			bordered=True,
+			hover=True,
+			responsive=True,
+			striped=True,
+			className="mt-2"
+		),
+		style={"maxHeight": "400px", "overflowY": "auto"}
 	)

@@ -16,28 +16,41 @@ def get_strategy_tab():
 def get_strategy_input():
 	return html.Div([
 		html.Div(children=[
-				html.Br(),
-				html.H5("Choose the algorithm to use:"),
-				html.Br(),
-				dcc.Dropdown(
-					id='choose-strategy',
-					options=[
-						{'label': value, 'value': key}
-						for key, value in ALGORITHMS.items()
-					],
-					value=list(ALGORITHMS.keys())[0]
-				),
-				html.Br(),
-				html.Div([
-					html.H5('Insert bound'),
-					dbc.Button('Find strategy', id='find-strategy-button')],
-					style={
-						"display": "flex",
-						"gap": "20px",
-						"justifyContent": "center"
-					}
-				),
-				html.Div(id='bound-table'),
+				dbc.Card([
+					dbc.CardHeader(
+						html.Div([
+							html.H5('Insert bound'),
+							dbc.Button('Find strategy', id='find-strategy-button')],
+							style={
+								"display": "flex",
+								"gap": "20px",
+								"justifyContent": "space-between",
+								"alignItems": "center"
+							}
+						)
+					),
+					dbc.CardBody([
+						html.Div([
+							html.H5("Algorithm:", style={"marginRight": "10px"}),
+							dcc.Dropdown(
+								id='choose-strategy',
+								options=[
+									{'label': value, 'value': key}
+									for key, value in ALGORITHMS.items()
+								],
+								value=list(ALGORITHMS.keys())[0],
+								style={"minWidth": "200px"}
+							)
+						],
+							style={
+								"display": "flex",
+								"gap": "10px",
+								"alignItems": "center",
+								"flexWrap": "wrap"
+							}),
+						html.Div(id='bound-table')
+					])
+				], className="mb-3", style={"minWidth": "370px", "width": "100%"}),
 				html.Br(),
 			])
 		], style={
