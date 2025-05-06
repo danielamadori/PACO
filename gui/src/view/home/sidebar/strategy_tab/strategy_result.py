@@ -20,11 +20,8 @@ def strategy_results(result: str, expected_impacts: list, guaranteed_bounds: lis
 		elements.append(html.P("1 is dashed line of BPMN", className="text-body"))
 		elements.append(get_bdds(bdds))
 
+		return html.Div(elements, className="p-3 sidebar-box")
 
-	for guaranteed_bound in guaranteed_bounds:
-		if expected_impacts == guaranteed_bound:
-			guaranteed_bounds.remove(guaranteed_bound)
-			break
 
 	if guaranteed_bounds:
 		elements.append(html.H5("Guaranteed Bounds", className="mt-3"))

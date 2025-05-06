@@ -6,12 +6,10 @@ from dash import html
 
 def sync_bound_store_from_bpmn(bpmn_store, bound_store):
 	for name in sorted(bpmn_store[IMPACTS_NAMES]):
-		#print("sync_bound_store_from_bpmn: bpmn_store:impacts_names:", name)
 		if name not in bound_store[BOUND]:
 			bound_store[BOUND][name] = 1.0
 
 	return bound_store
-
 
 def register_bound_callbacks(bound_callbacks):
 	@bound_callbacks(
@@ -24,9 +22,7 @@ def register_bound_callbacks(bound_callbacks):
 		if not bpmn_store or bpmn_store[EXPRESSION] == '' or not bound_store or BOUND not in bound_store:
 			return html.Div()
 
-		#print("regenerate_bound_table", bound_store[BOUND])
 		return get_bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))
-
 
 	@bound_callbacks(
 		Output('bound-store', 'data', allow_duplicate=True),
@@ -36,50 +32,56 @@ def register_bound_callbacks(bound_callbacks):
 		prevent_initial_call='initial_duplicate'
 	)
 	def update_bounds(values, ids, bound_store):
-		#print("before: update_bounds", bound_store[BOUND])
 		for value, id_obj in zip(values, ids):
 			bound_store[BOUND][id_obj["index"]] = float(value)
+		return bound_store
 
-		#print("after: update_bounds", bound_store[BOUND])
+	@bound_callbacks(
+		Output("bound-store", "data", allow_duplicate=True),
+		Input({"type": "selected_bound", "index": ALL, "table": "guaranteed"}, "n_clicks"),
+		State({"type": "selected_bound", "index": ALL, "table": "guaranteed"}, "value"),
+		State("bound-store", "data"),
+		State("bpmn-store", "data"),
+		prevent_initial_call=True
+	)
+	def update_bound_from_guaranteed(n_clicks_list, values, bound_store, bpmn_store):
+		trigger = ctx.triggered_id
+		if not trigger:
+			raise dash.exceptions.PreventUpdate
+
+		idx = trigger["index"]
+		if idx >= len(n_clicks_list) or not n_clicks_list[idx]:
+			raise dash.exceptions.PreventUpdate
+
+		selected_bound = values[idx]
+
+		for name, value in zip(sorted(bpmn_store[IMPACTS_NAMES]), selected_bound):
+			bound_store[BOUND][name] = float(value)
+
 		return bound_store
 
 
 	@bound_callbacks(
 		Output("bound-store", "data", allow_duplicate=True),
-		Input({"type": "selected_bound", "index": ALL, "table": ALL}, "n_clicks"),
-		State("sort_store_guaranteed", "data"),
-		State("sort_store_possible_min", "data"),
+		Input({"type": "selected_bound", "index": ALL, "table": "possible_min"}, "n_clicks"),
+		State({"type": "selected_bound", "index": ALL, "table": "possible_min"}, "value"),
 		State("bound-store", "data"),
 		State("bpmn-store", "data"),
 		prevent_initial_call=True
 	)
-	def update_bound_from_select(n_clicks_list, store_guaranteed, store_possible, bound_store, bpmn_store):
+	def update_bound_from_possible_min(n_clicks_list, values, bound_store, bpmn_store):
 		trigger = ctx.triggered_id
-		if not trigger or not isinstance(trigger, dict):
+		if not trigger:
 			raise dash.exceptions.PreventUpdate
 
-		index = trigger["index"]
-		table = trigger["table"]
-
-		n_clicks = n_clicks_list[index] if index < len(n_clicks_list) else 0
-		if not n_clicks:
+		idx = trigger["index"]
+		if idx >= len(n_clicks_list) or not n_clicks_list[idx]:
 			raise dash.exceptions.PreventUpdate
 
-		if table == "guaranteed":
-			selected_store = store_guaranteed
-		elif table == "possible_min":
-			selected_store = store_possible
-		else:
-			raise dash.exceptions.PreventUpdate
+		selected_bound = values[idx]
 
-		if "data" not in selected_store or index >= len(selected_store["data"]):
-			raise dash.exceptions.PreventUpdate
-
-		selected_bound = selected_store["data"][index]
-
-		#print("before:update_bound_from_select", bound_store[BOUND])
 		for name, value in zip(sorted(bpmn_store[IMPACTS_NAMES]), selected_bound):
 			bound_store[BOUND][name] = float(value)
-		#print("after:update_bound_from_select", bound_store[BOUND])
 
 		return bound_store
+

@@ -10,13 +10,22 @@ def render_table(headers, rows, include_button=False, button_prefix="", sort_by=
 		idx = headers.index(sort_by)
 		indexed_rows.sort(key=lambda r: r[1][idx], reverse=(sort_order == "desc"))
 
-	for original_index, row in indexed_rows:
+	for visible_index, (original_index, row) in enumerate(indexed_rows):
 		cells = [html.Td(value) for value in row]
 		if include_button:
-			button_id = {"type": button_prefix, "index": original_index, "table": table}
+			button_id = {"type": button_prefix, "index": visible_index, "table": table}
+
+			button_value = list(row)
+
 			cells.append(
 				html.Td(
-					dbc.Button("Select", id=button_id, color="primary", size="sm"),
+					dbc.Button(
+						"Select",
+						id=button_id,
+						value=button_value,
+						color="primary",
+						size="sm"
+					),
 					style={"width": "70px", "textAlign": "center"}
 				)
 			)
