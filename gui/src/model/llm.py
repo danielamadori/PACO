@@ -18,8 +18,6 @@ def llm_response(bpmn_store: dict, user_message: str) -> dict:
 		impact = bpmn[IMPACTS][task]
 		converted[task] = dict(zip(bpmn[IMPACTS_NAMES], impact))
 	bpmn[IMPACTS] = converted
-	bpmn.pop(IMPACTS_NAMES, None)
-	bpmn.pop(H, None)
 
 	payload = {
 		"bpmn": bpmn,
@@ -38,17 +36,6 @@ def llm_response(bpmn_store: dict, user_message: str) -> dict:
 		if missing:
 			raise ValueError(f"Missing fields in response: {missing}")
 
-		#, data["session_id"]
-		named_impacts = {
-			name: {
-				impact_name: value
-				for impact_name, value in zip(data["bpmn"][IMPACTS_NAMES], vector)
-			}
-			for name, vector in data["bpmn"][IMPACTS].items()
-		}
-
-		data["bpmn"][IMPACTS] = named_impacts
-		#TODO sync to GUI
 		return data["message"], data["bpmn"]
 
 	except Exception as e:
