@@ -86,11 +86,13 @@ def create_tasks_impacts_table(bpmn_store, tasks):
 			className="table-sm"
 		)
 	], style={
-		"display": "inline-block",
 		"padding": "10px",
 		"border": "1px solid #ccc",
 		"borderRadius": "10px",
-		"marginTop": "20px"
+		"marginTop": "20px",
+		"maxHeight": "500px",
+		"overflowY": "auto",
+		"display": "block"
 	})])
 
 	return html.Div([table, html.Br(),

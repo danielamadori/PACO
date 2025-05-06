@@ -22,12 +22,13 @@ def create_table(columns, rows):
 			}
 		)
 	], style={
-		"display": "inline-block",
 		"padding": "10px",
 		"border": "1px solid #ccc",
 		"borderRadius": "10px",
 		"marginTop": "20px",
-		"verticalAlign": "top"
+		"maxHeight": "500px",
+		"overflowY": "auto",
+		"display": "block"
 	})
 
 
