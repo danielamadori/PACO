@@ -16,6 +16,7 @@ def load_bpmn_dot(bpmn):
 		dot = ''
 	else:
 		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+		print(f"Data0: {bpmn}")
 		bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
 
 		record = fetch_bpmn(bpmn)
