@@ -28,7 +28,6 @@ def register_expression_callbacks(expression_callbacks):
     )
     def evaluate_expression(current_expression, bpmn_store, bound_store):
         if ctx.triggered_id != 'expression-bpmn':
-            print("evaluate_expression: ctx.triggered_id:", ctx.triggered_id)
             raise dash.exceptions.PreventUpdate
 
         alert = ''
@@ -52,7 +51,6 @@ def register_expression_callbacks(expression_callbacks):
                 return dash.no_update, dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
             bpmn_store[EXPRESSION] = current_expression
 
-        #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
 
         if bpmn_store[EXPRESSION] == '':
             return dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
@@ -64,20 +62,10 @@ def register_expression_callbacks(expression_callbacks):
             bound_store[BOUND][impacts_names]= 0.0
             bpmn_store[IMPACTS_NAMES] = [impacts_names]
 
-        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
-        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         tasks_impacts_table = create_tasks_impacts_table(bpmn_store, tasks)
         tasks_duration_table = create_tasks_duration_table(bpmn_store, tasks)
-
-        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
-        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         choices_table = create_choices_table(bpmn_store, choices)
-
-        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
-        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         natures_table = create_natures_table(bpmn_store, natures)
-        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
-        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         loops_table = create_loops_table(bpmn_store, loops)
 
         try:
