@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 from dash import ctx
 from controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
 from model.etl import load_bpmn_dot
-from env import EXPRESSION, SESE_PARSER, extract_nodes
+from env import EXPRESSION, SESE_PARSER, extract_nodes, IMPACTS_NAMES, BOUND, IMPACTS
 from view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
 from view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
 from view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
@@ -43,7 +43,7 @@ def register_expression_callbacks(expression_callbacks):
 
         current_expression = current_expression.replace("\n", "").replace("\t", "").strip().replace(" ", "")
         if current_expression == '':
-            return bpmn_store, dash.no_update, dash.no_update, dbc.Alert("The expression is empty.", color="warning", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+            return bpmn_store, dash.no_update, dash.no_update, dbc.Alert("The expression is empty", color="warning", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
         if current_expression != bpmn_store.get(EXPRESSION, ''):
             try:
@@ -57,22 +57,32 @@ def register_expression_callbacks(expression_callbacks):
         if bpmn_store[EXPRESSION] == '':
             return dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
-
         tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
-        #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+
+        if not bpmn_store[IMPACTS_NAMES]:
+            impacts_names = 'kWh'
+            bound_store[BOUND][impacts_names]= 0.0
+            bpmn_store[IMPACTS_NAMES] = [impacts_names]
+
+        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         tasks_impacts_table = create_tasks_impacts_table(bpmn_store, tasks)
         tasks_duration_table = create_tasks_duration_table(bpmn_store, tasks)
 
-        #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         choices_table = create_choices_table(bpmn_store, choices)
-        #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+
+        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         natures_table = create_natures_table(bpmn_store, natures)
-        #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
+        print("evaluate_expression: bpmn_store:impacts:", bpmn_store[IMPACTS])
+        print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
         loops_table = create_loops_table(bpmn_store, loops)
 
         try:
             #print(f"expression.py: {bpmn_store[IMPACTS]}")
-            bpmn_dot = load_bpmn_dot(bpmn_store[EXPRESSION])
+            bpmn_dot = load_bpmn_dot(bpmn_store)
             #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
             return bpmn_store, bpmn_dot, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
         except Exception as exception:

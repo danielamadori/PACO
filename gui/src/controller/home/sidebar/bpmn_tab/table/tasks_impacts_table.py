@@ -32,7 +32,6 @@ def register_task_impacts_callbacks(tasks_callbacks):
 
 		if updated:
 			try:
-				#print(f"tasks_table.py impacts: {bpmn_store[IMPACTS]}")
 				bpmn_dot = load_bpmn_dot(bpmn_store)
 			except Exception as exception:
 				return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)

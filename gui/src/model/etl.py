@@ -16,8 +16,9 @@ def load_bpmn_dot(bpmn):
 		dot = ''
 	else:
 		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+		print(f"Data0: {bpmn}")
 		bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
-		#print(f"Data: {bpmn}")
+		print(f"Data: {bpmn}")
 
 		record = fetch_bpmn(bpmn)
 		if record and record.bpmn_dot:
@@ -54,7 +55,7 @@ def load_parse_and_execution_tree(bpmn):#BPMN must be filtered
 
 def load_strategy(bpmn_store, bound_store):
 	if bpmn_store[EXPRESSION] == '':
-		raise ValueError("BPMN expression is empty")
+		raise ValueError("The expression is empty")
 	if BOUND not in bound_store or not bound_store[BOUND]:
 		raise ValueError("Bound is empty")
 

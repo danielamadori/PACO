@@ -20,7 +20,6 @@ def register_gateway_callbacks(gateway_callbacks):
 			bpmn_store[DELAYS][id_obj['index']] = value
 
 		try:
-			#print(f"gateways_table.py choice: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
@@ -41,7 +40,6 @@ def register_gateway_callbacks(gateway_callbacks):
 			bpmn_store[PROBABILITIES][id_obj['index']] = float(value)
 
 		try:
-			#print(f"gateways_table.py natures: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
@@ -66,7 +64,6 @@ def register_gateway_callbacks(gateway_callbacks):
 			bpmn_store[LOOP_ROUND][loop] = r
 
 		try:
-			#print(f"gateways_table.py loops: {bpmn_store[IMPACTS]}")
 			bpmn_dot = load_bpmn_dot(bpmn_store)
 		except Exception as exception:
 			return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
