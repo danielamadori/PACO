@@ -52,13 +52,6 @@ def register_upload_callbacks(callback):
             SESE_PARSER.parse(new_bpmn[EXPRESSION])
             tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(new_bpmn[EXPRESSION]))
 
-            converted = {}
-            for task in tasks:
-                impact = new_bpmn[IMPACTS][task]
-                print("upload_json_bpmn: task_name:", task, "values:", impact)
-                converted[task] = dict(zip(new_bpmn[IMPACTS_NAMES], impact))
-            new_bpmn[IMPACTS] = converted
-
             task_impacts = create_tasks_impacts_table(new_bpmn, tasks)
             task_durations = create_tasks_duration_table(new_bpmn, tasks)
             choice_table = create_choices_table(new_bpmn, choices)

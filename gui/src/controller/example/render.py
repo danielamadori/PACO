@@ -1,9 +1,6 @@
 from dash import Output, Input, dcc
-
-from env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES
 from model.bpmn import validate_bpmn_dict
 from model.etl import load_bpmn_dot
-
 from view.visualizer.RenderSVG import RenderSvg
 
 
@@ -25,18 +22,10 @@ def register_example_callbacks(callback, id, example_path):
 
 
 def render_example(data):
-    bpmn = validate_bpmn_dict(data.get("bpmn", {}))
-    try:
-        tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+	bpmn = validate_bpmn_dict(data.get("bpmn", {}))
+	try:
+		bpmn_dot = load_bpmn_dot(bpmn)
+	except Exception as exception:
+		raise RuntimeError(f"Failed to load BPMN dot: {exception}")
 
-        converted = {}
-        for task in tasks:
-            impact = bpmn[IMPACTS][task]
-            converted[task] = dict(zip(bpmn[IMPACTS_NAMES], impact))
-        bpmn[IMPACTS] = converted
-
-        bpmn_dot = load_bpmn_dot(bpmn)
-    except Exception as exception:
-        raise RuntimeError(f"Failed to load BPMN dot: {exception}")
-
-    return bpmn, bpmn_dot
+	return bpmn, bpmn_dot

@@ -1,8 +1,8 @@
 import dash
 from dash import Input, Output, State, ALL, ctx
-from env import IMPACTS_NAMES, BOUND
+from env import IMPACTS_NAMES, BOUND, EXPRESSION
 from view.home.sidebar.strategy_tab.table.bound_table import get_bound_table
-
+from dash import html
 
 def sync_bound_store_from_bpmn(bpmn_store, bound_store):
 	for name in sorted(bpmn_store[IMPACTS_NAMES]):
@@ -21,8 +21,8 @@ def register_bound_callbacks(bound_callbacks):
 		prevent_initial_call=True
 	)
 	def regenerate_bound_table(bound_store, bpmn_store):
-		if not bpmn_store or not bound_store or BOUND not in bound_store:
-			raise dash.exceptions.PreventUpdate
+		if not bpmn_store or bpmn_store[EXPRESSION] == '' or not bound_store or BOUND not in bound_store:
+			return html.Div()
 
 		#print("regenerate_bound_table", bound_store[BOUND])
 		return get_bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))

@@ -10,7 +10,7 @@ def get_strategy_tab():
 			html.Div(id='strategy-alert'),
 			get_strategy_input(),
 			html.Div(id='strategy_output')
-		])
+		], className="p-3 sidebar-box")
 	])
 
 def get_strategy_input():

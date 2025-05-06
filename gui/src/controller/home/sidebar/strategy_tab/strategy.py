@@ -27,7 +27,7 @@ def register_strategy_callbacks(strategy_callback):
 			try:
 				result, expected_impacts, guaranteed_bounds, possible_min_solution, bdds = load_strategy(bpmn_store, bound_store)
 			except ValueError as e:
-				alert = dbc.Alert(str(e), color="waring", dismissable=True)
+				alert = dbc.Alert(str(e), color="warning", dismissable=True)
 				return html.Div(), dash.no_update, dash.no_update, alert
 
 			g = {"sort_by": None, "sort_order": "asc", "data": guaranteed_bounds}
