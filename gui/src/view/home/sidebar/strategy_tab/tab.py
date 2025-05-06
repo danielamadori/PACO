@@ -7,6 +7,7 @@ def get_strategy_tab():
 		html.Div([
 			dcc.Store(id="sort_store_guaranteed", data={"sort_by": None, "sort_order": "asc"}),
 			dcc.Store(id="sort_store_possible_min", data={"sort_by": None, "sort_order": "asc"}),
+			html.Div(id='strategy-alert'),
 			get_strategy_input(),
 			html.Div(id='strategy_output')
 		])

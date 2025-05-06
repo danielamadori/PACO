@@ -19,7 +19,6 @@ from view.visualizer.RenderSVG import RenderSvg
 
 def layout():
     sidebar_min_width = 450
-    impacts_names = 'impact'
 
     bpmn_visualizer = RenderSvg(type="bpmn-svg", index="main", zoom_min=0.1, zoom_max=3.5)
 
@@ -29,14 +28,14 @@ def layout():
             H: 0,
             IMPACTS: {},
             DURATIONS: {},
-            IMPACTS_NAMES: [impacts_names],
+            IMPACTS_NAMES: [],
             DELAYS: {},
             PROBABILITIES: {},
             LOOP_PROBABILITY: {},
             LOOP_ROUND: {},
         }, storage_type='session'),
         dcc.Store(id={"type": "bpmn-svg-store", "index": "main"}, data="", storage_type='session'),
-        dcc.Store(id='bound-store', data={BOUND: {impacts_names:0.0}}, storage_type='session'),
+        dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
 
         dcc.Store(id='chat-history', data=[], storage_type='session'),
         dcc.Store(id='pending-message', data=None, storage_type='session'),

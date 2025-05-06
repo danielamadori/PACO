@@ -11,7 +11,7 @@ from paco.parser.print_sese_diagram import print_sese_diagram
 from paco.solver import paco
 from utils import check_syntax as cs
 from utils.check_syntax import check_bpmn_syntax
-from utils.env import DURATIONS, IMPACTS_NAMES
+from utils.env import DURATIONS, IMPACTS_NAMES, EXPRESSION
 
 
 def register_paco_api(app: FastAPI):
@@ -20,6 +20,8 @@ def register_paco_api(app: FastAPI):
         bpmn = request.get("bpmn")
         if bpmn is None:
             raise HTTPException(status_code=400, detail="No BPMN found")
+        if EXPRESSION not in bpmn or bpmn[EXPRESSION] == "":
+            raise HTTPException(status_code=400, detail="No BPMN expression found")
 
         try:
             lark_tree = check_bpmn_syntax(dict(bpmn))

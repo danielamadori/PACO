@@ -12,20 +12,23 @@ from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMP
 
 
 def load_bpmn_dot(bpmn):
-	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
-	bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
-	#print(f"Data: {bpmn}")
+	if bpmn[EXPRESSION] == '':
+		dot = ''
+	else:
+		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+		bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
+		#print(f"Data: {bpmn}")
 
-	record = fetch_bpmn(bpmn)
-	if record and record.bpmn_dot:
-		return record.bpmn_dot
+		record = fetch_bpmn(bpmn)
+		if record and record.bpmn_dot:
+			return record.bpmn_dot
 
-	try:
-		resp = requests.get(URL_SERVER + "create_bpmn", json={'bpmn': bpmn}, headers=HEADERS)
-		resp.raise_for_status()
-		dot = resp.json().get('bpmn_dot', '')
-	except requests.exceptions.RequestException as e:
-		raise RuntimeError(f"Failed to fetch BPMN dot: {e}")
+		try:
+			resp = requests.get(URL_SERVER + "create_bpmn", json={'bpmn': bpmn}, headers=HEADERS)
+			resp.raise_for_status()
+			dot = resp.json().get('bpmn_dot', '')
+		except requests.exceptions.RequestException as e:
+			raise RuntimeError(f"Failed to fetch BPMN dot: {e}")
 
 	svg = graphviz.Source(dot).pipe(format='svg')
 	bpmn_dot = f"data:image/svg+xml;base64,{base64.b64encode(svg).decode('utf-8')}"
@@ -50,6 +53,11 @@ def load_parse_and_execution_tree(bpmn):#BPMN must be filtered
 
 
 def load_strategy(bpmn_store, bound_store):
+	if bpmn_store[EXPRESSION] == '':
+		raise ValueError("BPMN expression is empty")
+	if BOUND not in bound_store or not bound_store[BOUND]:
+		raise ValueError("Bound is empty")
+
 	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 	bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
 
