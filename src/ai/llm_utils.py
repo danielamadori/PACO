@@ -13,6 +13,7 @@ def build_few_shot_prompt(bpmn_dict: dict, message: str) -> str:
         f"User: {ex['input'].strip()}\nTranslation: {ex['answer'].strip()}"
         for ex in examples_bpmn
     ])
+
     return (
         f"{define_role}\n"
         f"Here are a few examples:\n"
