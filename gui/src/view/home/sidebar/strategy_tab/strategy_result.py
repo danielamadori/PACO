@@ -6,7 +6,6 @@ import dash_bootstrap_components as dbc
 def strategy_results(result: str, expected_impacts: list, guaranteed_bounds: list, possible_min_solution: list, bdds: dict, sorted_impact_names: list, sort_by=None, sort_order="asc"):
 	cards = []
 
-	# Result
 	cards.append(
 		dbc.Card([
 			dbc.CardHeader("Result"),

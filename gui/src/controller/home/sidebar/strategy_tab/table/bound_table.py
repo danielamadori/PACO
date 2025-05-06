@@ -29,12 +29,25 @@ def register_bound_callbacks(bound_callbacks):
 		Input({'type': 'bound-input', 'index': ALL}, 'value'),
 		State({'type': 'bound-input', 'index': ALL}, 'id'),
 		State('bound-store', 'data'),
-		prevent_initial_call='initial_duplicate'
+		prevent_initial_call=True
 	)
 	def update_bounds(values, ids, bound_store):
+		if not values or not ids:
+			raise dash.exceptions.PreventUpdate
+
+		updated = False
 		for value, id_obj in zip(values, ids):
-			bound_store[BOUND][id_obj["index"]] = float(value)
+			index = id_obj["index"]
+			new_val = float(value)
+			if bound_store[BOUND].get(index) != new_val:
+				bound_store[BOUND][index] = new_val
+				updated = True
+
+		if not updated:
+			raise dash.exceptions.PreventUpdate
+
 		return bound_store
+
 
 	@bound_callbacks(
 		Output("bound-store", "data", allow_duplicate=True),

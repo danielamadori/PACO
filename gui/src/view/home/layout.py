@@ -20,7 +20,7 @@ from view.visualizer.RenderSVG import RenderSvg
 def layout():
     sidebar_min_width = 450
 
-    bpmn_visualizer = RenderSvg(type="bpmn-svg", index="main", zoom_min=0.1, zoom_max=3.5)
+    bpmn_visualizer = RenderSvg(type="bpmn-svg", index="main", zoom_min=0.1, zoom_max=5.5)
 
     return html.Div([
         dcc.Store(id='bpmn-store', data={
