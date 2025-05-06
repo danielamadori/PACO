@@ -109,10 +109,9 @@ def extract_nodes(lark_tree: ParseTree) -> (list, list, list, list):
     return list(tasks), list(choices), list(natures), list(loops)
 
 def extract_nodes_set(lark_tree: ParseTree) -> (set, set, set, set):
-    tasks = set()
-    choices = set()
-    natures = set()
-    loops = set()
+    tasks, choices, natures, loops = set(), set(), set(), set()
+    left_task, left_choices, left_natures, left_loops = set(), set(), set(), set()
+    right_task, right_choices, right_natures, right_loops = set(), set(), set(), set()
 
     def add_unique(s: set, value: str, label: str):
         if value in s:
