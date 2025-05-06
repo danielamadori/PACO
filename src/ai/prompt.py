@@ -1,5 +1,7 @@
-from env import sese_diagram_grammar
-from model.bpmn import BPMNDict
+from paco.parser.bpmn import BPMNDict
+from paco.parser.grammar import sese_diagram_grammar
+
+
 
 define_role = f'''
 
