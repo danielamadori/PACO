@@ -31,3 +31,4 @@ def get_control():
 			], className="mt-2")
 		])
 	], className="mb-3", style={"minWidth": "370px", "width": "100%"})
+

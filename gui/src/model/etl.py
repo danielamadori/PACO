@@ -1,7 +1,8 @@
 import json
 import ast
 from copy import deepcopy
-from model.sqlite import fetch_strategy, save_strategy
+from model.sqlite import fetch_strategy, save_strategy, save_petri_net, \
+	save_execution_petri_net
 from model.sqlite import fetch_bpmn, save_parse_and_execution_tree
 import base64
 import graphviz
@@ -123,3 +124,55 @@ def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
 	bpmn[LOOP_ROUND] = {loop: bpmn_store[LOOP_ROUND][loop] for loop in loops if loop in bpmn_store[LOOP_ROUND]}
 
 	return bpmn
+
+
+
+def get_petri_net(bpmn, step:int):
+	if bpmn[EXPRESSION] == '':
+		raise ValueError("The expression is empty")
+
+	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+	bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
+
+	record = fetch_bpmn(bpmn)
+	if not record:
+		raise ValueError("Could not fetch BPMN")
+	if not record.petri_net or not record.petri_net_dot:
+		resp = requests.get(URL_SERVER + "execute", json={"parse_tree": record.parse_tree, "step" : step}, headers=HEADERS)
+	elif not record.execution_tree_petri_net:
+		resp = requests.get(URL_SERVER + "execute", json={
+			"parse_tree": record.parse_tree,
+			"petri_net": record.petri_net,
+			"step" : step
+		}, headers=HEADERS)
+	else:
+		resp = requests.get(URL_SERVER + "execute", json={
+			"parse_tree": record.parse_tree,
+			"petri_net": record.petri_net,
+			"step" : step,
+			"execution_tree_petri_net": record.execution_tree_petri_net,
+			"actual_execution_tree_petri_net": record.actual_execution_tree_petri_net
+		}, headers=HEADERS)
+
+
+	resp.raise_for_status()
+	response = resp.json()
+
+	petri_net = ""
+	petri_net_dot = ""
+	execution_tree_petri_net = ""
+	actual_execution = ""
+	if "petri_net" in response and "petri_net_dot" in response:
+		petri_net = response["petri_net"]
+		petri_net_dot = f"data:image/svg+xml;base64,{base64.b64encode(graphviz.Source(petri_net).pipe(format='svg')).decode('utf-8')}"
+
+	if "execution_tree_petri_net" in response and "actual_execution_tree_petri_net" in response:
+		execution_tree_petri_net = response["execution_tree_petri_net"]
+		actual_execution_tree_petri_net = response["actual_execution_tree_petri_net"]
+
+	save_petri_net(bpmn, petri_net, petri_net_dot)
+
+	save_execution_petri_net(bpmn, execution_tree_petri_net, actual_execution)
+
+
+	return petri_net, petri_net_dot, execution_tree_petri_net, actual_execution_tree_petri_net

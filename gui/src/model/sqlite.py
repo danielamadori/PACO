@@ -9,6 +9,11 @@ class BPMN(db.Entity):
     bpmn_dot = Optional(str, nullable=True)
     parse_tree = Optional(str, nullable=True)
     execution_tree = Optional(str, nullable=True)
+    petri_net = Optional(str, nullable=True)
+    petri_net_dot = Optional(str, nullable=True)
+    execution_petri_net = Optional(str, nullable=True)
+    actual_execution = Optional(str, nullable=True)
+
     strategie = Set('Strategy')
 
 class Bound(db.Entity):
@@ -36,6 +41,7 @@ def fetch_bpmn(bpmn_dict:dict):
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     return BPMN.get(bpmn=bpmn_str)
 
+
 @db_session
 def fetch_strategy(bpmn_dict:dict, bound_list:list):
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
@@ -50,6 +56,7 @@ def fetch_strategy(bpmn_dict:dict, bound_list:list):
         return None
 
     return Strategy.get(bpmn=bpmn, bound=bound)
+
 
 @db_session
 def save_bpmn_dot(bpmn_dict:dict, bpmn_dot:str):
@@ -89,3 +96,24 @@ def save_strategy(bpmn_dict: dict, bound_list: list, result:str, expected_impact
                  bdds=str(bdds))
 
     commit()
+
+
+
+@db_session
+def save_petri_net(bpmn_dict:dict, petri_net:str, petri_net_dot:str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.petri_net = petri_net or ""
+        record.petri_net_dot = petri_net_dot or ""
+        commit()
+
+
+@db_session
+def save_execution_petri_net(bpmn_dict:dict, execution_petri_net:str, actual_execution:str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.execution_petri_net = execution_petri_net or ""
+        record.actual_execution = actual_execution or ""
+        commit()
