@@ -1,51 +1,66 @@
 import dash_bootstrap_components as dbc
 from dash import html
-from dash import Input, Output, State, ALL, ctx
-from env import BOUND, EXPRESSION, IMPACTS_NAMES
-from view.home.sidebar.strategy_tab.table.bound_table import get_bound_table
 
-'''
-def register_status_info_callbacks(status_info_callbacks):
-	@status_info_callbacks(
-		Output("bound-table", "children"),
-		Input("bound-store", "data"),
-		State("bpmn-store", "data"),
-		prevent_initial_call=True
-	)
-	def regenerate_bound_table(bound_store, bpmn_store):
-		if not bpmn_store or bpmn_store[EXPRESSION] == '' or not bound_store or BOUND not in bound_store:
-			return html.Div()
-
-		return get_bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))
-'''
 
 def status_info():
-	#html.Div(id='bound-table')
+	impact_names = ["Cost", "Time", "CO2"]
+	impacts_values = [10.5, 24.0, 3.7]
+	expected_values = [12.2, 22.1, 4.0]
+
+	def make_table_card(title, names, values):
+		header_row = html.Tr([
+			html.Th(name, style={
+				"whiteSpace": "nowrap",
+				"overflow": "hidden",
+				"textOverflow": "ellipsis",
+				"maxWidth": "80px"
+			}) for name in names
+		])
+		data_row = html.Tr([
+			html.Td(str(val)) for val in values
+		])
+		return dbc.Card([
+			dbc.CardHeader(html.H6(title), style={"padding": "0.5rem 1rem", "marginBottom": "0px"}),
+			dbc.CardBody([
+				dbc.Table([
+					html.Thead(header_row),
+					html.Tbody([data_row])
+				],
+					bordered=True,
+					striped=True,
+					responsive=True,
+					className="table-sm",
+					style={"borderCollapse": "collapse", "marginBottom": "0px"})
+			], style={"padding": "0.5rem 1rem"})
+		], style={
+			"minWidth": "250px",
+			"marginBottom": "10px"
+		})
+
 	return dbc.Card([
 		dbc.CardHeader(html.H5('Status Info')),
-		dbc.CardBody([
-			dbc.Row([
-				dbc.Col(html.Div([
-					html.Strong("Execution Time: "),
-					html.Span(id="execution-time", children="–")
-				]), width=6),
+		dbc.CardBody(
+			html.Div([
+				dbc.Row([
+					dbc.Col(html.Div([
+						html.Strong("Time: "),
+						html.Span(id="execution-time", children="12")
+					]), width=6),
+					dbc.Col(html.Div([
+						html.Strong("Probability: "),
+						html.Span(id="execution-probability", children="85%")
+					]), width=6),
+				], className="mb-3"),
 
-				dbc.Col(html.Div([
-					html.Strong("Probability: "),
-					html.Span(id="execution-probability", children="–")
-				]), width=6),
-			], className="mb-2"),
-
-			dbc.Row([
-				dbc.Col(html.Div([
-					html.Strong("Impacts: "),
-					html.Span(id="impacts", children="–")
-				]), width=6),
-
-				dbc.Col(html.Div([
-					html.Strong("Expected Impacts: "),
-					html.Span(id="expected-impacts", children="–")
-				]), width=6),
-			])
-		])
-	])
+				dbc.Row([
+					dbc.Col(make_table_card("Impacts", impact_names, impacts_values)),
+					dbc.Col(make_table_card("Expected Impacts", impact_names, expected_values))
+				])
+			], style={
+				"maxHeight": "250px",
+				"overflowY": "auto",
+				"overflowX": "hidden",
+				"padding": "0.5rem"
+			})
+		)
+	], className="mb-3", style={"minHeight": "300px"})
