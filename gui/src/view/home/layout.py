@@ -6,6 +6,7 @@ from controller.home.sidebar.bpmn_tab.table.tasks_impacts_names import register_
 from controller.home.sidebar.bpmn_tab.upload import register_upload_callbacks
 from controller.home.sidebar.llm_tab.chat import register_llm_callbacks
 from controller.home.sidebar.sidebar import register_sidebar_callbacks
+from controller.home.sidebar.simulator_tab.random_decision import register_pending_decision_random_callbacks
 from controller.home.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
 from env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, \
     LOOP_PROBABILITY, BOUND
@@ -72,3 +73,4 @@ register_sidebar_callbacks(dash.callback)
 register_llm_callbacks(dash.callback, dash.clientside_callback)
 register_upload_callbacks(dash.callback)
 register_download_callbacks(dash.callback)
+register_pending_decision_random_callbacks(dash.callback)
