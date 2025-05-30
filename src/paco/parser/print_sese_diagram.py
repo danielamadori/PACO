@@ -20,7 +20,7 @@ def print_sese_diagram(bpmn:dict, lark_tree) -> str:
 def dot_sese_diagram(t, id = 0, h = 0, prob={}, imp={}, loops = {}, dur = {}, imp_names = [], choices_list = {}, explainer = False):
     exit_label = ''
     if type(t) == Token:
-        label = t.value        
+        label = t.value
         return dot_task(id, label, h, imp[label] if label in imp else None, dur[label] if label in dur else None, imp_names), id, id, exit_label
     if type(t) == Tree:
         label = t.data
@@ -112,9 +112,9 @@ def dot_task(id, name, h=0, imp=None, dur=None, imp_names = []):
     #print(f"impacts in dot task : {imp}")
     if imp is not None: # modifica per aggiungere impatti e durate in modo leggibile 
         if h == 0:
-            imp =  ", ".join(f"{key}: {value}" for key, value in zip(imp_names, imp))
-            label += f", \n impacts:\n {imp}"
-            label += f", \n dur: {str(dur)}"  
+            imp =  ", ".join(f"\n{key}: {value}" for key, value in zip(imp_names, imp))
+            label += f", \n impacts:{imp}"
+            label += f", \n duration: {str(dur)}"
         else: 
             label += str(imp[0:-h])
             label += str(imp[-h:]) 

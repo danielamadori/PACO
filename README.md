@@ -1,12 +1,12 @@
 # RESPISE
-![Build Status](https://github.com/danielamadori98/PACO/actions/workflows/tests.yml/badge.svg)
-![License](https://img.shields.io/github/license/danielamadori98/PACO)
+![Build Status](https://github.com/danielamadori/PACO/actions/workflows/tests.yml/badge.svg)
+![License](https://img.shields.io/github/license/danielamadori/PACO)
 ![Docker Pulls](https://img.shields.io/docker/pulls/danielamadori/paco)
 ![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/danielamadori98/PACO)
-![GitHub issues](https://img.shields.io/github/issues/danielamadori98/PACO)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/danielamadori98/PACO)
-![GitHub contributors](https://img.shields.io/github/contributors/danielamadori98/PACO)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/danielamadori/PACO)
+![GitHub issues](https://img.shields.io/github/issues/danielamadori/PACO)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/danielamadori/PACO)
+![GitHub contributors](https://img.shields.io/github/contributors/danielamadori/PACO)
 
 
 ## A strategy founder for *BPMN + CPI*
@@ -45,14 +45,16 @@ To start the application using Docker, follow these steps:
 1. Pull and start the Docker:
     ```bash
     docker pull danielamadori/paco:latest
-    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO danielamadori/paco:latest
+    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -it --name PACO danielamadori/paco:latest
     docker logs PACO
     ```
    Note: Replace latest with a specific version number if needed.
-2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
+
+2. Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
+3. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
-3. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
-   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori98/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
+4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ### Using Python
 To start the application using Python, follow these steps:
@@ -76,15 +78,16 @@ To start the application using Python, follow these steps:
     ```bash
     python3 src
     ```
-   Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
-   The docs are available at `http://127.0.0.1:8000/docs`
+   - Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
+   - Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
+   - The docs are available at `http://127.0.0.1:8000/docs`
 
 3. Run the **jupyter notebook**:
     ```bash
     jupyter notebook --port=8888
     ```
 4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
-   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori98/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
+   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ---
 NB! This application is currently under development. There may be some issues and bugs.
@@ -96,7 +99,7 @@ Ensure all dependencies are installed and your environment is correctly configur
 
 ### Preparing CPI Bundle
 
-Place your CPI bundle into the `CPIs` folder. If you don't have a CPI bundle, you can create one by following the instructions in the repository [synthetic-cpi-generation](https://github.com/danielamadori98/synthetic-cpi-generation), or you can download the pre-built bundle used in the paper for validation [here](https://univr-my.sharepoint.com/:f:/g/personal/emanuele_chini_univr_it/EuMjJi6L03lCp0e348YPAYwBMJ5jTGO1lojwuIlOAhpaaA?e=u9oXl1).
+Place your CPI bundle into the `CPIs` folder. If you don't have a CPI bundle, you can create one by following the instructions in the repository [synthetic-cpi-generation](https://github.com/danielamadori/synthetic-cpi-generation), or you can download the pre-built bundle used in the paper for validation [here](https://univr-my.sharepoint.com/:f:/g/personal/emanuele_chini_univr_it/EuMjJi6L03lCp0e348YPAYwBMJ5jTGO1lojwuIlOAhpaaA?e=u9oXl1).
 
 ### Running the Script
 

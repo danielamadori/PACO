@@ -59,30 +59,9 @@ def check_input(bpmn:dict, bound:dict) -> tuple[str, list]:
 
     return "", bound_list
 
-def check_algo_is_usable(expression: str, algo: str) -> bool:
-    """
-    Check if the costructs in the BPMN is suitable fro the algo.
-    """
-    print('checking expression within algo in progress...')
-    if expression == '' or algo == '' or algo not in ALGORITHMS.keys():
-        return False
-    if algo in ALGORITHMS_MISSING_SYNTAX.keys() and list(ALGORITHMS_MISSING_SYNTAX.get(algo)) != []:
-        for element in list(ALGORITHMS_MISSING_SYNTAX.get(algo)):
-            #print(element)
-            if element in expression:
-                return False        
-    return True
 
-def check_ONLY_1_taks(string: str) -> bool:
-    """
-        This function checks if a given string contains all elements from the ALL_SYNTAX list.
-        If it does, returns true; otherwise false
 
-    """
-    for element in ALL_SYNTAX:
-        if element not in string:
-            return False
-    return True
+
 
 def extract_tasks_recursively(lark_tree) -> list[str]:
     tasks = []

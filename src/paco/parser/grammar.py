@@ -28,3 +28,4 @@ sese_diagram_grammar = r"""
 %ignore WS_INLINE
 """
 ALL_SYNTAX = ['^', '/', '||', '<', '>', '[', ']', ',', '', '(', ')'] # all syntax characters available
+
