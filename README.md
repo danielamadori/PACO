@@ -45,13 +45,15 @@ To start the application using Docker, follow these steps:
 1. Pull and start the Docker:
     ```bash
     docker pull danielamadori/paco:latest
-    docker run -d -p 8000:8000 -p 8888:8888 -it --name PACO danielamadori/paco:latest
+    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -it --name PACO danielamadori/paco:latest
     docker logs PACO
     ```
    Note: Replace latest with a specific version number if needed.
-2. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
+
+2. Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
+3. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
-3. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ### Using Python
@@ -76,8 +78,9 @@ To start the application using Python, follow these steps:
     ```bash
     python3 src
     ```
-   Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
-   The docs are available at `http://127.0.0.1:8000/docs`
+   - Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
+   - Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
+   - The docs are available at `http://127.0.0.1:8000/docs`
 
 3. Run the **jupyter notebook**:
     ```bash
