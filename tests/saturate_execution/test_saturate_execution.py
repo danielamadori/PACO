@@ -47,7 +47,7 @@ class TestSaturateExecution(unittest.TestCase):
         t1 = Task(s1, 0, 1, "T1", [], [], 1)
         t2 = Task(s1, 1, 2, "T2", [], [], 2)
 
-        self.assertEqual(states.activityState[s1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[s1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "The root should be completed without passing over")
         self.assertEqual(states.executed_time[s1], 3,
                          "S1 should be executed with time 3")
@@ -55,7 +55,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "T1 should be completed")
         self.assertEqual(states.executed_time[t1], 1,
                          "T1 should be completed at time 1")
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 2,
                          "T2 should be completed at time 2")
@@ -142,7 +142,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "The root should be active")
         self.assertEqual(states.executed_time[s1], 1,
                          "S1 should be executed with time 0")
-        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T1 should be completed without passing over")
         self.assertEqual(states.executed_time[t1], 1,
                          "T1 should be completed without passing over at time 1")
@@ -261,7 +261,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "The root should be active")
         self.assertEqual(states.executed_time[s1], 1,
                          "S1 should be executed with time 0")
-        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T1 should be completed without passing over")
         self.assertEqual(states.executed_time[t1], 1,
                          "T1 should be completed without passing over at time 1")
@@ -324,7 +324,7 @@ class TestSaturateExecution(unittest.TestCase):
 
         self.assertEqual(states.activityState[t1], ActivityState.COMPLETED, "T1 should be completed")
         self.assertEqual(states.executed_time[t1], 0, "T1 should be completed at time 0")
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER, "T2 should be completed without passing over")
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER, "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 1, "T2 should be completed at time 1")
 
         self.assertEqual(states.activityState[n1], ActivityState.ACTIVE, "N1 should be active, with two waiting children")
@@ -378,7 +378,7 @@ class TestSaturateExecution(unittest.TestCase):
 
         self.assertEqual(states.activityState[t1], ActivityState.COMPLETED, "T1 should be completed")
         self.assertEqual(states.executed_time[t1], 0, "T1 should be completed at time 0")
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER, "T2 should be completed without passing over")
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER, "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 1, "T2 should be completed at time 1")
         self.assertEqual(states.activityState[c1], ActivityState.ACTIVE, "C1 should be active, with two waiting children")
         self.assertEqual(states.executed_time[c1], 0, "C1 not increases its executed time")
@@ -474,15 +474,15 @@ class TestSaturateExecution(unittest.TestCase):
         t2 = Task(p1, 1, 2, "T2", [], [], 2)
 
 
-        self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "The root should be completed without passing over")
         self.assertEqual(states.executed_time[p1], 1,
                          "P1 should be executed with time 1")
-        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T1 should be completed without passing over")
         self.assertEqual(states.executed_time[t1], 1,
                          "T1 should be completed at time 1")
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 1,
                          "T2 should be completed at time 1")
@@ -500,7 +500,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "parallel_task1_lt_task2")
 
 
-        self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "The root should be completed without passing over")
         self.assertEqual(states.executed_time[p1], 2,
                          "P1 should be executed with time 2")
@@ -508,7 +508,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "T1 should be completed")
         self.assertEqual(states.executed_time[t1], 1,
                          "T1 should be completed at time 1")
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 2,
                          "T2 should be completed at time 2")
@@ -524,11 +524,11 @@ class TestSaturateExecution(unittest.TestCase):
         states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(parse_tree, States(), pending_choice, pending_natures)
         self.info(parse_tree, states, "parallel_task1_gt_task2")
 
-        self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "The root should be completed without passing over")
         self.assertEqual(states.executed_time[p1], 2,
                          "P1 should be executed with time 2")
-        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T1 should be completed without passing over")
         self.assertEqual(states.executed_time[t1], 2,
                          "T1 should be completed at time 2")
@@ -571,7 +571,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "T3 should be waiting")
         self.assertEqual(states.executed_time[t3], 0,
                          "T3 never increases its executed time")
-        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
+        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "T1 should be completed without passing over")
         self.assertEqual(states.executed_time[t1], 1,
                          "T1 should be completed at time 1")
@@ -1386,10 +1386,10 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[p1], 1, "P1 should be executed with time 1")
 
-        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER, "T1 should be completed without passing over")
+        self.assertEqual(states.activityState[t1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER, "T1 should be completed without passing over")
         self.assertEqual(states.executed_time[t1], 1, "T1 should be completed at time 0")
 
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER, "T2 should be completed without passing over")
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER, "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 1, "T2 should be completed at time 1")
 
         self.assertEqual(states.activityState[n1], ActivityState.ACTIVE, "N1 should be active, with two waiting children")
@@ -1437,7 +1437,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.activityState[t1], ActivityState.COMPLETED, "T1 should be completed")
         self.assertEqual(states.executed_time[t1], 1, "T1 should be completed at time 0")
 
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER, "T2 should be completed without passing over")
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER, "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 2, "T2 should be completed at time 1")
 
         self.assertEqual(states.activityState[n1], ActivityState.ACTIVE, "N1 should be active, with two waiting children")
@@ -1485,7 +1485,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.activityState[t1], ActivityState.ACTIVE, "T1 should be active")
         self.assertEqual(states.executed_time[t1], 1, "T1 should be completed at time 0")
 
-        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WIHTOUT_PASSING_OVER, "T2 should be completed without passing over")
+        self.assertEqual(states.activityState[t2], ActivityState.COMPLETED_WITHOUT_PASSING_OVER, "T2 should be completed without passing over")
         self.assertEqual(states.executed_time[t2], 1, "T2 should be completed at time 1")
 
         self.assertEqual(states.activityState[n1], ActivityState.ACTIVE, "N1 should be active, with two waiting children")

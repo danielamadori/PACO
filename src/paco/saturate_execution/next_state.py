@@ -14,8 +14,8 @@ def next_state(root: ParseNode, states: States, k: int) -> (States, int):
 		if remaining_time >= k:
 			#print(f"next_state:Task:remaining_time >= k: {remaining_time} >= {k}")
 			return (States(root,
-						ActivityState.ACTIVE if remaining_time > k else ActivityState.COMPLETED_WIHTOUT_PASSING_OVER,
-						states.executed_time[root] + k),
+						   ActivityState.ACTIVE if remaining_time > k else ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
+						   states.executed_time[root] + k),
 					0)
 
 		states.activityState[root] = ActivityState.COMPLETED
@@ -107,7 +107,7 @@ def next_state(root: ParseNode, states: States, k: int) -> (States, int):
 
 			status = ActivityState.COMPLETED
 		else:
-			status = ActivityState.COMPLETED_WIHTOUT_PASSING_OVER
+			status = ActivityState.COMPLETED_WITHOUT_PASSING_OVER
 
 		leftStates.update(rightStates)
 		leftStates.activityState[root] = status

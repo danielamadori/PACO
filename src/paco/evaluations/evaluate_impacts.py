@@ -26,7 +26,7 @@ def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64,
 
 def unavoidable_tasks(root: ParseNode, states: States) -> set[ParseNode]:
 	#print("root " + node_info(root, states))
-	if root in states.activityState and states.activityState[root] in [ActivityState.WILL_NOT_BE_EXECUTED, ActivityState.COMPLETED, ActivityState.COMPLETED_WIHTOUT_PASSING_OVER]:
+	if root in states.activityState and states.activityState[root] in [ActivityState.WILL_NOT_BE_EXECUTED, ActivityState.COMPLETED, ActivityState.COMPLETED_WITHOUT_PASSING_OVER]:
 		#print("general node with: -1, 2, 3")
 		return set()
 	if isinstance(root, Task):
