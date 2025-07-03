@@ -8,7 +8,7 @@ class ActivityState(enum.IntEnum):
 	WAITING = 0
 	ACTIVE = 1
 	COMPLETED = 2
-	COMPLETED_WIHTOUT_PASSING_OVER = 3
+	COMPLETED_WITHOUT_PASSING_OVER = 3
 
 	def __str__(self):
 		return str(self.value)

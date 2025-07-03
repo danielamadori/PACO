@@ -1,5 +1,3 @@
-import random
-import time
 import uuid
 import requests
 from env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES, H
@@ -39,4 +37,4 @@ def llm_response(bpmn_store: dict, user_message: str) -> dict:
 		return data["message"], data["bpmn"]
 
 	except Exception as e:
-		data["message"] = f"Error: {str(e)}", data["bpmn"]
+		return f"Error: {str(e)}", bpmn_store
