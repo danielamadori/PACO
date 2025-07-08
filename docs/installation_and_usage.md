@@ -1,5 +1,6 @@
 ---
 title: Installation and Usage
+layout: default
 ---
 
 <div class="page-wrapper">
