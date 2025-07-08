@@ -11,18 +11,8 @@ from view.example.layout import layout as example_layout
 
 
 def load_doc(name: str) -> str | None:
-    """Load a markdown document from the ``docs`` folder.
-
-    Parameters
-    ----------
-    name:
-        The url path component requested by the user. It may start with
-        a leading ``/`` which will be stripped.
-    Returns
-    -------
-    str | None
-        The file contents if found, otherwise ``None``.
-    """
+    if name == "/about":
+        name = "/index"
 
     docs_dir = Path(__file__).resolve().parents[2] / "docs"
     doc_path = docs_dir / f"{name.lstrip('/')}.md"
@@ -38,7 +28,7 @@ def load_doc(name: str) -> str | None:
             text = parts[2]
 
     text = text.replace("{% include navbar.html %}", "")
-    return text
+    return dcc.Markdown(text, dangerously_allow_html=True)
 
 
 app = dash.Dash(
@@ -61,13 +51,6 @@ app.layout = html.Div(
 )
 
 
-def load_md(pathname):
-    md_text = load_doc(pathname)
-    if md_text is not None:
-        return dcc.Markdown(md_text, dangerously_allow_html=True)
-    return None
-
-
 @app.callback(
     Output("navbar-container", "children"),
     Output("page-content", "children"),
@@ -83,7 +66,7 @@ def display_page(pathname):
     elif pathname == "/":
         return nav, home_layout()
     elif pathname == "/about" or pathname == "/installation_and_usage":
-        page = load_md(pathname)
+        page = load_doc(pathname)
         if page is not None:
             return nav, page
 
