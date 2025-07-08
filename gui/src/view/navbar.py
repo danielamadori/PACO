@@ -3,12 +3,13 @@ from dash import html
 from env import APP_NAME
 
 def navbar(pathname):
-	nav_items = [
-		dbc.NavItem(dbc.Button("☰", id="toggle-sidebar", color="secondary", className="me-2")) if pathname == '/' else None,
-		dbc.NavItem(dbc.NavLink("Home", href="/")),
-		dbc.NavItem(dbc.NavLink("Syntax", href="/syntax")),
-		dbc.NavItem(dbc.NavLink("Example", href="/example")),
-	]
+        nav_items = [
+                dbc.NavItem(dbc.Button("☰", id="toggle-sidebar", color="secondary", className="me-2")) if pathname == '/' else None,
+                dbc.NavItem(dbc.NavLink("Home", href="/")),
+                dbc.NavItem(dbc.NavLink("Syntax", href="/syntax")),
+                dbc.NavItem(dbc.NavLink("Example", href="/example")),
+                dbc.NavItem(dbc.NavLink("Docs", href="/docs")),
+        ]
 
 	nav_items = [item for item in nav_items if item is not None]
 
@@ -18,5 +19,4 @@ def navbar(pathname):
 			html.Div(APP_NAME, style={"color": "white", "fontWeight": "bold", "fontSize": "20px"}),
 		], fluid=True),
 		color="primary",
-		dark=True,
-	)
+		dark=True,	)
