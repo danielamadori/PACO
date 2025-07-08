@@ -11,9 +11,25 @@ from view.example.layout import layout as example_layout
 
 
 def load_doc(name: str) -> str | None:
-    doc_path = f"../../docs{name}.md"
+    """Load a markdown document from the ``docs`` folder.
+
+    Parameters
+    ----------
+    name:
+        The url path component requested by the user. It may start with
+        a leading ``/`` which will be stripped.
+    Returns
+    -------
+    str | None
+        The file contents if found, otherwise ``None``.
+    """
+
+    docs_dir = Path(__file__).resolve().parents[2] / "docs"
+    doc_path = docs_dir / f"{name.lstrip('/')}.md"
+
     if not doc_path.exists():
         return None
+
     text = doc_path.read_text(encoding="utf-8")
 
     if text.startswith("---"):
