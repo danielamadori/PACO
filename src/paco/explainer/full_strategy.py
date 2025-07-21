@@ -3,7 +3,7 @@ import random
 from itertools import product
 import numpy as np
 from paco.evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
-from paco.evaluations.evaluate_impacts import evaluate_expected_impacts, evaluate_unavoidable_impacts
+from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
 from paco.explainer.bdd.bdd import Bdd
 from paco.explainer.strategy_tree import saturate_execution
 from paco.explainer.strategy_view_point import StrategyViewPoint
@@ -47,9 +47,6 @@ def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint,
 			if bdd.typeStrategy == ExplanationType.CURRENT_IMPACTS:
 				vector = impacts
 				#print("Current impacts: ", vector)
-			elif bdd.typeStrategy == ExplanationType.UNAVOIDABLE_IMPACTS:
-				vector = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
-				#print("Unavoidable impacts: ", vector)
 			elif bdd.typeStrategy == ExplanationType.DECISION_BASED:
 				actual_decisions, features_names = find_all_decisions(region_tree)
 				vector = evaluate_decisions(actual_decisions, strategyViewPoint.states.activityState)
@@ -118,12 +115,9 @@ def full_strategy(region_tree: ParseTree, explained_choices: dict[ParseNode, Bdd
 	states, is_final, choices, natures, pending_choices, pending_natures = saturate_execution(region_tree, states, pending_choices, pending_natures)
 	probability, impacts = evaluate_expected_impacts(states, impacts_size)
 
-	unavoidable_impacts = evaluate_unavoidable_impacts(region_tree.root, states, impacts)
-
 	strategyViewPoint = StrategyViewPoint(bpmn_root=region_tree.root, id=id, states=states,
 										  decisions=decisions_taken, choices=choices,
 										  natures=natures, is_final_state=is_final,
-										  unavoidable_impacts= unavoidable_impacts,
 										  impacts=impacts, probability=probability,
 										  pending_choices=pending_choices,
 										  pending_natures=pending_natures)

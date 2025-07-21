@@ -7,7 +7,7 @@ from view.example.second_example import get_second_example
 from view.example.third_example import get_third_example
 
 FIRST_EXAMPLE_PATH = "gui/src/assets/bpmn_fig8_bound_135_15.json"
-SECOND_EXAMPLE_PATH = "gui/src/assets/bpmn_unavoidable_impacts_bound_5_6.json"
+SECOND_EXAMPLE_PATH = "gui/src/assets/bpmn_unavoidable_impacts_bound_5_6.json"# TODO DECISON BASED EXAMPLE
 THIRD_EXAMPLE_PATH = "gui/src/assets/bpmn_random_bound_300_272.json"
 
 def layout():
