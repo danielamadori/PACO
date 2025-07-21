@@ -4,15 +4,12 @@ import numpy as np
 from paco.parser.parse_tree import ParseTree
 from paco.parser.parse_node import ParseNode
 from paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
-from paco.evaluations.evaluate_impacts import evaluate_unavoidable_impacts
-
 
 class ExplanationType(enum.IntEnum):
 	FORCED_DECISION = -1
 	CURRENT_IMPACTS = 0
-	UNAVOIDABLE_IMPACTS = 1
-	DECISION_BASED = 2
-	HYBRID = 3
+	DECISION_BASED = 1
+	HYBRID = 2
 
 	def __str__(self):
 		return str(self.name)
@@ -30,22 +27,6 @@ def current_impacts(decisions: dict[ParseNode, set['ExecutionTree']]) -> (list, 
 
 	return impacts, impacts_labels
 
-
-def unavoidable_impacts(region_tree: ParseTree, decisions: dict[ParseNode, set['ExecutionTree']]) -> (list, list):
-	#print("Unavoidable impacts:")
-	impacts, impacts_labels = [], []
-	for decision_taken, executionTrees in decisions.items():
-		#print(f"Decision: {decision_taken.name if decision_taken.name else decision_taken.id} has {len(executionTrees)} execution trees")
-		for executionTree in executionTrees:
-			impacts.append(
-				evaluate_unavoidable_impacts(region_tree.root,
-											 executionTree.root.states,
-											 executionTree.root.impacts)
-			)
-			impacts_labels.append(decision_taken.id)
-			#print(f"UI({decision_taken.name if decision_taken.name else decision_taken.id}): {impacts[-1]}")
-
-	return impacts, impacts_labels
 
 
 def decision_based(region_tree: ParseTree, decisions_taken: dict[ParseNode, set['ExecutionTree']]) -> (list[ParseNode], list[np.ndarray], list):
