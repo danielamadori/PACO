@@ -22,6 +22,7 @@ COPY gui/src ./gui/src/
 COPY *.ipynb ./
 COPY CPIs ./CPIs
 COPY simulator/ ./simulator/
+COPY bpmn_test_api.json ./
 
 EXPOSE 8000
 EXPOSE 8001
