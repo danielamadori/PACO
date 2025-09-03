@@ -80,10 +80,12 @@ def main():
             gui_process = launch_subprocess("GUI", "gui/src/main.py")
             server_process = launch_subprocess("SERVER",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
+            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
 
         case "--api":
             server_process = launch_subprocess("SERVER",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
+            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
         case "--help":
             print_help()
             sys.exit(0)
@@ -99,6 +101,8 @@ def main():
             exit_codes.append(server_process.wait())
         if gui_process:
             exit_codes.append(gui_process.wait())
+        if simulator_process:
+            exit_codes.append(simulator_process.wait())
         logger.info(f"Subprocesses exited with codes: {exit_codes}")
     except KeyboardInterrupt:
         handle_termination(signal.SIGINT, None)
