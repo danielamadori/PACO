@@ -10,9 +10,11 @@ WORKDIR /app
 
 COPY requirements.txt ./requirements-server.txt
 COPY gui/requirements.txt ./requirements-gui.txt
+COPY simulator/requirements.txt ./requirements-simulator.txt
 
 RUN pip install --no-cache-dir -r requirements-server.txt
 RUN pip install --no-cache-dir -r requirements-gui.txt
+RUN pip install --no-cache-dir -r requirements-simulator.txt
 RUN pip install jupyter
 
 COPY src ./src
