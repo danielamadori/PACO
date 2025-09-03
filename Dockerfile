@@ -23,6 +23,8 @@ COPY *.ipynb ./
 COPY CPIs ./CPIs
 COPY simulator/ ./simulator/
 COPY bpmn_test_api.json ./
+COPY dot.py ./
+
 
 EXPOSE 8000
 EXPOSE 8001
