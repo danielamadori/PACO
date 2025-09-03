@@ -80,12 +80,12 @@ def main():
             gui_process = launch_subprocess("GUI", "gui/src/main.py")
             server_process = launch_subprocess("SERVER",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
-            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
+            #simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
 
         case "--api":
             server_process = launch_subprocess("SERVER",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
-            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
+            #simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
         case "--help":
             print_help()
             sys.exit(0)

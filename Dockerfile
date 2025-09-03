@@ -19,9 +19,10 @@ COPY src ./src
 COPY gui/src ./gui/src/
 COPY *.ipynb ./
 COPY CPIs ./CPIs
-COPY simulator/ simulator/
+COPY simulator/ .simulator/
 
 EXPOSE 8000
+EXPOSE 8001
 EXPOSE 8050
 EXPOSE 8888
 

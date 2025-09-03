@@ -45,7 +45,7 @@ To start the application using Docker, follow these steps:
 1. Pull and start the Docker:
     ```bash
     docker pull danielamadori/paco:latest
-    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -it --name PACO danielamadori/paco:latest
+    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -p 8001:8001 -it --name PACO danielamadori/paco:latest
     docker logs PACO
     ```
    Note: Replace latest with a specific version number if needed.
