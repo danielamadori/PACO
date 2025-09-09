@@ -14,7 +14,7 @@ def single_experiment(D, num_refinements = 10):
     bpmn = cpi_to_standard_format(D)
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 
-    parse_tree, pending_choices, pending_natures = create_parse_tree(bpmn)
+    parse_tree, pending_choices, pending_natures, pending_loops = create_parse_tree(bpmn)
     initial_bounds = parse_tree.sample_expected_impact()
     if not initial_bounds:
         raise ValueError("No impacts found in the model")
