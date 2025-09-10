@@ -60,7 +60,8 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
             if lark_tree.children[1].value not in probabilities:
                 raise ValueError(f"Probability for {lark_tree.children[1].value} not found in the probabilities dictionary")
 
-            node = Nature(parent, index_in_parent, id, name, probability=probabilities[lark_tree.children[1].value])
+            p = probabilities[lark_tree.children[1].value]
+            node = Nature(parent, index_in_parent, id, name, probability=p)
             #print(f"Nature: {name}, Probability: {node.probability}, ID: {id}")
             pending_natures.add(node)
 

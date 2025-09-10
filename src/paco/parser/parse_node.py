@@ -70,6 +70,9 @@ class Gateway(ParseNode, ABC):
         })
         return base
 
+    sx_child = property(lambda self: self.children[0] if self.children and len(self.children) > 0 else None)
+    dx_child = property(lambda self: self.children[1] if self.children and len(self.children) > 1 else None)
+
 
 class Sequential(Gateway):
     def __init__(self, parent: Gateway, index_in_parent: int, id: int) -> None:
@@ -108,7 +111,7 @@ class ExclusiveGateway(Gateway, ABC):
 
     @abstractmethod
     def to_dict(self) -> dict:
-        base = {"name": self.name}
+        base = {"label": self.name}
         base.update(super().to_dict())
         return base
 
@@ -150,17 +153,19 @@ class Nature(ExclusiveGateway):
         return root_copy
 
     def to_dict(self) -> dict:
-        base = {"probability": self.probability}
+        p = float(self.probability)
+        base = {"distribution": [p, 1-p]}
         base.update(super().to_dict())
         return base
 
 
-class Loop(Nature):
+class Loop(ExclusiveGateway):
 
     def __init__(self, parent: Gateway, index_in_parent: int, id: int, name: str, probability: float,
                  bound: int) -> None:
-        super().__init__(parent, index_in_parent, id, name, probability)
+        super().__init__(parent, index_in_parent, id, name)
         self.bound = bound
+        self.probability = np.float64(probability)
 
     @overrides
     def set_children(self, *children) -> None:
@@ -171,9 +176,19 @@ class Loop(Nature):
 
     @overrides
     def to_dict(self) -> dict:
-        base = {"probability": self.probability, "bound": self.bound}
+        base = {"distribution": float(self.probability), "bound": self.bound}
         base.update(super().to_dict())
         return base
+
+    def dot(self):
+        return f'\n node_{self.id}[shape=diamond label="{self.name} id:{self.id}" style="filled" fillcolor=yellowgreen];'
+
+    def copy(self) -> 'Loop':
+        parent_copy = self.parent.copy() if self.parent else None
+        root_copy = Loop(parent_copy, self.index_in_parent, self.id, self.name, self.probability, self.bound)
+        children_copy = [child.copy() for child in self.children] if self.children else []
+        root_copy.set_children(children_copy)
+        return root_copy
 
 
 class Task(ParseNode):
@@ -181,21 +196,21 @@ class Task(ParseNode):
                  duration: int) -> None:
         super().__init__(parent, index_in_parent, id)
         self.name = name
-        self.impact = np.array(impact, dtype=np.float64)
+        self.impacts = np.array(impact, dtype=np.float64)
         self.duration = duration
 
     def dot(self):
-        return f'\n node_{self.id}[label="{self.name}\n{self.impact}\ndur:{self.duration} id:{self.id}" shape=rectangle style="rounded, filled" fillcolor=lightblue];'
+        return f'\n node_{self.id}[label="{self.name}\n{self.impacts}\ndur:{self.duration} id:{self.id}" shape=rectangle style="rounded, filled" fillcolor=lightblue];'
 
     def copy(self) -> 'Task':
         parent_copy = self.parent.copy() if self.parent else None
-        return Task(parent_copy, self.index_in_parent, self.id, self.name, self.impact.tolist().copy(), self.duration)
+        return Task(parent_copy, self.index_in_parent, self.id, self.name, self.impacts.tolist().copy(), self.duration)
 
     def to_dict(self) -> dict:
         base = super().to_dict()
         base.update({
-            "name": self.name,
-            "impact": self.impact.tolist(),
+            "label": self.name,
+            "impacts": self.impacts.tolist(),
             "duration": self.duration,
         })
         return base
