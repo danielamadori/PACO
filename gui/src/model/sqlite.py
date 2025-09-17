@@ -1,4 +1,4 @@
-from pony.orm import Database, Required, Optional, Set, db_session, commit
+from pony.orm import Database, Required, Optional, Set, db_session, commit, rollback
 import json
 from env import DB_PATH
 
@@ -37,7 +37,7 @@ if not db.provider:
 
 
 @db_session
-def fetch_bpmn(bpmn_dict:dict):
+def fetch_bpmn(bpmn_dict:dict) -> BPMN | None:
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     return BPMN.get(bpmn=bpmn_str)
 
@@ -117,3 +117,21 @@ def save_execution_petri_net(bpmn_dict:dict, execution_petri_net:str, actual_exe
         record.execution_petri_net = execution_petri_net or ""
         record.actual_execution = actual_execution or ""
         commit()
+
+@db_session
+def save_bpmn_record(bpmn: dict, bpmn_dot: bytes | str, parse_tree: dict, execution_tree: dict, petri_net: dict, petri_net_dot: bytes | str, execution_petri_net: dict, actual_execution: str):
+    bpmn_str = json.dumps(bpmn, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        rollback()
+        return
+
+    record.bpmn_dot = bpmn_dot.decode('utf-8') if isinstance(bpmn_dot, bytes) else bpmn_dot or ""
+    record.parse_tree = json.dumps(parse_tree) if parse_tree else ""
+    record.execution_tree = json.dumps(execution_tree) if execution_tree else ""
+    record.petri_net = json.dumps(petri_net) if petri_net else ""
+    record.petri_net_dot = petri_net_dot.decode('utf-8') if isinstance(petri_net_dot, bytes) else petri_net_dot or ""
+    record.execution_petri_net = json.dumps(execution_petri_net) if execution_petri_net else ""
+    record.actual_execution = actual_execution or ""
+
+    commit()
