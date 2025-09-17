@@ -126,6 +126,7 @@ def save_bpmn_record(bpmn: dict, bpmn_dot: bytes | str, parse_tree: dict, execut
         rollback()
         return
 
+    record = BPMN(bpmn=bpmn_str)
     record.bpmn_dot = bpmn_dot.decode('utf-8') if isinstance(bpmn_dot, bytes) else bpmn_dot or ""
     record.parse_tree = json.dumps(parse_tree) if parse_tree else ""
     record.execution_tree = json.dumps(execution_tree) if execution_tree else ""

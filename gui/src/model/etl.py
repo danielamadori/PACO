@@ -1,18 +1,15 @@
 import ast
 import base64
 from copy import deepcopy
-from typing import TYPE_CHECKING
 
 import graphviz
 import requests
 
 from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
     LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND, SIMULATOR_SERVER
+from model.sqlite import BPMN
 from model.sqlite import fetch_bpmn
 from model.sqlite import fetch_strategy, save_strategy, save_bpmn_record
-
-if TYPE_CHECKING:
-    from model.sqlite import BPMN
 
 
 def load_all_bpmn_data(bpmn: dict) -> BPMN:
@@ -60,7 +57,8 @@ def load_all_bpmn_data(bpmn: dict) -> BPMN:
 
     # Create BPMN DOT
     from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
-    active_regions = get_active_region_by_pn(resp_petri_net, resp_petri_net_dot)
+    current_node = get_current_execution_node(execution_tree, current_execution_node)
+    active_regions = get_active_region_by_pn(resp_petri_net, current_node['snapshot']['marking'])
     bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS] if IMPACTS_NAMES in bpmn else [],
                                                 active_regions)
     bpmn_svg = graphviz.Source(bpmn_dot_str).pipe(format='svg')
@@ -78,6 +76,14 @@ def load_all_bpmn_data(bpmn: dict) -> BPMN:
 
     return fetch_bpmn(bpmn)
 
+def get_current_execution_node(root: dict, current_id: str) -> dict | None:
+    if root['id'] == current_id:
+        return root
+    for child in root.get('children', []):
+        result = get_current_execution_node(child, current_id)
+        if result:
+            return result
+    return None
 
 def load_bpmn_dot(bpmn: dict) -> str:
     record = load_all_bpmn_data(bpmn)

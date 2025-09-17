@@ -127,7 +127,7 @@ def region_to_dot(region_root, impacts_names, active_regions):
         ), _id, _id
     elif region_root.get("type") == 'loop':
         entry_id = next(id_generator)
-        ext_id = next(id_generator)
+        exit_id = next(id_generator)
 
         # Entry point
         code = loop_gateway_to_dot(
@@ -140,7 +140,7 @@ def region_to_dot(region_root, impacts_names, active_regions):
 
         # Exit point
         code += loop_gateway_to_dot(
-            ext_id,
+            exit_id,
             region_root.get('label'),
             region_root.get('style')
         )
@@ -150,10 +150,11 @@ def region_to_dot(region_root, impacts_names, active_regions):
                                                                   active_regions)
         code += other_code
         p = region_root.get('distribution')
-        code += arc_to_dot(entry_id, child_entry_id, p)
-        code += arc_to_dot(child_exit_id, ext_id, 1 - p)
+        code += arc_to_dot(entry_id, child_entry_id)
+        code += arc_to_dot(exit_id, entry_id, p)
+        code += arc_to_dot(child_exit_id, exit_id, 1 - p)
 
-        return code, entry_id, ext_id
+        return code, entry_id, exit_id
     elif region_root.get("type") == 'choice':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
