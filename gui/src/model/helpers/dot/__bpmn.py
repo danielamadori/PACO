@@ -68,11 +68,11 @@ def task_to_dot(_id, name, style, impacts, duration, impacts_names, border_color
     )
 
 
-def arc_to_dot(from_id, to_id, label=None):
+def arc_to_dot(source, target, label=None):
     if label is None:
-        return f'\nnode_{from_id} -> node_{to_id};\n'
+        return f'\nnode_{source} -> node_{target};\n'
     else:
-        return f'\nnode_{from_id} -> node_{to_id}[label="{label}"];\n'
+        return f'\nnode_{source} -> node_{target}[label="{label}"];\n'
 
 
 def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set[str] = None):
@@ -91,10 +91,10 @@ def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set
     code += "rankdir=LR;\n"
     code += 'start[label="" style="filled" shape=circle fillcolor=palegreen1]\n'
     code += 'end[label="" style="filled" shape=doublecircle fillcolor=orangered] \n'
-    other_code, entry_id, exit_id = region_to_dot(region_root, impacts_names, active_regions)
+    other_code, entry_id, exit_id, exit_p = region_to_dot(region_root, impacts_names, active_regions)
     code += other_code
     code += f'start -> node_{entry_id};\n'
-    code += f'node_{exit_id} -> end;\n'
+    code += f'node_{exit_id} -> end[label="{exit_p}"];\n'
     code += "\n}"
 
     return code
@@ -111,7 +111,14 @@ def serial_generator():
 id_generator = serial_generator()
 
 
-def region_to_dot(region_root, impacts_names, active_regions):
+def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int, int, float]:
+    """
+    Create the dot representation of a region.
+    :param region_root: Parse tree of the expression
+    :param impacts_names: Impacts names to display
+    :param active_regions: Ids of the active regions to highlight
+    :return: Dot representation of the region, entry id, exit id, probability to reach the exit
+    """
     is_active = region_root.get('id') in active_regions
     if region_root.get("type") == 'task':
         _id = next(id_generator)
@@ -124,7 +131,7 @@ def region_to_dot(region_root, impacts_names, active_regions):
             impacts_names,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
-        ), _id, _id
+        ), _id, _id, 1.0
     elif region_root.get("type") == 'loop':
         entry_id = next(id_generator)
         exit_id = next(id_generator)
@@ -146,15 +153,15 @@ def region_to_dot(region_root, impacts_names, active_regions):
         )
 
         # Child
-        other_code, child_entry_id, child_exit_id = region_to_dot(region_root.get('children')[0], impacts_names,
+        other_code, child_entry_id, child_exit_id, exit_p = region_to_dot(region_root.get('children')[0], impacts_names,
                                                                   active_regions)
         code += other_code
         p = region_root.get('distribution')
         code += arc_to_dot(entry_id, child_entry_id)
-        code += arc_to_dot(exit_id, entry_id, p)
-        code += arc_to_dot(child_exit_id, exit_id, 1 - p)
+        code += arc_to_dot(exit_id, entry_id, label=p)
+        code += arc_to_dot(child_exit_id, exit_id, label=exit_p if exit_p != 1 else None)
 
-        return code, entry_id, exit_id
+        return code, entry_id, exit_id, 1-p
     elif region_root.get("type") == 'choice':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
@@ -177,12 +184,12 @@ def region_to_dot(region_root, impacts_names, active_regions):
 
         # Children
         for child in region_root.get('children', []):
-            child_code, child_entry_id, child_exit_id = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id)
-            code += arc_to_dot(child_exit_id, last_exit_id)
+            code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
 
-        return code, entry_id, last_exit_id
+        return code, entry_id, last_exit_id, 1.0
     elif region_root.get("type") == 'parallel':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
@@ -203,12 +210,12 @@ def region_to_dot(region_root, impacts_names, active_regions):
 
         # Children
         for child in region_root.get('children', []):
-            child_code, child_entry_id, child_exit_id = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id)
-            code += arc_to_dot(child_exit_id, last_exit_id)
+            code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
 
-        return code, entry_id, last_exit_id
+        return code, entry_id, last_exit_id, 1.0
     elif region_root.get("type") == 'nature':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
@@ -231,30 +238,37 @@ def region_to_dot(region_root, impacts_names, active_regions):
 
         # Children
         for child, p in zip(region_root.get('children', []), region_root.get("distribution", [])):
-            child_code, child_entry_id, child_exit_id = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id, p)
-            code += arc_to_dot(child_exit_id, last_exit_id)
+            code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
 
-        return code, entry_id, last_exit_id
+        return code, entry_id, last_exit_id, 1.0
     elif region_root.get("type") == 'sequential':
         code = ""
         entry_id = None
         last_exit_id = None
+        last_exit_p = None
 
         for i, child in enumerate(region_root.get('children', [])):
-            child_code, child_entry_id, child_exit_id = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
 
-            arc = arc_to_dot(last_exit_id, child_entry_id) if last_exit_id is not None else ""
+            if last_exit_id is not None:
+                arc = arc_to_dot(last_exit_id,
+                                 child_entry_id,
+                                 label=last_exit_p if last_exit_p is not None and last_exit_p != 1 else None)
+            else:
+                arc = ""
             if entry_id is None:
                 entry_id = child_entry_id
                 arc = ""
 
             last_exit_id = child_exit_id
+            last_exit_p = exit_p
             code += arc
 
-        return code, entry_id, last_exit_id
+        return code, entry_id, last_exit_id, last_exit_p
     else:
         raise ValueError(f"Unknown type: {region_root['type']}")
 
