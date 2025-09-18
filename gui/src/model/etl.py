@@ -59,7 +59,7 @@ def load_all_bpmn_data(bpmn: dict) -> BPMN:
     from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
     current_node = get_current_execution_node(execution_tree, current_execution_node)
     active_regions = get_active_region_by_pn(resp_petri_net, current_node['snapshot']['marking'])
-    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS] if IMPACTS_NAMES in bpmn else [],
+    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
                                                 active_regions)
     bpmn_svg = graphviz.Source(bpmn_dot_str).pipe(format='svg')
     bpmn_svg_base64 = f"data:image/svg+xml;base64,{base64.b64encode(bpmn_svg).decode('utf-8')}"
