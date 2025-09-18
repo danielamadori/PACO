@@ -9,6 +9,7 @@ from utils.logger import log_output, logger
 
 gui_process = None
 server_process = None
+simulator_process = None
 
 def print_help():
     help_text = """
@@ -51,7 +52,7 @@ def launch_subprocess(label, path):
 
 def handle_termination(signum, frame):
     logger.warning(f"Signal {signum} received. Terminating processes...")
-    for label, proc in [("GUI", gui_process), ("SERVER", server_process)]:
+    for label, proc in [("GUI", gui_process), ("SERVER", server_process), ("SIMULATOR", simulator_process)]:
         if proc is not None:
             try:
                 proc.terminate()
@@ -67,7 +68,7 @@ signal.signal(signal.SIGINT, handle_termination)
 
 
 def main():
-    global gui_process, server_process
+    global gui_process, server_process, simulator_process
     args = [arg for arg in sys.argv[1:] if not arg.startswith("--log")]
 
     logger.info("Starting PACO")
