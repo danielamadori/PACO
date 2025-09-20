@@ -1,63 +1,86 @@
-import random
+def get_targets(petri_net, component_id):
+    """
+    Given a Petri net and a component ID, return the target transitions or places
+    """
+    component = None
+    for place in petri_net['places']:
+        if place['id'] == component_id:
+            component = place
+            break
+    if not component:
+        for transition in petri_net['transitions']:
+            if transition['id'] == component_id:
+                component = transition
+                break
+    if not component:
+        return []
 
-from model.etl import get_petri_net
-
-
-def update_petri_net(bpmn, step:int):
-	petri_net, petri_net_dot, execution_tree_petri_net, actual_execution_tree_petri_net = get_petri_net(bpmn, step)
-	return petri_net, petri_net_dot, actual_execution_tree_petri_net
-
-
-
-import random
-import string
-
-def random_label(length=3):
-	return ''.join(random.choices(string.ascii_uppercase, k=length))
-
-def random_distribution_dict(num_entries):
-	keys = [random_label() for _ in range(num_entries)]
-	values = [random.uniform(0.1, 1.0) for _ in keys]
-	total = sum(values)
-	return {k: round(v / total, 2) for k, v in zip(keys, values)}
-
-def generate_pending_gateway(num_gateways=5):
-	pending_gateway = {}
-	for i in range(num_gateways):
-		gateway_type = random.choice(["C", "N"])
-		gateway_id = f"{gateway_type}{i+1}"
-		num_choices = random.randint(2, 5)
-		pending_gateway[gateway_id] = random_distribution_dict(num_choices)
-	return pending_gateway
+    return [arc['target'] for arc in petri_net['arcs'] if arc['source'] == component_id]
 
 
-def simulate_execution(bpmn, step:int):
-	#_, _, actual_execution_tree_petri_net = update_petri_net(bpmn, step)
+def get_choices_for_exclusive_gateway(petri_net, place_id):
+    """
+    Given a Petri net and a place ID, return the possible choices (transitions)
+    """
+    region_transitions = {}
 
-	pending_gateway = generate_pending_gateway()
+    place_targets = get_targets(petri_net, place_id)
+    for transition in place_targets:
+        transition_targets = get_targets(petri_net, transition)
+        transition_info = get_transition_info(petri_net, transition)
+        if len(transition_targets) > 1:
+            # TODO: log warning
+            pass
+        choice_place = get_place_info(petri_net, transition_targets[0])
+        region_transitions[choice_place['label']] = dict(label=choice_place['entry_region_id'],
+                                                         transition_id=transition,
+                                                         probability=transition_info.get('probability', 0.5))
 
-	probability = round(random.uniform(0.01, 0.99), 10)
-	execution_time = random.randint(5, 30)
+    return region_transitions
 
-	impacts = {
-		"Cost": round(random.uniform(5.0, 50.0), 1),
-		"Time": round(random.uniform(10.0, 60.0), 1),
-		"CO2": round(random.uniform(1.0, 10.0), 1)
-	}
 
-	expected_values = {
-		"Cost": round(impacts["Cost"] * random.uniform(0.1, 0.5), 1),
-		"Time": round(impacts["Time"] * random.uniform(0.1, 0.5), 1),
-		"CO2": round(impacts["CO2"] * random.uniform(0.1, 0.9), 1)
-	}
+def get_place_info(petri_net, place_id):
+    """
+    Given a Petri net and a place ID, return the place information
+    """
+    for place in petri_net['places']:
+        if place['id'] == place_id:
+            return place
 
-	return {
-		"gateway_decisions": pending_gateway,
-		"impacts": impacts,
-		"expected_impacts": expected_values,
-		"execution_time": execution_time,
-		"probability": probability
-	}
+    return None
 
+
+def get_transition_info(petri_net, transition_id):
+    """
+    Given a Petri net and a transition ID, return the transition information
+    """
+    for transition in petri_net['transitions']:
+        if transition['id'] == transition_id:
+            return transition
+
+    return None
+
+
+def get_pending_decisions(petri_net, marking):
+    # This function should analyze the petri_net and marking to find pending gateways
+    # For simplicity, we will return a mock dictionary
+    active_places = [place for place in marking if marking[place]['token'] > 0]
+    pending_decisions = {}
+
+    for place in active_places:
+        place_info = get_place_info(petri_net, place)
+        region_label = place_info['label']
+        if place_info['region_type'] not in ['choice', 'nature', 'loop']:
+            # skip non-gateway places
+            continue
+        if marking[place]['age'] < place_info.get('duration', 0.0):
+            # skip if not yet ready
+            continue
+
+        choices = get_choices_for_exclusive_gateway(petri_net, place_info['id'])
+        if choices:
+            pending_decisions[region_label] = choices
+
+    return pending_decisions
 
 

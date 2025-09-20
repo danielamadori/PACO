@@ -66,6 +66,32 @@ def save_bpmn_dot(bpmn_dict:dict, bpmn_dot:str):
         commit()
 
 @db_session
+def update_bpmn_dot(bpmn_dict:dict, bpmn_dot:str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.bpmn_dot = bpmn_dot or ""
+        commit()
+
+@db_session
+def save_execution_tree(bpmn_dict: dict, execution_tree: str, actual_execution: str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.execution_tree = execution_tree or ""
+        record.actual_execution = actual_execution or ""
+        commit()
+
+@db_session
+def save_parse_tree(bpmn_dict:dict, parse_tree:str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.parse_tree = parse_tree or ""
+        commit()
+
+
+@db_session
 def save_parse_and_execution_tree(bpmn_dict:dict, parse_tree:str, execution_tree:str):
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     record = BPMN.get(bpmn=bpmn_str)
@@ -122,17 +148,22 @@ def save_execution_petri_net(bpmn_dict:dict, execution_petri_net:str, actual_exe
 def save_bpmn_record(bpmn: dict, bpmn_dot: bytes | str, parse_tree: dict, execution_tree: dict, petri_net: dict, petri_net_dot: bytes | str, execution_petri_net: dict, actual_execution: str):
     bpmn_str = json.dumps(bpmn, sort_keys=True)
     record = BPMN.get(bpmn=bpmn_str)
-    if record:
-        rollback()
-        return
+    if not record:
+        record = BPMN(bpmn=bpmn_str)
 
-    record = BPMN(bpmn=bpmn_str)
-    record.bpmn_dot = bpmn_dot.decode('utf-8') if isinstance(bpmn_dot, bytes) else bpmn_dot or ""
-    record.parse_tree = json.dumps(parse_tree) if parse_tree else ""
-    record.execution_tree = json.dumps(execution_tree) if execution_tree else ""
-    record.petri_net = json.dumps(petri_net) if petri_net else ""
-    record.petri_net_dot = petri_net_dot.decode('utf-8') if isinstance(petri_net_dot, bytes) else petri_net_dot or ""
-    record.execution_petri_net = json.dumps(execution_petri_net) if execution_petri_net else ""
-    record.actual_execution = actual_execution or ""
+    if bpmn_dot is not None:
+        record.bpmn_dot = bpmn_dot.decode('utf-8') if isinstance(bpmn_dot, bytes) else bpmn_dot
+    if parse_tree is not None:
+        record.parse_tree = json.dumps(parse_tree)
+    if execution_tree is not None:
+        record.execution_tree = json.dumps(execution_tree)
+    if petri_net is not None:
+        record.petri_net = json.dumps(petri_net)
+    if petri_net_dot is not None:
+        record.petri_net_dot = petri_net_dot.decode('utf-8') if isinstance(petri_net_dot, bytes) else petri_net_dot
+    if execution_petri_net is not None:
+        record.execution_petri_net = json.dumps(execution_petri_net)
+    if actual_execution is not None:
+        record.actual_execution = actual_execution
 
     commit()

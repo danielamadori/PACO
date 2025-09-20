@@ -1,5 +1,6 @@
 import ast
 import base64
+import json
 from copy import deepcopy
 
 import graphviz
@@ -7,27 +8,82 @@ import requests
 
 from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
     LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND, SIMULATOR_SERVER
-from model.sqlite import BPMN
-from model.sqlite import fetch_bpmn
-from model.sqlite import fetch_strategy, save_strategy, save_bpmn_record
+from model.execution_tree import get_execution_node, get_current_marking_from_execution_tree, get_execution_probability, \
+    get_execution_time, get_execution_impacts
+from model.petri_net import get_pending_decisions
+from model.sqlite import fetch_bpmn, save_execution_tree, save_parse_tree, save_petri_net
+from model.sqlite import fetch_strategy, save_strategy
+from model.sqlite import save_petri_net, save_bpmn_dot
 
 
-def load_all_bpmn_data(bpmn: dict) -> BPMN:
+def load_bpmn_dot(bpmn: dict) -> str:
+    bpmn = keep_relevant_bpmn(bpmn)
+    record = fetch_bpmn(bpmn)
+    if record and record.bpmn_dot:
+        return record.bpmn_dot
+
+    bpmn_dot = bpmn_to_dot(bpmn)
+    bpmn_svg_base64 = dot_to_svg(bpmn_dot)
+
+    save_bpmn_dot(bpmn, bpmn_svg_base64)
+
+    return bpmn_svg_base64
+
+def dot_to_svg(dot: str) -> str:
+    svg = graphviz.Source(dot).pipe(format='svg')
+    svg_base64 = f"data:image/svg+xml;base64,{base64.b64encode(svg).decode('utf-8')}"
+    return svg_base64
+
+def bpmn_to_dot(bpmn) -> str:
+    parse_tree = load_parse_tree(bpmn)
+    petri_net, _ = get_petri_net(bpmn, step=0)
+    execution_tree, current_execution_node = load_execution_tree(bpmn)
+
+    from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
+    current_node = get_execution_node(execution_tree, current_execution_node)
+    active_regions = get_active_region_by_pn(petri_net, current_node['snapshot']['marking'])
+    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
+                                                active_regions)
+    return bpmn_dot_str
+
+
+def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
+    import model.sqlite
+
+    bpmn = keep_relevant_bpmn(bpmn)
+    model.sqlite.update_bpmn_dot(bpmn, bpmn_dot)
+
+
+def load_parse_tree(bpmn: dict) -> dict:
     bpmn = keep_relevant_bpmn(bpmn)
     if bpmn is None:
         raise ValueError("BPMN expression is empty")
 
     record = fetch_bpmn(bpmn)
-    if record:
-        return record
+    if record and record.parse_tree:
+        return json.loads(record.parse_tree)
 
     resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": bpmn}, headers=HEADERS)
     resp.raise_for_status()
 
-    r = resp.json()
-    parse_tree = r["parse_tree"]
+    resp_json = resp.json()
+    if 'error' in resp_json:
+        raise ValueError(f"Error from server: {resp_json['error']}")
 
-    # Get all info from simulator
+    parse_tree = resp_json["parse_tree"]
+    save_parse_tree(bpmn, json.dumps(parse_tree))
+
+    return parse_tree
+
+
+def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
+    bpmn = keep_relevant_bpmn(bpmn)
+    record = fetch_bpmn(bpmn)
+    if record and record.execution_tree and record.actual_execution:
+        return json.loads(record.execution_tree), record.actual_execution
+
+    parse_tree = load_parse_tree(bpmn)
+
     resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
     resp.raise_for_status()
     resp_json = resp.json()
@@ -35,74 +91,47 @@ def load_all_bpmn_data(bpmn: dict) -> BPMN:
     if 'error' in resp_json:
         raise ValueError(f"Simulator error: {resp_json['error']}")
 
-    resp_bpmn = resp_json.get('bpmn', None)
-    if resp_bpmn is None:
-        raise ValueError("Simulator error: No BPMN returned")
-    resp_petri_net = resp_json.get('petri_net', None)
-    if resp_petri_net is None:
-        raise ValueError("Simulator error: No Petri net returned")
-    resp_petri_net_dot = resp_json.get('petri_net_dot', None)
-    if resp_petri_net_dot is None:
-        raise ValueError("Simulator error: No Petri net dot returned")
-    resp_execution_tree_raw = resp_json.get('execution_tree', None)
-    if resp_execution_tree_raw is None:
+    execution_tree = resp_json.get('execution_tree', None)
+    if execution_tree is None:
         raise ValueError("Simulator error: No execution tree returned")
 
-    execution_tree = resp_execution_tree_raw.get('root', None)
-    if execution_tree is None:
-        raise ValueError("Simulator error: No execution tree root returned")
-    current_execution_node = resp_execution_tree_raw.get('current_node', None)
-    if current_execution_node is None:
-        raise ValueError("Simulator error: No execution tree current node returned")
+    execution_tree_root = execution_tree.get('root', None)
+    current_execution_node = execution_tree.get('current_node', None)
 
-    # Create BPMN DOT
-    from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
-    current_node = get_current_execution_node(execution_tree, current_execution_node)
-    active_regions = get_active_region_by_pn(resp_petri_net, current_node['snapshot']['marking'])
-    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
-                                                active_regions)
-    bpmn_svg = graphviz.Source(bpmn_dot_str).pipe(format='svg')
-    bpmn_svg_base64 = f"data:image/svg+xml;base64,{base64.b64encode(bpmn_svg).decode('utf-8')}"
+    if execution_tree_root is None or current_execution_node is None:
+        raise ValueError("Simulator error: Incomplete execution tree data")
 
-    # Save bpmn record with all info
-    save_bpmn_record(bpmn=bpmn,
-                     bpmn_dot=bpmn_svg_base64,
-                     parse_tree=parse_tree,
-                     execution_tree=execution_tree,
-                     petri_net=resp_petri_net,
-                     petri_net_dot=resp_petri_net_dot,
-                     execution_petri_net={},  # TODO: What is this?
-                     actual_execution=current_execution_node)
+    save_execution_tree(bpmn, json.dumps(execution_tree_root), current_execution_node)
 
-    return fetch_bpmn(bpmn)
-
-def get_current_execution_node(root: dict, current_id: str) -> dict | None:
-    if root['id'] == current_id:
-        return root
-    for child in root.get('children', []):
-        result = get_current_execution_node(child, current_id)
-        if result:
-            return result
-    return None
-
-def load_bpmn_dot(bpmn: dict) -> str:
-    record = load_all_bpmn_data(bpmn)
-    return record.bpmn_dot
+    return execution_tree_root, current_execution_node
 
 
-def load_parse_tree(bpmn: dict) -> dict:
-    record = load_all_bpmn_data(bpmn)
-    return record.parse_tree
+def get_petri_net(bpmn: dict, step: int) -> tuple[dict, str]:
+    # record = load_all_bpmn_data(bpmn)
+    # return json.loads(record.petri_net), record.petri_net_dot, json.loads(record.execution_tree), {}
+    bpmn = keep_relevant_bpmn(bpmn)
+    record = fetch_bpmn(bpmn)
+    if record and record.petri_net and record.petri_net_dot:
+        return json.loads(record.petri_net), record.petri_net_dot
 
+    parse_tree = load_parse_tree(bpmn)
 
-def load_execution_tree(bpmn: dict) -> dict:
-    record = load_all_bpmn_data(bpmn)
-    return record.execution_tree
+    resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
+    resp.raise_for_status()
+    resp_json = resp.json()
 
+    if 'error' in resp_json:
+        raise ValueError(f"Simulator error: {resp_json['error']}")
 
-def get_petri_net(bpmn: dict, step: int) -> tuple[dict, str, dict, dict]:
-    record = load_all_bpmn_data(bpmn)
-    return record.petri_net, record.petri_net_dot, record.execution_tree_petri_net, record.actual_execution_tree_petri_net
+    petri_net = resp_json.get('petri_net', None)
+    petri_net_dot = resp_json.get('petri_net_dot', None)
+
+    if petri_net is None or petri_net_dot is None:
+        raise ValueError("Simulator error: Incomplete Petri net data")
+
+    save_petri_net(bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
+
+    return petri_net, petri_net_dot
 
 
 def load_strategy(bpmn_store, bound_store):
@@ -181,6 +210,16 @@ def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
     return bpmn
 
 
+def can_filter(bpmn):
+    impacts = bpmn[IMPACTS]
+    for key in impacts:
+        current = impacts[key]
+        if isinstance(current, dict):
+            return True
+
+    return False
+
+
 def keep_relevant_bpmn(bpmn):
     """
     Keep only the relevant parts of the BPMN.
@@ -188,10 +227,84 @@ def keep_relevant_bpmn(bpmn):
     :param bpmn: The BPMN to filter.
     :return: The filtered BPMN or None if bpmn expression is empty.
     """
+    if not can_filter(bpmn):
+        return bpmn
+
     if bpmn[EXPRESSION] == '':
-        return None
+        return bpmn
 
     tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
     bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
 
     return bpmn
+
+def set_actual_execution(bpmn: dict, actual_execution: str):
+    bpmn = keep_relevant_bpmn(bpmn)
+    record = fetch_bpmn(bpmn)
+    if not record or not record.execution_tree:
+        return
+
+    save_execution_tree(bpmn, record.execution_tree, actual_execution)
+
+
+def get_current_state(bpmn):
+    execution_tree, current_execution = load_execution_tree(bpmn)
+    return get_current_marking_from_execution_tree(execution_tree, current_execution)
+
+def get_simulation_data(bpmn):
+    bpmn = keep_relevant_bpmn(bpmn)
+
+    petri_net, _ = get_petri_net(bpmn, 0)
+    current_state = get_current_state(bpmn)
+    pending_decisions = get_pending_decisions(petri_net, current_state)
+
+    execution_tree, current_execution = load_execution_tree(bpmn)
+    probability = get_execution_probability(execution_tree, current_execution)
+    execution_time = get_execution_time(execution_tree, current_execution)
+
+    raw_impacts = get_execution_impacts(execution_tree, current_execution)
+
+    impacts = {name: round(value, 2) for name, value in zip(bpmn[IMPACTS_NAMES], raw_impacts)}
+    expected_impacts = {name: round(value * probability, 2) for name, value in zip(bpmn[IMPACTS_NAMES], raw_impacts)}
+
+    return {
+        "gateway_decisions": pending_decisions,
+        "impacts": impacts,
+        "expected_impacts": expected_impacts,
+        "probability": probability,
+        "execution_time": execution_time
+    }
+
+
+def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = None):
+    try:
+        bpmn = keep_relevant_bpmn(bpmn)
+        parse_tree = load_parse_tree(bpmn)
+        petri_net, *_ = get_petri_net(bpmn, step)
+        execution_tree, current_execution = load_execution_tree(bpmn)
+        decisions = list(gateway_decisions)
+
+        request = {
+            "bpmn": parse_tree,
+            "petri_net": petri_net,
+            "execution_tree": {"root": execution_tree, "current_node": current_execution},
+            "choices": decisions,
+        }
+        response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
+        response.raise_for_status()
+        resp_json = response.json()
+        if 'error' in resp_json:
+            raise ValueError(f"Simulator error: {resp_json['error']}")
+
+    except Exception as e:
+        return None
+
+    petri_net = resp_json['petri_net']
+    petri_net_dot = resp_json['petri_net_dot']
+    execution_tree = resp_json['execution_tree']['root']
+    current_execution = resp_json['execution_tree']['current_node']
+
+    save_petri_net(keep_relevant_bpmn(bpmn), json.dumps(petri_net), petri_net_dot)
+    save_execution_tree(bpmn, json.dumps(execution_tree), current_execution)
+
+    return get_simulation_data(bpmn)
