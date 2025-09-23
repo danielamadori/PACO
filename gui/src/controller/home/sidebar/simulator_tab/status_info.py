@@ -9,10 +9,10 @@ def register_status_info_callbacks(callback):
 		prevent_initial_call=False
 	)
 	def update(data):
-		impacts = data["impacts"]
-		expected_values = data["expected_impacts"]
-		time = data["execution_time"]
-		probability = data["probability"]
+		impacts = data.get("impacts", {})
+		expected_values = data.get("expected_impacts", {})
+		time = data.get("execution_time", 0.0)
+		probability = data.get("probability", 1.0)
 
 		return update_status_info(impacts, expected_values, time, probability)
 

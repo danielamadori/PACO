@@ -14,9 +14,10 @@ def register_simulator_callbacks(callback):
         State("bpmn-store", "data"),
         State({"type": "gateway", "id": ALL}, "value"),
         State("simulation-store", "data"),
+        State({"type": "bpmn-svg-store", "index": "main"}, 'data'),
         prevent_initial_call=True
     )
-    def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data):
+    def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data, bpmn_svg_store):
         triggered = ctx.triggered_id
         step = -1 if triggered == "btn-back" else 1 if triggered == "btn-forward" else 0
 
@@ -26,8 +27,7 @@ def register_simulator_callbacks(callback):
                 execution_tree, actual_execution = load_execution_tree(bpmn_store)
                 prev_exec_node = get_prev_execution_node(execution_tree, actual_execution)
                 if prev_exec_node is None:
-                    return sim_data, ctx.states.get(
-                        {"type": "bpmn-svg-store", "index": "main"}, "")
+                    return sim_data, bpmn_svg_store
 
                 set_actual_execution(bpmn_store, prev_exec_node['id'])
                 bpmn_dot = bpmn_to_dot(bpmn_store)
@@ -45,5 +45,4 @@ def register_simulator_callbacks(callback):
 
                 return new_sim_data, dot_svg
             case _:
-                return ctx.states.get("simulation-store.data", {}), ctx.states.get(
-                    {"type": "bpmn-svg-store", "index": "main"}, "")
+                return sim_data, bpmn_svg_store
