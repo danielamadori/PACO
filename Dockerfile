@@ -12,10 +12,10 @@ COPY requirements.txt ./requirements-server.txt
 COPY gui/requirements.txt ./requirements-gui.txt
 COPY simulator/requirements.txt ./requirements-simulator.txt
 
-RUN pip install --no-cache-dir -r requirements-server.txt
-RUN pip install --no-cache-dir -r requirements-gui.txt
-RUN pip install --no-cache-dir -r requirements-simulator.txt
-RUN pip install jupyter
+RUN pip install --no-cache-dir -r requirements-server.txt \
+    -r requirements-gui.txt  \
+    -r requirements-simulator.txt  \
+    jupyter
 
 COPY src ./src
 COPY gui/src ./gui/src/
@@ -24,6 +24,7 @@ COPY CPIs ./CPIs
 COPY simulator/ ./simulator/
 COPY bpmn_test_api.json ./
 COPY dot.py ./
+COPY .env ./
 
 
 EXPOSE 8000
