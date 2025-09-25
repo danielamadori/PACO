@@ -75,7 +75,8 @@ def arc_to_dot(source, target, label=None):
         return f'\nnode_{source} -> node_{target}[label="{label}"];\n'
 
 
-def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set[str] = None):
+def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set[str] = None,
+                is_final: bool = False) -> str:
     """
     Wrapper to create the dot representation of the BPMN.
     :param region_root: Parse tree of the expression
@@ -89,12 +90,20 @@ def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set
 
     code = "digraph G {\n"
     code += "rankdir=LR;\n"
-    code += 'start[label="" style="filled" shape=circle fillcolor=palegreen1]\n'
-    code += 'end[label="" style="filled" shape=doublecircle fillcolor=orangered] \n'
+    code += node_to_dot("start", "circle", "", "filled", "palegreen1") + "\n"
+    border_color = ACTIVE_BORDER_COLOR if is_final else None
+    border_size = ACTIVE_BORDER_WIDTH if is_final else None
+    code += node_to_dot("end",
+                        "doublecircle",
+                        "",
+                        "filled",
+                        "orangered",
+                        border_color=border_color,
+                        border_size=border_size) + "\n"
     other_code, entry_id, exit_id, exit_p = region_to_dot(region_root, impacts_names, active_regions)
     code += other_code
-    code += f'start -> node_{entry_id};\n'
-    code += f'node_{exit_id} -> end[label="{exit_p}"];\n'
+    code += f'node_start -> node_{entry_id};\n'
+    code += f'node_{exit_id} -> node_end[label="{exit_p}"];\n'
     code += "\n}"
 
     return code
@@ -154,14 +163,14 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
 
         # Child
         other_code, child_entry_id, child_exit_id, exit_p = region_to_dot(region_root.get('children')[0], impacts_names,
-                                                                  active_regions)
+                                                                          active_regions)
         code += other_code
         p = region_root.get('distribution')
         code += arc_to_dot(entry_id, child_entry_id)
         code += arc_to_dot(exit_id, entry_id, label=p)
         code += arc_to_dot(child_exit_id, exit_id, label=exit_p if exit_p != 1 else None)
 
-        return code, entry_id, exit_id, 1-p
+        return code, entry_id, exit_id, 1 - p
     elif region_root.get("type") == 'choice':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)

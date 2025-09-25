@@ -10,8 +10,8 @@ from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMP
     LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND, SIMULATOR_SERVER
 from model.execution_tree import get_execution_node, get_current_marking_from_execution_tree, get_execution_probability, \
     get_execution_time, get_execution_impacts
-from model.petri_net import get_pending_decisions
-from model.sqlite import fetch_bpmn, save_execution_tree, save_parse_tree, save_petri_net
+from model.petri_net import get_pending_decisions, is_final_marking
+from model.sqlite import fetch_bpmn, save_execution_tree, save_parse_tree
 from model.sqlite import fetch_strategy, save_strategy
 from model.sqlite import save_petri_net, save_bpmn_dot
 
@@ -29,10 +29,12 @@ def load_bpmn_dot(bpmn: dict) -> str:
 
     return bpmn_svg_base64
 
+
 def dot_to_svg(dot: str) -> str:
     svg = graphviz.Source(dot).pipe(format='svg')
     svg_base64 = f"data:image/svg+xml;base64,{base64.b64encode(svg).decode('utf-8')}"
     return svg_base64
+
 
 def bpmn_to_dot(bpmn) -> str:
     parse_tree = load_parse_tree(bpmn)
@@ -41,9 +43,13 @@ def bpmn_to_dot(bpmn) -> str:
 
     from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
     current_node = get_execution_node(execution_tree, current_execution_node)
-    active_regions = get_active_region_by_pn(petri_net, current_node['snapshot']['marking'])
-    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
-                                                active_regions)
+    current_marking = current_node['snapshot']['marking']
+    is_final = is_final_marking(current_marking, petri_net["final_marking"])
+    active_regions = get_active_region_by_pn(petri_net, current_marking)
+    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree,
+                                                bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
+                                                active_regions,
+                                                is_final=is_final)
     return bpmn_dot_str
 
 
@@ -238,6 +244,7 @@ def keep_relevant_bpmn(bpmn):
 
     return bpmn
 
+
 def set_actual_execution(bpmn: dict, actual_execution: str):
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
@@ -250,6 +257,7 @@ def set_actual_execution(bpmn: dict, actual_execution: str):
 def get_current_state(bpmn):
     execution_tree, current_execution = load_execution_tree(bpmn)
     return get_current_marking_from_execution_tree(execution_tree, current_execution)
+
 
 def get_simulation_data(bpmn):
     bpmn = keep_relevant_bpmn(bpmn)

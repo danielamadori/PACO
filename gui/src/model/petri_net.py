@@ -84,3 +84,12 @@ def get_pending_decisions(petri_net, marking):
     return pending_decisions
 
 
+def is_final_marking(current_marking, final_marking):
+    """
+    Check if the current marking matches the final marking
+    """
+    for place_id, final_place in final_marking.items():
+        current_place = current_marking.get(place_id, {'token': 0})
+        if current_place['token'] < final_place['token']:
+            return False
+    return True
