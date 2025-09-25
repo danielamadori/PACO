@@ -1,6 +1,6 @@
 from dash import Input, Output, State, ctx, ALL
 
-from model.etl import bpmn_to_dot, dot_to_svg, update_bpmn_dot, load_execution_tree, set_actual_execution, \
+from model.etl import bpmn_to_dot, dot_to_base64svg, update_bpmn_dot, load_execution_tree, set_actual_execution, \
     execute_decisions, get_simulation_data
 from model.execution_tree import get_prev_execution_node
 
@@ -31,7 +31,7 @@ def register_simulator_callbacks(callback):
 
                 set_actual_execution(bpmn_store, prev_exec_node['id'])
                 bpmn_dot = bpmn_to_dot(bpmn_store)
-                dot_svg = dot_to_svg(bpmn_dot)
+                dot_svg = dot_to_base64svg(bpmn_dot)
                 update_bpmn_dot(bpmn_store, dot_svg)
 
                 return get_simulation_data(bpmn_store), dot_svg
@@ -39,7 +39,7 @@ def register_simulator_callbacks(callback):
                 # Go forward in the simulation
                 new_sim_data = execute_decisions(bpmn_store, gateway_values, step)
                 bpmn_dot = bpmn_to_dot(bpmn_store)
-                dot_svg = dot_to_svg(bpmn_dot)
+                dot_svg = dot_to_base64svg(bpmn_dot)
 
                 update_bpmn_dot(bpmn_store, dot_svg)
 

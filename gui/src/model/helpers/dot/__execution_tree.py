@@ -7,6 +7,17 @@ ALPHA_INACTIVE_BACKGROUND = "7f"    # Semi-transparent for inactive nodes
 ALPHA_INACTIVE_TEXT = "7f"          # Semi-transparent for inactive nodes
 
 def tree_node_to_dot(_id, p, impacts, execution_time, impacts_name=None, visible=True):
+	"""
+    Render a single node of the execution tree as a dot representation.
+
+	:param _id: Node ID
+	:param p: Probability
+	:param impacts: List of impacts
+	:param execution_time: Execution time
+	:param impacts_name: Names of the impacts
+	:param visible: Whether the node is in the highlighted path
+	:return: Dot representation of the node
+	"""
 	if impacts_name is None or len(impacts_name) == 0:
 		impacts_name = [i+1 for i in range(len(impacts))]
 

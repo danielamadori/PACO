@@ -1,6 +1,9 @@
 def get_targets(petri_net, component_id):
     """
     Given a Petri net and a component ID, return the target transitions or places
+    :param petri_net: The Petri net dictionary
+    :param component_id: The ID of the place or transition
+    :return: A list of target IDs
     """
     component = None
     for place in petri_net['places']:
@@ -21,6 +24,9 @@ def get_targets(petri_net, component_id):
 def get_choices_for_exclusive_gateway(petri_net, place_id):
     """
     Given a Petri net and a place ID, return the possible choices (transitions)
+    :param petri_net: The Petri net dictionary
+    :param place_id: The ID of the exclusive gateway place
+    :return: A dictionary mapping transition labels to their IDs and probabilities
     """
     region_transitions = {}
 
@@ -41,6 +47,15 @@ def get_choices_for_exclusive_gateway(petri_net, place_id):
     return region_transitions
 
 def get_loop_choices(petri_net, place_id, limit_reached):
+    """
+    Given a Petri net and a place ID, return the possible choices (transitions) for a loop
+    If limit_reached is True, only return exit choices
+
+    :param petri_net: The Petri net dictionary
+    :param place_id: The ID of the loop place
+    :param limit_reached: Boolean indicating if the visit limit has been reached
+    :return: A dictionary of possible choices with their region IDs, transition IDs, and probabilities
+    """
     region_transitions = {}
 
     place_targets = get_targets(petri_net, place_id)
@@ -78,6 +93,10 @@ def get_loop_choices(petri_net, place_id, limit_reached):
 def get_place_info(petri_net, place_id):
     """
     Given a Petri net and a place ID, return the place information
+
+    :param petri_net: The Petri net dictionary
+    :param place_id: The ID of the place
+    :return: The place dictionary or None if not found
     """
     for place in petri_net['places']:
         if place['id'] == place_id:
@@ -89,6 +108,9 @@ def get_place_info(petri_net, place_id):
 def get_transition_info(petri_net, transition_id):
     """
     Given a Petri net and a transition ID, return the transition information
+    :param petri_net: The Petri net dictionary
+    :param transition_id: The ID of the transition
+    :return: The transition dictionary or None if not found
     """
     for transition in petri_net['transitions']:
         if transition['id'] == transition_id:
@@ -98,6 +120,13 @@ def get_transition_info(petri_net, transition_id):
 
 
 def get_pending_decisions(petri_net, marking):
+    """
+    Given a Petri net and a marking, return the pending decisions for gateways
+
+    :param petri_net: The Petri net dictionary
+    :param marking: The current marking dictionary
+    :return: A dictionary mapping region labels to possible choices
+    """
     # This function should analyze the petri_net and marking to find pending gateways
     # For simplicity, we will return a mock dictionary
     active_places = [place for place in marking if marking[place]['token'] > 0]
@@ -125,6 +154,10 @@ def get_pending_decisions(petri_net, marking):
 def is_initial_marking(current_marking, petri_net):
     """
     Check if the current marking matches the initial marking
+
+    :param current_marking: The current marking dictionary
+    :param petri_net: The Petri net dictionary
+    :return: True if current marking matches initial marking, False otherwise
     """
     initial_marking = petri_net['initial_marking']
     for place_id, initial_place in initial_marking.items():
@@ -136,6 +169,10 @@ def is_initial_marking(current_marking, petri_net):
 def is_final_marking(current_marking, petri_net):
     """
     Check if the current marking matches the final marking
+
+    :param current_marking: The current marking dictionary
+    :param petri_net: The Petri net dictionary
+    :return: True if current marking matches final marking, False otherwise
     """
     final_marking = petri_net['final_marking']
     for place_id, final_place in final_marking.items():

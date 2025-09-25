@@ -4,6 +4,18 @@ ACTIVE_STYLE = "solid"
 
 
 def node_to_dot(_id, shape, label, style, fillcolor, border_color=None, border_size=None):
+    """
+    Create the dot representation of a node.
+
+    :param _id: Unique ID of the node
+    :param shape: Shape of the node
+    :param label: Label of the node
+    :param style: Style of the node
+    :param fillcolor: Fill color of the node
+    :param border_color: Border color of the node
+    :param border_size: Border size of the node
+    :return: Dot representation of the node
+    """
     other_code = ""
     if border_color is not None:
         other_code += f'color={border_color} '
@@ -13,10 +25,31 @@ def node_to_dot(_id, shape, label, style, fillcolor, border_color=None, border_s
 
 
 def gateway_to_dot(_id, label, style, fillcolor, border_color=None, border_size=None):
+    """
+    Create the dot representation of a gateway.
+
+    :param _id: Unique ID of the gateway
+    :param label: Label of the gateway
+    :param style: Style of the gateway
+    :param fillcolor: Fill color of the gateway
+    :param border_color: Border color of the gateway
+    :param border_size: Border size of the gateway
+    :return: Dot representation of the gateway
+    """
     return node_to_dot(_id, "diamond", label, style, fillcolor, border_color, border_size)
 
 
 def exclusive_gateway_to_dot(_id, label, style, border_color=None, border_size=None):
+    """
+    Create the dot representation of an exclusive gateway.
+
+    :param _id: Unique ID of the gateway
+    :param label: Label of the gateway
+    :param style: Style of the gateway
+    :param border_color: Border color of the gateway
+    :param border_size: Border size of the gateway
+    :return: Dot representation of the gateway
+    """
     if style is None:
         style = "filled"
     else:
@@ -25,10 +58,29 @@ def exclusive_gateway_to_dot(_id, label, style, border_color=None, border_size=N
 
 
 def parallel_gateway_to_dot(_id, style=None, border_color=None, border_size=None):
+    """
+    Create the dot representation of a parallel gateway.
+
+    :param _id: Unique ID of the gateway
+    :param style: Style of the gateway
+    :param border_color: Border color of the gateway
+    :param border_size: Border size of the gateway
+    :return: Dot representation of the gateway
+    """
     return gateway_to_dot(_id, f"+", style, "green", border_color, border_size)
 
 
 def probabilistic_gateway_to_dot(_id, name, style, border_color=None, border_size=None):
+    """
+    Create the dot representation of a probabilistic gateway.
+
+    :param _id: Unique ID of the gateway
+    :param name: Name of the gateway
+    :param style: Style of the gateway
+    :param border_color: Border color of the gateway
+    :param border_size: Border size of the gateway
+    :return: Dot representation of the gateway
+    """
     if style is None:
         style = "filled"
     else:
@@ -37,6 +89,16 @@ def probabilistic_gateway_to_dot(_id, name, style, border_color=None, border_siz
 
 
 def loop_gateway_to_dot(_id, label, style, border_color=None, border_size=None):
+    """
+    Create the dot representation of a loop gateway.
+
+    :param _id: Unique ID of the gateway
+    :param label: Label of the gateway
+    :param style: Style of the gateway
+    :param border_color: Border color of the gateway
+    :param border_size: Border size of the gateway
+    :return: Dot representation of the gateway
+    """
     if style is None:
         style = "filled"
     else:
@@ -45,6 +107,19 @@ def loop_gateway_to_dot(_id, label, style, border_color=None, border_size=None):
 
 
 def task_to_dot(_id, name, style, impacts, duration, impacts_names, border_color=None, border_size=None):
+    """
+    Create the dot representation of a task.
+
+    :param _id: Unique ID of the task
+    :param name: Name of the task
+    :param style: Style of the task
+    :param impacts: List of impacts values
+    :param duration: Duration of the task
+    :param impacts_names: Names of the impacts
+    :param border_color: Border color of the task
+    :param border_size: Border size of the task
+    :return: Dot representation of the task
+    """
     additional_label = ""
     if impacts:
         tmp = ", ".join(f"\\n{key}: {value}" for key, value in zip(impacts_names, impacts))
@@ -69,6 +144,14 @@ def task_to_dot(_id, name, style, impacts, duration, impacts_names, border_color
 
 
 def arc_to_dot(source, target, label=None):
+    """
+    Create the dot representation of an arc.
+
+    :param source: Source node ID
+    :param target: Target node ID
+    :param label: Label of the arc
+    :return: Dot representation of the arc
+    """
     if label is None:
         return f'\nnode_{source} -> node_{target};\n'
     else:
@@ -99,7 +182,7 @@ def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set
                         "filled",
                         "palegreen1",
                         border_color=ACTIVE_BORDER_COLOR if is_initial else None,
-                        border_size=ACTIVE_BORDER_WIDTH if is_initial else None,) + "\n"
+                        border_size=ACTIVE_BORDER_WIDTH if is_initial else None, ) + "\n"
 
     border_color = ACTIVE_BORDER_COLOR if is_final else None
     border_size = ACTIVE_BORDER_WIDTH if is_final else None
@@ -293,6 +376,14 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
 
 
 def get_active_region_by_pn(petri_net, marking):
+    """
+    Given a Petri net and a marking, return the set of active region IDs.
+    A region is considered active if any of its entry places have tokens in the marking.
+
+    :param petri_net: Petri net object
+    :param marking: Current marking of the Petri net
+    :return: Set of active region IDs
+    """
     active_regions = set()
 
     for place in petri_net.get("places", []):

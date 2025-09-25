@@ -17,26 +17,46 @@ from model.sqlite import save_petri_net, save_bpmn_dot
 
 
 def load_bpmn_dot(bpmn: dict) -> str:
+    """
+    Given a BPMN process, return its DOT representation as an SVG base64 string.
+    If the DOT representation is already stored in the database, retrieve it from there.
+    Otherwise, generate it, store it in the database, and return it.
+
+    :param bpmn: BPMN dictionary
+    :return: SVG base64 string of the BPMN DOT representation
+    """
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
     if record and record.bpmn_dot:
         return record.bpmn_dot
 
     bpmn_dot = bpmn_to_dot(bpmn)
-    bpmn_svg_base64 = dot_to_svg(bpmn_dot)
+    bpmn_svg_base64 = dot_to_base64svg(bpmn_dot)
 
     save_bpmn_dot(bpmn, bpmn_svg_base64)
 
     return bpmn_svg_base64
 
 
-def dot_to_svg(dot: str) -> str:
+def dot_to_base64svg(dot: str) -> str:
+    """
+    Convert a DOT string to an SVG base64 string.
+
+    :param dot: DOT string
+    :return: SVG base64 string
+    """
     svg = graphviz.Source(dot).pipe(format='svg')
     svg_base64 = f"data:image/svg+xml;base64,{base64.b64encode(svg).decode('utf-8')}"
     return svg_base64
 
 
 def bpmn_to_dot(bpmn) -> str:
+    """
+    Given a BPMN process, return its DOT representation.
+
+    :param bpmn: BPMN dictionary
+    :return: BPMN DOT string
+    """
     parse_tree = load_parse_tree(bpmn)
     petri_net, _ = get_petri_net(bpmn, step=0)
     execution_tree, current_execution_node = load_execution_tree(bpmn)
@@ -56,6 +76,13 @@ def bpmn_to_dot(bpmn) -> str:
 
 
 def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
+    """
+    Update the BPMN DOT representation in the database for the given BPMN process.
+
+    :param bpmn: BPMN dictionary
+    :param bpmn_dot: BPMN DOT string
+    :return: None
+    """
     import model.sqlite
 
     bpmn = keep_relevant_bpmn(bpmn)
@@ -63,6 +90,14 @@ def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
 
 
 def load_parse_tree(bpmn: dict) -> dict:
+    """
+    Given a BPMN process, return its parse tree.
+    If the parse tree is already stored in the database, retrieve it from there.
+    Otherwise, request it from the server and store it in the database.
+
+    :param bpmn: BPMN dictionary
+    :return: Parse tree dictionary
+    """
     bpmn = keep_relevant_bpmn(bpmn)
     if bpmn is None:
         raise ValueError("BPMN expression is empty")
@@ -85,6 +120,14 @@ def load_parse_tree(bpmn: dict) -> dict:
 
 
 def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
+    """
+    Given a BPMN process, return its execution tree and the current execution node.
+    If the execution tree is already stored in the database, retrieve it from there.
+    Otherwise, request it from the simulator server and store it in the database.
+
+    :param bpmn: BPMN dictionary
+    :return: Tuple of execution tree dictionary and current execution node ID
+    """
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
     if record and record.execution_tree and record.actual_execution:
@@ -115,8 +158,15 @@ def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
 
 
 def get_petri_net(bpmn: dict, step: int) -> tuple[dict, str]:
-    # record = load_all_bpmn_data(bpmn)
-    # return json.loads(record.petri_net), record.petri_net_dot, json.loads(record.execution_tree), {}
+    """
+    Given a BPMN process, return its Petri net representation and its DOT format.
+    If the Petri net is already stored in the database, retrieve it from there.
+    Otherwise, request it from the simulator server and store it in the database.
+
+    :param bpmn: BPMN dictionary
+    :param step: Step number (currently unused)
+    :return: Tuple of Petri net dictionary and DOT string
+    """
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
     if record and record.petri_net and record.petri_net_dot:
@@ -219,6 +269,14 @@ def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
 
 
 def can_filter(bpmn):
+    """
+    Check if the BPMN can be filtered.
+    A BPMN can be filtered if it has impacts defined as dictionaries.
+    Useful for keep_relevant_bpmn function.
+
+    :param bpmn: The BPMN to check.
+    :return: True if the BPMN can be filtered, False otherwise.
+    """
     impacts = bpmn[IMPACTS]
     for key in impacts:
         current = impacts[key]
@@ -248,6 +306,13 @@ def keep_relevant_bpmn(bpmn):
 
 
 def set_actual_execution(bpmn: dict, actual_execution: str):
+    """
+    Set the actual execution node in the database for the given BPMN process.
+
+    :param bpmn: BPMN dictionary
+    :param actual_execution: Current execution node ID
+    :return: None
+    """
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
     if not record or not record.execution_tree:
@@ -257,11 +322,24 @@ def set_actual_execution(bpmn: dict, actual_execution: str):
 
 
 def get_current_state(bpmn):
+    """
+    Given a BPMN process, return the current marking from its execution tree.
+
+    :param bpmn: BPMN dictionary
+    :return: Current marking dictionary
+    """
     execution_tree, current_execution = load_execution_tree(bpmn)
     return get_current_marking_from_execution_tree(execution_tree, current_execution)
 
 
 def get_simulation_data(bpmn):
+    """
+    Get the simulation data for the given BPMN process.
+    This includes pending gateway decisions, impacts, expected impacts, probability, and execution time.
+
+    :param bpmn: BPMN dictionary
+    :return: Simulation data dictionary
+    """
     bpmn = keep_relevant_bpmn(bpmn)
 
     petri_net, _ = get_petri_net(bpmn, 0)
@@ -287,6 +365,16 @@ def get_simulation_data(bpmn):
 
 
 def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = None):
+    """
+    Execute the given gateway decisions on the BPMN process.
+    Update the Petri net and execution tree in the database.
+    Return the updated simulation data.
+
+    :param bpmn: BPMN dictionary
+    :param gateway_decisions: List of gateway decision IDs
+    :param step: Optional step number. Ignored in current implementation.
+    :return: Updated simulation data dictionary or None if error occurs
+    """
     try:
         bpmn = keep_relevant_bpmn(bpmn)
         parse_tree = load_parse_tree(bpmn)
