@@ -24,7 +24,7 @@ def exclusive_gateway_to_dot(_id, label, style, border_color=None, border_size=N
     return gateway_to_dot(_id, label, style, "orange", border_color, border_size)
 
 
-def parallel_gateway_to_dot(_id, style, border_color=None, border_size=None):
+def parallel_gateway_to_dot(_id, style=None, border_color=None, border_size=None):
     return gateway_to_dot(_id, f"+", style, "green", border_color, border_size)
 
 
@@ -76,7 +76,7 @@ def arc_to_dot(source, target, label=None):
 
 
 def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set[str] = None,
-                is_final: bool = False) -> str:
+                is_initial: bool = False, is_final: bool = False) -> str:
     """
     Wrapper to create the dot representation of the BPMN.
     :param region_root: Parse tree of the expression
@@ -88,9 +88,19 @@ def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set
     if active_regions is None:
         active_regions = set()
 
+    if is_initial:
+        active_regions = set()
+
     code = "digraph G {\n"
     code += "rankdir=LR;\n"
-    code += node_to_dot("start", "circle", "", "filled", "palegreen1") + "\n"
+    code += node_to_dot("start",
+                        "circle",
+                        "",
+                        "filled",
+                        "palegreen1",
+                        border_color=ACTIVE_BORDER_COLOR if is_initial else None,
+                        border_size=ACTIVE_BORDER_WIDTH if is_initial else None,) + "\n"
+
     border_color = ACTIVE_BORDER_COLOR if is_final else None
     border_size = ACTIVE_BORDER_WIDTH if is_final else None
     code += node_to_dot("end",
@@ -150,15 +160,15 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
             entry_id,
             region_root.get('label'),
             style=None,
-            border_color=ACTIVE_BORDER_COLOR if is_active else None,
-            border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
 
         # Exit point
         code += loop_gateway_to_dot(
             exit_id,
             region_root.get('label'),
-            region_root.get('style')
+            style=None,
+            border_color=ACTIVE_BORDER_COLOR if is_active else None,
+            border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
 
         # Child
@@ -289,7 +299,7 @@ def get_active_region_by_pn(petri_net, marking):
         place_id = place["id"]
         entry_region_id = place.get("entry_region_id")
         place_state = marking.get(place_id, {"token": 0})
-        if entry_region_id and place_state['token'] > 0:
+        if entry_region_id is not None and place_state['token'] > 0:
             active_regions.add(entry_region_id)
 
     return active_regions

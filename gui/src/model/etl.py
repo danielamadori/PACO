@@ -10,7 +10,7 @@ from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMP
     LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND, SIMULATOR_SERVER
 from model.execution_tree import get_execution_node, get_current_marking_from_execution_tree, get_execution_probability, \
     get_execution_time, get_execution_impacts
-from model.petri_net import get_pending_decisions, is_final_marking
+from model.petri_net import get_pending_decisions, is_final_marking, is_initial_marking
 from model.sqlite import fetch_bpmn, save_execution_tree, save_parse_tree
 from model.sqlite import fetch_strategy, save_strategy
 from model.sqlite import save_petri_net, save_bpmn_dot
@@ -44,11 +44,13 @@ def bpmn_to_dot(bpmn) -> str:
     from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
     current_node = get_execution_node(execution_tree, current_execution_node)
     current_marking = current_node['snapshot']['marking']
-    is_final = is_final_marking(current_marking, petri_net["final_marking"])
+    is_initial = is_initial_marking(current_marking, petri_net)
+    is_final = is_final_marking(current_marking, petri_net)
     active_regions = get_active_region_by_pn(petri_net, current_marking)
     bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree,
                                                 bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
                                                 active_regions,
+                                                is_initial=is_initial,
                                                 is_final=is_final)
     return bpmn_dot_str
 

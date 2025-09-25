@@ -31,11 +31,47 @@ def get_choices_for_exclusive_gateway(petri_net, place_id):
         if len(transition_targets) > 1:
             # TODO: log warning
             pass
+        if not transition_info.get('stop', False):
+            continue
         choice_place = get_place_info(petri_net, transition_targets[0])
-        region_transitions[choice_place['label']] = dict(label=choice_place['entry_region_id'],
+        region_transitions[choice_place['label']] = dict(region_id=choice_place['entry_region_id'],
                                                          transition_id=transition,
                                                          probability=transition_info.get('probability', 0.5))
 
+    return region_transitions
+
+def get_loop_choices(petri_net, place_id, limit_reached):
+    region_transitions = {}
+
+    place_targets = get_targets(petri_net, place_id)
+    for transition in place_targets:
+        transition_targets = get_targets(petri_net, transition)
+        transition_info = get_transition_info(petri_net, transition)
+        if len(transition_targets) > 1:
+            # TODO: log warning
+            pass
+
+        if not transition_info.get('stop', False):
+            continue
+
+        choice_place = get_place_info(petri_net, transition_targets[0])
+
+        is_exit = False
+        region_id = choice_place.get('entry_region_id')
+        if region_id is None:
+            is_exit = True
+            region_id = choice_place['exit_region_id']
+
+        label = choice_place.get('label')
+        if is_exit:
+            label = f"Exit {label} (Limit reached)" if limit_reached else f"Exit {label}"
+
+        if limit_reached and not is_exit:
+            continue
+
+        region_transitions[label] = dict(region_id=region_id,
+                                         transition_id=transition,
+                                         probability=transition_info.get('probability', 0.5))
     return region_transitions
 
 
@@ -76,18 +112,32 @@ def get_pending_decisions(petri_net, marking):
         if marking[place]['age'] < place_info.get('duration', 0.0):
             # skip if not yet ready
             continue
-
-        choices = get_choices_for_exclusive_gateway(petri_net, place_info['id'])
-        if choices:
+        if place_info['region_type'] == 'loop':
+            visit_limit_reached = marking[place]['visit_count'] >= place_info.get('visit_limit', float('inf'))
+            choices = get_loop_choices(petri_net, place_info['id'], visit_limit_reached)
+        else:
+            choices = get_choices_for_exclusive_gateway(petri_net, place_info['id'])
+        if choices is not None and len(choices) > 0:
             pending_decisions[region_label] = choices
 
     return pending_decisions
 
+def is_initial_marking(current_marking, petri_net):
+    """
+    Check if the current marking matches the initial marking
+    """
+    initial_marking = petri_net['initial_marking']
+    for place_id, initial_place in initial_marking.items():
+        current_place = current_marking.get(place_id, {'token': 0})
+        if current_place['token'] != initial_place['token']:
+            return False
+    return True
 
-def is_final_marking(current_marking, final_marking):
+def is_final_marking(current_marking, petri_net):
     """
     Check if the current marking matches the final marking
     """
+    final_marking = petri_net['final_marking']
     for place_id, final_place in final_marking.items():
         current_place = current_marking.get(place_id, {'token': 0})
         if current_place['token'] < final_place['token']:
