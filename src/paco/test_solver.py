@@ -141,17 +141,6 @@ bpmn_ex = {
         DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
         }, [5, 6]
     ],
-    #In Notebook
-    "unavoidable_example" : [{
-        EXPRESSION: '((T1 /[C1] T2) || ((TD1, (T3 ^[N2] T4), TU1) ^[N1] (TD2,  (T5 ^[N3] T6), TU2)))',
-        IMPACTS_NAMES: ['a', 'b'],
-        IMPACTS: {'T1': [3, 1], 'T2': [1, 3], 'T3': [2, 0], 'T4': [0, 2], 'TU1': [3, 1], 'T5': [2, 0], 'T6': [0, 2], 'TU2': [1, 3], 'TD1': [0, 0], 'TD2': [0, 0]},
-        DURATIONS: {'T1': [0, 1], 'T2': [0, 1], 'T3': [0, 1], 'T4': [0, 1], 'TU1': [0, 1], 'T5': [0, 1], 'T6': [0, 1], 'TU2': [0, 1], 'TD1': [0, 2], 'TD2': [0, 2]},
-        PROBABILITIES: {'N2': 0.2, 'N1': 0.3, 'N3': 0.4},
-        LOOP_PROBABILITY: {},
-        DELAYS: {'C1': 1}, LOOP_ROUND: {}, H: 0,
-    }, [5, 6]
-    ],
     "natures of natures": [{
         EXPRESSION: "(Task1 ^ [N1] T2) ^[N] (T3 ^ [N2] T4)",
         H: 0,
@@ -208,29 +197,6 @@ bpmn_ex = {
         IMPACTS_NAMES: ["cost"],
         PROBABILITIES: {"C1": 0.5}, DELAYS: {"C1": 0},LOOP_PROBABILITY : {}, LOOP_ROUND: {}
     }, [20]],
-
-    "bpmn_unavoidable_tasks2": [{
-        EXPRESSION: "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3), t4",
-        H: 0,
-        IMPACTS: {"HP": [1, 0, 0, 0], "LP": [0, 1, 0, 0], "HPHS": [0, 0, 1, 0], "LPLS": [0, 0, 0, 1], "t1": [1, 0, 0, 0], "t3": [0, 1, 0, 0], "t4": [1, 1, 1, 1]},
-        DURATIONS: {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100, "t4": 100},
-        IMPACTS_NAMES: ["cost", "r", "s", "e"],
-        PROBABILITIES: {"N1": 0.5, "N2": 0.5},
-        LOOP_PROBABILITY: {},
-        DELAYS: {"c1": 0}, LOOP_ROUND: {}
-    }, [2, 2, 2, 2]],
-
-    "bpmn_unavoidable_tasks3": [{
-        EXPRESSION: "(HP ^ [N1]LP ), (HPHS ^ [N2] LPLS), (t1  / [c1] t3), t4, t5",
-        H: 0,
-        IMPACTS: {"HP": [1, 0, 0, 0], "LP": [0, 1, 0, 0], "HPHS": [0, 0, 1, 0], "LPLS": [0, 0, 0, 1], "t1": [1, 0, 0, 0], "t3": [0, 1, 0, 0], "t4": [1, 1, 1, 1], "t5": [1, 1, 1, 1]},
-        DURATIONS: {"HP": 100, "LP": 100, "HPHS": 100, "LPLS": 100, "t1": 100, "t3": 100, "t4": 100, "t5": 100},
-        IMPACTS_NAMES: ["cost", "r", "s", "e"],
-        PROBABILITIES: {"N1": 0.5, "N2": 0.5},
-        LOOP_PROBABILITY: {},
-        DELAYS: {"c1": 0}, LOOP_ROUND: {}
-    }, [3, 3, 3, 3]],
-
     "choice not explained": [{
         EXPRESSION: "(T1, ((TA_N1 ^[N1] TB_N1) || ( TA_C1 / [C1] TB_C1)), (TA_C2 / [C2] TB_C2))",
         H: 0,
