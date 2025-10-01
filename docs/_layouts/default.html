@@ -5,7 +5,12 @@
   <title>{{ page.title }}</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  {{ content }}
+<body class="site-body">
+  <div class="page-wrapper">
+    {% include navbar.html %}
+    <main class="content-card">
+      {{ content }}
+    </main>
+  </div>
 </body>
 </html>

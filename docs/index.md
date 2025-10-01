@@ -3,11 +3,6 @@ title: Home
 layout: default
 ---
 
-<div class="page-wrapper">
-{% include navbar.html %}
-
-<div class="content">
-
 ## A strategy founder for *BPMN + CPI*
 
 ## Features
@@ -23,7 +18,3 @@ In the context of increasingly complex business processes, accurately modeling d
 ### Solver
 RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact vector can determine if there exists a feasible strategy such that the process can be completed while remaining under the bound vector. Moreover, We explain the synthesized strategies to users by labeling choice gateways in the BPMN diagram, making the strategies more interpretable and actionable.
 ![alt text](../image.png)
-
-
-</div>
-</div>

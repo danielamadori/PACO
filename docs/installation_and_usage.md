@@ -3,11 +3,6 @@ title: Installation and Usage
 layout: default
 ---
 
-<div class="page-wrapper">
-{% include navbar.html %}
-
-<div class="content">
-
 # Installation and Usage
 
 ## Prerequisites
@@ -38,7 +33,7 @@ To start the application using Docker, follow these steps:
 2. Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
 3. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
-4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ### Using Python
@@ -71,7 +66,7 @@ To start the application using Python, follow these steps:
     ```bash
     jupyter notebook --port=8888
     ```
-4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ---
@@ -105,6 +100,3 @@ After execution, benchmark results and logs will be generated in the main direct
 
 - `benchmarks.sqlite` – Benchmark results database
 - `benchmarks_output.log` – Detailed benchmark execution log
-
-</div>
-</div>
