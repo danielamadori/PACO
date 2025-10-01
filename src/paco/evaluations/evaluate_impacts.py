@@ -19,7 +19,7 @@ def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64,
 			probability *= p
 
 		elif isinstance(node,Task) and state > ActivityState.WAITING:
-			impacts += node.impact
+			impacts += node.impacts
 
 	return probability, impacts
 
@@ -80,7 +80,7 @@ def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode, impacts_size:
 	probability = np.float64(1)
 
 	if isinstance(parseNode, Task):
-		return parseNode.impact
+		return parseNode.impacts
 
 	expected_impacts = np.zeros(impacts_size, dtype=np.float64)
 	if isinstance(parseNode, Gateway):

@@ -13,7 +13,8 @@ from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABIL
 
 def test_create_parse_tree(bpmn: dict) -> ParseTree:
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
-    return create_parse_tree(bpmn)
+    tmp = create_parse_tree(bpmn)
+    return tmp[:-1]
 
 
 class TestSaturateExecution(unittest.TestCase):

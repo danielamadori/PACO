@@ -36,8 +36,37 @@ To install **Python**, follow the instructions on [Python's official website](ht
 
 ---
 
-## Quick Start
+## Installation
+1. Clone the repository with submodules:
+    ```bash
+    git clone --recurse-submodules https://github.com/matthewexe/PACO.git
+    ```
+2. Create a `.env` file in the root directory. You can copy the example file:
+    ```bash
+    cp .env.example .env
+    ```
+   or manually create a `.env` file and add the following variables:
+    ```
+    SIMULATOR_API_HOST=0.0.0.0
+    SIMULATOR_API_PORT=8001
+    SIMULATOR_API_TILE="BPMN-CPI Simulator API"
+    SIMULATOR_API_VERSION=1.0.0
+    SIMULATOR_API_DOCS_URL=/docs
+    ```
+   
+### Manage Submodules
+- Initializing (if you did not use `--recurse-submodules` when cloning)
+    ```bash
+    git submodule init
+    git submodule update
+    ```
+- Update (to get the latest version of the submodules)
+    ```bash
+    git submodule update --remote
+    ```
 
+## Starting the Application
+You can start the application using either **Docker** or **Python**. Choose one of the methods below.
 ### Using Docker
 
 To start the application using Docker, follow these steps:
@@ -45,7 +74,7 @@ To start the application using Docker, follow these steps:
 1. Pull and start the Docker:
     ```bash
     docker pull danielamadori/paco:latest
-    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -it --name PACO danielamadori/paco:latest
+    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -p 8001:8001 -it --name PACO danielamadori/paco:latest
     docker logs PACO
     ```
    Note: Replace latest with a specific version number if needed.
@@ -53,40 +82,45 @@ To start the application using Docker, follow these steps:
 2. Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
 3. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
-4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+4. Open browser and navigate to `http://127.0.0.1:8001/docs` to access the BPMN-CPI Simulator API documentation.
+5. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ### Using Python
 To start the application using Python, follow these steps:
 1. **Environment Setup**
-- **Using Conda**
-    ```bash
-    conda create --name paco python=3.12
-    conda activate paco
-    ```
-- **Using venv**
-  ```bash
-  python3.12 -m venv paco_env
-  source paco_env/bin/activate  # On macOS/Linux
-  paco_env\Scripts\activate     # On Windows
-  ```
+   - **Using Conda**
+       ```bash
+       conda create --name paco python=3.12
+       conda activate paco
+       ```
+   - **Using venv**
+     ```bash
+     python3.12 -m venv paco_env
+     source paco_env/bin/activate  # On macOS/Linux
+     paco_env\Scripts\activate     # On Windows
+     ```
 2. **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
-3. Run the **PACO server**:
-    ```bash
-    python3 src
+3. Run the **PACO app**:
+   - Only API:
+   ```bash
+    python3 src --api
+    ```
+   - GUI and API:
+   ```bash
+    python3 src --gui
     ```
    - Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
-   - Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
-   - The docs are available at `http://127.0.0.1:8000/docs`
-
-3. Run the **jupyter notebook**:
+   - Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API. The docs are available at `http://127.0.0.1:8000/docs`
+   - Open a browser and navigate to `http://127.0.0.1:8001` to access the application via BPMN-CPI Simulator API. The docs are available at `http://127.0.0.1:8001/docs`
+4. Run the **jupyter notebook**:
     ```bash
     jupyter notebook --port=8888
     ```
-4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+5. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ---
