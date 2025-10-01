@@ -1,7 +1,11 @@
-import dash
-from dash import html, dcc, Output, Input
-import dash_bootstrap_components as dbc
+import logging
+from functools import lru_cache
 from pathlib import Path
+
+import dash
+import dash_bootstrap_components as dbc
+from dash import Input, Output, dcc, html
+
 from env import APP_NAME
 from view.navbar import navbar
 from view.home.layout import layout as home_layout
@@ -9,18 +13,49 @@ from view.syntax.layout import layout as syntax_layout
 from view.example.layout import layout as example_layout
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def load_doc(name: str) -> str | None:
-    if name == "/about":
-        name = "/index"
+@lru_cache(maxsize=1)
+def _discover_docs_dir() -> Path | None:
+    start = Path(__file__).resolve()
+    for ancestor in (start.parent, *start.parents):
+        candidate = ancestor / "docs"
+        if candidate.is_dir():
+            logger.debug("Discovered docs directory at %s", candidate)
+            return candidate
 
-    docs_dir = Path(__file__).resolve().parents[2] / "docs"
-    doc_path = docs_dir / f"{name.lstrip('/')}.md"
+    logger.error("Unable to locate docs directory relative to %s", start)
+    return None
+
+
+def load_doc(name: str) -> dcc.Markdown | None:
+    logger.debug("load_doc called with name=%r", name)
+    slug = name.strip("/")
+    logger.debug("Normalized slug=%r", slug)
+
+    if slug == "about":
+        slug = "index"
+        logger.debug("Alias 'about' mapped to slug=%r", slug)
+
+    if not slug:
+        logger.info("Empty slug derived from name=%r; skipping markdown lookup", name)
+        return None
+
+    docs_dir = _discover_docs_dir()
+    if docs_dir is None:
+        logger.error("Docs directory could not be determined; unable to render markdown")
+        return None
+
+    doc_path = docs_dir / f"{slug}.md"
+    logger.info("Looking for markdown document at %s", doc_path)
 
     if not doc_path.exists():
+        logger.warning("Markdown document not found for slug=%r at %s", slug, doc_path)
         return None
 
     text = doc_path.read_text(encoding="utf-8")
+    logger.info("Loaded markdown document for slug=%r", slug)
 
     if text.startswith("---"):
         parts = text.split("---", 2)
@@ -57,19 +92,42 @@ app.layout = html.Div(
     Input("url", "pathname"),
 )
 def display_page(pathname):
+    original_pathname = pathname
+    if not pathname:
+        pathname = "/"
+
+    if pathname != "/":
+        normalized_path = pathname.rstrip("/")
+        if normalized_path != pathname:
+            logger.debug(
+                "Trimmed trailing slash from pathname %r -> %r", pathname, normalized_path
+            )
+        pathname = normalized_path
+
+    logger.info(
+        "display_page handling request original=%r normalized=%r",
+        original_pathname,
+        pathname,
+    )
+
     nav = navbar(pathname)
 
     if pathname == "/syntax":
+        logger.info("Rendering syntax interactive layout for pathname=%r", pathname)
         return nav, syntax_layout()
     elif pathname == "/example":
+        logger.info("Rendering example interactive layout for pathname=%r", pathname)
         return nav, example_layout()
     elif pathname == "/":
+        logger.info("Rendering home layout for pathname=%r", pathname)
         return nav, home_layout()
-    elif pathname == "/about" or pathname == "/installation_and_usage":
-        page = load_doc(pathname)
-        if page is not None:
-            return nav, page
 
+    page = load_doc(pathname)
+    if page is not None:
+        logger.info("Rendering markdown page for pathname=%r", pathname)
+        return nav, page
+
+    logger.info("Markdown document not found; returning 404 for pathname=%r", pathname)
     return nav, html.Div(
         [
             html.H1("404 - Page not found"),

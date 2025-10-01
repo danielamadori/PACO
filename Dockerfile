@@ -17,6 +17,7 @@ RUN pip install jupyter
 
 COPY src ./src
 COPY gui/src ./gui/src/
+COPY docs ./docs
 COPY *.ipynb ./
 COPY CPIs ./CPIs
 
