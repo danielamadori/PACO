@@ -2,12 +2,12 @@ import dash
 from dash import Output, Input, State
 import dash_bootstrap_components as dbc
 from dash import ctx
-from controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
-from model.etl import load_bpmn_dot
-from env import EXPRESSION, SESE_PARSER, extract_nodes, IMPACTS_NAMES, BOUND, IMPACTS
-from view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
-from view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
-from view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
+from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
+from gui.src.model.etl import load_bpmn_dot
+from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes, IMPACTS_NAMES, BOUND, IMPACTS
+from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
+from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
+from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 
 
 def register_expression_callbacks(expression_callbacks):

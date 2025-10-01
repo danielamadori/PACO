@@ -2,10 +2,21 @@
 """
    File that checks things and useful things 
 """
-from utils.env import ALGORITHMS, ALGORITHMS_MISSING_SYNTAX, DURATIONS, IMPACTS, EXPRESSION, DELAYS, IMPACTS_NAMES, \
-    PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, H
-from paco.parser.grammar import ALL_SYNTAX
-from paco.parser.bpmn_parser import SESE_PARSER
+from src.utils.env import (
+    ALGORITHMS,
+    ALGORITHMS_MISSING_SYNTAX,
+    DURATIONS,
+    IMPACTS,
+    EXPRESSION,
+    DELAYS,
+    IMPACTS_NAMES,
+    PROBABILITIES,
+    LOOP_PROBABILITY,
+    LOOP_ROUND,
+    H,
+)
+from src.paco.parser.grammar import ALL_SYNTAX
+from src.paco.parser.bpmn_parser import SESE_PARSER
 import re
 import json
 from datetime import datetime

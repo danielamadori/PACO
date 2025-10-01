@@ -1,5 +1,5 @@
 from dash import dcc, html
-from view.home.sidebar.bpmn_tab.inputs import get_bpmn_view
+from gui.src.view.home.sidebar.bpmn_tab.inputs import get_bpmn_view
 
 
 def get_BPMN_CPI_tab():

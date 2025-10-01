@@ -3,8 +3,8 @@ import re
 
 import requests
 from langchain_openai import ChatOpenAI
-from ai.prompt import define_role, examples_bpmn
-from utils.check_syntax import check_bpmn_syntax
+from src.ai.prompt import define_role, examples_bpmn
+from src.utils.check_syntax import check_bpmn_syntax
 
 CHAT_MEMORY = {}
 

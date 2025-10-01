@@ -1,10 +1,10 @@
 import copy
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.create_branches import create_branches
-from paco.saturate_execution.next_state import next_state
-from paco.saturate_execution.states import States, ActivityState, states_info
-from paco.saturate_execution.step_to_saturation import steps_to_saturation
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.create_branches import create_branches
+from src.paco.saturate_execution.next_state import next_state
+from src.paco.saturate_execution.states import States, ActivityState, states_info
+from src.paco.saturate_execution.step_to_saturation import steps_to_saturation
 
 # Saturation of the execution tree activating decisions nodes
 def saturate_execution_decisions(region_tree: ParseTree, states: States, pending_choices:set, pending_natures:set) -> (States, tuple[ParseNode], dict[tuple[ParseNode], (States,set,set)]):

@@ -1,8 +1,8 @@
-from paco.saturate_execution.next_state import next_state
-from paco.saturate_execution.states import States, ActivityState
-from paco.saturate_execution.step_to_saturation import steps_to_saturation
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode, Choice, Nature
+from src.paco.saturate_execution.next_state import next_state
+from src.paco.saturate_execution.states import States, ActivityState
+from src.paco.saturate_execution.step_to_saturation import steps_to_saturation
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode, Choice, Nature
 
 def saturate_execution(region_tree: ParseTree, states: States, pending_choices:set, pending_natures:set) -> (States, bool, list[ParseNode], list[ParseNode]):
 	while states.activityState[region_tree.root] < ActivityState.COMPLETED:

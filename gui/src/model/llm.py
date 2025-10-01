@@ -1,7 +1,7 @@
 import uuid
 import requests
-from env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES, H
-from model.etl import filter_bpmn
+from gui.src.env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES, H
+from gui.src.model.etl import filter_bpmn
 
 EXPECTED_FIELDS = {"bpmn", "message", "session_id"}
 

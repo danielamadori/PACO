@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.parser.bpmn_parser import create_parse_tree
-from paco.parser.parse_tree import ParseTree
-from paco.searcher.create_execution_tree import create_execution_tree
-from utils.env import IMPACTS_NAMES, PATH_EXECUTION_TREE
+from src.paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
+from src.paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.parser.bpmn_parser import create_parse_tree
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.searcher.create_execution_tree import create_execution_tree
+from src.utils.env import IMPACTS_NAMES, PATH_EXECUTION_TREE
 
 
 def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pending_natures:set=None, execution_tree:ExecutionTree=None, debug=False):

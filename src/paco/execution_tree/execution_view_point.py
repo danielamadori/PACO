@@ -1,7 +1,7 @@
 import numpy as np
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.states import States
-from paco.execution_tree.view_point import ViewPoint
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.states import States
+from src.paco.execution_tree.view_point import ViewPoint
 
 
 class ExecutionViewPoint(ViewPoint):

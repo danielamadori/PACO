@@ -1,10 +1,10 @@
 import numpy as np
 
-from paco.execution_tree.view_point import ViewPoint
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.explanation_type import ExplanationType
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.states import States
+from src.paco.execution_tree.view_point import ViewPoint
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.states import States
 
 class StrategyViewPoint(ViewPoint):
 	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],

@@ -1,5 +1,5 @@
-from paco.parser.bpmn import BPMNDict
-from paco.parser.grammar import sese_diagram_grammar
+from src.paco.parser.bpmn import BPMNDict
+from src.paco.parser.grammar import sese_diagram_grammar
 
 
 

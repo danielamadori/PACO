@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 import requests
 
-from utils.env import LOG_FILENAME, TELEGRAM_CONFIG
+from src.utils.env import LOG_FILENAME, TELEGRAM_CONFIG
 
 
 def load_subscribers():

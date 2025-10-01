@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
-from env import ALGORITHMS
+from gui.src.env import ALGORITHMS
 
 def get_strategy_tab():
 	return dcc.Tab(label='Strategy', value='tab-strategy', style={'flex': 1, 'textAlign': 'center'}, children=[

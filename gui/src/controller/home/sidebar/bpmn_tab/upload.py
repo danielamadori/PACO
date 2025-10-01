@@ -4,14 +4,14 @@ import dash
 from dash import Input, Output, State, no_update
 import dash_bootstrap_components as dbc
 
-from env import EXPRESSION, IMPACTS, IMPACTS_NAMES
-from controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
-from model.bpmn import validate_bpmn_dict
-from view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
-from view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
-from view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
-from model.etl import load_bpmn_dot
-from env import SESE_PARSER, extract_nodes
+from gui.src.env import EXPRESSION, IMPACTS, IMPACTS_NAMES
+from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
+from gui.src.model.bpmn import validate_bpmn_dict
+from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
+from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
+from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
+from gui.src.model.etl import load_bpmn_dot
+from gui.src.env import SESE_PARSER, extract_nodes
 
 
 def register_upload_callbacks(callback):

@@ -1,12 +1,12 @@
 import sqlite3
 from datetime import datetime
-from experiments.experiment import single_execution
-from experiments.etl.read import read_cpi_bundles
+from src.experiments.experiment import single_execution
+from src.experiments.etl.read import read_cpi_bundles
 import signal
 import sys
 import time
-from experiments.telegram.telegram_bot import send_telegram_message
-from utils.env import BENCHMARKS_DB
+from src.experiments.telegram.telegram_bot import send_telegram_message
+from src.utils.env import BENCHMARKS_DB
 
 conn = sqlite3.connect(BENCHMARKS_DB)
 cursor = conn.cursor()

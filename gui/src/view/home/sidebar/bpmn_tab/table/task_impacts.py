@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
-from env import IMPACTS_NAMES, IMPACTS
-from view.home.sidebar.bpmn_tab.table.new_impact_button import get_new_impact_button
+from gui.src.env import IMPACTS_NAMES, IMPACTS
+from gui.src.view.home.sidebar.bpmn_tab.table.new_impact_button import get_new_impact_button
 
 
 def get_impacts_table_header(bpmn_store):

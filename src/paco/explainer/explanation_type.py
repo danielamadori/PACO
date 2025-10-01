@@ -1,9 +1,9 @@
 import copy
 import enum
 import numpy as np
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.evaluations.evaluate_decisions import evaluate_decisions, find_all_decisions
 
 class ExplanationType(enum.IntEnum):
 	FORCED_DECISION = -1

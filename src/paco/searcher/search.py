@@ -1,8 +1,8 @@
 from datetime import datetime
 import numpy as np
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.searcher.found_strategy import found_strategy
-from paco.searcher.build_strategy import build_strategy
+from src.paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.searcher.found_strategy import found_strategy
+from src.paco.searcher.build_strategy import build_strategy
 
 
 def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list, search_only: bool, debug=False):

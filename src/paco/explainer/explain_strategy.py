@@ -1,9 +1,9 @@
 import numpy as np
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.explanation_type import current_impacts, decision_based, ExplanationType
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.explanation_type import current_impacts, decision_based, ExplanationType
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.execution_tree.execution_tree import ExecutionTree
 
 
 def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType, debug=False) -> Bdd:

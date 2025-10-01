@@ -1,10 +1,20 @@
 import numpy as np
 
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.explainer.explanation_type import ExplanationType
-from paco.parser.parse_tree import ParseTree
-from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
-from paco.solver import paco
+from src.paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.parser.parse_tree import ParseTree
+from src.utils.env import (
+    EXPRESSION,
+    H,
+    IMPACTS,
+    DURATIONS,
+    IMPACTS_NAMES,
+    PROBABILITIES,
+    DELAYS,
+    LOOP_PROBABILITY,
+    LOOP_ROUND,
+)
+from src.paco.solver import paco
 
 bpmn_new_example = {
     "bpmn": [{

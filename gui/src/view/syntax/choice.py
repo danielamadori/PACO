@@ -1,9 +1,9 @@
 import json
 import dash_bootstrap_components as dbc
 from dash import html
-from controller.example.render import render_example
-from env import IMPACTS
-from view.example.standard_layout import get_description
+from gui.src.controller.example.render import render_example
+from gui.src.env import IMPACTS
+from gui.src.view.example.standard_layout import get_description
 
 
 def get_choice_layout():
