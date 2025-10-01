@@ -2,6 +2,8 @@
 Defining the grammar for SESE diagrams
 """
 
+# (Cutting, ((Bending, (HP^[N1]LP)) || (Milling, (FD/[C1]RD))), (HPHS / [C2] LPLS))
+
 sese_diagram_grammar = r"""
 ?start: xor
 

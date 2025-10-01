@@ -9,6 +9,7 @@ from utils.logger import log_output, logger
 
 gui_process = None
 server_process = None
+simulator_process = None
 
 def print_help():
     help_text = """
@@ -51,7 +52,7 @@ def launch_subprocess(label, path):
 
 def handle_termination(signum, frame):
     logger.warning(f"Signal {signum} received. Terminating processes...")
-    for label, proc in [("GUI", gui_process), ("SERVER", server_process)]:
+    for label, proc in [("GUI", gui_process), ("SERVER", server_process), ("SIMULATOR", simulator_process)]:
         if proc is not None:
             try:
                 proc.terminate()
@@ -67,7 +68,7 @@ signal.signal(signal.SIGINT, handle_termination)
 
 
 def main():
-    global gui_process, server_process
+    global gui_process, server_process, simulator_process
     args = [arg for arg in sys.argv[1:] if not arg.startswith("--log")]
 
     logger.info("Starting PACO")
@@ -80,10 +81,12 @@ def main():
             gui_process = launch_subprocess("GUI", "gui/src/main.py")
             server_process = launch_subprocess("SERVER",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
+            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
 
         case "--api":
             server_process = launch_subprocess("SERVER",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
+            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
         case "--help":
             print_help()
             sys.exit(0)
@@ -99,6 +102,8 @@ def main():
             exit_codes.append(server_process.wait())
         if gui_process:
             exit_codes.append(gui_process.wait())
+        if simulator_process:
+            exit_codes.append(simulator_process.wait())
         logger.info(f"Subprocesses exited with codes: {exit_codes}")
     except KeyboardInterrupt:
         handle_termination(signal.SIGINT, None)

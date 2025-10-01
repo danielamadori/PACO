@@ -1,4 +1,4 @@
-from pony.orm import Database, Required, Optional, Set, db_session, commit
+from pony.orm import Database, Required, Optional, Set, db_session, commit, rollback
 import json
 from env import DB_PATH
 
@@ -37,7 +37,7 @@ if not db.provider:
 
 
 @db_session
-def fetch_bpmn(bpmn_dict:dict):
+def fetch_bpmn(bpmn_dict:dict) -> BPMN | None:
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     return BPMN.get(bpmn=bpmn_str)
 
@@ -64,6 +64,32 @@ def save_bpmn_dot(bpmn_dict:dict, bpmn_dot:str):
     if not BPMN.get(bpmn=bpmn_str):
         BPMN(bpmn=bpmn_str, bpmn_dot=bpmn_dot, parse_tree="", execution_tree="")
         commit()
+
+@db_session
+def update_bpmn_dot(bpmn_dict:dict, bpmn_dot:str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.bpmn_dot = bpmn_dot or ""
+        commit()
+
+@db_session
+def save_execution_tree(bpmn_dict: dict, execution_tree: str, actual_execution: str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.execution_tree = execution_tree or ""
+        record.actual_execution = actual_execution or ""
+        commit()
+
+@db_session
+def save_parse_tree(bpmn_dict:dict, parse_tree:str):
+    bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
+    record = BPMN.get(bpmn=bpmn_str)
+    if record:
+        record.parse_tree = parse_tree or ""
+        commit()
+
 
 @db_session
 def save_parse_and_execution_tree(bpmn_dict:dict, parse_tree:str, execution_tree:str):

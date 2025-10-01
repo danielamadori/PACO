@@ -6,7 +6,7 @@ from paco.parser.parse_node import ParseNode, Task, ExclusiveGateway, Nature
 
 def evaluate_min_max_impacts(node: ParseNode):
 	if isinstance(node, Task):
-		return np.array(node.impact), np.array(node.impact)
+		return np.array(node.impacts), np.array(node.impacts)
 
 	sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(node.sx_child)
 	dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(node.dx_child)

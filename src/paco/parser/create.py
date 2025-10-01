@@ -14,7 +14,7 @@ def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pendi
 	#print(f"{datetime.now()} CreateParseTree:")
 	if parse_tree is None or pending_choices is None:
 		t = datetime.now()
-		parse_tree, pending_choices, pending_natures = create_parse_tree(bpmn)
+		parse_tree, pending_choices, pending_natures, pending_loops = create_parse_tree(bpmn)
 		t1 = datetime.now()
 		time_create_parse_tree = (t1 - t).total_seconds()*1000
 		#print(f"{t1} CreateParseTree:completed: {time_create_parse_tree} ms")
