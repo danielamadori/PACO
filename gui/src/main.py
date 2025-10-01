@@ -29,7 +29,7 @@ def _discover_docs_dir() -> Path | None:
     return None
 
 
-def load_doc(name: str) -> dcc.Markdown | None:
+def load_doc(name: str) -> dbc.Card | None:
     logger.debug("load_doc called with name=%r", name)
     slug = name.strip("/")
     logger.debug("Normalized slug=%r", slug)
@@ -63,7 +63,8 @@ def load_doc(name: str) -> dcc.Markdown | None:
             text = parts[2]
 
     text = text.replace("{% include navbar.html %}", "")
-    return dcc.Markdown(text, dangerously_allow_html=True)
+    markdown = dcc.Markdown(text, dangerously_allow_html=True)
+    return dbc.Card(dbc.CardBody(markdown))
 
 
 app = dash.Dash(
