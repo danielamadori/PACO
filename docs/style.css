@@ -28,3 +28,10 @@ body {
 .content {
   margin-top: 20px;
 }
+
+.content .about-image {
+  display: block;
+  max-width: 60%;
+  height: auto;
+  margin: 20px auto;
+}
