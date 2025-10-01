@@ -1,10 +1,19 @@
-import sys
-import subprocess
-import threading
-import signal
 import os
-from src.utils.env import LOG_TO_FILE, LOG_PATH
-from src.utils.logger import log_output, logger
+import signal
+import subprocess
+import sys
+import threading
+
+if __package__ in {None, ""}:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    package_root = os.path.dirname(current_dir)
+    if package_root not in sys.path:
+        sys.path.insert(0, package_root)
+    from utils.env import LOG_TO_FILE, LOG_PATH
+    from utils.logger import log_output, logger
+else:
+    from .utils.env import LOG_TO_FILE, LOG_PATH
+    from .utils.logger import log_output, logger
 
 
 gui_process = None
