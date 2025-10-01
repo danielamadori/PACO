@@ -10,12 +10,17 @@ from view.example.layout import layout as example_layout
 
 
 
-def load_doc(name: str) -> str | None:
-    if name == "/about":
-        name = "/index"
+def load_doc(name: str) -> dcc.Markdown | None:
+    slug = name.strip("/")
+
+    if slug == "about":
+        slug = "index"
+
+    if not slug:
+        return None
 
     docs_dir = Path(__file__).resolve().parents[2] / "docs"
-    doc_path = docs_dir / f"{name.lstrip('/')}.md"
+    doc_path = docs_dir / f"{slug}.md"
 
     if not doc_path.exists():
         return None
@@ -57,6 +62,9 @@ app.layout = html.Div(
     Input("url", "pathname"),
 )
 def display_page(pathname):
+    if pathname != "/":
+        pathname = pathname.rstrip("/")
+
     nav = navbar(pathname)
 
     if pathname == "/syntax":
@@ -65,10 +73,10 @@ def display_page(pathname):
         return nav, example_layout()
     elif pathname == "/":
         return nav, home_layout()
-    elif pathname == "/about" or pathname == "/installation_and_usage":
-        page = load_doc(pathname)
-        if page is not None:
-            return nav, page
+
+    page = load_doc(pathname)
+    if page is not None:
+        return nav, page
 
     return nav, html.Div(
         [
