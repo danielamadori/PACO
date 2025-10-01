@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ page.title }}</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="site-body">
-  <div class="page-wrapper">
-    {% include navbar.html %}
-    <main class="content-card">
-      {{ content }}
-    </main>
-  </div>
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+      {{ page.title }}{% if site.title %} · {{ site.title }}{% endif %}
+    </title>
+    <link rel="stylesheet" href="{{ '/style.css' | relative_url }}">
+  </head>
+  <body class="site-body">
+    <div class="page-wrapper">
+      {% include navbar.html %}
+      <main class="content-card" role="main">
+        {{ content }}
+      </main>
+    </div>
+  </body>
 </html>
