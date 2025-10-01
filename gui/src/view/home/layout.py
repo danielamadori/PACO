@@ -12,6 +12,7 @@ from env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBAB
 from controller.home.sidebar.bpmn_tab.expression import register_expression_callbacks
 from controller.home.sidebar.bpmn_tab.table.gateways_table import register_gateway_callbacks
 from controller.home.sidebar.bpmn_tab.table.tasks_impacts_table import register_task_impacts_callbacks
+from controller.home.sidebar.bpmn_tab.table.tasks_duration_table import register_task_durations_callbacks
 from controller.home.sidebar.strategy_tab.strategy import register_strategy_callbacks
 from view.home.sidebar.sidebar import get_sidebar
 from view.visualizer.RenderSVG import RenderSvg
@@ -63,6 +64,7 @@ def layout():
 RenderSvg.register_callbacks(dash.callback, "bpmn-svg")
 RenderSvg.register_callbacks(dash.callback, "bdd")
 register_task_impacts_callbacks(dash.callback)
+register_task_durations_callbacks(dash.callback)
 register_task_impacts_names_callbacks(dash.callback)
 register_gateway_callbacks(dash.callback)
 register_expression_callbacks(dash.callback)
