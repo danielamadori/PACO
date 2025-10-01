@@ -3,8 +3,8 @@ import subprocess
 import threading
 import signal
 import os
-from utils.env import LOG_TO_FILE, LOG_PATH
-from utils.logger import log_output, logger
+from src.utils.env import LOG_TO_FILE, LOG_PATH
+from src.utils.logger import log_output, logger
 
 
 gui_process = None
