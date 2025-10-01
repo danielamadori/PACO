@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 from pathlib import Path
 
 import dash
@@ -15,6 +16,17 @@ from view.example.layout import layout as example_layout
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@lru_cache(maxsize=1)
+def _discover_docs_dir() -> Path | None:
+    start = Path(__file__).resolve()
+    for ancestor in (start.parent, *start.parents):
+        candidate = ancestor / "docs"
+        if candidate.is_dir():
+            logger.debug("Discovered docs directory at %s", candidate)
+            return candidate
+
+    logger.error("Unable to locate docs directory relative to %s", start)
+    return None
 
 
 def load_doc(name: str) -> dcc.Markdown | None:
@@ -30,7 +42,11 @@ def load_doc(name: str) -> dcc.Markdown | None:
         logger.info("Empty slug derived from name=%r; skipping markdown lookup", name)
         return None
 
-    docs_dir = Path(__file__).resolve().parents[2] / "docs"
+    docs_dir = _discover_docs_dir()
+    if docs_dir is None:
+        logger.error("Docs directory could not be determined; unable to render markdown")
+        return None
+
     doc_path = docs_dir / f"{slug}.md"
     logger.info("Looking for markdown document at %s", doc_path)
 
