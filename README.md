@@ -9,7 +9,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/danielamadori/PACO)
 
 
-## A strategy founder for *BPMN + CPI*
+## Strategy finder for *BPMN + CPI*
 
 ## Features
 
