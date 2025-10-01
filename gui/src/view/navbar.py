@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html
-from env import APP_NAME
+from gui.src.env import APP_NAME
 
 def navbar(pathname):
 	nav_items = [

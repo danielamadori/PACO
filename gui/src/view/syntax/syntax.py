@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
-from env import sese_diagram_grammar
+from gui.src.env import sese_diagram_grammar
 
 
 def get_syntax_layout():

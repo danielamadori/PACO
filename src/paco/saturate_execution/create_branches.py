@@ -1,7 +1,7 @@
 import copy
 
-from paco.parser.parse_node import ParseNode, ExclusiveGateway, Choice, Gateway, Nature
-from paco.saturate_execution.states import States, ActivityState
+from src.paco.parser.parse_node import ParseNode, ExclusiveGateway, Choice, Gateway, Nature
+from src.paco.saturate_execution.states import States, ActivityState
 from itertools import product
 
 

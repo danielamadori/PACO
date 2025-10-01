@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html
-from env import IMPACTS_NAMES
-from view.example.standard_layout import get_download_layout, get_description, get_render_example
+from gui.src.env import IMPACTS_NAMES
+from gui.src.view.example.standard_layout import get_download_layout, get_description, get_render_example
 
 
 def get_second_example(id, bpmn, bpmn_dot):

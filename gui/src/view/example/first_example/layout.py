@@ -1,10 +1,10 @@
 import dash_bootstrap_components as dbc
 from dash import html
 
-from env import IMPACTS_NAMES
-from view.example.first_example.strategy_example import get_strategy_example, get_losing_strategy_example, \
+from gui.src.env import IMPACTS_NAMES
+from gui.src.view.example.first_example.strategy_example import get_strategy_example, get_losing_strategy_example, \
 	get_winning_strategy_example
-from view.example.standard_layout import get_download_layout, get_description, get_render_example
+from gui.src.view.example.standard_layout import get_download_layout, get_description, get_render_example
 
 
 def get_first_example(id, bpmn, bpmn_dot):

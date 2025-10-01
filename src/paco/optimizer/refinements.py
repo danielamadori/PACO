@@ -1,12 +1,12 @@
-from paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
-from paco.explainer.explain_strategy import explain_strategy
-from paco.explainer.full_strategy import full_strategy
-from paco.searcher.build_strategy import build_strategy
-from paco.searcher.create_execution_tree import create_execution_tree
-from paco.searcher.found_strategy import found_strategy
+from src.paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
+from src.paco.explainer.explain_strategy import explain_strategy
+from src.paco.explainer.full_strategy import full_strategy
+from src.paco.searcher.build_strategy import build_strategy
+from src.paco.searcher.create_execution_tree import create_execution_tree
+from src.paco.searcher.found_strategy import found_strategy
 import numpy as np
 from datetime import datetime
-from utils.env import IMPACTS_NAMES
+from src.utils.env import IMPACTS_NAMES
 
 
 def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bounds, num_refinements = 10):

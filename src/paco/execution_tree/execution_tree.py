@@ -5,13 +5,13 @@ import graphviz
 import numpy as np
 from jsonschema import validate, ValidationError
 
-from paco.execution_tree.execution_view_point import ExecutionViewPoint
-from paco.execution_tree.view_point import get_next_task
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.strategy_view_point import StrategyViewPoint
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.states import States
-from utils.env import PATH_EXECUTION_TREE, PATH_STRATEGY_TREE
+from src.paco.execution_tree.execution_view_point import ExecutionViewPoint
+from src.paco.execution_tree.view_point import get_next_task
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.strategy_view_point import StrategyViewPoint
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.states import States
+from src.utils.env import PATH_EXECUTION_TREE, PATH_STRATEGY_TREE
 
 
 class ExecutionTree:

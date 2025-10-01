@@ -1,8 +1,8 @@
 import dash
 from dash import Input, Output, State, ALL
 import dash_bootstrap_components as dbc
-from model.etl import load_bpmn_dot
-from env import IMPACTS
+from gui.src.model.etl import load_bpmn_dot
+from gui.src.env import IMPACTS
 
 
 def register_task_impacts_callbacks(tasks_callbacks):

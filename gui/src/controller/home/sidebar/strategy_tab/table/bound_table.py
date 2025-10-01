@@ -1,7 +1,7 @@
 import dash
 from dash import Input, Output, State, ALL, ctx
-from env import IMPACTS_NAMES, BOUND, EXPRESSION
-from view.home.sidebar.strategy_tab.table.bound_table import get_bound_table
+from gui.src.env import IMPACTS_NAMES, BOUND, EXPRESSION
+from gui.src.view.home.sidebar.strategy_tab.table.bound_table import get_bound_table
 from dash import html
 
 def sync_bound_store_from_bpmn(bpmn_store, bound_store):

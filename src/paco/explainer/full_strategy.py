@@ -2,17 +2,17 @@ import copy
 import random
 from itertools import product
 import numpy as np
-from paco.evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
-from paco.evaluations.evaluate_impacts import evaluate_expected_impacts
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.strategy_tree import saturate_execution
-from paco.explainer.strategy_view_point import StrategyViewPoint
-from paco.explainer.explanation_type import ExplanationType
-from paco.saturate_execution.create_branches import get_excluded_gateways
-from paco.saturate_execution.states import States, ActivityState
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.evaluations.evaluate_decisions import find_all_decisions, evaluate_decisions
+from src.paco.evaluations.evaluate_impacts import evaluate_expected_impacts
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.strategy_tree import saturate_execution
+from src.paco.explainer.strategy_view_point import StrategyViewPoint
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.saturate_execution.create_branches import get_excluded_gateways
+from src.paco.saturate_execution.states import States, ActivityState
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.execution_tree.execution_tree import ExecutionTree
 
 
 def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint, explainers: dict[ParseNode, Bdd], impacts: np.ndarray, states: States, pending_choices:set, pending_natures:set) -> (States, list[ParseNode], set, set):

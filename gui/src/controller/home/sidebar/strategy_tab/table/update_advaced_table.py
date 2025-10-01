@@ -1,7 +1,7 @@
 import dash
 from dash import Output, Input, ALL, State, ctx
-from env import IMPACTS_NAMES
-from view.home.sidebar.strategy_tab.table.create_advance_table import render_table
+from gui.src.env import IMPACTS_NAMES
+from gui.src.view.home.sidebar.strategy_tab.table.create_advance_table import render_table
 
 
 def register_advance_table_callbacks(table_callback):

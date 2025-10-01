@@ -1,6 +1,6 @@
-from view.home.sidebar.bpmn_tab.tab import get_BPMN_CPI_tab
-from view.home.sidebar.llm_tab.tab import get_llm_tab
-from view.home.sidebar.strategy_tab.tab import get_strategy_tab
+from gui.src.view.home.sidebar.bpmn_tab.tab import get_BPMN_CPI_tab
+from gui.src.view.home.sidebar.llm_tab.tab import get_llm_tab
+from gui.src.view.home.sidebar.strategy_tab.tab import get_strategy_tab
 from dash import dcc, html
 
 def get_sidebar():

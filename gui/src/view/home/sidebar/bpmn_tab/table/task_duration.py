@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
-from env import DURATIONS
+from gui.src.env import DURATIONS
 
 
 def get_duration_table_header():

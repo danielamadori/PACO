@@ -1,13 +1,13 @@
 import json
 import ast
 from copy import deepcopy
-from model.sqlite import fetch_strategy, save_strategy
-from model.sqlite import fetch_bpmn, save_parse_and_execution_tree
+from gui.src.model.sqlite import fetch_strategy, save_strategy
+from gui.src.model.sqlite import fetch_bpmn, save_parse_and_execution_tree
 import base64
 import graphviz
 import requests
-from model.sqlite import save_bpmn_dot
-from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
+from gui.src.model.sqlite import save_bpmn_dot
+from gui.src.env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
 	LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND
 
 

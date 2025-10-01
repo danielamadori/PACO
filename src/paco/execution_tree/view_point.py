@@ -1,8 +1,8 @@
 import math
 from abc import ABC, abstractmethod
 
-from paco.parser.parse_node import ParseNode, Sequential, Choice, Nature, Parallel, Task
-from paco.saturate_execution.states import States, states_info
+from src.paco.parser.parse_node import ParseNode, Sequential, Choice, Nature, Parallel, Task
+from src.paco.saturate_execution.states import States, states_info
 
 
 class ViewPoint(ABC):

@@ -1,9 +1,9 @@
 import dash_bootstrap_components as dbc
 from dash import html
-from env import IMPACTS_NAMES
-from view.home.sidebar.bpmn_tab.table.new_impact_button import get_new_impact_button
-from view.home.sidebar.bpmn_tab.table.task_duration import get_duration_table_header, get_duration_table_row
-from view.home.sidebar.bpmn_tab.table.task_impacts import get_impacts_table_header, get_impacts_table_row
+from gui.src.env import IMPACTS_NAMES
+from gui.src.view.home.sidebar.bpmn_tab.table.new_impact_button import get_new_impact_button
+from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import get_duration_table_header, get_duration_table_row
+from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import get_impacts_table_header, get_impacts_table_row
 
 # Old table with duration and impacts
 

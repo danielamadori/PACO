@@ -1,7 +1,17 @@
 import random
 import re
-from paco.optimizer.pareto_optimizer import pareto_optimal_impacts
-from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, LOOP_PROBABILITY, DELAYS, PROBABILITIES, LOOP_ROUND
+from src.paco.optimizer.pareto_optimizer import pareto_optimal_impacts
+from src.utils.env import (
+    EXPRESSION,
+    H,
+    IMPACTS,
+    DURATIONS,
+    IMPACTS_NAMES,
+    LOOP_PROBABILITY,
+    DELAYS,
+    PROBABILITIES,
+    LOOP_ROUND,
+)
 
 #fare replacement di ^ con nature o choice
 

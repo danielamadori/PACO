@@ -1,10 +1,19 @@
-import sys
-import subprocess
-import threading
-import signal
 import os
-from utils.env import LOG_TO_FILE, LOG_PATH
-from utils.logger import log_output, logger
+import signal
+import subprocess
+import sys
+import threading
+
+if __package__ in {None, ""}:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    package_root = os.path.dirname(current_dir)
+    if package_root not in sys.path:
+        sys.path.insert(0, package_root)
+    from utils.env import LOG_TO_FILE, LOG_PATH
+    from utils.logger import log_output, logger
+else:
+    from .utils.env import LOG_TO_FILE, LOG_PATH
+    from .utils.logger import log_output, logger
 
 
 gui_process = None
@@ -24,16 +33,18 @@ Options:
     logger.info("Displayed help message")
 
 
-def launch_subprocess(label, path):
+def launch_subprocess(label, target, *, module=False):
     logger.info(f"Launching {label}")
 
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"{label} not found at {path}")
+    if not module and not os.path.exists(target):
+        raise FileNotFoundError(f"{label} not found at {target}")
 
     output = open(LOG_PATH, "a") if LOG_TO_FILE else subprocess.PIPE
 
+    command = [sys.executable, "-m", target] if module else [sys.executable, target]
+
     process = subprocess.Popen(
-        [sys.executable, path],
+        command,
         stdout=output,
         stderr=output,
         cwd=os.getcwd(),
@@ -77,13 +88,11 @@ def main():
 
     match args[0]:
         case "--gui":
-            gui_process = launch_subprocess("GUI", "gui/src/main.py")
-            server_process = launch_subprocess("SERVER",
-                                os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
+            gui_process = launch_subprocess("GUI", "gui.src.main", module=True)
+            server_process = launch_subprocess("SERVER", "src.server", module=True)
 
         case "--api":
-            server_process = launch_subprocess("SERVER",
-                                os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
+            server_process = launch_subprocess("SERVER", "src.server", module=True)
         case "--help":
             print_help()
             sys.exit(0)

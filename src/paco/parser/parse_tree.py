@@ -5,10 +5,10 @@ import pydot
 import json
 from abc import ABC
 
-from paco.evaluations.sampler_expected_impact import sample_expected_impact
-from paco.parser.json_schema.json_validator import validate_json
-from paco.parser.parse_node import Gateway, Sequential, Parallel, Choice, Nature, Task
-from utils.env import PATH_PARSE_TREE
+from src.paco.evaluations.sampler_expected_impact import sample_expected_impact
+from src.paco.parser.json_schema.json_validator import validate_json
+from src.paco.parser.parse_node import Gateway, Sequential, Parallel, Choice, Nature, Task
+from src.utils.env import PATH_PARSE_TREE
 
 class ParseTree:
 	def __init__(self, root: 'ParseNode(ABC)') -> None:

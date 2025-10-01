@@ -1,10 +1,10 @@
 from datetime import datetime
-from paco.explainer.explain_strategy import explain_strategy
-from paco.explainer.full_strategy import full_strategy
-from paco.explainer.explanation_type import ExplanationType
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.explainer.explain_strategy import explain_strategy
+from src.paco.explainer.full_strategy import full_strategy
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.execution_tree.execution_tree import ExecutionTree
 
 def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], type_strategy: ExplanationType, impacts_names: list,  pending_choices:set, pending_natures:set, debug=False):
     times = {}

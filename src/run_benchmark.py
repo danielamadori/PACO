@@ -1,4 +1,4 @@
-from experiments.watchdog import run
+from src.experiments.watchdog import run
 
 if __name__ == '__main__':
 	while True:

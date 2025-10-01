@@ -1,16 +1,16 @@
 from dash import Input, Output, State
 import random, dash
 
-from controller.home.sidebar.llm_tab.effects import register_llm_effects_callbacks
-from controller.home.sidebar.llm_tab.reset import register_llm_reset_callbacks
-from model.etl import load_bpmn_dot
-from model.llm import llm_response
-from view.home.sidebar.llm_tab.chat import get_message
-from controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
-from view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
-from view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
-from view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
-from env import EXPRESSION, SESE_PARSER, extract_nodes
+from gui.src.controller.home.sidebar.llm_tab.effects import register_llm_effects_callbacks
+from gui.src.controller.home.sidebar.llm_tab.reset import register_llm_reset_callbacks
+from gui.src.model.etl import load_bpmn_dot
+from gui.src.model.llm import llm_response
+from gui.src.view.home.sidebar.llm_tab.chat import get_message
+from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
+from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
+from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
+from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
+from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes
 
 
 def register_llm_callbacks(callback, clientside_callback):

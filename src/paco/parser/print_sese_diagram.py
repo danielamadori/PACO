@@ -1,5 +1,5 @@
 from lark import Tree, Token
-from utils.env import H, PROBABILITIES, IMPACTS, DURATIONS, DELAYS, IMPACTS_NAMES, LOOP_ROUND, \
+from src.utils.env import H, PROBABILITIES, IMPACTS, DURATIONS, DELAYS, IMPACTS_NAMES, LOOP_ROUND, \
     LOOP_PROBABILITY
 
 def print_sese_diagram(bpmn:dict, lark_tree) -> str:

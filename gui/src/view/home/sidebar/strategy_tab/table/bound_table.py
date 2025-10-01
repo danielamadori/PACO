@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
-from env import BOUND
+from gui.src.env import BOUND
 
 
 def get_bound_table(bound_store, sorted_impacts_names):

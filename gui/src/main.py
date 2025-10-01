@@ -6,11 +6,11 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html
 
-from env import APP_NAME
-from view.navbar import navbar
-from view.home.layout import layout as home_layout
-from view.syntax.layout import layout as syntax_layout
-from view.example.layout import layout as example_layout
+from .env import APP_NAME
+from .view.navbar import navbar
+from .view.home.layout import layout as home_layout
+from .view.syntax.layout import layout as syntax_layout
+from .view.example.layout import layout as example_layout
 
 
 logging.basicConfig(level=logging.INFO)
