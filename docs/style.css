@@ -31,7 +31,8 @@ body {
 
 .content .about-image {
   display: block;
-  max-width: 60%;
+  width: 100%;
+  max-width: 320px;
   height: auto;
   margin: 20px auto;
 }
