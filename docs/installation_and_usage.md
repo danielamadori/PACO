@@ -3,10 +3,7 @@ title: Installation and Usage
 layout: default
 ---
 
-<div class="page-wrapper">
 {% include navbar.html %}
-
-<div class="content">
 
 # Installation and Usage
 
@@ -20,7 +17,6 @@ To run the application, you can use either **Python** or **Docker**. Only one of
 To install **Python**, follow the instructions on [Python's official website](https://www.python.org/downloads/). For **Docker**, you can find installation steps on [Docker's official website](https://docs.docker.com/get-docker/).
 
 ---
-
 
 ## Quick Start
 
@@ -40,9 +36,8 @@ To start the application using Docker, follow these steps:
 3. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
    The docs are available at `http://127.0.0.1:8000/docs`
 4. Open browser and navigate to `http://127.0.0.1:8001/docs` to access the BPMN-CPI Simulator API documentation.
-5. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+5. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
-
 
 ## Installation
 1. Clone the repository with submodules:
@@ -64,7 +59,6 @@ To start the application using Docker, follow these steps:
     ```bash
     git submodule update --remote
     ```
-
 
 ### Using Python
 To start the application using Python, follow these steps:
@@ -96,12 +90,11 @@ To start the application using Python, follow these steps:
     ```bash
     jupyter notebook --port=8888
     ```
-4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
+4. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ---
 NB! This application is currently under development. There may be some issues and bugs.
-
 
 ## Running Benchmark
 
@@ -123,13 +116,10 @@ Execute the benchmark script according to your operating system:
     ```
 - Windows
     ```batch
-    .\run_benchmark.bat
+    .\\run_benchmark.bat
     ```
 
 After execution, benchmark results and logs will be generated in the main directory:
 
 - `benchmarks.sqlite` – Benchmark results database
 - `benchmarks_output.log` – Detailed benchmark execution log
-
-</div>
-</div>

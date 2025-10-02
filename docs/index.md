@@ -3,10 +3,7 @@ title: Home
 layout: default
 ---
 
-<div class="page-wrapper">
 {% include navbar.html %}
-
-<div class="content">
 
 ## Strategy finder for *BPMN + CPI*
 
@@ -38,6 +35,3 @@ If you want to contribute to RESPISE, you can create your own branch and start p
 ## License
 
 Licensed under MIT license.
-
-</div>
-</div>
