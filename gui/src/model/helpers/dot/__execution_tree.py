@@ -24,7 +24,7 @@ def tree_node_to_dot(_id, p, impacts, execution_time, impacts_name=None, visible
 	bg_color = ACTIVE_NODE_COLOR if visible else INACTIVE_NODE_COLOR  # Use active color if visible, inactive if not
 	alpha_bg = ALPHA_ACTIVE_BACKGROUND if visible else ALPHA_INACTIVE_BACKGROUND  # Full opacity if visible, semi-transparent if not
 	alpha_text = ALPHA_ACTIVE_TEXT if visible else ALPHA_INACTIVE_TEXT  # Full opacity if visible, semi-transparent if not
-	impacts_label = f"[{", ".join([f"{name}: {value}" for name, value in zip(impacts_name, impacts)])}]"
+	impacts_label = "[" + ", ".join([f"{name}: {value}" for name, value in zip(impacts_name, impacts)]) + "]"
 	return f'\nnode_{_id}[shape=oval label="ID: {_id}\\nProbability: {p}\\nImpacts:\\n{impacts_label}\\nExecution time: {execution_time}" style="filled" fillcolor="#{bg_color}{alpha_bg}" fontcolor="#{TEXT_COLOR}{alpha_text}"];'
 
 def tree_to_dot(tree_root, impacts_names, path=None):
