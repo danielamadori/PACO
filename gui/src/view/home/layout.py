@@ -1,16 +1,16 @@
 import dash
 from dash import dcc, html
 from dash_split_pane import DashSplitPane
-from controller.home.sidebar.bpmn_tab.download import register_download_callbacks
-from controller.home.sidebar.bpmn_tab.table.tasks_impacts_names import register_task_impacts_names_callbacks
-from controller.home.sidebar.bpmn_tab.upload import register_upload_callbacks
-from controller.home.sidebar.llm_tab.chat import register_llm_callbacks
-from controller.home.sidebar.sidebar import register_sidebar_callbacks
-from controller.home.sidebar.simulator_tab.pending_decisions import register_pending_decision_callbacks
-from controller.home.sidebar.simulator_tab.simulate_control import register_simulator_callbacks
-from controller.home.sidebar.simulator_tab.status_info import register_status_info_callbacks
-from controller.home.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
-from env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, \
+from gui.src.controller.home.sidebar.bpmn_tab.download import register_download_callbacks
+from gui.src.controller.home.sidebar.bpmn_tab.table.tasks_impacts_names import register_task_impacts_names_callbacks
+from gui.src.controller.home.sidebar.bpmn_tab.upload import register_upload_callbacks
+from gui.src.controller.home.sidebar.llm_tab.chat import register_llm_callbacks
+from gui.src.controller.home.sidebar.sidebar import register_sidebar_callbacks
+from gui.src.controller.home.sidebar.simulator_tab.pending_decisions import register_pending_decision_callbacks
+from gui.src.controller.home.sidebar.simulator_tab.simulate_control import register_simulator_callbacks
+from gui.src.controller.home.sidebar.simulator_tab.status_info import register_status_info_callbacks
+from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
+from gui.src.env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, \
     LOOP_PROBABILITY, BOUND
 from gui.src.controller.home.sidebar.bpmn_tab.expression import register_expression_callbacks
 from gui.src.controller.home.sidebar.bpmn_tab.table.gateways_table import register_gateway_callbacks
