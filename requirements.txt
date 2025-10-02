@@ -17,3 +17,4 @@ langchain-core~=0.3.35
 redis~=5.2.0
 requests~=2.32.3
 overrides>=7.4
+pm4py~=2.7.10

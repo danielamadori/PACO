@@ -55,7 +55,10 @@ def launch_subprocess(label, target, *, module=False, required=True):
         return None
 
     if not module and not os.path.exists(target):
-        raise FileNotFoundError(f"{label} not found at {target}")
+        if required:
+            raise FileNotFoundError(f"{label} not found at {target}")
+        logger.info("Skipping launch of %s because the script is missing", label)
+        return None
 
     output = open(LOG_PATH, "a") if LOG_TO_FILE else subprocess.PIPE
 
@@ -110,8 +113,8 @@ def main():
             server_process = launch_subprocess("SERVER", "src.server", module=True)
             simulator_process = launch_subprocess(
                 "SIMULATOR",
-                "simulator.src.main",
-                module=True,
+                os.path.join("simulator", "src", "main.py"),
+                module=False,
                 required=False,
             )
 
@@ -119,8 +122,8 @@ def main():
             server_process = launch_subprocess("SERVER", "src.server", module=True)
             simulator_process = launch_subprocess(
                 "SIMULATOR",
-                "simulator.src.main",
-                module=True,
+                os.path.join("simulator", "src", "main.py"),
+                module=False,
                 required=False,
             )
         case "--help":
