@@ -45,14 +45,6 @@ To install **Python**, follow the instructions on [Python's official website](ht
     ```bash
     cp .env.example .env
     ```
-   or manually create a `.env` file and add the following variables:
-    ```
-    SIMULATOR_API_HOST=0.0.0.0
-    SIMULATOR_API_PORT=8001
-    SIMULATOR_API_TILE="BPMN-CPI Simulator API"
-    SIMULATOR_API_VERSION=1.0.0
-    SIMULATOR_API_DOCS_URL=/docs
-    ```
    
 ### Manage Submodules
 - Initializing (if you did not use `--recurse-submodules` when cloning)
