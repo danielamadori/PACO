@@ -9,7 +9,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/danielamadori/PACO)
 
 
-## A strategy founder for *BPMN + CPI*
+## Strategy finder for *BPMN + CPI*
 
 ## Features
 
@@ -44,14 +44,6 @@ To install **Python**, follow the instructions on [Python's official website](ht
 2. Create a `.env` file in the root directory. You can copy the example file:
     ```bash
     cp .env.example .env
-    ```
-   or manually create a `.env` file and add the following variables:
-    ```
-    SIMULATOR_API_HOST=0.0.0.0
-    SIMULATOR_API_PORT=8001
-    SIMULATOR_API_TILE="BPMN-CPI Simulator API"
-    SIMULATOR_API_VERSION=1.0.0
-    SIMULATOR_API_DOCS_URL=/docs
     ```
    
 ### Manage Submodules
