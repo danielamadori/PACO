@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import signal
 import subprocess
@@ -34,8 +35,24 @@ Options:
     logger.info("Displayed help message")
 
 
-def launch_subprocess(label, target, *, module=False):
+def _module_available(module_name: str) -> bool:
+    """Return ``True`` when the import machinery can locate ``module_name``."""
+
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        logger.warning("Module %s is not available and will be skipped", module_name)
+        return False
+    return True
+
+
+def launch_subprocess(label, target, *, module=False, required=True):
     logger.info(f"Launching {label}")
+
+    if module and not _module_available(target):
+        if required:
+            raise ModuleNotFoundError(f"Required module {target!r} could not be found")
+        logger.info("Skipping launch of %s because the module is missing", label)
+        return None
 
     if not module and not os.path.exists(target):
         raise FileNotFoundError(f"{label} not found at {target}")
@@ -91,11 +108,21 @@ def main():
         case "--gui":
             gui_process = launch_subprocess("GUI", "gui.src.main", module=True)
             server_process = launch_subprocess("SERVER", "src.server", module=True)
-            simulator_process = launch_subprocess("SIMULATOR", "simulator.src.main", module=True)
+            simulator_process = launch_subprocess(
+                "SIMULATOR",
+                "simulator.src.main",
+                module=True,
+                required=False,
+            )
 
         case "--api":
             server_process = launch_subprocess("SERVER", "src.server", module=True)
-            simulator_process = launch_subprocess("SIMULATOR", "simulator.src.main", module=True)
+            simulator_process = launch_subprocess(
+                "SIMULATOR",
+                "simulator.src.main",
+                module=True,
+                required=False,
+            )
         case "--help":
             print_help()
             sys.exit(0)
