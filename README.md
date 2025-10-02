@@ -25,51 +25,6 @@ In the context of increasingly complex business processes, accurately modeling d
 RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact vector can determine if there exists a feasible strategy such that the process can be completed while remaining under the bound vector. Moreover, We explain the synthesized strategies to users by labeling choice gateways in the BPMN diagram, making the strategies more interpretable and actionable.
 ![alt text](image.png)
 
-
-
-## Installation
-1. Clone the repository with submodules:
-    ```bash
-    git clone --recurse-submodules https://github.com/matthewexe/PACO.git
-    ```
-2. Create a `.env` file in the root directory. You can copy the example file:
-    ```bash
-    cp .env.example .env
-    ```
-   
-### Manage Submodules
-- Initializing (if you did not use `--recurse-submodules` when cloning)
-    ```bash
-    git submodule init
-    git submodule update
-    ```
-- Update (to get the latest version of the submodules)
-    ```bash
-    git submodule update --remote
-    ```
-
-## Starting the Application
-You can start the application using either **Docker** or **Python**. Choose one of the methods below.
-### Using Docker
-
-To start the application using Docker, follow these steps:
-
-1. Pull and start the Docker:
-    ```bash
-    docker pull danielamadori/paco:latest
-    docker run -d -p 8000:8000 -p 8050:8050 -p 8888:8888 -p 8001:8001 -it --name PACO danielamadori/paco:latest
-    docker logs PACO
-    ```
-   Note: Replace latest with a specific version number if needed.
-
-2. Open a browser and navigate to `http://127.0.0.1:8050` to view the app.
-3. Open a browser and navigate to `http://127.0.0.1:8000` to access the application via REST API.
-   The docs are available at `http://127.0.0.1:8000/docs`
-4. Open browser and navigate to `http://127.0.0.1:8001/docs` to access the BPMN-CPI Simulator API documentation.
-5. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.  
-   You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
-
-
 ### Usage
 #link to installation and usage
 You can find the installation and usage instructions [here](docs/installation_and_usage.md).
