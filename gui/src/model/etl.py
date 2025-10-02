@@ -6,14 +6,44 @@ from copy import deepcopy
 import graphviz
 import requests
 
-from env import URL_SERVER, HEADERS, SESE_PARSER, EXPRESSION, IMPACTS_NAMES, IMPACTS, DURATIONS, DELAYS, PROBABILITIES, \
-    LOOP_PROBABILITY, LOOP_ROUND, extract_nodes, BOUND, SIMULATOR_SERVER
-from model.execution_tree import get_execution_node, get_current_marking_from_execution_tree, get_execution_probability, \
-    get_execution_time, get_execution_impacts
-from model.petri_net import get_pending_decisions, is_final_marking, is_initial_marking
-from model.sqlite import fetch_bpmn, save_execution_tree, save_parse_tree
-from model.sqlite import fetch_strategy, save_strategy
-from model.sqlite import save_petri_net, save_bpmn_dot
+from gui.src.env import (
+    URL_SERVER,
+    HEADERS,
+    SESE_PARSER,
+    EXPRESSION,
+    IMPACTS_NAMES,
+    IMPACTS,
+    DURATIONS,
+    DELAYS,
+    PROBABILITIES,
+    LOOP_PROBABILITY,
+    LOOP_ROUND,
+    extract_nodes,
+    BOUND,
+    SIMULATOR_SERVER,
+)
+from gui.src.model.execution_tree import (
+    get_execution_node,
+    get_current_marking_from_execution_tree,
+    get_execution_probability,
+    get_execution_time,
+    get_execution_impacts,
+)
+from gui.src.model.petri_net import (
+    get_pending_decisions,
+    is_final_marking,
+    is_initial_marking,
+)
+from gui.src.model.sqlite import (
+    fetch_bpmn,
+    save_execution_tree,
+    save_parse_tree,
+    fetch_strategy,
+    save_strategy,
+    save_petri_net,
+    save_bpmn_dot,
+    update_bpmn_dot as _update_bpmn_record,
+)
 
 
 
@@ -84,10 +114,8 @@ def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
     :param bpmn_dot: BPMN DOT string
     :return: None
     """
-    import model.sqlite
-
     bpmn = keep_relevant_bpmn(bpmn)
-    model.sqlite.update_bpmn_dot(bpmn, bpmn_dot)
+    _update_bpmn_record(bpmn, bpmn_dot)
 
 
 def load_parse_tree(bpmn: dict) -> dict:

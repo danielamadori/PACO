@@ -1,8 +1,15 @@
 from dash import Input, Output, State, ctx, ALL
 
-from model.etl import bpmn_to_dot, dot_to_base64svg, update_bpmn_dot, load_execution_tree, set_actual_execution, \
-    execute_decisions, get_simulation_data
-from model.execution_tree import get_prev_execution_node
+from gui.src.model.etl import (
+    bpmn_to_dot,
+    dot_to_base64svg,
+    update_bpmn_dot,
+    load_execution_tree,
+    set_actual_execution,
+    execute_decisions,
+    get_simulation_data,
+)
+from gui.src.model.execution_tree import get_prev_execution_node
 
 
 def register_simulator_callbacks(callback):

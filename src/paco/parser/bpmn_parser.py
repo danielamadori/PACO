@@ -1,8 +1,19 @@
 from lark import Lark
-from paco.parser.grammar import sese_diagram_grammar
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import Sequential, Parallel, Choice, Nature, Task, Loop
-from utils.env import LOOP_PROBABILITY, EXPRESSION, IMPACTS, PROBABILITIES, DURATIONS, DELAYS, H, LOOP_ROUND
+
+from src.utils.env import (
+    LOOP_PROBABILITY,
+    EXPRESSION,
+    IMPACTS,
+    PROBABILITIES,
+    DURATIONS,
+    DELAYS,
+    H,
+    LOOP_ROUND,
+)
+
+from .grammar import sese_diagram_grammar
+from .parse_node import Choice, Loop, Nature, Parallel, Sequential, Task
+from .parse_tree import ParseTree
 
 SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
 DEFAULT_UNFOLDING_NUMBER = 3
