@@ -3,6 +3,7 @@ from lark import Lark, ParseTree
 APP_NAME = "PACO GUI"
 
 URL_SERVER = 'http://127.0.0.1:8000/' #'http://host.docker.internal:8000/'
+SIMULATOR_SERVER = 'http://127.0.0.1:8001/'
 HEADERS = {"Content-Type": "application/json"}
 
 DB_PATH = 'bpmn_cpi.sqlite'

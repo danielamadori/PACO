@@ -47,7 +47,7 @@ def register_paco_api(app: FastAPI):
 
         try:
             bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
-            parse_tree, pending_choices, pending_natures = create_parse_tree(bpmn)
+            parse_tree, pending_choices, pending_natures, pending_loops = create_parse_tree(bpmn)
 
             return {"parse_tree": parse_tree.to_dict()}
 
