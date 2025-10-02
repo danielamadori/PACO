@@ -4,11 +4,11 @@ import graphviz
 import numpy as np
 import pandas as pd
 
-from paco.execution_tree.view_point import get_next_task
-from paco.explainer.bdd.dag_node import DagNode
-from paco.explainer.explanation_type import ExplanationType
-from paco.parser.parse_node import ParseNode
-from utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_BDD
+from src.paco.execution_tree.view_point import get_next_task
+from src.paco.explainer.bdd.dag_node import DagNode
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.parser.parse_node import ParseNode
+from src.utils.env import PATH_EXPLAINER_DECISION_TREE, PATH_BDD
 
 
 class Bdd:

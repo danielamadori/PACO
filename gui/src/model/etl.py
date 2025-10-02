@@ -16,6 +16,7 @@ from model.sqlite import fetch_strategy, save_strategy
 from model.sqlite import save_petri_net, save_bpmn_dot
 
 
+
 def load_bpmn_dot(bpmn: dict) -> str:
     """
     Given a BPMN process, return its DOT representation as an SVG base64 string.

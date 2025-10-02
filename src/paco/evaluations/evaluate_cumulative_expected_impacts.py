@@ -1,6 +1,6 @@
 import copy
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.parser.parse_node import Choice
+from src.paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.parser.parse_node import Choice
 
 
 def evaluate_cumulative_expected_impacts(solution_tree: ExecutionTree):

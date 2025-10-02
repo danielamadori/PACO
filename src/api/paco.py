@@ -2,16 +2,16 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
-from paco.parser.bpmn_parser import create_parse_tree
-from paco.parser.create import create
-from paco.parser.parse_tree import ParseTree
-from paco.parser.print_sese_diagram import print_sese_diagram
-from paco.solver import paco
-from utils import check_syntax as cs
-from utils.check_syntax import check_bpmn_syntax
-from utils.env import DURATIONS, IMPACTS_NAMES, EXPRESSION
+from src.paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
+from src.paco.parser.bpmn_parser import create_parse_tree
+from src.paco.parser.create import create
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.print_sese_diagram import print_sese_diagram
+from src.paco.solver import paco
+from src.utils import check_syntax as cs
+from src.utils.check_syntax import check_bpmn_syntax
+from src.utils.env import DURATIONS, IMPACTS_NAMES, EXPRESSION
 
 
 def register_paco_api(app: FastAPI):

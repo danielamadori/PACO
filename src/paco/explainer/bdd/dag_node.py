@@ -1,6 +1,6 @@
 import math
 import pandas as pd
-from paco.parser.parse_node import ParseNode
+from src.paco.parser.parse_node import ParseNode
 
 
 class DagNode:

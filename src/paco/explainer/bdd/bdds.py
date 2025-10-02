@@ -1,8 +1,8 @@
 import json
 
-from paco.explainer.bdd.bdd import Bdd
-from paco.parser.parse_node import ParseNode
-from paco.parser.parse_tree import ParseTree
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.parser.parse_node import ParseNode
+from src.paco.parser.parse_tree import ParseTree
 
 
 def bdds_from_json(parseTree: 'ParseTree', data) -> dict[ParseNode:Bdd]:

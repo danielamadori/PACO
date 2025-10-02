@@ -1,11 +1,11 @@
 import numpy as np
-from paco.evaluations.evaluate_impacts import evaluate_expected_impacts_from_parseNode, evaluate_expected_impacts
-from paco.execution_tree.execution_view_point import ExecutionViewPoint
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.saturate_execution import saturate_execution_decisions
-from paco.saturate_execution.states import States, ActivityState
-from paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.evaluations.evaluate_impacts import evaluate_expected_impacts_from_parseNode, evaluate_expected_impacts
+from src.paco.execution_tree.execution_view_point import ExecutionViewPoint
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.saturate_execution import saturate_execution_decisions
+from src.paco.saturate_execution.states import States, ActivityState
+from src.paco.execution_tree.execution_tree import ExecutionTree
 
 def evaluate_viewPoint(id, region_tree, decisions: tuple[ParseNode], states:States, pending_choices:set, pending_natures:set, solution_tree:ExecutionTree, impacts_size:int) -> (ExecutionViewPoint, dict[tuple[ParseNode], (States,set,set)]):
 	states, choices, natures, pending_choices, pending_natures, branches = saturate_execution_decisions(region_tree, states, pending_choices, pending_natures)

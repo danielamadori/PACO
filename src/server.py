@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.llm import register_api_llm
-from api.paco import register_paco_api
+from src.api.llm import register_api_llm
+from src.api.paco import register_paco_api
 import uvicorn
 # https://blog.futuresmart.ai/integrating-google-authentication-with-fastapi-a-step-by-step-guide
 # http://youtube.com/watch?v=B5AMPx9Z1OQ&list=PLqAmigZvYxIL9dnYeZEhMoHcoP4zop8-p&index=26

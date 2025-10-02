@@ -1,6 +1,6 @@
 from itertools import product
 import numpy as np
-from paco.parser.parse_node import ParseNode, Task, ExclusiveGateway, Nature
+from src.paco.parser.parse_node import ParseNode, Task, ExclusiveGateway, Nature
 
  #TODO Daniel: on the fly implementation
 

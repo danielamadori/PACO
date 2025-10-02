@@ -1,10 +1,10 @@
 import numpy as np
-from paco.explainer.build_explained_strategy import build_explained_strategy
-from paco.explainer.explanation_type import ExplanationType
-from paco.parser.create import create
-from paco.searcher.search import search
-from utils import check_syntax as cs
-from utils.env import IMPACTS_NAMES, DURATIONS
+from src.paco.explainer.build_explained_strategy import build_explained_strategy
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.parser.create import create
+from src.paco.searcher.search import search
+from src.utils import check_syntax as cs
+from src.utils.env import IMPACTS_NAMES, DURATIONS
 from datetime import datetime
 
 

@@ -1,8 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
 
-from env import EXPRESSION, IMPACTS_NAMES
-from view.visualizer.RenderSVG import RenderSvg
+from gui.src.env import EXPRESSION, IMPACTS_NAMES
+from gui.src.view.visualizer.RenderSVG import RenderSvg
 
 
 def get_description(bpmn, text_description, warning=False, impacts=False):

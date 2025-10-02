@@ -1,13 +1,13 @@
 import datetime
 import json
-from experiments.telegram.telegram_bot import send_telegram_message
-from paco.parser.create import create
-from utils import check_syntax as cs
-from experiments.etl.cpi_translations import cpi_to_standard_format
-from paco.optimizer.refinements import refine_bounds
-from paco.evaluations.sampler_expected_impact import sample_expected_impact
-from paco.parser.bpmn_parser import create_parse_tree
-from utils.env import DURATIONS
+from src.experiments.telegram.telegram_bot import send_telegram_message
+from src.paco.parser.create import create
+from src.utils import check_syntax as cs
+from src.experiments.etl.cpi_translations import cpi_to_standard_format
+from src.paco.optimizer.refinements import refine_bounds
+from src.paco.evaluations.sampler_expected_impact import sample_expected_impact
+from src.paco.parser.bpmn_parser import create_parse_tree
+from src.utils.env import DURATIONS
 
 
 def single_experiment(D, num_refinements = 10):

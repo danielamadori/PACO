@@ -1,10 +1,10 @@
 from datetime import datetime
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException
-from ai.model import chat_histories, SESSION_TIMEOUT, LLMChatRequest
-from ai.llm_utils import run_llm_on_bpmn
-from paco.parser.bpmn import validate_bpmn_dict
-from utils.check_syntax import check_bpmn_syntax
+from src.ai.model import chat_histories, SESSION_TIMEOUT, LLMChatRequest
+from src.ai.llm_utils import run_llm_on_bpmn
+from src.paco.parser.bpmn import validate_bpmn_dict
+from src.utils.check_syntax import check_bpmn_syntax
 
 
 def register_api_llm(app: FastAPI):

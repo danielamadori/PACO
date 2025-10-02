@@ -1,6 +1,6 @@
 from pony.orm import Database, Required, Optional, Set, db_session, commit, rollback
 import json
-from env import DB_PATH
+from gui.src.env import DB_PATH
 
 db = Database()
 

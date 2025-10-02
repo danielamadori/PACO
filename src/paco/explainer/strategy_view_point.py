@@ -1,18 +1,17 @@
 import numpy as np
 
-from paco.execution_tree.view_point import ViewPoint
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.explanation_type import ExplanationType
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.states import States
+from src.paco.execution_tree.view_point import ViewPoint
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.states import States
 
 class StrategyViewPoint(ViewPoint):
 	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],
-				 is_final_state: bool, probability:np.float64, unavoidable_impacts: np.ndarray, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = {}):
+				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = {}):
 		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), pending_choices, pending_natures, parent)
 
 		self.probability = probability
-		self.unavoidable_impacts = unavoidable_impacts
 		self.impacts = impacts
 		self.executed_time = states.executed_time[bpmn_root]
 		self.explained_choices = explained_choices
@@ -46,7 +45,6 @@ class StrategyViewPoint(ViewPoint):
 		label = f" [label=\""
 		label += f"Time: {self.executed_time}\n"
 		label += f"Impacts: {self.impacts}\n"
-		label += f"Unavoidable Impacts: {self.unavoidable_impacts}\n"
 		if self.probability != 1:
 			label += f"Probability: {round(self.probability, 2)}\n"
 			label += f"Exp. Time: {round(self.expected_time, 2)}\n"
@@ -91,7 +89,6 @@ class StrategyViewPoint(ViewPoint):
 		base.update({
 			"probability": self.probability,
 			"impacts": self.impacts.tolist(),
-			"unavoidable_impacts": self.unavoidable_impacts.tolist(),
 			"executed_time": self.executed_time,
 			"expected_impacts": self.expected_impacts.tolist(),
 			"expected_time": self.expected_time

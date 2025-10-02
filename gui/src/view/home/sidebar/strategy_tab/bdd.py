@@ -1,6 +1,6 @@
 from dash import html
 import dash_bootstrap_components as dbc
-from view.home.sidebar.strategy_tab.bdd_visualizer import get_bdds_visualizer
+from gui.src.view.home.sidebar.strategy_tab.bdd_visualizer import get_bdds_visualizer
 
 def get_bdds(bdds: dict):
 	cards = []

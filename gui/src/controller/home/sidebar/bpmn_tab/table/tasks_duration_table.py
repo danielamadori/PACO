@@ -1,8 +1,8 @@
 import dash
 from dash import Input, Output, State, ALL
 import dash_bootstrap_components as dbc
-from env import DURATIONS
-from model.etl import load_bpmn_dot
+from gui.src.env import DURATIONS
+from gui.src.model.etl import load_bpmn_dot
 
 
 def register_task_durations_callbacks(tasks_callbacks):

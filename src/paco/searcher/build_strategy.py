@@ -1,6 +1,6 @@
 import copy
-from paco.parser.parse_node import ParseNode, Choice
-from paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.parser.parse_node import ParseNode, Choice
+from src.paco.execution_tree.execution_tree import ExecutionTree
 
 
 def build_strategy(frontier: list[ExecutionTree], strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]] = {}) -> (set[ExecutionTree], dict[ParseNode, dict[ParseNode, set[ExecutionTree]]]):

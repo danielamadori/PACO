@@ -1,10 +1,10 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Output, Input, State, ALL
-from controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
-from model.etl import load_bpmn_dot
-from env import IMPACTS_NAMES, extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS
-from view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
+from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
+from gui.src.model.etl import load_bpmn_dot
+from gui.src.env import IMPACTS_NAMES, extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS
+from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 
 
 def register_task_impacts_names_callbacks(tasks_callbacks):

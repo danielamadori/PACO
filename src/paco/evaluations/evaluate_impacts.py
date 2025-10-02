@@ -1,7 +1,7 @@
 import copy
 import numpy as np
-from paco.saturate_execution.states import States, ActivityState
-from paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Nature, Task, Gateway
+from src.paco.saturate_execution.states import States, ActivityState
+from src.paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Nature, Task, Gateway
 
 
 def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64, np.ndarray):
@@ -23,59 +23,6 @@ def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64,
 
 	return probability, impacts
 
-
-def unavoidable_tasks(root: ParseNode, states: States) -> set[ParseNode]:
-	#print("root " + node_info(root, states))
-	if root in states.activityState and states.activityState[root] in [ActivityState.WILL_NOT_BE_EXECUTED, ActivityState.COMPLETED, ActivityState.COMPLETED_WITHOUT_PASSING_OVER]:
-		#print("general node with: -1, 2, 3")
-		return set()
-	if isinstance(root, Task):
-		if root not in states.activityState or (root in states.activityState and states.activityState[root] == ActivityState.WAITING):
-			return set([root])
-		return set()
-	if isinstance(root, Sequential) or isinstance(root, Parallel):
-		result = set[ParseNode]()
-		result = result.union(unavoidable_tasks(root.sx_child, states))
-		result = result.union(unavoidable_tasks(root.dx_child, states))
-		return result
-
-	if isinstance(root, ExclusiveGateway) and root in states.activityState and states.activityState[root] == ActivityState.ACTIVE:
-		if root.sx_child in states.activityState and states.activityState[root.sx_child] == ActivityState.ACTIVE:
-			return unavoidable_tasks(root.sx_child, states)
-		if root.dx_child in states.activityState and states.activityState[root.dx_child] == ActivityState.ACTIVE:
-			return unavoidable_tasks(root.dx_child, states)
-
-	return set()
-
-
-def evaluate_unavoidable_impacts(root: ParseNode, states: States, current_impacts: np.ndarray) -> np.ndarray:
-	unavoidableImpacts = copy.deepcopy(current_impacts)
-	#print("Unavoidable:\n" + states_info(states))
-	for unavoidableTask in unavoidable_tasks(root, states):
-		#print("unavoidableTask: " + node_info(unavoidableTask, states))
-		unavoidableImpacts += unavoidableTask.impact
-
-	return unavoidableImpacts
-
-'''
-def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode) -> (np.float64, np.ndarray):
-	if isinstance(parseNode, Task):
-		return np.float64(1), parseNode.impact
-
-	if not isinstance(parseNode, Gateway):
-		raise Exception("Unexpected node type")
-
-	sx_probability, dx_probability = np.float64(1), np.float64(1)
-	if isinstance(parseNode, Nature):
-		sx_probability *= parseNode.probability
-		dx_probability *= (1 - parseNode.probability)
-
-	sx_probability, sx_impacts = evaluate_expected_impacts_from_parseNode(parseNode.sx_child)
-	dx_probability, dx_impacts = evaluate_expected_impacts_from_parseNode(parseNode.dx_child)
-
-	return sx_probability * dx_probability, sx_impacts + dx_impacts
-
-'''
 def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode, impacts_size: int) -> (np.float64, np.ndarray):
 	probability = np.float64(1)
 

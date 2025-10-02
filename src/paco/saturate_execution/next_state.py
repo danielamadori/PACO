@@ -1,7 +1,7 @@
 import math
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Nature, Task
-from paco.saturate_execution.states import States, ActivityState, node_info
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Nature, Task
+from src.paco.saturate_execution.states import States, ActivityState, node_info
 
 
 def next_state(root: ParseNode, states: States, k: int) -> (States, int):

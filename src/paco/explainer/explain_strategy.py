@@ -1,9 +1,9 @@
 import numpy as np
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.explanation_type import current_impacts, unavoidable_impacts, decision_based, ExplanationType
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode
-from paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.explanation_type import current_impacts, decision_based, ExplanationType
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode
+from src.paco.execution_tree.execution_tree import ExecutionTree
 
 
 def explain_choice(choice:ParseNode, decisions:list[ParseNode], impacts:list[np.ndarray], labels:list, features_names:list, typeStrategy:ExplanationType, debug=False) -> Bdd:
@@ -37,8 +37,6 @@ def explain_strategy_full(region_tree: ParseTree, strategy: dict[ParseNode, dict
 
 		if typeStrategy == ExplanationType.CURRENT_IMPACTS:
 			vectors, labels = current_impacts(decisions_taken)
-		elif typeStrategy == ExplanationType.UNAVOIDABLE_IMPACTS:
-			vectors, labels = unavoidable_impacts(region_tree, decisions_taken)
 		elif typeStrategy == ExplanationType.DECISION_BASED:
 			features_names, vectors, labels = decision_based(region_tree, decisions_taken)
 		else:
@@ -68,13 +66,6 @@ def explain_strategy_hybrid(region_tree: ParseTree, strategy: dict[ParseNode, di
 
 		if typeStrategy == ExplanationType.CURRENT_IMPACTS:
 			vectors, labels = current_impacts(decisions_taken)
-			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy, debug)
-			if bdd is None:
-				#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")
-				typeStrategy = ExplanationType(typeStrategy + 1)
-
-		if typeStrategy == ExplanationType.UNAVOIDABLE_IMPACTS:
-			vectors, labels = unavoidable_impacts(region_tree, decisions_taken)
 			bdd = explain_choice(choice, list(decisions_taken.keys()), vectors, labels, features_names, typeStrategy, debug)
 			if bdd is None:
 				#print(f"Explaining choice {choice.name}, using {typeStrategy} explainer: failed")

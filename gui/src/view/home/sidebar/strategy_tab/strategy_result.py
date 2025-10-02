@@ -1,6 +1,6 @@
 from dash import html
-from view.home.sidebar.strategy_tab.bdd import get_bdds
-from view.home.sidebar.strategy_tab.table.create_advance_table import render_table
+from gui.src.view.home.sidebar.strategy_tab.bdd import get_bdds
+from gui.src.view.home.sidebar.strategy_tab.table.create_advance_table import render_table
 import dash_bootstrap_components as dbc
 
 def strategy_results(result: str, expected_impacts: list, guaranteed_bounds: list, possible_min_solution: list, bdds: dict, sorted_impact_names: list, sort_by=None, sort_order="asc"):

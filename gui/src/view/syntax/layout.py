@@ -1,11 +1,11 @@
 import dash_bootstrap_components as dbc
 
-from view.syntax.choice import get_choice_layout
-from view.syntax.loop import get_loop_layout
-from view.syntax.nature import get_nature_layout
-from view.syntax.parallel import get_parallel_layout
-from view.syntax.syntax import get_syntax_layout
-from view.syntax.tasks import get_tasks_layout
+from gui.src.view.syntax.choice import get_choice_layout
+from gui.src.view.syntax.loop import get_loop_layout
+from gui.src.view.syntax.nature import get_nature_layout
+from gui.src.view.syntax.parallel import get_parallel_layout
+from gui.src.view.syntax.syntax import get_syntax_layout
+from gui.src.view.syntax.tasks import get_tasks_layout
 
 
 def layout():

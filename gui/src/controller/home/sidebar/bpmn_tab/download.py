@@ -1,8 +1,8 @@
 import json
 from dash import Input, Output, State, dcc, callback
 
-from env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES, H
-from model.etl import filter_bpmn
+from gui.src.env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES, H
+from gui.src.model.etl import filter_bpmn
 
 
 def register_download_callbacks(callback):

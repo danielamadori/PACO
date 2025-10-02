@@ -1,5 +1,5 @@
 from dash import html, dcc
-from view.visualizer.RenderSVG import RenderSvg
+from gui.src.view.visualizer.RenderSVG import RenderSvg
 
 
 def get_bdds_visualizer(choice, type_strategy, svg):

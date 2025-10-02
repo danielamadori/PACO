@@ -12,12 +12,13 @@ from controller.home.sidebar.simulator_tab.status_info import register_status_in
 from controller.home.sidebar.strategy_tab.table.bound_table import register_bound_callbacks
 from env import DELAYS, DURATIONS, H, IMPACTS, EXPRESSION, IMPACTS_NAMES, PROBABILITIES, LOOP_ROUND, \
     LOOP_PROBABILITY, BOUND
-from controller.home.sidebar.bpmn_tab.expression import register_expression_callbacks
-from controller.home.sidebar.bpmn_tab.table.gateways_table import register_gateway_callbacks
-from controller.home.sidebar.bpmn_tab.table.tasks_impacts_table import register_task_impacts_callbacks
-from controller.home.sidebar.strategy_tab.strategy import register_strategy_callbacks
-from view.home.sidebar.sidebar import get_sidebar
-from view.visualizer.RenderSVG import RenderSvg
+from gui.src.controller.home.sidebar.bpmn_tab.expression import register_expression_callbacks
+from gui.src.controller.home.sidebar.bpmn_tab.table.gateways_table import register_gateway_callbacks
+from gui.src.controller.home.sidebar.bpmn_tab.table.tasks_impacts_table import register_task_impacts_callbacks
+from gui.src.controller.home.sidebar.bpmn_tab.table.tasks_duration_table import register_task_durations_callbacks
+from gui.src.controller.home.sidebar.strategy_tab.strategy import register_strategy_callbacks
+from gui.src.view.home.sidebar.sidebar import get_sidebar
+from gui.src.view.visualizer.RenderSVG import RenderSvg
 
 
 def layout():
@@ -66,6 +67,7 @@ def layout():
 RenderSvg.register_callbacks(dash.callback, "bpmn-svg")
 RenderSvg.register_callbacks(dash.callback, "bdd")
 register_task_impacts_callbacks(dash.callback)
+register_task_durations_callbacks(dash.callback)
 register_task_impacts_names_callbacks(dash.callback)
 register_gateway_callbacks(dash.callback)
 register_expression_callbacks(dash.callback)
@@ -75,6 +77,7 @@ register_sidebar_callbacks(dash.callback)
 register_llm_callbacks(dash.callback, dash.clientside_callback)
 register_upload_callbacks(dash.callback)
 register_download_callbacks(dash.callback)
+
 register_pending_decision_callbacks(dash.callback)
 register_status_info_callbacks(dash.callback)
 register_simulator_callbacks(dash.callback)

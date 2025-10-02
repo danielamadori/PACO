@@ -1,7 +1,7 @@
 from dash import dcc, html
 
-from view.home.sidebar.llm_tab.header import get_header
-from view.home.sidebar.llm_tab.input_bar import get_input_bar
+from gui.src.view.home.sidebar.llm_tab.header import get_header
+from gui.src.view.home.sidebar.llm_tab.input_bar import get_input_bar
 
 
 def get_llm_tab():

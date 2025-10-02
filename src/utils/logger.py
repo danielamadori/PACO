@@ -1,6 +1,6 @@
 import logging
 import os
-from utils.env import LOG_TO_FILE, LOG_PATH
+from .env import LOG_TO_FILE, LOG_PATH
 
 
 def setup_logger(name: str, to_file: bool = False, filename: str = "logs/paco.log", level: str = "INFO") -> logging.Logger:

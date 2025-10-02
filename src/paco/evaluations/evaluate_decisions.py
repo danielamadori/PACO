@@ -1,9 +1,9 @@
 import numpy as np
 
-from paco.execution_tree.view_point import get_next_task
-from paco.saturate_execution.states import ActivityState
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import ParseNode, Gateway, ExclusiveGateway
+from src.paco.execution_tree.view_point import get_next_task
+from src.paco.saturate_execution.states import ActivityState
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import ParseNode, Gateway, ExclusiveGateway
 
 
 def find_all_decisions_rec(node: ParseNode) -> list[ParseNode]:

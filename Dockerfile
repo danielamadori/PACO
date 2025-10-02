@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements-server.txt \
 
 COPY src ./src
 COPY gui/src ./gui/src/
+COPY docs ./docs
 COPY *.ipynb ./
 COPY CPIs ./CPIs
 COPY simulator/ ./simulator/

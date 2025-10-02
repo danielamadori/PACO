@@ -5,13 +5,13 @@ import graphviz
 import numpy as np
 from jsonschema import validate, ValidationError
 
-from paco.execution_tree.execution_view_point import ExecutionViewPoint
-from paco.execution_tree.view_point import get_next_task
-from paco.explainer.bdd.bdd import Bdd
-from paco.explainer.strategy_view_point import StrategyViewPoint
-from paco.parser.parse_node import ParseNode
-from paco.saturate_execution.states import States
-from utils.env import PATH_EXECUTION_TREE, PATH_STRATEGY_TREE
+from src.paco.execution_tree.execution_view_point import ExecutionViewPoint
+from src.paco.execution_tree.view_point import get_next_task
+from src.paco.explainer.bdd.bdd import Bdd
+from src.paco.explainer.strategy_view_point import StrategyViewPoint
+from src.paco.parser.parse_node import ParseNode
+from src.paco.saturate_execution.states import States
+from src.utils.env import PATH_EXECUTION_TREE, PATH_STRATEGY_TREE
 
 
 class ExecutionTree:
@@ -73,12 +73,10 @@ class ExecutionTree:
 			)
 
 		elif tree_type == "StrategyViewPoint":
-			unavoidable_impacts = np.array(node_data['unavoidable_impacts'], dtype=np.float64)
-
 			viewPoint = StrategyViewPoint(bpmn_root=parseTree.root,
 				id=id, states=states, decisions=decisions, choices=choices,
 				natures=natures, is_final_state=is_final_state, parent=parent,
-				probability=probability, impacts=impacts, unavoidable_impacts=unavoidable_impacts,
+				probability=probability, impacts=impacts,
 				expected_impacts=np.array(node_data['expected_impacts'], dtype=np.float64),
 				expected_time=np.float64(node_data['expected_time']),
 				pending_choices=pending_choices, pending_natures=pending_natures,

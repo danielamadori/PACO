@@ -1,9 +1,9 @@
 import enum
 import random
 import numpy as np
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.evaluations.pareto import get_min_dominated_impacts, get_max_dominating_vectors
-from paco.parser.parse_node import Choice, Nature
+from src.paco.execution_tree.execution_tree import ExecutionTree
+from src.paco.evaluations.pareto import get_min_dominated_impacts, get_max_dominating_vectors
+from src.paco.parser.parse_node import Choice, Nature
 
 '''
 def compare_bound(cei: np.ndarray, bound: np.ndarray):

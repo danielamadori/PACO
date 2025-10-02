@@ -1,6 +1,6 @@
 import math
-from paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Choice, Task
-from paco.saturate_execution.states import States, ActivityState, node_info
+from src.paco.parser.parse_node import ParseNode, Sequential, Parallel, ExclusiveGateway, Choice, Task
+from src.paco.saturate_execution.states import States, ActivityState, node_info
 
 
 def steps_to_saturation(root: ParseNode, states: States):
