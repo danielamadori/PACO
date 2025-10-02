@@ -3,14 +3,16 @@ import random
 from dash import Input, Output, State, ctx, no_update
 from dash.dependencies import ALL
 
-from view.home.sidebar.simulator_tab.pending_decisions import update_pending_decisions
+from gui.src.view.home.sidebar.simulator_tab.pending_decisions import (
+    update_pending_decisions,
+)
 
 
 def register_pending_decision_callbacks(callback):
     @callback(
         Output("pending-decisions-body", "children"),
         Input("simulation-store", "data"),
-        prevent_initial_call=False
+        prevent_initial_call=False,
     )
     def populate_pending_decisions(simulator_data):
         return update_pending_decisions(simulator_data["gateway_decisions"])
@@ -32,10 +34,14 @@ def register_pending_decision_callbacks(callback):
             if triggered == {"type": "random-button", "id": gw} or triggered == "global-random":
                 options = []
                 for opt in sim_data["gateway_decisions"][gw].keys():
-                    options.append(sim_data["gateway_decisions"][gw][opt]['transition_id'])
+                    options.append(
+                        sim_data["gateway_decisions"][gw][opt]["transition_id"]
+                    )
                 weights = []
                 for opt in sim_data["gateway_decisions"][gw]:
-                    weights.append(sim_data["gateway_decisions"][gw][opt]['probability'])
+                    weights.append(
+                        sim_data["gateway_decisions"][gw][opt]["probability"]
+                    )
                 result.append(random.choices(options, weights=weights)[0])
             else:
                 result.append(no_update)
