@@ -1,22 +1,15 @@
+import json
 import os
+from abc import ABC
 
 import graphviz
 import pydot
-import json
-from abc import ABC
 
-from paco.evaluations.sampler_expected_impact import sample_expected_impact
-from paco.parser.json_schema.json_validator import validate_json
-from paco.parser.parse_node import (
-    Gateway,
-    Sequential,
-    Parallel,
-    Choice,
-    Nature,
-    Task,
-    Loop,
-)
-from utils.env import PATH_PARSE_TREE
+from src.utils.env import PATH_PARSE_TREE
+
+from ..evaluations.sampler_expected_impact import sample_expected_impact
+from .json_schema.json_validator import validate_json
+from .parse_node import Choice, Gateway, Loop, Nature, Parallel, Sequential, Task
 
 
 class ParseTree:

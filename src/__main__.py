@@ -89,15 +89,13 @@ def main():
 
     match args[0]:
         case "--gui":
-            gui_process = launch_subprocess("GUI", "gui/src/main.py")
-            server_process = launch_subprocess("SERVER",
-                                os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
-            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
+            gui_process = launch_subprocess("GUI", "gui.src.main", module=True)
+            server_process = launch_subprocess("SERVER", "src.server", module=True)
+            simulator_process = launch_subprocess("SIMULATOR", "simulator.src.main", module=True)
 
         case "--api":
-            server_process = launch_subprocess("SERVER",
-                                os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py"))
-            simulator_process = launch_subprocess("SIMULATOR", "simulator/src/main.py")
+            server_process = launch_subprocess("SERVER", "src.server", module=True)
+            simulator_process = launch_subprocess("SIMULATOR", "simulator.src.main", module=True)
         case "--help":
             print_help()
             sys.exit(0)
