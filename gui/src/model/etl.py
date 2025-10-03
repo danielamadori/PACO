@@ -407,13 +407,14 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
     try:
         bpmn = keep_relevant_bpmn(bpmn)
         parse_tree = load_parse_tree(bpmn)
-        petri_net, *_ = get_petri_net(bpmn, step)
+        petri_net, petri_net_dot = get_petri_net(bpmn, step)
         execution_tree, current_execution = load_execution_tree(bpmn)
         decisions = list(gateway_decisions)
 
         request = {
             "bpmn": parse_tree,
             "petri_net": petri_net,
+            "petri_net_dot": petri_net_dot,
             "execution_tree": {"root": execution_tree, "current_node": current_execution},
             "choices": decisions,
         }
