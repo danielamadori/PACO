@@ -15,7 +15,14 @@ def register_pending_decision_callbacks(callback):
         prevent_initial_call=False,
     )
     def populate_pending_decisions(simulator_data):
-        return update_pending_decisions(simulator_data["gateway_decisions"])
+        if not simulator_data:
+            return []
+
+        gateway_decisions = simulator_data.get("gateway_decisions") or {}
+        if not gateway_decisions:
+            return []
+
+        return update_pending_decisions(gateway_decisions)
 
     @callback(
         Output({"type": "gateway", "id": ALL}, "value"),
@@ -27,6 +34,9 @@ def register_pending_decision_callbacks(callback):
     )
     def update_random_decisions(individual_clicks, global_click, gateway_ids, sim_data):
         triggered = ctx.triggered_id
+        if not sim_data or not sim_data.get("gateway_decisions"):
+            return [no_update] * len(gateway_ids or [])
+
         result = []
 
         for i, gw_obj in enumerate(gateway_ids):

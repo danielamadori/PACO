@@ -148,7 +148,7 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
     return parse_tree
 
 
-def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
+def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dict, str]:
     """
     Given a BPMN process, return its execution tree and the current execution node.
     If the execution tree is already stored in the database, retrieve it from there.
@@ -159,10 +159,10 @@ def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
     """
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
-    if record and record.execution_tree and record.actual_execution:
+    if (not force_refresh and record and record.execution_tree and record.actual_execution):
         return json.loads(record.execution_tree), record.actual_execution
 
-    parse_tree = load_parse_tree(bpmn)
+    parse_tree = load_parse_tree(bpmn, force_refresh=force_refresh)
 
     try:
         resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
@@ -194,7 +194,7 @@ def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
     return execution_tree_root, current_execution_node
 
 
-def get_petri_net(bpmn: dict, step: int) -> tuple[dict, str]:
+def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tuple[dict, str]:
     """
     Given a BPMN process, return its Petri net representation and its DOT format.
     If the Petri net is already stored in the database, retrieve it from there.
@@ -206,10 +206,10 @@ def get_petri_net(bpmn: dict, step: int) -> tuple[dict, str]:
     """
     bpmn = keep_relevant_bpmn(bpmn)
     record = fetch_bpmn(bpmn)
-    if record and record.petri_net and record.petri_net_dot:
+    if not force_refresh and record and record.petri_net and record.petri_net_dot:
         return json.loads(record.petri_net), record.petri_net_dot
 
-    parse_tree = load_parse_tree(bpmn)
+    parse_tree = load_parse_tree(bpmn, force_refresh=force_refresh)
 
     try:
         resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
@@ -420,12 +420,31 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
     :param step: Optional step number. Ignored in current implementation.
     :return: Updated simulation data dictionary or None if error occurs
     """
+    filtered_bpmn = keep_relevant_bpmn(bpmn)
+    decisions = list(gateway_decisions)
+
+    parse_tree = load_parse_tree(filtered_bpmn)
+    petri_net, petri_net_dot = get_petri_net(filtered_bpmn, step)
+    execution_tree, current_execution = load_execution_tree(filtered_bpmn)
+
+    request = {
+        "bpmn": parse_tree,
+        "petri_net": petri_net,
+        "petri_net_dot": petri_net_dot,
+        "execution_tree": {"root": execution_tree, "current_node": current_execution},
+        "choices": decisions,
+    }
+
     try:
-        bpmn = keep_relevant_bpmn(bpmn)
-        parse_tree = load_parse_tree(bpmn)
-        petri_net, petri_net_dot = get_petri_net(bpmn, step)
-        execution_tree, current_execution = load_execution_tree(bpmn)
-        decisions = list(gateway_decisions)
+        response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        if exc.response is None or exc.response.status_code != 422:
+            raise
+
+        parse_tree = load_parse_tree(filtered_bpmn, force_refresh=True)
+        petri_net, petri_net_dot = get_petri_net(filtered_bpmn, step, force_refresh=True)
+        execution_tree, current_execution = load_execution_tree(filtered_bpmn, force_refresh=True)
 
         request = {
             "bpmn": parse_tree,
@@ -434,21 +453,20 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
             "execution_tree": {"root": execution_tree, "current_node": current_execution},
             "choices": decisions,
         }
+
         response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
         response.raise_for_status()
-        resp_json = response.json()
-        if 'error' in resp_json:
-            raise ValueError(f"Simulator error: {resp_json['error']}")
 
-    except Exception as e:
-        return None
+    resp_json = response.json()
+    if 'error' in resp_json:
+        raise ValueError(f"Simulator error: {resp_json['error']}")
 
     petri_net = resp_json['petri_net']
     petri_net_dot = resp_json['petri_net_dot']
     execution_tree = resp_json['execution_tree']['root']
     current_execution = resp_json['execution_tree']['current_node']
 
-    save_petri_net(keep_relevant_bpmn(bpmn), json.dumps(petri_net), petri_net_dot)
-    save_execution_tree(bpmn, json.dumps(execution_tree), current_execution)
+    save_petri_net(filtered_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
+    save_execution_tree(filtered_bpmn, json.dumps(execution_tree), current_execution)
 
-    return get_simulation_data(bpmn)
+    return get_simulation_data(filtered_bpmn)
