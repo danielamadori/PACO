@@ -77,18 +77,20 @@ def update_bpmn_dot(bpmn_dict:dict, bpmn_dot:str):
 def save_execution_tree(bpmn_dict: dict, execution_tree: str, actual_execution: str):
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     record = BPMN.get(bpmn=bpmn_str)
-    if record:
-        record.execution_tree = execution_tree or ""
-        record.actual_execution = actual_execution or ""
-        commit()
+    if not record:
+        record = BPMN(bpmn=bpmn_str)
+    record.execution_tree = execution_tree or ""
+    record.actual_execution = actual_execution or ""
+    commit()
 
 @db_session
 def save_parse_tree(bpmn_dict:dict, parse_tree:str):
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     record = BPMN.get(bpmn=bpmn_str)
-    if record:
-        record.parse_tree = parse_tree or ""
-        commit()
+    if not record:
+        record = BPMN(bpmn=bpmn_str)
+    record.parse_tree = parse_tree or ""
+    commit()
 
 
 @db_session
@@ -129,10 +131,11 @@ def save_strategy(bpmn_dict: dict, bound_list: list, result:str, expected_impact
 def save_petri_net(bpmn_dict:dict, petri_net:str, petri_net_dot:str):
     bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
     record = BPMN.get(bpmn=bpmn_str)
-    if record:
-        record.petri_net = petri_net or ""
-        record.petri_net_dot = petri_net_dot or ""
-        commit()
+    if not record:
+        record = BPMN(bpmn=bpmn_str)
+    record.petri_net = petri_net or ""
+    record.petri_net_dot = petri_net_dot or ""
+    commit()
 
 
 @db_session

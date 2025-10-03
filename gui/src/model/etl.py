@@ -118,7 +118,7 @@ def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
     _update_bpmn_record(bpmn, bpmn_dot)
 
 
-def load_parse_tree(bpmn: dict) -> dict:
+def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
     """
     Given a BPMN process, return its parse tree.
     If the parse tree is already stored in the database, retrieve it from there.
@@ -132,7 +132,7 @@ def load_parse_tree(bpmn: dict) -> dict:
         raise ValueError("BPMN expression is empty")
 
     record = fetch_bpmn(bpmn)
-    if record and record.parse_tree:
+    if not force_refresh and record and record.parse_tree:
         return json.loads(record.parse_tree)
 
     resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": bpmn}, headers=HEADERS)
@@ -164,8 +164,16 @@ def load_execution_tree(bpmn: dict) -> tuple[dict, str]:
 
     parse_tree = load_parse_tree(bpmn)
 
-    resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
-    resp.raise_for_status()
+    try:
+        resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        if exc.response is None or exc.response.status_code != 422:
+            raise
+
+        parse_tree = load_parse_tree(bpmn, force_refresh=True)
+        resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
+        resp.raise_for_status()
     resp_json = resp.json()
 
     if 'error' in resp_json:
@@ -203,8 +211,16 @@ def get_petri_net(bpmn: dict, step: int) -> tuple[dict, str]:
 
     parse_tree = load_parse_tree(bpmn)
 
-    resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
-    resp.raise_for_status()
+    try:
+        resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        if exc.response is None or exc.response.status_code != 422:
+            raise
+
+        parse_tree = load_parse_tree(bpmn, force_refresh=True)
+        resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
+        resp.raise_for_status()
     resp_json = resp.json()
 
     if 'error' in resp_json:
