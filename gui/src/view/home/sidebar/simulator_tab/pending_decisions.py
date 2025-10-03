@@ -3,31 +3,35 @@ from dash import html, dcc
 
 
 def get_pending_decisions():
-    return dbc.Card([
-        dbc.CardHeader(
-            html.Div([
-                html.H5("Pending Decisions", style={"margin": 0}),
-                dbc.Button("Random", id="global-random", color="secondary", size="sm")
-            ], style={
-                "display": "flex",
-                "justifyContent": "space-between",
-                "alignItems": "center"
-            })
-        ),
-        dbc.CardBody(
-            html.Div(
-                id="pending-decisions-body",
-                style={
-                    "maxHeight": "200px",
-                    "overflowY": "auto",
-                    "padding": "5px"
-                }
+    return html.Div(
+        dbc.Card([
+            dbc.CardHeader(
+                html.Div([
+                    html.H5("Pending Decisions", style={"margin": 0}),
+                    dbc.Button("Random", id="global-random", color="secondary", size="sm")
+                ], style={
+                    "display": "flex",
+                    "justifyContent": "space-between",
+                    "alignItems": "center"
+                })
+            ),
+            dbc.CardBody(
+                html.Div(
+                    id="pending-decisions-body",
+                    style={
+                        "maxHeight": "200px",
+                        "overflowY": "auto",
+                        "padding": "5px"
+                    }
+                )
             )
-        )
-    ], className="mb-3", style={
-        "width": "100%",
-        "minWidth": "300px"
-    })
+        ], className="mb-3", style={
+            "width": "100%",
+            "minWidth": "300px"
+        }),
+        id="pending-decisions-card-container",
+        style={"display": "none"},
+    )
 
 
 def update_pending_decisions(gateway_decisions):
