@@ -11,18 +11,19 @@ from gui.src.view.home.sidebar.simulator_tab.pending_decisions import (
 def register_pending_decision_callbacks(callback):
     @callback(
         Output("pending-decisions-body", "children"),
+        Output("pending-decisions-card-container", "style"),
         Input("simulation-store", "data"),
         prevent_initial_call=False,
     )
     def populate_pending_decisions(simulator_data):
         if not simulator_data:
-            return []
+            return [], {"display": "none"}
 
         gateway_decisions = simulator_data.get("gateway_decisions") or {}
         if not gateway_decisions:
-            return []
+            return [], {"display": "none"}
 
-        return update_pending_decisions(gateway_decisions)
+        return update_pending_decisions(gateway_decisions), {}
 
     @callback(
         Output({"type": "gateway", "id": ALL}, "value"),
