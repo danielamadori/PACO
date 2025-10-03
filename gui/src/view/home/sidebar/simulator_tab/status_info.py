@@ -3,17 +3,20 @@ from dash import html
 
 
 def status_info():
-	return dbc.Card([
-		dbc.CardHeader(html.H5('Status Info')),
-		dbc.CardBody(
-			html.Div(id="status-info-content", style={
-				"maxHeight": "250px",
-				"overflowY": "auto",
-				"overflowX": "hidden",
-				"padding": "0.5rem"
-			})
-		)
-	], className="mb-3", style={"minHeight": "300px"})
+        return dbc.Card([
+                dbc.CardHeader(html.H5('Status Info')),
+                dbc.CardBody(
+                        html.Div(id="status-info-content", style={
+                                "maxHeight": "250px",
+                                "overflowY": "auto",
+                                "overflowX": "hidden",
+                                "padding": "0.5rem"
+                        })
+                )
+        ], className="mb-3", style={
+                "minHeight": "300px",
+                "width": "100%"
+        })
 
 
 def make_table_card(title, dictionary):
