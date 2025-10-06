@@ -162,8 +162,8 @@ def _classify_decision_labels(snapshot: Dict[str, Any]) -> Tuple[Set[str], Set[s
     process(snapshot.get("active_decision_points"), default_active=True)
 
     # Choice/Nature lists signal availability of decision points.
-    process(snapshot.get("choices"), default_active=True)
-    process(snapshot.get("natures"), default_active=True)
+    process(snapshot.get("choices"))
+    process(snapshot.get("natures"))
     process(snapshot.get("active_choices"), default_active=True)
     process(snapshot.get("active_natures"), default_active=True)
 
