@@ -46,6 +46,22 @@ def test_labels_without_statuses_use_pending_information() -> None:
     assert get_pending_decision_labels(snapshot) == {"C2"}
 
 
+def test_pending_labels_override_active_hints() -> None:
+    """Explicit pending flags should override conflicting active lists."""
+
+    snapshot = {
+        "active_decision_points": ["C1", "C2"],
+        "pending_choices": ["C2"],
+        "stop_transitions": {
+            "C1": ["35", "30"],
+            "C2": ["47", "42"],
+        },
+    }
+
+    assert get_active_decision_labels(snapshot) == {"C1"}
+    assert get_pending_decision_labels(snapshot) == {"C2"}
+
+
 def test_all_pending_results_in_no_active_labels() -> None:
     """If every decision is pending we should not return any active label."""
 

@@ -183,7 +183,12 @@ def get_active_decision_labels(snapshot: Dict[str, Any]) -> Set[str]:
 
     active, pending, observed = _classify_decision_labels(snapshot or {})
     if active:
-        return active
+        # Pending markers should always win over active hints so that
+        # conflicting metadata (e.g. an "active" list that still contains a
+        # pending decision) does not leak inactive choices.
+        active = active - pending
+        if active:
+            return active
     if observed:
         if pending:
             return observed - pending
