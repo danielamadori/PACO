@@ -102,6 +102,50 @@ class GetActiveDecisionTransitionTests(unittest.TestCase):
         result = self.__class__._helper(petri_net, marking)
         self.assertEqual({}, result)
 
+    def test_uses_arcs_when_transition_inputs_missing(self) -> None:
+        petri_net = {
+            "places": [
+                {"id": "p_choice_c1", "label": "C1", "region_type": "choice", "duration": 0.0},
+                {"id": "p_choice_c2", "label": "C2", "region_type": "choice", "duration": 0.0},
+                {"id": "p_nature", "label": "N1", "region_type": "nature", "duration": 0.0},
+                {"id": "p_guard", "label": "Guard", "region_type": "task", "duration": 0.0},
+                {"id": "p_after_c1", "label": "AfterC1", "region_type": "task"},
+                {"id": "p_after_c2", "label": "AfterC2", "region_type": "task"},
+                {"id": "p_after_n", "label": "AfterN", "region_type": "task"},
+            ],
+            "transitions": [
+                {"id": "t_c1_left", "label": "C1_left", "stop": True, "inputs": ["p_choice_c1"], "outputs": ["p_after_c1"]},
+                {"id": "t_c2_left", "label": "C2_left", "stop": True, "outputs": ["p_after_c2"]},
+                {"id": "t_c2_right", "label": "C2_right", "stop": True, "outputs": ["p_after_c2"]},
+                {"id": "t_nature_a", "label": "N1_a", "stop": True, "inputs": ["p_nature"], "outputs": ["p_after_n"]},
+                {"id": "t_nature_b", "label": "N1_b", "stop": True, "inputs": ["p_nature", "p_guard"], "outputs": ["p_after_n"]},
+            ],
+            "arcs": [
+                {"source": "p_choice_c1", "target": "t_c1_left"},
+                {"source": "t_c1_left", "target": "p_after_c1"},
+                {"source": "p_choice_c2", "target": "t_c2_left"},
+                {"source": "p_choice_c2", "target": "t_c2_right"},
+                {"source": "p_guard", "target": "t_c2_left"},
+                {"source": "p_guard", "target": "t_c2_right"},
+                {"source": "t_c2_left", "target": "p_after_c2"},
+                {"source": "t_c2_right", "target": "p_after_c2"},
+                {"source": "p_nature", "target": "t_nature_a"},
+                {"source": "p_nature", "target": "t_nature_b"},
+                {"source": "p_guard", "target": "t_nature_b"},
+                {"source": "t_nature_a", "target": "p_after_n"},
+                {"source": "t_nature_b", "target": "p_after_n"},
+            ],
+        }
+        marking = {
+            "p_choice_c1": {"token": 1, "age": 1.0},
+            "p_choice_c2": {"token": 1, "age": 1.0},
+            "p_nature": {"token": 1, "age": 1.0},
+            "p_guard": {"token": 0, "age": 0.0},
+        }
+
+        result = self.__class__._helper(petri_net, marking)
+        self.assertEqual({"C1": ["t_c1_left"], "N1": ["t_nature_a"]}, result)
+
     def test_handles_empty_inputs(self) -> None:
         petri_net = {"places": [], "transitions": [], "arcs": []}
         result = self.__class__._helper(petri_net, {})
