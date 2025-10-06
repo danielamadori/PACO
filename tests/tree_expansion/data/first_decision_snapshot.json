@@ -1,14 +1,14 @@
 {
   "decision_points": {
     "C1": {
-      "status": "waiting",
+      "status": "active",
       "transitions": [
         {"id": "35"},
         {"id": "30"}
       ]
     },
     "N1": {
-      "status": "waiting",
+      "status": "ACTIVE",
       "transitions": [
         {"id": "20"},
         {"id": "15"}
@@ -23,19 +23,13 @@
     }
   },
   "choices": [
-    {"label": "C1", "status": "waiting"},
-    {"label": "C2", "status": "pending"}
+    {"label": "C1", "status": "active"}
   ],
   "natures": [
-    {"label": "N1", "status": "waiting"}
+    {"label": "N1", "status": "active"}
   ],
-  "pending_decision_points": ["C1", "N1", "C2"],
   "pending_choices": [
-    {"label": "C1", "status": "waiting"},
     {"label": "C2", "status": "pending"}
-  ],
-  "pending_natures": [
-    {"label": "N1", "status": "waiting"}
   ],
   "stop_transitions": {
     "C1": ["35", "30"],

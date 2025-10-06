@@ -14,18 +14,27 @@ from src.utils.decision_points import (
     get_pending_decision_labels,
 )
 
-FIXTURE_PATH = Path(__file__).parent / "data" / "root_snapshot.json"
+FIXTURE_DIR = Path(__file__).parent / "data"
 
 
-def load_snapshot() -> dict:
-    with FIXTURE_PATH.open("r", encoding="utf-8") as handle:
+def load_snapshot(name: str) -> dict:
+    path = FIXTURE_DIR / name
+    with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
 
-def test_root_snapshot_active_labels() -> None:
-    """The root snapshot from the notebook should expose C1 and N1 as active."""
+def test_root_snapshot_has_no_active_decisions() -> None:
+    """The initial snapshot should only report pending decisions."""
 
-    snapshot = load_snapshot()
+    snapshot = load_snapshot("root_snapshot.json")
+    assert get_active_decision_labels(snapshot) == set()
+    assert get_pending_decision_labels(snapshot) == {"C1", "C2", "N1"}
+
+
+def test_first_decision_snapshot_exposes_c1_and_n1() -> None:
+    """After the deterministic prefix only C1 and N1 should be enabled."""
+
+    snapshot = load_snapshot("first_decision_snapshot.json")
     assert get_active_decision_labels(snapshot) == {"C1", "N1"}
     assert get_pending_decision_labels(snapshot) == {"C2"}
 

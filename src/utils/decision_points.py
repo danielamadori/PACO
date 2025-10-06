@@ -182,17 +182,18 @@ def get_active_decision_labels(snapshot: Dict[str, Any]) -> Set[str]:
     """Return the labels of decision points that are currently active."""
 
     active, pending, observed = _classify_decision_labels(snapshot or {})
+    # Pending markers should always win over active hints so that conflicting
+    # metadata (e.g. an "active" list that still contains a pending decision)
+    # does not leak inactive choices.
+    active = active - pending
     if active:
-        # Pending markers should always win over active hints so that
-        # conflicting metadata (e.g. an "active" list that still contains a
-        # pending decision) does not leak inactive choices.
-        active = active - pending
-        if active:
-            return active
+        return active
     if observed:
-        if pending:
-            return observed - pending
-        return observed
+        remaining = observed - pending
+        if remaining:
+            return remaining
+        if not pending:
+            return observed
     return set()
 
 
