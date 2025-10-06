@@ -160,6 +160,66 @@ class GetActiveDecisionTransitionTests(unittest.TestCase):
         result = self.__class__._helper(petri_net, marking)
         self.assertEqual({"L1": ["t_exit"]}, result)
 
+    def test_loop_limit_checks_all_outputs(self) -> None:
+        petri_net = {
+            "places": [
+                {
+                    "id": "p_loop",
+                    "label": "L1",
+                    "region_type": "loop",
+                    "duration": 0.0,
+                    "visit_limit": 1,
+                    "entry_region_id": "loop_entry",
+                },
+                {
+                    "id": "p_inside",
+                    "label": "Inside",
+                    "region_type": "task",
+                    "entry_region_id": "loop_entry",
+                },
+                {
+                    "id": "p_outside",
+                    "label": "Outside",
+                    "region_type": "task",
+                },
+                {
+                    "id": "p_branch",
+                    "label": "Branch",
+                    "region_type": "task",
+                },
+            ],
+            "transitions": [
+                {
+                    "id": "t_continue",
+                    "label": "L1_continue",
+                    "stop": True,
+                    "inputs": ["p_loop"],
+                    "outputs": ["p_inside", "p_branch"],
+                },
+                {
+                    "id": "t_exit",
+                    "label": "L1_exit",
+                    "stop": True,
+                    "inputs": ["p_loop"],
+                    "outputs": ["p_outside"],
+                },
+            ],
+            "arcs": [
+                {"source": "p_loop", "target": "t_continue"},
+                {"source": "p_loop", "target": "t_exit"},
+                {"source": "t_continue", "target": "p_inside"},
+                {"source": "t_continue", "target": "p_branch"},
+                {"source": "t_exit", "target": "p_outside"},
+            ],
+        }
+
+        # Once the visit limit is reached, the helper must treat the continue branch
+        # as unavailable even if it has additional outputs that leave the loop.
+        marking = {"p_loop": {"token": 1, "age": 1.0, "visit_count": 1}}
+
+        result = self.__class__._helper(petri_net, marking)
+        self.assertEqual({"L1": ["t_exit"]}, result)
+
 
 if __name__ == "__main__":
     unittest.main()
