@@ -39,6 +39,18 @@ To start the application using Docker, follow these steps:
 5. Open another browser tab and go to `http://127.0.0.1:8888` to access the Jupyter environment.
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
+### Verifying the Tree-Expansion Helper
+
+The `tree_expansion.ipynb` notebook defines the `get_active_decision_transition` helper that drives execution-tree exploration.
+You can run the dedicated regression tests from the repository root to confirm the helper behaves as expected:
+
+```bash
+pytest tests/test_tree_expansion_utils.py
+```
+
+The test suite loads the helper directly from the notebook and exercises representative Petri-net markings (ready, not ready, and invalid inputs).
+All tests must pass before relying on notebook changes.
+
 ## Installation
 1. Clone the repository with submodules:
     ```bash
