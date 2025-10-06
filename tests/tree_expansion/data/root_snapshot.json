@@ -1,0 +1,39 @@
+{
+  "decision_points": {
+    "C1": {
+      "status": "active",
+      "transitions": [
+        {"id": "35"},
+        {"id": "30"}
+      ]
+    },
+    "N1": {
+      "status": "ACTIVE",
+      "transitions": [
+        {"id": "20"},
+        {"id": "15"}
+      ]
+    },
+    "C2": {
+      "status": "pending",
+      "transitions": [
+        {"id": "47"},
+        {"id": "42"}
+      ]
+    }
+  },
+  "choices": [
+    {"label": "C1", "status": "active"}
+  ],
+  "natures": [
+    {"label": "N1", "status": "active"}
+  ],
+  "pending_choices": [
+    {"label": "C2", "status": "pending"}
+  ],
+  "stop_transitions": {
+    "C1": ["35", "30"],
+    "N1": ["20", "15"],
+    "C2": ["47", "42"]
+  }
+}
