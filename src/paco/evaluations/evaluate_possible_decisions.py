@@ -8,8 +8,8 @@ def evaluate_min_max_impacts(node: ParseNode):
 	if isinstance(node, Task):
 		return np.array(node.impacts), np.array(node.impacts)
 
-	sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(node.sx_child)
-	dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(node.dx_child)
+	sx_child_min_impacts, sx_child_max_impacts = evaluate_min_max_impacts(node.children[0])
+	dx_child_min_impacts, dx_child_max_impacts = evaluate_min_max_impacts(node.children[1])
 
 	if isinstance(node, ExclusiveGateway):
 		if isinstance(node, Nature):
@@ -58,10 +58,10 @@ def evaluate_possible_decisions(probability, impacts, pending_activities: list, 
 		for choice, take_sx in zip(pending_choices_impacts.keys(), branch):
 			if take_sx:
 				pending_decision_impacts = pending_choices_impacts[choice][0]
-				decision = choice.sx_child
+				decision = choice.children[0]
 			else:
 				pending_decision_impacts = pending_choices_impacts[choice][1]
-				decision = choice.dx_child
+				decision = choice.children[1]
 
 			branch_decisions.append(decision)
 			branch_min_impacts += pending_decision_impacts[0]

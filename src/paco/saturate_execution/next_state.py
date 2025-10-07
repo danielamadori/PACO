@@ -23,8 +23,8 @@ def next_state(root: ParseNode, states: States, k: int) -> (States, int):
 		return (States(root, ActivityState.COMPLETED, root.duration),
 				states.executed_time[root] + k - root.duration)
 
-	sx_child = root.sx_child
-	dx_child = root.dx_child
+	sx_child = root.children[0]
+	dx_child = root.children[1]
 
 	if isinstance(root, ExclusiveGateway):
 		childSx = states.activityState[sx_child] >= ActivityState.ACTIVE

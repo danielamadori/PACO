@@ -30,16 +30,19 @@
     },
     {
       "properties": {
-        "name": {
+        "label": {
           "type": "string"
         },
-        "probability": {
-          "type": "number"
+        "distribution": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "required": [
-        "name",
-        "probability"
+        "label",
+        "distribution"
       ]
     }
   ]

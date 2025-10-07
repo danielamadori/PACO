@@ -10,15 +10,15 @@ def find_all_decisions_rec(node: ParseNode) -> list[ParseNode]:
 	if not isinstance(node, Gateway):
 		return []
 
-	if node.sx_child is None or node.dx_child is None:
+	if node.children[0] is None or node.children[1] is None:
 		raise ValueError(f"Gateway {node.__class__} with ID: {node.id} has missing children")
 
 	decisions = []
 	if isinstance(node, ExclusiveGateway):
-		decisions.extend([node.sx_child, node.dx_child])
+		decisions.extend([node.children[0], node.children[1]])
 
-	decisions.extend(find_all_decisions_rec(node.sx_child))
-	decisions.extend(find_all_decisions_rec(node.dx_child))
+	decisions.extend(find_all_decisions_rec(node.children[0]))
+	decisions.extend(find_all_decisions_rec(node.children[1]))
 
 	return decisions
 

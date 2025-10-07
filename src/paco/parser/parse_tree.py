@@ -29,8 +29,8 @@ class ParseTree:
         if isinstance(root, Task):
             return root.dot()
 
-        dot_code = self.dot_tree(root.sx_child)
-        dot_code += self.dot_tree(root.dx_child)
+        dot_code = self.dot_tree(root.children[0])
+        dot_code += self.dot_tree(root.children[1])
         dot_code += root.dot()
 
         sx_edge_label = ""
@@ -44,7 +44,7 @@ class ParseTree:
 
         dot_code += f'\n node_{root.id} -> node_{root.sx_child.id} [label="{sx_edge_label}" style="{sx_style}"];'
         dot_code += (
-            f'\n node_{root.id} -> node_{root.dx_child.id} [label="{dx_edge_label}"];'
+            f'\n node_{root.id} -> node_{root.children[1].id} [label="{dx_edge_label}"];'
         )
 
         return dot_code
@@ -72,10 +72,10 @@ class ParseTree:
 
     @staticmethod
     def create_node(
-        node_data: dict,
-        parent: "ParseNode" = None,
-        impact_size=-1,
-        non_cumulative_impact=-1,
+            node_data: dict,
+            parent: "ParseNode" = None,
+            impact_size=-1,
+            non_cumulative_impact=-1,
     ) -> "ParseNode":
         node_type = node_data["type"].lower()
         node_id = node_data["id"]
@@ -88,9 +88,9 @@ class ParseTree:
                     parent=parent,
                     index_in_parent=index_in_parent,
                     id=node_id,
-                    name=node_data["name"],
-                    impact=node_data["impact"],
-                    non_cumulative_impact=node_data["non_cumulative_impact"],
+                    name=node_data["label"],
+                    impact=node_data["impacts"],
+                    #TODO Daniel: non_cumulative_impact=node_data["non_cumulative_impact"],
                     duration=node_data["duration"],
                 ),
                 pending_choice,
@@ -108,7 +108,7 @@ class ParseTree:
                 parent=parent,
                 index_in_parent=index_in_parent,
                 id=node_id,
-                name=node_data["name"],
+                name=node_data["label"],
                 max_delay=node_data["max_delay"],
             )
             pending_choice.add(node)
@@ -117,8 +117,8 @@ class ParseTree:
                 parent=parent,
                 index_in_parent=index_in_parent,
                 id=node_id,
-                name=node_data["name"],
-                probability=node_data["probability"],
+                name=node_data["label"],
+                distribution=node_data["distribution"],
             )
             pending_natures.add(node)
         elif node_type == "loop":
@@ -126,7 +126,7 @@ class ParseTree:
                 parent=parent,
                 index_in_parent=index_in_parent,
                 id=node_id,
-                name=node_data["name"],
+                name=node_data["label"],
                 probability=node_data["probability"],
                 bound=node_data["bound"],
             )
@@ -135,37 +135,31 @@ class ParseTree:
 
         # Recursively create children if they exist
         if isinstance(node, Gateway):
-            sx_child_data = node_data.get("sx_child")
-            dx_child_data = node_data.get("dx_child")
+            #sx_child_data = node_data.get("sx_child")
+            #dx_child_data = node_data.get("dx_child")
+            children_data = node_data.get("children")#Is a list
 
-            if sx_child_data:
-                node.sx_child, sx_pending_choice, sx_pending_natures = (
+            children = []
+            for child_data in children_data:
+                child, pending_choice, spending_natures = (
                     ParseTree.create_node(
-                        sx_child_data,
+                        child_data,
                         parent=node,
                         impact_size=impact_size,
                         non_cumulative_impact=non_cumulative_impact,
                     )
                 )
-                pending_choice.update(sx_pending_choice)
-                pending_natures.update(sx_pending_natures)
-            if dx_child_data:
-                node.dx_child, dx_pending_choice, dx_pending_natures = (
-                    ParseTree.create_node(
-                        dx_child_data,
-                        parent=node,
-                        impact_size=impact_size,
-                        non_cumulative_impact=non_cumulative_impact,
-                    )
-                )
-                pending_natures.update(dx_pending_natures)
-                pending_choice.update(dx_pending_choice)
+                children.append(child)
+                pending_choice.update(pending_choice)
+                pending_natures.update(pending_natures)
+
+            node.set_children(children)
 
         return node, pending_choice, pending_natures
 
     @staticmethod
     def from_json(
-        data, impact_size: int = -1, non_cumulative_impact_size: int = -1
+            data, impact_size: int = -1, non_cumulative_impact_size: int = -1
     ) -> "ParseTree":
         if isinstance(data, str):
             data = json.loads(data)

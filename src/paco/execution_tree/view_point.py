@@ -113,8 +113,8 @@ def get_next_task(node: ParseNode):
 		return get_next_task(node.sx_child)
 
 	if isinstance(node, Parallel):
-		sx_node, sx_name, sx_color = get_next_task(node.sx_child)
-		dx_node, dx_name, dx_color = get_next_task(node.dx_child)
+		sx_node, sx_name, sx_color = get_next_task(node.children[0])
+		dx_node, dx_name, dx_color = get_next_task(node.children[1])
 
 		return node, f"{sx_name} || {dx_name}", 'white'
 

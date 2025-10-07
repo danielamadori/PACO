@@ -30,16 +30,10 @@
     },
     {
       "properties": {
-        "name": {
+        "label": {
           "type": "string"
         },
-        "impact": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "non_cumulative_impact": {
+        "impacts": {
           "type": "array",
           "items": {
             "type": "number"
@@ -50,9 +44,8 @@
         }
       },
       "required": [
-        "name",
-        "impact",
-        "non_cumulative_impact",
+        "label",
+        "impacts",
         "duration"
       ]
     }

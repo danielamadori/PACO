@@ -271,12 +271,12 @@ class Bdd:
 			dot.edge(str(self.choice.name), str(self.root))
 			self.bdd_to_dot_recursively(dot, self.root)
 		else:
-			if self.choice.dx_child == self.class_0:
+			if self.choice.children[1] == self.class_0:
 				label = '0'
-				next_task, names, color = get_next_task(self.choice.dx_child)
+				next_task, names, color = get_next_task(self.choice.children[1])
 			else:
 				label = '1'
-				next_task, names, color = get_next_task(self.choice.sx_child)
+				next_task, names, color = get_next_task(self.choice.children[0])
 
 			dot.node(label, label=label, shape="box", style="filled", color="black", fillcolor=color)
 			dot.edge(str(self.choice.name), label, label="True", style='')
@@ -299,12 +299,12 @@ class Bdd:
 
 	def bdd_to_dot_recursively(self, dot, node: DagNode):
 		if not node.splittable:
-			if node.class_0 == self.choice.dx_child:
+			if node.class_0 == self.choice.children[1]:
 				label = '0'
-				next_task, names, color = get_next_task(self.choice.sx_child)
+				next_task, names, color = get_next_task(self.choice.children[0])
 			else:
 				label = '1'
-				next_task, names, color = get_next_task(self.choice.dx_child)
+				next_task, names, color = get_next_task(self.choice.children[1])
 
 			dot.node(str(node), label=label, shape="box", style="filled", color="black", fillcolor=color)
 		elif node.best_test is None:

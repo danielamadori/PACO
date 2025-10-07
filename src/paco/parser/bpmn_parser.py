@@ -72,8 +72,8 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
                 raise ValueError(f"Probability for {lark_tree.children[1].value} not found in the probabilities dictionary")
 
             p = probabilities[lark_tree.children[1].value]
-            node = Nature(parent, index_in_parent, id, name, probability=p)
-            #print(f"Nature: {name}, Probability: {node.probability}, ID: {id}")
+            node = Nature(parent, index_in_parent, id, name, distribution=[p, 1-p])
+            #print(f"Nature: {name}, Probability: {node.distribution}, ID: {id}")
             pending_natures.add(node)
 
         left_child, last_id, left_pending_choice, left_pending_natures, left_pending_loops = parse(lark_tree.children[0], probabilities, impacts, durations, delays, loop_probability, loop_round, id =id + 1, h=h, parent=node, index_in_parent=0)

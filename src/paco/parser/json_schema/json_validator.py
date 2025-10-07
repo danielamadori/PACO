@@ -10,13 +10,12 @@ for schema_file in os.listdir(SCHEMA_DIR):
 		continue
 	schema_name = schema_file.replace("_schema.json", "")
 	with open(os.path.join(SCHEMA_DIR, schema_file), 'r') as f:
-		SCHEMAS[schema_name.capitalize()] = json.load(f)
+		SCHEMAS[schema_name] = json.load(f)
 
 
 def validate_node(node_data: dict) -> dict:
 	node_type = node_data['type']
 	schema = SCHEMAS.get(node_type)
-
 	if not schema:
 		raise ValueError(f"Unsupported node type: {node_type}")
 
@@ -25,13 +24,14 @@ def validate_node(node_data: dict) -> dict:
 	except ValidationError as e:
 		raise ValueError(f"Validation error in node with id:{node_data['id']} and type:{node_type} : {e}")
 
-	if node_type == "Task":
-		return {node_data['id'] : (node_data['name'], len(node_data['impact']), len(node_data['non_cumulative_impact']))}
+	if node_type == "task":
+		return {node_data['id'] : (node_data['label'], len(node_data['impacts']), 0)}#TODO Daniel: len(node_data['non_cumulative_impact'])
 
-	task_dict = validate_node(node_data["sx_child"])
-	task_dict.update(validate_node(node_data["dx_child"]))
+	results = {}
+	for node in node_data['children']:
+		results.update(validate_node(node))
 
-	return task_dict
+	return results
 
 
 def validate_json(node_data: dict, impact_size: int, non_cumulative_impact_size: int):
@@ -48,6 +48,9 @@ def validate_json(node_data: dict, impact_size: int, non_cumulative_impact_size:
 
 		impact_size = max(impact_sizes, key=impact_sizes.get)
 		non_cumulative_impact_size = max(non_cumulative_impact_sizes, key=non_cumulative_impact_sizes.get)
+
+	print(type(task_dict))
+	print(task_dict)
 
 	for node_id, (name, node_impact_size, node_non_cumulative_impact_size) in task_dict.items():
 		if node_impact_size != impact_size:

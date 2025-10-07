@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+from importlib_metadata import distribution
 from overrides import overrides
 
 
@@ -70,9 +71,6 @@ class Gateway(ParseNode, ABC):
         })
         return base
 
-    sx_child = property(lambda self: self.children[0] if self.children and len(self.children) > 0 else None)
-    dx_child = property(lambda self: self.children[1] if self.children and len(self.children) > 1 else None)
-
 
 class Sequential(Gateway):
     def __init__(self, parent: Gateway, index_in_parent: int, id: int) -> None:
@@ -84,8 +82,7 @@ class Sequential(Gateway):
     def copy(self) -> 'Sequential':
         parent_copy = self.parent.copy() if self.parent else None
         root_copy = Sequential(parent_copy, self.index_in_parent, self.id)
-        children_copy = [child.copy() for child in self.children] if self.children else []
-        root_copy.set_children(children_copy)
+        root_copy.set_children([child.copy() for child in self.children] if self.children else [])
         return root_copy
 
 
@@ -99,8 +96,7 @@ class Parallel(Gateway):
     def copy(self) -> 'Parallel':
         parent_copy = self.parent.copy() if self.parent else None
         root_copy = Parallel(parent_copy, self.index_in_parent, self.id)
-        children_copy = [child.copy() for child in self.children] if self.children else []
-        root_copy.set_children(children_copy)
+        root_copy.set_children([child.copy() for child in self.children] if self.children else [])
         return root_copy
 
 
@@ -127,8 +123,7 @@ class Choice(ExclusiveGateway):
     def copy(self) -> 'Choice':
         parent_copy = self.parent.copy() if self.parent else None
         root_copy = Choice(parent_copy, self.index_in_parent, self.id, self.name, self.max_delay)
-        children_copy = [child.copy() for child in self.children] if self.children else []
-        root_copy.set_children(children_copy)
+        root_copy.set_children([child.copy() for child in self.children] if self.children else [])
         return root_copy
 
     def to_dict(self) -> dict:
@@ -138,29 +133,26 @@ class Choice(ExclusiveGateway):
 
 
 class Nature(ExclusiveGateway):
-    def __init__(self, parent: Gateway, index_in_parent: int, id: int, name: str, probability: float) -> None:
+    def __init__(self, parent: Gateway, index_in_parent: int, id: int, name: str, distribution: list[float]) -> None:
         super().__init__(parent, index_in_parent, id, name)
-        self.probability = np.float64(probability)  # of the sx_child
+        self.distribution = np.array(distribution, dtype=np.float64)
 
     def dot(self):
         return f'\n node_{self.id}[shape=diamond label="{self.name} id:{self.id}" style="filled" fillcolor=yellowgreen];'
 
     def copy(self) -> 'Nature':
         parent_copy = self.parent.copy() if self.parent else None
-        root_copy = Nature(parent_copy, self.index_in_parent, self.id, self.name, self.probability)
-        children_copy = [child.copy() for child in self.children] if self.children else []
-        root_copy.set_children(children_copy)
+        root_copy = Nature(parent_copy, self.index_in_parent, self.id, self.name, self.distribution)
+        root_copy.set_children([child.copy() for child in self.children] if self.children else [])
         return root_copy
 
     def to_dict(self) -> dict:
-        p = float(self.probability)
-        base = {"distribution": [p, 1-p]}
+        base = {"distribution": self.distribution.tolist()}
         base.update(super().to_dict())
         return base
 
 
 class Loop(ExclusiveGateway):
-
     def __init__(self, parent: Gateway, index_in_parent: int, id: int, name: str, probability: float,
                  bound: int) -> None:
         super().__init__(parent, index_in_parent, id, name)
@@ -186,8 +178,7 @@ class Loop(ExclusiveGateway):
     def copy(self) -> 'Loop':
         parent_copy = self.parent.copy() if self.parent else None
         root_copy = Loop(parent_copy, self.index_in_parent, self.id, self.name, self.probability, self.bound)
-        children_copy = [child.copy() for child in self.children] if self.children else []
-        root_copy.set_children(children_copy)
+        root_copy.set_children([child.copy() for child in self.children] if self.children else [])
         return root_copy
 
 

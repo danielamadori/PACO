@@ -25,11 +25,11 @@ def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint,
 			print(f"Choice not explained (arbitrary): {str(choice)}, random decision")
 			random.seed()
 			if random.choice([0, 1]) == 0:
-				decision_true = choice.sx_child
-				decision_false = choice.dx_child
+				decision_true = choice.children[0]
+				decision_false = choice.children[1]
 			else:
-				decision_true = choice.dx_child
-				decision_false = choice.sx_child
+				decision_true = choice.children[1]
+				decision_false = choice.children[0]
 
 		elif explainers[choice].typeStrategy == ExplanationType.FORCED_DECISION:
 			bdd = explainers[choice]
@@ -37,7 +37,7 @@ def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint,
 
 			print(f"Choice {choice.name} has just one decision to take")
 			decision_true = explainers[choice].class_0
-			decision_false = choice.dx_child if decision_true == choice.sx_child else choice.sx_child
+			decision_false = choice.children[1] if decision_true == choice.children[0] else choice.children[0]
 
 		else:
 			#print("Explaining choice: ", choice.name)
@@ -55,7 +55,7 @@ def make_decisions(region_tree: ParseTree, strategyViewPoint: StrategyViewPoint,
 				raise Exception("make_decisions: TypeStrategy not implemented: " + str(bdd.typeStrategy))
 
 			decision_true = bdd.choose(vector)
-			decision_false = choice.dx_child if decision_true == choice.sx_child else choice.sx_child
+			decision_false = choice.children[1] if decision_true == choice.children[0] else choice.children[0]
 
 		decisions.append(decision_true)
 		#print("Decision True: ", decision_true.name if decision_true.name else decision_true.id)
@@ -86,11 +86,11 @@ def nature_clausure(natures: list[ParseNode], states: States, decisions: list[Pa
 			node = natures[i]
 
 			if branch_choices[i]:
-				activeNode = node.sx_child
-				inactiveNode = node.dx_child
+				activeNode = node.children[0]
+				inactiveNode = node.children[1]
 			else:
-				activeNode = node.dx_child
-				inactiveNode = node.sx_child
+				activeNode = node.children[1]
+				inactiveNode = node.children[0]
 
 			branch_states.activityState[activeNode] = ActivityState.ACTIVE
 			branch_states.activityState[inactiveNode] = ActivityState.WILL_NOT_BE_EXECUTED

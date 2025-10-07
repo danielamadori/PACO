@@ -25,14 +25,14 @@ def saturate_execution(region_tree: ParseTree, states: States, pending_choices:s
 			if (isinstance(node, Choice)
 					and states.activityState[node] == ActivityState.ACTIVE
 					and states.executed_time[node] == node.max_delay
-					and states.activityState[node.sx_child] == ActivityState.WAITING
-					and states.activityState[node.dx_child] == ActivityState.WAITING):
+					and states.activityState[node.children[0]] == ActivityState.WAITING
+					and states.activityState[node.children[1]] == ActivityState.WAITING):
 				choices.append(node)
 
 			if (isinstance(node, Nature)
 					and states.activityState[node] == ActivityState.ACTIVE
-					and states.activityState[node.sx_child] == ActivityState.WAITING
-					and states.activityState[node.dx_child] == ActivityState.WAITING):
+					and states.activityState[node.children[0]] == ActivityState.WAITING
+					and states.activityState[node.children[1]] == ActivityState.WAITING):
 				natures.append(node)
 
 		pending_choices = pending_choices - set(choices)

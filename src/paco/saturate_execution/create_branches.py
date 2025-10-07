@@ -13,8 +13,8 @@ def get_excluded_gateways(inactiveNode: ParseNode) -> set[ParseNode]:
 		excluded_nature.add(inactiveNode)
 
 	if isinstance(inactiveNode, Gateway):
-		sx_excluded_choice, sx_excluded_nature = get_excluded_gateways(inactiveNode.sx_child)
-		dx_excluded_choice, dx_excluded_nature = get_excluded_gateways(inactiveNode.dx_child)
+		sx_excluded_choice, sx_excluded_nature = get_excluded_gateways(inactiveNode.children[0])
+		dx_excluded_choice, dx_excluded_nature = get_excluded_gateways(inactiveNode.children[1])
 		excluded_choice.update(sx_excluded_choice)
 		excluded_choice.update(dx_excluded_choice)
 		excluded_nature.update(sx_excluded_nature)
@@ -32,8 +32,8 @@ def create_branches(states: States, pending_choices:set, pending_natures:set) ->
 	for node in list(states.activityState.keys()):
 		if (isinstance(node, ExclusiveGateway)
 				and states.activityState[node] == ActivityState.ACTIVE
-				and states.activityState[node.sx_child] == ActivityState.WAITING
-				and states.activityState[node.dx_child] == ActivityState.WAITING):
+				and states.activityState[node.children[0]] == ActivityState.WAITING
+				and states.activityState[node.children[1]] == ActivityState.WAITING):
 
 			if isinstance(node, Choice):
 				if states.executed_time[node] < node.max_delay:
@@ -62,11 +62,11 @@ def create_branches(states: States, pending_choices:set, pending_natures:set) ->
 			node = choices_natures[i]
 
 			if branch_choices[i]:
-				activeNode = node.sx_child
-				inactiveNode = node.dx_child
+				activeNode = node.children[0]
+				inactiveNode = node.children[1]
 			else:
-				activeNode = node.dx_child
-				inactiveNode = node.sx_child
+				activeNode = node.children[1]
+				inactiveNode = node.children[0]
 
 			decisions.append(activeNode)
 			branch_states.activityState[activeNode] = ActivityState.ACTIVE

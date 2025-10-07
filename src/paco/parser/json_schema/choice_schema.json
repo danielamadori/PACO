@@ -30,7 +30,7 @@
     },
     {
       "properties": {
-        "name": {
+        "label": {
           "type": "string"
         },
         "max_delay": {
@@ -38,7 +38,7 @@
         }
       },
       "required": [
-        "name",
+        "label",
         "max_delay"
       ]
     }
