@@ -61,8 +61,8 @@ class Gateway(ParseNode, ABC):
 
         return tmp
 
-    def set_children(self, *children) -> None:
-        self.children = list(children)
+    def set_children(self, children) -> None:
+        self.children = children
 
     def to_dict(self) -> dict:
         base = super().to_dict()
@@ -160,11 +160,11 @@ class Loop(ExclusiveGateway):
         self.probability = np.float64(probability)
 
     @overrides
-    def set_children(self, *children) -> None:
+    def set_children(self, children) -> None:
         if len(children) != 1:
             raise ValueError("Loop must have exactly one child")
 
-        super().set_children(*children)
+        super().set_children(children)
 
     @overrides
     def to_dict(self) -> dict:

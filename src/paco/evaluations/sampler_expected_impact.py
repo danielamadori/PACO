@@ -10,10 +10,10 @@ def sample_expected_impact(root_dict, track_choices=False):
 		return [scale*impact for impact in impacts]
 
 	choices_made = {}
-
+	#TODO
 	def process_node(node):
 		# Base case: if node is a task, return its impacts (or empty dict if none)
-		if node["type"] == "Task":
+		if node["type"] == "task":
 			return node['impact']
 
 		# Recursive cases based on node type

@@ -54,9 +54,6 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
         return loop, last_id, pending_choices, pending_natures, pending_loops
 
     if lark_tree.data in {'choice', 'natural'}:
-        # Original code was:
-        #name = names[lark_tree.children[1].value]
-
         name = lark_tree.children[1].value
 
         if lark_tree.data == 'choice':
@@ -92,7 +89,7 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
     else:
         raise ValueError(f"Unhandled lark_tree type: {lark_tree.data}")
 
-    node.set_children(left_child, right_child)
+    node.set_children([left_child, right_child])
     pending_choices.update(left_pending_choice)
     pending_choices.update(right_pending_choice)
     pending_natures.update(left_pending_natures)

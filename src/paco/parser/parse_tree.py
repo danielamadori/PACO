@@ -1,12 +1,9 @@
 import json
 import os
 from abc import ABC
-
 import graphviz
-import pydot
 
 from src.utils.env import PATH_PARSE_TREE
-
 from ..evaluations.sampler_expected_impact import sample_expected_impact
 from .json_schema.json_validator import validate_json
 from .parse_node import Choice, Gateway, Loop, Nature, Parallel, Sequential, Task
@@ -29,23 +26,16 @@ class ParseTree:
         if isinstance(root, Task):
             return root.dot()
 
-        dot_code = self.dot_tree(root.children[0])
-        dot_code += self.dot_tree(root.children[1])
-        dot_code += root.dot()
+        dot_code = root.dot()
+        for child in root.children:
+            dot_code += self.dot_tree(child)
 
-        sx_edge_label = ""
-        sx_style = ""
-        dx_edge_label = ""
-        if isinstance(root, Nature):
-            sx_edge_label = f"{root.probability}"
-            dx_edge_label = f"{round((1 - root.probability), 2)}"
-        if isinstance(root, Choice):
-            sx_style = "dashed"
+        for i in range(len(root.children)):
+            edge_label = ""
+            if isinstance(root, Nature):
+                edge_label = f"{root.distribution[i]}"
 
-        dot_code += f'\n node_{root.id} -> node_{root.sx_child.id} [label="{sx_edge_label}" style="{sx_style}"];'
-        dot_code += (
-            f'\n node_{root.id} -> node_{root.children[1].id} [label="{dx_edge_label}"];'
-        )
+            dot_code += f'\n node_{root.id} -> node_{root.children[i].id} [label="{edge_label}"];'
 
         return dot_code
 
