@@ -17,17 +17,17 @@ def sample_expected_impact(root_dict, track_choices=False):
 			return node['impact']
 
 		# Recursive cases based on node type
-		if node["type"] == "Sequential":
+		if node["type"] == "sequential":
 			head_impacts = process_node(node["sx_child"])
 			tail_impacts = process_node(node["dx_child"])
 			return merge_impacts(head_impacts, tail_impacts)
 
-		elif node["type"] == "Parallel":
+		elif node["type"] == "parallel":
 			first_impacts = process_node(node["sx_child"])
 			second_impacts = process_node(node["dx_child"])
 			return merge_impacts(first_impacts, second_impacts)
 
-		elif node["type"] == "Choice":
+		elif node["type"] == "choice":
 			# Randomly choose between true and false branches
 			is_true = random.choice([True, False])
 			chosen_branch = node["sx_child"] if is_true else node["dx_child"]
@@ -38,7 +38,7 @@ def sample_expected_impact(root_dict, track_choices=False):
 
 			return process_node(chosen_branch)
 
-		elif node["type"] == "Nature":
+		elif node["type"] == "nature":
 			# Calculate probability-weighted impacts for both branches
 			true_impacts = scale_impacts(
 				process_node(node["sx_child"]),

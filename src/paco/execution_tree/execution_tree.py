@@ -173,7 +173,7 @@ def validate_json(data: dict):
 		"type": "object",
 		"properties": {
 			"id": {"type": "integer"},
-			"type": {"type": "string", "enum": ["Task", "Sequential", "Parallel", "Choice", "Nature"]},
+			"type": {"type": "string", "enum": ["task", "sequential", "parallel", "choice", "nature"]},
 			"decisions": {"type": "array", "items": {"type": "integer"}},
 			"transitions": {
 				"type": "object",

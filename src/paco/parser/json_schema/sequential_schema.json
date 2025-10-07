@@ -14,11 +14,11 @@
         "type": {
           "type": "string",
           "enum": [
-            "Task",
-            "Sequential",
-            "Parallel",
-            "Choice",
-            "Nature"
+            "task",
+            "sequential",
+            "parallel",
+            "choice",
+            "nature"
           ]
         }
       },

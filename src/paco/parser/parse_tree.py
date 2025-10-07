@@ -77,12 +77,12 @@ class ParseTree:
         impact_size=-1,
         non_cumulative_impact=-1,
     ) -> "ParseNode":
-        node_type = node_data["type"]
+        node_type = node_data["type"].lower()
         node_id = node_data["id"]
         index_in_parent = node_data.get("index_in_parent", -1)
         pending_choice, pending_natures = set(), set()
 
-        if node_type == "Task":
+        if node_type == "task":
             return (
                 Task(
                     parent=parent,
@@ -97,13 +97,13 @@ class ParseTree:
                 pending_natures,
             )
 
-        if node_type == "Sequential":
+        if node_type == "sequential":
             node = Sequential(
                 parent=parent, index_in_parent=index_in_parent, id=node_id
             )
-        elif node_type == "Parallel":
+        elif node_type == "parallel":
             node = Parallel(parent=parent, index_in_parent=index_in_parent, id=node_id)
-        elif node_type == "Choice":
+        elif node_type == "choice":
             node = Choice(
                 parent=parent,
                 index_in_parent=index_in_parent,
@@ -112,7 +112,7 @@ class ParseTree:
                 max_delay=node_data["max_delay"],
             )
             pending_choice.add(node)
-        elif node_type == "Nature":
+        elif node_type == "nature":
             node = Nature(
                 parent=parent,
                 index_in_parent=index_in_parent,
@@ -121,7 +121,7 @@ class ParseTree:
                 probability=node_data["probability"],
             )
             pending_natures.add(node)
-        elif node_type == "Loop":
+        elif node_type == "loop":
             node = Loop(
                 parent=parent,
                 index_in_parent=index_in_parent,
