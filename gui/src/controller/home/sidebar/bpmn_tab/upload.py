@@ -61,7 +61,23 @@ def register_upload_callbacks(callback):
             try:
                 bpmn_dot = load_bpmn_dot(new_bpmn)
             except Exception as exception:
-                return dash.no_update, dash.no_update, dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
+                alert = dbc.Alert(
+                    f"Processing error: {str(exception)}",
+                    color="danger",
+                    dismissable=True,
+                )
+                return (
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                    alert,
+                )
 
             return new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, task_impacts, task_durations, choice_table, nature_table, loop_table, new_bpmn[EXPRESSION], dbc.Alert(f"{filename} uploaded successfully", color="success", dismissable=True)
 
