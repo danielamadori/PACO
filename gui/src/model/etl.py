@@ -332,14 +332,13 @@ def load_strategy(bpmn_store, bound_store):
 def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
     # Filter the data to keep only the relevant tasks, choices, natures, and loops
     bpmn = deepcopy(bpmn_store)
-    print("filter_bpmn", type(bpmn[IMPACTS].values()[0]))
-    if isinstance(bpmn[IMPACTS].values()[0], dict):
+    impact_values = list(bpmn[IMPACTS].values())
+    if impact_values and isinstance(impact_values[0], dict):
         bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
         bpmn[IMPACTS] = {
             task: [float(bpmn_store[IMPACTS][task][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]
             for task in tasks if task in bpmn_store[IMPACTS]
         }
-    print("filter_bpmn", bpmn)
     bpmn[DURATIONS] = {task: bpmn_store[DURATIONS][task] for task in tasks if task in bpmn_store[DURATIONS]}
     bpmn[DELAYS] = {choice: bpmn_store[DELAYS][choice] for choice in choices if choice in bpmn_store[DELAYS]}
     bpmn[PROBABILITIES] = {nature: bpmn_store[PROBABILITIES][nature] for nature in natures if
