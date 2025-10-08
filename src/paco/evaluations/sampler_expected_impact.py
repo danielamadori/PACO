@@ -13,7 +13,7 @@ def sample_expected_impact(root_dict, track_choices=False):
 
 	def process_node(node):
 		if node["type"] == "task":
-			return node["impact"]
+			return node["impacts"]
 
 		if node["type"] == "sequential":
 			acc = None

@@ -1,4 +1,4 @@
-from paco.parser.parse_node import ParseNode, Nature, Parallel, Sequential, Loop, Choice, Task
+from ..parse_node import ParseNode, Nature, Parallel, Sequential, Loop, Choice, Task
 
 ACTIVE_BORDER_COLOR = "red"
 ACTIVE_BORDER_WIDTH = 4
