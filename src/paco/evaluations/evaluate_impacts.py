@@ -9,14 +9,11 @@ def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64,
 	probability = np.float64(1.0)
 
 	for node, state in states.activityState.items():
-		if (isinstance(node, Nature) and state > ActivityState.WAITING
-				and ((node.children[0] in states.activityState and states.activityState[node.children[0]] > ActivityState.WAITING)
-					 or (node.children[1] in states.activityState and states.activityState[node.children[1]] > ActivityState.WAITING))):
-
-			p = node.probability
-			if states.activityState[node.children[1]] > 0:
-				p = 1 - p
-			probability *= p
+		if (isinstance(node, Nature) and state > ActivityState.WAITING):
+			for i in range(len(node.children)):
+				if node.children[i] in states.activityState and states.activityState[node.children[i]] > ActivityState.WAITING:
+					probability *= node.distribution[i]
+					break
 
 		elif isinstance(node,Task) and state > ActivityState.WAITING:
 			impacts += node.impacts
@@ -24,19 +21,15 @@ def evaluate_expected_impacts(states: States, impacts_size: int) -> (np.float64,
 	return probability, impacts
 
 def evaluate_expected_impacts_from_parseNode(parseNode: ParseNode, impacts_size: int) -> (np.float64, np.ndarray):
-	probability = np.float64(1)
-
 	if isinstance(parseNode, Task):
 		return parseNode.impacts
 
 	expected_impacts = np.zeros(impacts_size, dtype=np.float64)
 	if isinstance(parseNode, Gateway):
-		sx_expected_impacts = evaluate_expected_impacts_from_parseNode(parseNode.children[0], impacts_size)
-		dx_expected_impacts = evaluate_expected_impacts_from_parseNode(parseNode.children[1], impacts_size)
-		if isinstance(parseNode, Nature):
-			sx_expected_impacts *= parseNode.probability
-			dx_expected_impacts *= (1 - parseNode.probability)
-
-		expected_impacts = sx_expected_impacts + dx_expected_impacts
+		for i in range(len(parseNode.children)):
+			probability = np.float64(1.0)
+			if isinstance(parseNode, Nature):
+				probability = parseNode.distribution[i]
+			expected_impacts += probability * evaluate_expected_impacts_from_parseNode(parseNode.children[i], impacts_size)
 
 	return expected_impacts

@@ -1,59 +1,50 @@
 import random
 
-
 def sample_expected_impact(root_dict, track_choices=False):
-
 	def merge_impacts(impact1, impact2):
 		return [a + b for a, b in zip(impact1, impact2)]
 
 	def scale_impacts(impacts, scale):
-		return [scale*impact for impact in impacts]
+		if isinstance(scale, (list, tuple)):
+			return [s * x for s, x in zip(scale, impacts)]
+		return [scale * x for x in impacts]
 
 	choices_made = {}
-	#TODO
-	def process_node(node):
-		# Base case: if node is a task, return its impacts (or empty dict if none)
-		if node["type"] == "task":
-			return node['impact']
 
-		# Recursive cases based on node type
+	def process_node(node):
+		if node["type"] == "task":
+			return node["impact"]
+
 		if node["type"] == "sequential":
-			head_impacts = process_node(node["sx_child"])
-			tail_impacts = process_node(node["dx_child"])
-			return merge_impacts(head_impacts, tail_impacts)
+			acc = None
+			for child in node["children"]:
+				vec = process_node(child)
+				acc = vec if acc is None else merge_impacts(acc, vec)
+			return acc if acc is not None else []
 
 		elif node["type"] == "parallel":
-			first_impacts = process_node(node["sx_child"])
-			second_impacts = process_node(node["dx_child"])
-			return merge_impacts(first_impacts, second_impacts)
+			acc = None
+			for child in node["children"]:
+				vec = process_node(child)
+				acc = vec if acc is None else merge_impacts(acc, vec)
+			return acc if acc is not None else []
 
 		elif node["type"] == "choice":
-			# Randomly choose between true and false branches
-			is_true = random.choice([True, False])
-			chosen_branch = node["sx_child"] if is_true else node["dx_child"]
-
-			# Record the choice if tracking is enabled
+			idx = random.randrange(len(node["children"]))
 			if track_choices:
-				choices_made[f"choice{node['id']}"] = is_true
-
-			return process_node(chosen_branch)
+				choices_made[f"choice{node['id']}"] = idx
+			return process_node(node["children"][idx])
 
 		elif node["type"] == "nature":
-			# Calculate probability-weighted impacts for both branches
-			true_impacts = scale_impacts(
-				process_node(node["sx_child"]),
-				node["probability"]
-			)
-			false_impacts = scale_impacts(
-				process_node(node["dx_child"]),
-				1 - node["probability"]
-			)
-			return merge_impacts(true_impacts, false_impacts)
+			acc = None
+			for i in range(len(node["children"])):
+				vec = scale_impacts(process_node(node["children"][i]), node["distribution"][i])
+				acc = vec if acc is None else merge_impacts(acc, vec)
+			return acc if acc is not None else []
 
 		raise ValueError(f"Unknown node type: {node['type']}")
 
 	impacts = process_node(root_dict)
-
 	if track_choices:
 		return impacts, choices_made
 	return impacts
