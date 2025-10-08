@@ -1,4 +1,4 @@
-from .__bpmn import wrap_to_dot, get_active_region_by_pn
+from .__bpmn import wrap_to_dot
 from .__execution_tree import wrapper_execution_tree_to_dot
 
 
@@ -16,8 +16,10 @@ def get_bpmn_dot_from_parse_tree(parse_tree: dict, impacts_names: list[str], act
     """
     if active_regions is None:
         active_regions = set()
+    if isinstance(active_regions, list):
+        active_regions = set(active_regions)
 
-    return wrap_to_dot(parse_tree, impacts_names, active_regions, is_initial, is_final)
+    return wrap_to_dot(parse_tree.root, impacts_names, active_regions, is_initial, is_final)
 
 
 def get_execution_tree_dot(execution_tree: dict, impacts_names: list[str], path: list[str] = None):

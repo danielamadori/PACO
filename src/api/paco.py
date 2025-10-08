@@ -2,6 +2,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
+from paco.parser.dot import get_bpmn_dot_from_parse_tree
 from src.paco.execution_tree.execution_tree import ExecutionTree
 from src.paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from src.paco.parser.bpmn_parser import create_parse_tree
@@ -22,17 +23,34 @@ def register_paco_api(app: FastAPI):
             raise HTTPException(status_code=400, detail="No BPMN found")
         if EXPRESSION not in bpmn or bpmn[EXPRESSION] == "":
             raise HTTPException(status_code=400, detail="No BPMN expression found")
+        active_regions = request.get("active_regions") #list
+        is_initial = request.get("is_initial") #bool
+        is_final = request.get("is_final") #bool
+
+        if IMPACTS_NAMES not in bpmn or bpmn[IMPACTS_NAMES] is None:
+            raise HTTPException(status_code=400, detail="No impacts names found")
+        if not isinstance(bpmn[IMPACTS_NAMES], list) or not all(isinstance(name, str) for name in bpmn[IMPACTS_NAMES]):
+            raise HTTPException(status_code=400, detail="Invalid impacts names format, expected a list of strings")
 
         try:
             lark_tree = check_bpmn_syntax(dict(bpmn))
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+
+        if not isinstance(active_regions, list):
+            raise HTTPException(status_code=400, detail="Invalid active regions format, expected a list of strings")
+        if is_initial is None or not isinstance(is_initial, bool):
+            raise HTTPException(status_code=400, detail="Invalid initial state")
+        if is_final is None or not isinstance(is_final, bool):
+            raise HTTPException(status_code=400, detail="Invalid final state")
+
         try:
-            return { "bpmn_dot": print_sese_diagram(bpmn, lark_tree) }
+            parse_tree, _, _, _ = create_parse_tree(bpmn)
+
+            return { "bpmn_dot": get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], active_regions, is_initial, is_final) }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-
 
     @app.get("/create_parse_tree")
     async def get_parse_tree(request: dict) -> dict:

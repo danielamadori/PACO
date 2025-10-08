@@ -1,7 +1,7 @@
 from dash import Input, Output, State, ctx, ALL
 
 from gui.src.model.etl import (
-    bpmn_to_dot,
+    bpmn_snapshot_to_dot,
     dot_to_base64svg,
     update_bpmn_dot,
     load_execution_tree,
@@ -37,7 +37,7 @@ def register_simulator_callbacks(callback):
                     return sim_data, bpmn_svg_store
 
                 set_actual_execution(bpmn_store, prev_exec_node['id'])
-                bpmn_dot = bpmn_to_dot(bpmn_store)
+                bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
                 dot_svg = dot_to_base64svg(bpmn_dot)
                 update_bpmn_dot(bpmn_store, dot_svg)
 
@@ -45,7 +45,7 @@ def register_simulator_callbacks(callback):
             case 1:
                 # Go forward in the simulation
                 new_sim_data = execute_decisions(bpmn_store, gateway_values, step)
-                bpmn_dot = bpmn_to_dot(bpmn_store)
+                bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
                 dot_svg = dot_to_base64svg(bpmn_dot)
 
                 update_bpmn_dot(bpmn_store, dot_svg)

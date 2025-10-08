@@ -1,3 +1,5 @@
+from paco.parser.parse_node import ParseNode, Nature, Parallel, Sequential, Loop, Choice, Task
+
 ACTIVE_BORDER_COLOR = "red"
 ACTIVE_BORDER_WIDTH = 4
 ACTIVE_STYLE = "solid"
@@ -120,10 +122,14 @@ def task_to_dot(_id, name, style, impacts, duration, impacts_names, border_color
     :param border_size: Border size of the task
     :return: Dot representation of the task
     """
+
     additional_label = ""
-    if impacts:
-        tmp = ", ".join(f"\\n{key}: {value}" for key, value in zip(impacts_names, impacts))
-        additional_label += f"\\n impacts: {tmp}"
+
+    tmp = ""
+    for i in range(len(impacts)):
+        tmp += f"\\n{impacts_names[i]}: {impacts[i]}"
+
+    additional_label += f"\\n impacts: {tmp}"
     if duration:
         additional_label += f"\\n duration: {duration}"
 
@@ -158,7 +164,7 @@ def arc_to_dot(source, target, label=None):
         return f'\nnode_{source} -> node_{target}[label="{label}"];\n'
 
 
-def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set[str] = None,
+def wrap_to_dot(region_root: ParseNode, impacts_names: list[str], active_regions: set[str] = None,
                 is_initial: bool = False, is_final: bool = False) -> str:
     """
     Wrapper to create the dot representation of the BPMN.
@@ -193,6 +199,7 @@ def wrap_to_dot(region_root: dict, impacts_names: list[str], active_regions: set
                         "orangered",
                         border_color=border_color,
                         border_size=border_size) + "\n"
+
     other_code, entry_id, exit_id, exit_p = region_to_dot(region_root, impacts_names, active_regions)
     code += other_code
     code += f'node_start -> node_{entry_id};\n'
@@ -213,7 +220,7 @@ def serial_generator():
 id_generator = serial_generator()
 
 
-def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int, int, float]:
+def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tuple[str, int, int, float]:
     """
     Create the dot representation of a region.
     :param region_root: Parse tree of the expression
@@ -221,57 +228,60 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
     :param active_regions: Ids of the active regions to highlight
     :return: Dot representation of the region, entry id, exit id, probability to reach the exit
     """
-    is_active = region_root.get('id') in active_regions
-    if region_root.get("type") == 'task':
+    is_active = region_root.id in active_regions
+
+    type_by_name = type(region_root).__name__
+    print(type_by_name)
+    if isinstance(region_root, Task) or type_by_name == 'Task':
         _id = next(id_generator)
         return task_to_dot(
             _id,
-            region_root.get('label'),
+            region_root.name,
             ACTIVE_STYLE if is_active else None,
-            region_root.get('impacts', []),
-            region_root.get('duration'),
+            region_root.impacts,
+            region_root.duration,
             impacts_names,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         ), _id, _id, 1.0
-    elif region_root.get("type") == 'loop':
+    elif isinstance(region_root, Loop) or type_by_name == 'Loop':
         entry_id = next(id_generator)
         exit_id = next(id_generator)
 
         # Entry point
         code = loop_gateway_to_dot(
             entry_id,
-            region_root.get('label'),
+            region_root.name,
             style=None,
         )
 
         # Exit point
         code += loop_gateway_to_dot(
             exit_id,
-            region_root.get('label'),
+            region_root.name,
             style=None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
 
         # Child
-        other_code, child_entry_id, child_exit_id, exit_p = region_to_dot(region_root.get('children')[0], impacts_names,
+        other_code, child_entry_id, child_exit_id, exit_p = region_to_dot(region_root.children[0], impacts_names,
                                                                           active_regions)
         code += other_code
-        p = region_root.get('distribution')
+        p = region_root.probability
         code += arc_to_dot(entry_id, child_entry_id)
         code += arc_to_dot(exit_id, entry_id, label=p)
         code += arc_to_dot(child_exit_id, exit_id, label=exit_p if exit_p != 1 else None)
 
         return code, entry_id, exit_id, 1 - p
-    elif region_root.get("type") == 'choice':
+    elif isinstance(region_root, Choice)  or type_by_name == 'Choice':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
 
         # Entry point
         code = exclusive_gateway_to_dot(
             entry_id,
-            region_root.get('label'),
+            region_root.name,
             ACTIVE_STYLE if is_active else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
@@ -280,19 +290,19 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
         # Exit point
         code += exclusive_gateway_to_dot(
             last_exit_id,
-            region_root.get('label'),
+            region_root.name,
             style=None
         )
 
         # Children
-        for child in region_root.get('children', []):
+        for child in region_root.children:
             child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id)
             code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
 
         return code, entry_id, last_exit_id, 1.0
-    elif region_root.get("type") == 'parallel':
+    elif isinstance(region_root, Parallel) or type_by_name == 'Parallel':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
 
@@ -311,21 +321,21 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
         )
 
         # Children
-        for child in region_root.get('children', []):
+        for child in region_root.children:
             child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id)
             code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
 
         return code, entry_id, last_exit_id, 1.0
-    elif region_root.get("type") == 'nature':
+    elif isinstance(region_root, Nature) or type_by_name == 'Nature':
         entry_id = next(id_generator)
         last_exit_id = next(id_generator)
 
         # Entry point
         code = probabilistic_gateway_to_dot(
             entry_id,
-            region_root.get('label'),
+            region_root.name,
             style=ACTIVE_STYLE if is_active else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
@@ -334,25 +344,25 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
         # Exit point
         code += probabilistic_gateway_to_dot(
             last_exit_id,
-            region_root.get('label'),
+            region_root.name,
             style=None
         )
 
         # Children
-        for child, p in zip(region_root.get('children', []), region_root.get("distribution", [])):
+        for child, p in zip(region_root.children, region_root.distribution):
             child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id, p)
             code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
 
         return code, entry_id, last_exit_id, 1.0
-    elif region_root.get("type") == 'sequential':
+    elif isinstance(region_root, Sequential) or type_by_name == 'Sequential':
         code = ""
         entry_id = None
         last_exit_id = None
         last_exit_p = None
 
-        for i, child in enumerate(region_root.get('children', [])):
+        for i, child in enumerate(region_root.children):
             child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
             code += child_code
 
@@ -372,25 +382,6 @@ def region_to_dot(region_root, impacts_names, active_regions) -> tuple[str, int,
 
         return code, entry_id, last_exit_id, last_exit_p
     else:
-        raise ValueError(f"Unknown type: {region_root['type']}")
+        raise ValueError(f"Unknown type: {type_by_name}")
 
 
-def get_active_region_by_pn(petri_net, marking):
-    """
-    Given a Petri net and a marking, return the set of active region IDs.
-    A region is considered active if any of its entry places have tokens in the marking.
-
-    :param petri_net: Petri net object
-    :param marking: Current marking of the Petri net
-    :return: Set of active region IDs
-    """
-    active_regions = set()
-
-    for place in petri_net.get("places", []):
-        place_id = place["id"]
-        entry_region_id = place.get("entry_region_id")
-        place_state = marking.get(place_id, {"token": 0})
-        if entry_region_id is not None and place_state['token'] > 0:
-            active_regions.add(entry_region_id)
-
-    return active_regions

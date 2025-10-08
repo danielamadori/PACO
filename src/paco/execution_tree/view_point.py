@@ -130,7 +130,6 @@ def get_next_task(node: ParseNode):
 		print("get_next_task:", node, type(node))
 		color = 'lightblue'
 	else:
-		color = 'white'
 		raise Exception(f"view_point:get_next_task: {node} not recognized, type:{type(node)}")
 
 	return node, node.name, color

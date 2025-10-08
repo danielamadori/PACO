@@ -44,7 +44,7 @@ from gui.src.model.sqlite import (
     save_bpmn_dot,
     update_bpmn_dot as _update_bpmn_record,
 )
-
+from gui.src.model.bpmn import get_active_region_by_pn
 
 
 def load_bpmn_dot(bpmn: dict) -> str:
@@ -56,12 +56,15 @@ def load_bpmn_dot(bpmn: dict) -> str:
     :param bpmn: BPMN dictionary
     :return: SVG base64 string of the BPMN DOT representation
     """
-    bpmn = keep_relevant_bpmn(bpmn)
+    if bpmn[EXPRESSION] == '':
+        return None
+
     record = fetch_bpmn(bpmn)
     if record and record.bpmn_dot:
         return record.bpmn_dot
 
-    bpmn_dot = bpmn_to_dot(bpmn)
+    print("load_bpmn_dot", bpmn)
+    bpmn_dot = bpmn_snapshot_to_dot(bpmn)
     bpmn_svg_base64 = dot_to_base64svg(bpmn_dot)
 
     save_bpmn_dot(bpmn, bpmn_svg_base64)
@@ -81,28 +84,50 @@ def dot_to_base64svg(dot: str) -> str:
     return svg_base64
 
 
-def bpmn_to_dot(bpmn) -> str:
+def bpmn_snapshot_to_dot(bpmn) -> str:
     """
     Given a BPMN process, return its DOT representation.
 
     :param bpmn: BPMN dictionary
     :return: BPMN DOT string
     """
-    parse_tree = load_parse_tree(bpmn)
+    print("bpmn_snapshot_to_dot:", bpmn)
     petri_net, _ = get_petri_net(bpmn, step=0)
+    print("petri_net:", petri_net)
     execution_tree, current_execution_node = load_execution_tree(bpmn)
-
-    from .helpers.dot import get_bpmn_dot_from_parse_tree, get_active_region_by_pn
+    print("execution_tree:", execution_tree)
     current_node = get_execution_node(execution_tree, current_execution_node)
     current_marking = current_node['snapshot']['marking']
     is_initial = is_initial_marking(current_marking, petri_net)
     is_final = is_final_marking(current_marking, petri_net)
     active_regions = get_active_region_by_pn(petri_net, current_marking)
-    bpmn_dot_str = get_bpmn_dot_from_parse_tree(parse_tree,
-                                                bpmn[IMPACTS_NAMES] if IMPACTS_NAMES in bpmn else [],
-                                                active_regions,
-                                                is_initial=is_initial,
-                                                is_final=is_final)
+
+    print("bpmn_snapshot_to_dot:", bpmn, active_regions, is_initial, is_final)
+
+    bpmn_dot_str = _bpmn_to_dot(bpmn, active_regions, is_initial, is_final)
+
+    print("bpmn_snapshot_to_dot:result", bpmn_dot_str)
+    return bpmn_dot_str
+
+
+def _bpmn_to_dot(bpmn, active_regions = {}, is_initial = True, is_final = False) -> str:
+    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+    bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
+
+    print(bpmn, active_regions, is_initial, is_final)
+
+    resp = requests.get(URL_SERVER + "create_bpmn",
+                        json={
+                            "bpmn": bpmn,
+                            "active_regions": list(active_regions),
+                            "is_initial": is_initial,
+                            "is_final": is_final
+                        },
+                        headers=HEADERS)
+    resp.raise_for_status()
+
+    bpmn_dot_str =  resp.json()["bpmn_dot"]
+    print("_bpmn_to_dot:", bpmn_dot_str)
     return bpmn_dot_str
 
 
@@ -114,8 +139,8 @@ def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
     :param bpmn_dot: BPMN DOT string
     :return: None
     """
-    bpmn = keep_relevant_bpmn(bpmn)
-    _update_bpmn_record(bpmn, bpmn_dot)
+    if bpmn[EXPRESSION] != '':
+        _update_bpmn_record(bpmn, bpmn_dot)
 
 
 def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
@@ -127,14 +152,17 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
     :param bpmn: BPMN dictionary
     :return: Parse tree dictionary
     """
-    bpmn = keep_relevant_bpmn(bpmn)
-    if bpmn is None:
-        raise ValueError("BPMN expression is empty")
+    if bpmn[EXPRESSION] == '':
+        None
 
     record = fetch_bpmn(bpmn)
     if not force_refresh and record and record.parse_tree:
         return json.loads(record.parse_tree)
+    print("load_parse_tree:bpmn", bpmn)
 
+    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+
+    bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
     resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": bpmn}, headers=HEADERS)
     resp.raise_for_status()
 
@@ -143,6 +171,7 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
         raise ValueError(f"Error from server: {resp_json['error']}")
 
     parse_tree = resp_json["parse_tree"]
+    print("ciao:", parse_tree)
     save_parse_tree(bpmn, json.dumps(parse_tree))
 
     return parse_tree
@@ -157,11 +186,15 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
     :param bpmn: BPMN dictionary
     :return: Tuple of execution tree dictionary and current execution node ID
     """
-    bpmn = keep_relevant_bpmn(bpmn)
+    print("load_execution_tree:bpmn", bpmn)
+    if bpmn[EXPRESSION] == '':
+        return {}, None
+
     record = fetch_bpmn(bpmn)
     if (not force_refresh and record and record.execution_tree and record.actual_execution):
         return json.loads(record.execution_tree), record.actual_execution
 
+    print("load_execution_tree:", bpmn)
     parse_tree = load_parse_tree(bpmn, force_refresh=force_refresh)
 
     try:
@@ -170,6 +203,7 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
     except requests.exceptions.HTTPError as exc:
         if exc.response is None or exc.response.status_code != 422:
             raise
+
 
         parse_tree = load_parse_tree(bpmn, force_refresh=True)
         resp = requests.post(SIMULATOR_SERVER + 'execute', json={"bpmn": parse_tree}, headers=HEADERS)
@@ -204,7 +238,8 @@ def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tupl
     :param step: Step number (currently unused)
     :return: Tuple of Petri net dictionary and DOT string
     """
-    bpmn = keep_relevant_bpmn(bpmn)
+    if bpmn[EXPRESSION] == '':
+        return None, None
     record = fetch_bpmn(bpmn)
     if not force_refresh and record and record.petri_net and record.petri_net_dot:
         return json.loads(record.petri_net), record.petri_net_dot
@@ -252,6 +287,7 @@ def load_strategy(bpmn_store, bound_store):
     # if record and record.bdds:
     #	return record.bdds
 
+    print("load_strategy:", bpmn)
     parse_tree = load_parse_tree(bpmn)
     execution_tree = load_execution_tree(bpmn)
 
@@ -296,12 +332,14 @@ def load_strategy(bpmn_store, bound_store):
 def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
     # Filter the data to keep only the relevant tasks, choices, natures, and loops
     bpmn = deepcopy(bpmn_store)
-    bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
-    bpmn[IMPACTS] = {
-        task: [float(bpmn_store[IMPACTS][task][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]
-        for task in tasks if task in bpmn_store[IMPACTS]
-    }
-
+    print("filter_bpmn", type(bpmn[IMPACTS].values()[0]))
+    if isinstance(bpmn[IMPACTS].values()[0], dict):
+        bpmn[IMPACTS_NAMES] = sorted(bpmn_store[IMPACTS_NAMES])
+        bpmn[IMPACTS] = {
+            task: [float(bpmn_store[IMPACTS][task][impact_name]) for impact_name in bpmn[IMPACTS_NAMES]]
+            for task in tasks if task in bpmn_store[IMPACTS]
+        }
+    print("filter_bpmn", bpmn)
     bpmn[DURATIONS] = {task: bpmn_store[DURATIONS][task] for task in tasks if task in bpmn_store[DURATIONS]}
     bpmn[DELAYS] = {choice: bpmn_store[DELAYS][choice] for choice in choices if choice in bpmn_store[DELAYS]}
     bpmn[PROBABILITIES] = {nature: bpmn_store[PROBABILITIES][nature] for nature in natures if
@@ -309,43 +347,6 @@ def filter_bpmn(bpmn_store, tasks, choices, natures, loops):
     bpmn[LOOP_PROBABILITY] = {loop: bpmn_store[LOOP_PROBABILITY][loop] for loop in loops if
                               loop in bpmn_store[LOOP_PROBABILITY]}
     bpmn[LOOP_ROUND] = {loop: bpmn_store[LOOP_ROUND][loop] for loop in loops if loop in bpmn_store[LOOP_ROUND]}
-
-    return bpmn
-
-
-def can_filter(bpmn):
-    """
-    Check if the BPMN can be filtered.
-    A BPMN can be filtered if it has impacts defined as dictionaries.
-    Useful for keep_relevant_bpmn function.
-
-    :param bpmn: The BPMN to check.
-    :return: True if the BPMN can be filtered, False otherwise.
-    """
-    impacts = bpmn[IMPACTS]
-    for key in impacts:
-        current = impacts[key]
-        if isinstance(current, dict):
-            return True
-
-    return False
-
-
-def keep_relevant_bpmn(bpmn):
-    """
-    Keep only the relevant parts of the BPMN.
-    Remove tasks, choices, natures, and loops that are not present in the expression.
-    :param bpmn: The BPMN to filter.
-    :return: The filtered BPMN or None if bpmn expression is empty.
-    """
-    if not can_filter(bpmn):
-        return bpmn
-
-    if bpmn[EXPRESSION] == '':
-        return bpmn
-
-    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
-    bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
 
     return bpmn
 
@@ -358,7 +359,8 @@ def set_actual_execution(bpmn: dict, actual_execution: str):
     :param actual_execution: Current execution node ID
     :return: None
     """
-    bpmn = keep_relevant_bpmn(bpmn)
+    if bpmn[EXPRESSION] == '':
+        return
     record = fetch_bpmn(bpmn)
     if not record or not record.execution_tree:
         return
@@ -385,7 +387,8 @@ def get_simulation_data(bpmn):
     :param bpmn: BPMN dictionary
     :return: Simulation data dictionary
     """
-    bpmn = keep_relevant_bpmn(bpmn)
+    if bpmn[EXPRESSION] == '':
+        raise ValueError("BPMN expression is empty")
 
     petri_net, _ = get_petri_net(bpmn, 0)
     current_state = get_current_state(bpmn)
@@ -420,9 +423,15 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
     :param step: Optional step number. Ignored in current implementation.
     :return: Updated simulation data dictionary or None if error occurs
     """
-    filtered_bpmn = keep_relevant_bpmn(bpmn)
+    if bpmn[EXPRESSION] == '':
+        raise ValueError("BPMN expression is empty")
+
+    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
+    filtered_bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
+    
     decisions = list(gateway_decisions)
 
+    print("execute_decisions:", bpmn, gateway_decisions, step)
     parse_tree = load_parse_tree(filtered_bpmn)
     petri_net, petri_net_dot = get_petri_net(filtered_bpmn, step)
     execution_tree, current_execution = load_execution_tree(filtered_bpmn)

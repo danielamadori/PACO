@@ -14,8 +14,8 @@ def layout():
         get_tasks_layout(),
         get_parallel_layout(),
         get_choice_layout(),
-        get_nature_layout(),
-        get_loop_layout()
+        get_nature_layout()#,
+        #get_loop_layout()  #TODO Daniel
     ])
 
 #             ## Choices:
