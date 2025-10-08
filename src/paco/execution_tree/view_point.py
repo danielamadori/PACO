@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 
-from src.paco.parser.parse_node import ParseNode, Sequential, Choice, Nature, Parallel, Task
+from src.paco.parser.parse_node import ParseNode, Sequential, Nature, Parallel, Loop, Choice, Task
 from src.paco.saturate_execution.states import States, states_info
 
 
@@ -91,26 +91,28 @@ class ViewPoint(ABC):
 	@abstractmethod
 	def to_dict(self) -> dict:
 		s = {"id": self.id,
-			"states": self.states.to_dict(),
-			"decisions": [d.id for d in self.decisions],
-			"is_final_state": self.is_final_state,
-			"is_leaf": self.is_leaf,
-			"natures": [n.id for n in self.natures],
-			"choices": [c.id for c in self.choices],
-			"pending_choices": [pc.id for pc in self.pending_choices],
-			"pending_natures": [pn.id for pn in self.pending_natures],
-			"transitions": {
+			 "states": self.states.to_dict(),
+			 "decisions": [d.id for d in self.decisions],
+			 "is_final_state": self.is_final_state,
+			 "is_leaf": self.is_leaf,
+			 "natures": [n.id for n in self.natures],
+			 "choices": [c.id for c in self.choices],
+			 "pending_choices": [pc.id for pc in self.pending_choices],
+			 "pending_natures": [pn.id for pn in self.pending_natures],
+			 "transitions": {
 				 str([(decision[0].id, decision[1].id) for decision in decisions]): nextViewPoint.root.to_dict()
 				 for decisions, nextViewPoint in self.transitions.items()
-			}
-		}
+			 }
+			 }
 		return s
 
 
 
 def get_next_task(node: ParseNode):
+	print("get_next_task:", node, type(node))
 	if isinstance(node, Sequential):
-		return get_next_task(node.sx_child)
+		print("get_next_task:sequential")
+		return get_next_task(node.children[0])
 
 	if isinstance(node, Parallel):
 		sx_node, sx_name, sx_color = get_next_task(node.children[0])
@@ -120,12 +122,14 @@ def get_next_task(node: ParseNode):
 
 	if isinstance(node, Choice):
 		color = 'orange'
-	elif isinstance(node, Nature):
+	elif isinstance(node, Nature) or isinstance(node, Loop):
 		color = 'yellowgreen'
 	elif isinstance(node, Task):
+		print("get_next_task:", node, type(node))
 		color = 'lightblue'
 	else:
-		raise Exception(f"view_point:get_next_task: type {node} not recognized")
+		color = 'white'
+	#	raise Exception(f"view_point:get_next_task: {node} not recognized, type:{type(node)}")
 
 	return node, node.name, color
 
