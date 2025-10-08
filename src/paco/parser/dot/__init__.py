@@ -1,5 +1,5 @@
 from .__bpmn import wrap_to_dot
-from .__execution_tree import wrapper_execution_tree_to_dot
+from .__execution_tree import wrapper_execution_tree_to_dot, get_path_to_current_node
 
 
 def get_bpmn_dot_from_parse_tree(parse_tree: dict, impacts_names: list[str], active_regions: set[str] = None,
