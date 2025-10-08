@@ -110,26 +110,28 @@ class ViewPoint(ABC):
 
 def get_next_task(node: ParseNode):
 	print("get_next_task:", node, type(node))
-	if isinstance(node, Sequential):
+
+	type_by_name = type(node).__name__
+	if isinstance(node, Sequential) or type_by_name == 'Sequential':
 		print("get_next_task:sequential")
 		return get_next_task(node.children[0])
 
-	if isinstance(node, Parallel):
+	if isinstance(node, Parallel) or type_by_name == 'Parallel':
 		sx_node, sx_name, sx_color = get_next_task(node.children[0])
 		dx_node, dx_name, dx_color = get_next_task(node.children[1])
 
 		return node, f"{sx_name} || {dx_name}", 'white'
 
-	if isinstance(node, Choice):
+	if isinstance(node, Choice) or type_by_name == 'Choice':
 		color = 'orange'
-	elif isinstance(node, Nature) or isinstance(node, Loop):
+	elif isinstance(node, Nature) or isinstance(node, Loop) or type_by_name == 'Loop' or type_by_name == 'Nature':
 		color = 'yellowgreen'
-	elif isinstance(node, Task):
+	elif isinstance(node, Task) or type_by_name == 'Task':
 		print("get_next_task:", node, type(node))
 		color = 'lightblue'
 	else:
 		color = 'white'
-	#	raise Exception(f"view_point:get_next_task: {node} not recognized, type:{type(node)}")
+		raise Exception(f"view_point:get_next_task: {node} not recognized, type:{type(node)}")
 
 	return node, node.name, color
 

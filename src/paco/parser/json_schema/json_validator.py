@@ -49,9 +49,6 @@ def validate_json(node_data: dict, impact_size: int, non_cumulative_impact_size:
 		impact_size = max(impact_sizes, key=impact_sizes.get)
 		non_cumulative_impact_size = max(non_cumulative_impact_sizes, key=non_cumulative_impact_sizes.get)
 
-	print(type(task_dict))
-	print(task_dict)
-
 	for node_id, (name, node_impact_size, node_non_cumulative_impact_size) in task_dict.items():
 		if node_impact_size != impact_size:
 			result += f"Task {name} with id:{node_id} has inconsistent impact size: {node_impact_size} (expected {impact_size})\n"
