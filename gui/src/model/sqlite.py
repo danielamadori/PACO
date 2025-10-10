@@ -80,7 +80,10 @@ def save_execution_tree(bpmn_dict: dict, execution_tree: str, actual_execution: 
     if not record:
         record = BPMN(bpmn=bpmn_str)
     record.execution_tree = execution_tree or ""
-    record.actual_execution = actual_execution or ""
+    if actual_execution in (None, ""):
+        record.actual_execution = ""
+    else:
+        record.actual_execution = str(actual_execution)
     commit()
 
 @db_session

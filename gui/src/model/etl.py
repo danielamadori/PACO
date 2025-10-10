@@ -196,7 +196,12 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
         return {}, None
 
     record = fetch_bpmn(bpmn)
-    if (not force_refresh and record and record.execution_tree and record.actual_execution):
+    if (
+        not force_refresh
+        and record
+        and record.execution_tree
+        and record.actual_execution not in (None, "")
+    ):
         return json.loads(record.execution_tree), record.actual_execution
 
     print("load_execution_tree:", bpmn)
