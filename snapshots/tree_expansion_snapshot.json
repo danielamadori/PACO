@@ -1,0 +1,138 @@
+{
+  "initial_state": {
+    "petri_net": {
+      "final_marking": {
+        "END": {"token": 1}
+      }
+    },
+    "execution_tree": {
+      "root": {
+        "id": "root",
+        "type": "choice",
+        "snapshot": {
+          "impacts": [0, 0],
+          "probability": 1.0,
+          "decisions": [],
+          "choices": [],
+          "marking": {
+            "START": {"token": 1},
+            "END": {"token": 0},
+            "active": [
+              {"label": "C1"},
+              {"label": "N1"}
+            ]
+          },
+          "status": {
+            "state": "RUNNING",
+            "decisions": [
+              {
+                "label": "C1",
+                "choices": [
+                  {"transition": {"id": "t_cut"}},
+                  {"transition": {"id": "t_bend"}}
+                ]
+              },
+              {
+                "label": "N1",
+                "options": [
+                  {"transition_id": "t_high"},
+                  {"transition_id": "t_low"}
+                ]
+              }
+            ],
+            "active_markings": [
+              {"label": "C1"},
+              {"label": "N1"}
+            ]
+          }
+        },
+        "children": []
+      },
+      "current_node": "root"
+    }
+  },
+  "expansions": {
+    "root": {
+      "t_cut|t_high": [
+        {
+          "id": "root_child_0",
+          "type": "task",
+          "snapshot": {
+            "impacts": [10, 1],
+            "probability": 0.6,
+            "decisions": ["C1"],
+            "choices": ["t_cut", "t_high"],
+            "marking": {
+              "START": {"token": 0},
+              "END": {"token": 1}
+            },
+            "status": {
+              "state": "FINAL"
+            }
+          },
+          "children": []
+        }
+      ],
+      "t_cut|t_low": [
+        {
+          "id": "root_child_1",
+          "type": "task",
+          "snapshot": {
+            "impacts": [12, 2],
+            "probability": 0.4,
+            "decisions": ["C1"],
+            "choices": ["t_cut", "t_low"],
+            "marking": {
+              "START": {"token": 0},
+              "END": {"token": 1}
+            },
+            "status": {
+              "state": "FINAL"
+            }
+          },
+          "children": []
+        }
+      ],
+      "t_bend|t_high": [
+        {
+          "id": "root_child_2",
+          "type": "task",
+          "snapshot": {
+            "impacts": [8, 3],
+            "probability": 0.5,
+            "decisions": ["C1"],
+            "choices": ["t_bend", "t_high"],
+            "marking": {
+              "START": {"token": 0},
+              "END": {"token": 1}
+            },
+            "status": {
+              "state": "FINAL"
+            }
+          },
+          "children": []
+        }
+      ],
+      "t_bend|t_low": [
+        {
+          "id": "root_child_3",
+          "type": "task",
+          "snapshot": {
+            "impacts": [14, 4],
+            "probability": 0.5,
+            "decisions": ["C1"],
+            "choices": ["t_bend", "t_low"],
+            "marking": {
+              "START": {"token": 0},
+              "END": {"token": 1}
+            },
+            "status": {
+              "state": "FINAL"
+            }
+          },
+          "children": []
+        }
+      ]
+    }
+  }
+}
