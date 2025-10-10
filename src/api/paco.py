@@ -2,13 +2,12 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
-from src.paco.parser.dot import get_bpmn_dot_from_parse_tree
+from paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
 from src.paco.execution_tree.execution_tree import ExecutionTree
 from src.paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from src.paco.parser.bpmn_parser import create_parse_tree
 from src.paco.parser.create import create
 from src.paco.parser.parse_tree import ParseTree
-from src.paco.parser.print_sese_diagram import print_sese_diagram
 from src.paco.solver import paco
 from src.utils import check_syntax as cs
 from src.utils.check_syntax import check_bpmn_syntax

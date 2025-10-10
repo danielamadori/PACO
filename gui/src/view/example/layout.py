@@ -13,30 +13,30 @@ THIRD_EXAMPLE_PATH = "gui/src/assets/bpmn_random_bound_300_272.json"
 def layout():
     with open(FIRST_EXAMPLE_PATH, "r") as file:
         data = json.load(file)
-    bpmn, bpmn_dot = render_example(data)
+    bpmn, bpmn_svg_base64 = render_example(data)
 
     with open(SECOND_EXAMPLE_PATH, "r") as file:
         data = json.load(file)
-    bpmn2, bpmn_dot2 = render_example(data)
+    bpmn2, bpmn_svg_base64_2 = render_example(data)
 
     with open(THIRD_EXAMPLE_PATH, "r") as file:
         data = json.load(file)
-    bpmn3, bpmn_dot3 = render_example(data)
+    bpmn3, bpmn_svg_base64_3 = render_example(data)
 
     return dbc.Container([
         dbc.Row([
             dbc.Col([
-                get_first_example("bpmn-example", bpmn, bpmn_dot)
+                get_first_example("bpmn-example", bpmn, bpmn_svg_base64)
             ], width=12)
         ], class_name="mb-4"),
         dbc.Row([
             dbc.Col([
-                get_second_example("bpmn-example2", bpmn2, bpmn_dot2)
+                get_second_example("bpmn-example2", bpmn2, bpmn_svg_base64_2)
             ], width=12)
         ], class_name="mb-4"),
         dbc.Row([
             dbc.Col([
-                get_third_example("bpmn-example3", bpmn3, bpmn_dot3)
+                get_third_example("bpmn-example3", bpmn3, bpmn_svg_base64_3)
             ], width=12)
         ], class_name="mb-4")
     ], fluid=True)

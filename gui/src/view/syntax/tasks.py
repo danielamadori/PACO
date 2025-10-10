@@ -10,7 +10,7 @@ from gui.src.view.example.standard_layout import get_description
 def get_tasks_layout():
     with open("gui/src/assets/bpmn_two_sequential_tasks.json", "r") as file:
         data = json.load(file)
-    bpmn, bpmn_dot = render_example(data)
+    bpmn, bpmn_svg_base64 = render_example(data)
 
     return dbc.Card([
         dbc.CardHeader("Tasks"),
@@ -30,7 +30,7 @@ def get_tasks_layout():
                     dbc.Col(
                         html.Div(
                             html.Iframe(
-                                src=bpmn_dot,
+                                src=bpmn_svg_base64,
                                 style={"width": "100%", "height": "100%", "border": "none"}
                             ),
                             style={

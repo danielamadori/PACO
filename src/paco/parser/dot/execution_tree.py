@@ -66,16 +66,18 @@ def tree_to_dot(tree_root, impacts_names, path=None):
 
 	return apply(tree_root)
 
-def wrapper_execution_tree_to_dot(tree_root, impacts_names, path=None):
+
+def get_execution_tree_dot(execution_tree: dict, impacts_names: list[str], path: list[str] = []):
 	"""
 	Wrapper to create the dot representation of the execution tree.
-	:param tree_root: Execution tree object
+
+	:param execution_tree: Execution tree object
 	:param impacts_names: Impacts names to display
 	:param path: Ids of the nodes in the path to highlight
 	:return: Dot representation of the execution tree
 	"""
 	code = "digraph G {\n"
-	code += tree_to_dot(tree_root, impacts_names, path)
+	code += tree_to_dot(execution_tree, impacts_names, path)
 	code += "\n}"
 
 	return code
@@ -96,4 +98,5 @@ def get_path_to_current_node(tree_root, current_node_id):
 			return [tree_root.get('id')] + path
 
 	return None
+
 

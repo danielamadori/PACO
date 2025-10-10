@@ -63,7 +63,6 @@ def load_bpmn_dot(bpmn: dict) -> str:
     if record and record.bpmn_dot:
         return record.bpmn_dot
 
-    print("load_bpmn_dot", bpmn)
     bpmn_dot = bpmn_snapshot_to_dot(bpmn)
     bpmn_svg_base64 = dot_to_base64svg(bpmn_dot)
 
@@ -102,19 +101,16 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
     is_final = is_final_marking(current_marking, petri_net)
     active_regions = get_active_region_by_pn(petri_net, current_marking)
 
-    print("bpmn_snapshot_to_dot:", bpmn, active_regions, is_initial, is_final)
+    print("bpmn_snapshot_to_dot:", active_regions, is_initial, is_final)
 
     bpmn_dot_str = _bpmn_to_dot(bpmn, active_regions, is_initial, is_final)
 
-    print("bpmn_snapshot_to_dot:result", bpmn_dot_str)
     return bpmn_dot_str
 
 
 def _bpmn_to_dot(bpmn, active_regions = {}, is_initial = True, is_final = False) -> str:
     tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
     bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
-
-    print(bpmn, active_regions, is_initial, is_final)
 
     resp = requests.get(URL_SERVER + "create_bpmn",
                         json={
@@ -127,7 +123,7 @@ def _bpmn_to_dot(bpmn, active_regions = {}, is_initial = True, is_final = False)
     resp.raise_for_status()
 
     bpmn_dot_str =  resp.json()["bpmn_dot"]
-    print("_bpmn_to_dot:", bpmn_dot_str)
+
     return bpmn_dot_str
 
 
