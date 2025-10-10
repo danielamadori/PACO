@@ -26,12 +26,13 @@ def register_paco_api(app: FastAPI):
 		is_initial = request.get("is_initial", True)
 		is_final = request.get("is_final", False)
 
+		print("bpmn_to_dot:", active_regions, is_initial, is_final)
+
 		if IMPACTS_NAMES not in bpmn or bpmn[IMPACTS_NAMES] is None:
 			raise HTTPException(status_code=400, detail="No impacts names found")
 		if not isinstance(bpmn[IMPACTS_NAMES], list) or not all(isinstance(name, str) for name in bpmn[IMPACTS_NAMES]):
 			raise HTTPException(status_code=400, detail="Invalid impacts names format, expected a list of strings")
 
-		print(bpmn)
 		try:
 			lark_tree = check_bpmn_syntax(dict(bpmn))
 		except Exception as e:

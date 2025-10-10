@@ -45,6 +45,8 @@ from gui.src.model.sqlite import (
     update_bpmn_dot as _update_bpmn_record,
 )
 from gui.src.model.bpmn import get_active_region_by_pn
+from paco.execution_tree.execution_tree import ExecutionTree
+from paco.saturate_execution.states import ActivityState
 
 
 def load_bpmn_dot(bpmn: dict) -> str:
@@ -97,20 +99,26 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
     print("execution_tree:", execution_tree)
     current_node = get_execution_node(execution_tree, current_execution_node)
     current_marking = current_node['snapshot']['marking']
-    is_initial = is_initial_marking(current_marking, petri_net)
+    current_status = current_node['snapshot']['status']
+    print("current_status: ", current_status, type(current_status))
+    #print("current_marking[0]: ", current_status['0'])
+    is_initial = len(current_status) == 0
+    #is_initial = is_initial_marking(current_marking, petri_net)
+
     is_final = is_final_marking(current_marking, petri_net)
     active_regions = get_active_region_by_pn(petri_net, current_marking)
 
     print("bpmn_snapshot_to_dot:", active_regions, is_initial, is_final)
 
-    bpmn_dot_str = _bpmn_to_dot(bpmn, active_regions, is_initial, is_final)
+    bpmn_dot_str = bpmn_to_dot(bpmn, active_regions, is_initial, is_final)
 
     return bpmn_dot_str
 
 
-def _bpmn_to_dot(bpmn, active_regions = {}, is_initial = True, is_final = False) -> str:
+def bpmn_to_dot(bpmn, active_regions = {}, is_initial = True, is_final = False) -> str:
     tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
     bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
+
 
     resp = requests.get(URL_SERVER + "create_bpmn",
                         json={
@@ -149,7 +157,7 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
     :return: Parse tree dictionary
     """
     if bpmn[EXPRESSION] == '':
-        None
+        return None
 
     record = fetch_bpmn(bpmn)
     if not force_refresh and record and record.parse_tree:
@@ -167,7 +175,6 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
         raise ValueError(f"Error from server: {resp_json['error']}")
 
     parse_tree = resp_json["parse_tree"]
-    print("ciao:", parse_tree)
     save_parse_tree(bpmn, json.dumps(parse_tree))
 
     return parse_tree
@@ -285,11 +292,16 @@ def load_strategy(bpmn_store, bound_store):
 
     print("load_strategy:", bpmn)
     parse_tree = load_parse_tree(bpmn)
-    execution_tree = load_execution_tree(bpmn)
+    #execution_tree = load_execution_tree(bpmn)
+    resp = requests.get(f'{URL_SERVER}create_execution_tree',
+                        json={"bpmn": bpmn},  headers=HEADERS)
+
+    resp.raise_for_status()
+    response = resp.json()
 
     resp = requests.get(URL_SERVER + "create_strategy",
                         json={"bpmn": bpmn, "bound": bound,
-                              "parse_tree": parse_tree, "execution_tree": execution_tree},
+                              "parse_tree": parse_tree, "execution_tree": response["execution_tree"]},
                         headers=HEADERS)
 
     resp.raise_for_status()
