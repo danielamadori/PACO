@@ -100,10 +100,15 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
     print("current_status: ", current_status, type(current_status))
     #print("current_marking[0]: ", current_status['0'])
     is_initial = len(current_status) == 0
+
+
     #is_initial = is_initial_marking(current_marking, petri_net)
 
     is_final = is_final_marking(current_marking, petri_net)
-    active_regions = get_active_region_by_pn(petri_net, current_marking)
+
+    active_regions = {}
+    if not is_initial:
+        active_regions = get_active_region_by_pn(petri_net, current_marking)
 
     print("bpmn_snapshot_to_dot:", active_regions, is_initial, is_final)
 
