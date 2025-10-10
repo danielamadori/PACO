@@ -2,7 +2,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
-from paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
+from src.paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
 from src.paco.execution_tree.execution_tree import ExecutionTree
 from src.paco.explainer.bdd.bdds import bdds_to_dict, bdds_to_dict_dot
 from src.paco.parser.bpmn_parser import create_parse_tree

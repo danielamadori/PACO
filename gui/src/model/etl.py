@@ -45,9 +45,6 @@ from gui.src.model.sqlite import (
     update_bpmn_dot as _update_bpmn_record,
 )
 from gui.src.model.bpmn import get_active_region_by_pn
-from paco.execution_tree.execution_tree import ExecutionTree
-from paco.saturate_execution.states import ActivityState
-
 
 def load_bpmn_dot(bpmn: dict) -> str:
     """
