@@ -421,15 +421,23 @@ def get_simulation_data(bpmn):
     }
 
 
-def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = None):
+def execute_decisions(
+    bpmn,
+    gateway_decisions: list,
+    gateway_components: list | None,
+    simulator_data: dict | None,
+    step: int | None = None,
+):
     """
     Execute the given gateway decisions on the BPMN process.
     Update the Petri net and execution tree in the database.
     Return the updated simulation data.
 
     :param bpmn: BPMN dictionary
-    :param gateway_decisions: List of gateway decision IDs
-    :param step: Optional step number. Ignored in current implementation.
+    :param gateway_decisions: List of selected gateway decision values coming from the UI.
+    :param gateway_components: List of component identifiers that matches ``gateway_decisions``.
+    :param simulator_data: Current simulator store data, used to resolve region metadata.
+    :param step: Optional step number used to advance the simulator.
     :return: Updated simulation data dictionary or None if error occurs
     """
     if bpmn[EXPRESSION] == '':
@@ -438,9 +446,41 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
     tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
     filtered_bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
     
-    decisions = list(gateway_decisions)
+    pending_decisions = (simulator_data or {}).get("gateway_decisions") or {}
 
-    print("execute_decisions:", bpmn, gateway_decisions, step)
+    decisions: list = []
+    decisions_map: dict[str, int | str] = {}
+
+    for value, component in zip(gateway_decisions or [], gateway_components or []):
+        if value in (None, ""):
+            continue
+
+        component_id = component.get("id") if isinstance(component, dict) else component
+        region_entries = pending_decisions.get(component_id, {})
+
+        transition_id = None
+        region_id = None
+
+        if isinstance(value, dict):
+            transition_id = value.get("transition_id")
+            region_id = value.get("region_id")
+        else:
+            transition_id = value
+            for entry in region_entries.values():
+                if entry.get("transition_id") == transition_id:
+                    region_id = entry.get("region_id")
+                    break
+
+        if transition_id is None:
+            continue
+
+        if region_id is None:
+            region_id = component_id
+
+        decisions.append(transition_id)
+        decisions_map[str(region_id)] = transition_id
+
+    print("execute_decisions:", bpmn, decisions, step)
     parse_tree = load_parse_tree(filtered_bpmn)
     petri_net, petri_net_dot = get_petri_net(filtered_bpmn, step)
     execution_tree, current_execution = load_execution_tree(filtered_bpmn)
@@ -451,7 +491,11 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
         "petri_net_dot": petri_net_dot,
         "execution_tree": {"root": execution_tree, "current_node": current_execution},
         "choices": decisions,
+        "decisions": decisions_map,
     }
+
+    if step is not None:
+        request["step"] = step
 
     try:
         response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
@@ -470,7 +514,11 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
             "petri_net_dot": petri_net_dot,
             "execution_tree": {"root": execution_tree, "current_node": current_execution},
             "choices": decisions,
+            "decisions": decisions_map,
         }
+
+        if step is not None:
+            request["step"] = step
 
         response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
         response.raise_for_status()
