@@ -21,6 +21,7 @@ from gui.src.env import (
     extract_nodes,
     BOUND,
     SIMULATOR_SERVER,
+    H,
 )
 from gui.src.model.execution_tree import (
     get_execution_node,
@@ -206,8 +207,17 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
     normalized_bpmn = _normalize_bpmn(bpmn)
 
     record = fetch_bpmn(normalized_bpmn)
-    if (not force_refresh and record and record.execution_tree and record.actual_execution):
-        return json.loads(record.execution_tree), record.actual_execution
+    if not force_refresh and record and record.execution_tree:
+        execution_tree_root = json.loads(record.execution_tree)
+        current_execution_node = record.actual_execution or execution_tree_root.get('id')
+
+        if bpmn.get(H, 0) == 0:
+            root_node_id = execution_tree_root.get('id')
+            if root_node_id and current_execution_node != root_node_id:
+                current_execution_node = root_node_id
+                save_execution_tree(normalized_bpmn, record.execution_tree, current_execution_node)
+
+        return execution_tree_root, current_execution_node
 
     print("load_execution_tree:", bpmn)
     parse_tree = load_parse_tree(bpmn, force_refresh=force_refresh)
