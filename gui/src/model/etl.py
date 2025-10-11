@@ -21,6 +21,7 @@ from gui.src.env import (
     extract_nodes,
     BOUND,
     SIMULATOR_SERVER,
+    H,
 )
 from gui.src.model.execution_tree import (
     get_execution_node,
@@ -58,14 +59,16 @@ def load_bpmn_dot(bpmn: dict) -> str:
     if bpmn[EXPRESSION] == '':
         return None
 
-    record = fetch_bpmn(bpmn)
+    normalized_bpmn = _normalize_bpmn(bpmn)
+
+    record = fetch_bpmn(normalized_bpmn)
     if record and record.bpmn_dot:
         return record.bpmn_dot
 
     bpmn_dot = bpmn_snapshot_to_dot(bpmn)
     bpmn_svg_base64 = dot_to_base64svg(bpmn_dot)
 
-    save_bpmn_dot(bpmn, bpmn_svg_base64)
+    save_bpmn_dot(normalized_bpmn, bpmn_svg_base64)
 
     return bpmn_svg_base64
 
@@ -146,7 +149,14 @@ def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
     :return: None
     """
     if bpmn[EXPRESSION] != '':
-        _update_bpmn_record(bpmn, bpmn_dot)
+        normalized_bpmn = _normalize_bpmn(bpmn)
+        _update_bpmn_record(normalized_bpmn, bpmn_dot)
+
+
+def _normalize_bpmn(bpmn_store: dict) -> dict:
+    """Return a normalized copy of the BPMN data used for caching purposes."""
+    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
+    return filter_bpmn(bpmn_store, tasks, choices, natures, loops)
 
 
 def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
@@ -161,15 +171,14 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
     if bpmn[EXPRESSION] == '':
         return None
 
-    record = fetch_bpmn(bpmn)
+    normalized_bpmn = _normalize_bpmn(bpmn)
+
+    record = fetch_bpmn(normalized_bpmn)
     if not force_refresh and record and record.parse_tree:
         return json.loads(record.parse_tree)
     print("load_parse_tree:bpmn", bpmn)
 
-    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
-
-    bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
-    resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": bpmn}, headers=HEADERS)
+    resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": normalized_bpmn}, headers=HEADERS)
     resp.raise_for_status()
 
     resp_json = resp.json()
@@ -177,7 +186,7 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
         raise ValueError(f"Error from server: {resp_json['error']}")
 
     parse_tree = resp_json["parse_tree"]
-    save_parse_tree(bpmn, json.dumps(parse_tree))
+    save_parse_tree(normalized_bpmn, json.dumps(parse_tree))
 
     return parse_tree
 
@@ -195,7 +204,9 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
     if bpmn[EXPRESSION] == '':
         return {}, None
 
-    record = fetch_bpmn(bpmn)
+    normalized_bpmn = _normalize_bpmn(bpmn)
+
+    record = fetch_bpmn(normalized_bpmn)
     if (not force_refresh and record and record.execution_tree and record.actual_execution):
         return json.loads(record.execution_tree), record.actual_execution
 
@@ -228,7 +239,7 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
     if execution_tree_root is None or current_execution_node is None:
         raise ValueError("Simulator error: Incomplete execution tree data")
 
-    save_execution_tree(bpmn, json.dumps(execution_tree_root), current_execution_node)
+    save_execution_tree(normalized_bpmn, json.dumps(execution_tree_root), current_execution_node)
 
     return execution_tree_root, current_execution_node
 
@@ -245,7 +256,9 @@ def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tupl
     """
     if bpmn[EXPRESSION] == '':
         return None, None
-    record = fetch_bpmn(bpmn)
+    normalized_bpmn = _normalize_bpmn(bpmn)
+
+    record = fetch_bpmn(normalized_bpmn)
     if not force_refresh and record and record.petri_net and record.petri_net_dot:
         return json.loads(record.petri_net), record.petri_net_dot
 
@@ -272,7 +285,7 @@ def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tupl
     if petri_net is None or petri_net_dot is None:
         raise ValueError("Simulator error: Incomplete Petri net data")
 
-    save_petri_net(bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
+    save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
 
     return petri_net, petri_net_dot
 
@@ -370,11 +383,13 @@ def set_actual_execution(bpmn: dict, actual_execution: str):
     """
     if bpmn[EXPRESSION] == '':
         return
-    record = fetch_bpmn(bpmn)
+    normalized_bpmn = _normalize_bpmn(bpmn)
+
+    record = fetch_bpmn(normalized_bpmn)
     if not record or not record.execution_tree:
         return
 
-    save_execution_tree(bpmn, record.execution_tree, actual_execution)
+    save_execution_tree(normalized_bpmn, record.execution_tree, actual_execution)
 
 
 def get_current_state(bpmn):
@@ -435,15 +450,14 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
     if bpmn[EXPRESSION] == '':
         raise ValueError("BPMN expression is empty")
 
-    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
-    filtered_bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
-    
+    normalized_bpmn = _normalize_bpmn(bpmn)
+
     decisions = list(gateway_decisions)
 
     print("execute_decisions:", bpmn, gateway_decisions, step)
-    parse_tree = load_parse_tree(filtered_bpmn)
-    petri_net, petri_net_dot = get_petri_net(filtered_bpmn, step)
-    execution_tree, current_execution = load_execution_tree(filtered_bpmn)
+    parse_tree = load_parse_tree(bpmn)
+    petri_net, petri_net_dot = get_petri_net(bpmn, step)
+    execution_tree, current_execution = load_execution_tree(bpmn)
 
     request = {
         "bpmn": parse_tree,
@@ -460,9 +474,9 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
         if exc.response is None or exc.response.status_code != 422:
             raise
 
-        parse_tree = load_parse_tree(filtered_bpmn, force_refresh=True)
-        petri_net, petri_net_dot = get_petri_net(filtered_bpmn, step, force_refresh=True)
-        execution_tree, current_execution = load_execution_tree(filtered_bpmn, force_refresh=True)
+        parse_tree = load_parse_tree(bpmn, force_refresh=True)
+        petri_net, petri_net_dot = get_petri_net(bpmn, step, force_refresh=True)
+        execution_tree, current_execution = load_execution_tree(bpmn, force_refresh=True)
 
         request = {
             "bpmn": parse_tree,
@@ -484,7 +498,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
     execution_tree = resp_json['execution_tree']['root']
     current_execution = resp_json['execution_tree']['current_node']
 
-    save_petri_net(filtered_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
-    save_execution_tree(filtered_bpmn, json.dumps(execution_tree), current_execution)
+    save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
+    save_execution_tree(normalized_bpmn, json.dumps(execution_tree), current_execution)
 
-    return get_simulation_data(filtered_bpmn)
+    return get_simulation_data(bpmn)
