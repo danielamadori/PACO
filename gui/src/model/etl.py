@@ -91,20 +91,24 @@ def get_activity_status(root, status:dict) -> dict[str, ActivityState]:
 
 	if root['type'] == 'task':
 		if node_id in status.keys():
-			return {root['label']: ActivityState(status[node_id])}
-		return {root['label']: ActivityState.WAITING}
+			return {root['label']: ActivityState(status[node_id])}, {root['id']: ActivityState(status[node_id])}
+		return {root['label']: ActivityState.WAITING}, {root['id']: ActivityState.WAITING}
 
-	result = {}
+	result_with_ids, result_with_names  = {}, {}
 	if root['type'] == 'choice' or root['type'] == 'nature':
 		if node_id in status:
-			result[root['label']] = ActivityState(status[node_id])
+			result_with_ids[root['id']] = ActivityState(status[node_id])
+			result_with_names[root['label']] = ActivityState(status[node_id])
 		else:
-			result[root['label']] = ActivityState.WAITING
+			result_with_ids[root['id']] = ActivityState.WAITING
+			result_with_names[root['label']] = ActivityState.WAITING
 
 	for child in root['children']:
-		result.update(get_activity_status(child, status))
+		sub_status_with_names, sub_status_with_ids = get_activity_status(child, status)
+		result_with_ids.update(sub_status_with_ids)
+		result_with_names.update(sub_status_with_names)
 
-	return result
+	return result_with_names, result_with_ids
 
 def get_status(bpmn, status:dict):
 	parse_tree = load_parse_tree(bpmn)
@@ -116,8 +120,8 @@ def get_status(bpmn, status:dict):
 		if status[parse_tree['id']] > ActivityState.ACTIVE:
 			is_final = True
 
-
-	return is_initial, is_final, get_activity_status(parse_tree, status)
+	status_with_names, status_with_ids = get_activity_status(parse_tree, status)
+	return is_initial, is_final, status_with_names, status_with_ids
 
 
 def bpmn_snapshot_to_dot(bpmn) -> str:
@@ -127,45 +131,36 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
 	:param bpmn: BPMN dictionary
 	:return: BPMN DOT string
 	"""
-
-
-	print("bpmn_snapshot_to_dot:", bpmn)
 	petri_net, _ = get_petri_net(bpmn, step=0)
-	print("petri_net:", petri_net)
+
 	execution_tree, current_execution_node = load_execution_tree(bpmn)
-	print("execution_tree:", execution_tree)
+
 	current_node = get_execution_node(execution_tree, current_execution_node)
+
+	return bpmn_to_dot(bpmn, current_node['snapshot']['status'])
+
+
+def bpmn_to_dot(bpmn, status = {}) -> str:
+	'''
 	current_marking = current_node['snapshot']['marking']
-
-	is_initial, is_final, current_status = get_status(bpmn, current_node['snapshot']['status'])
-	for task, status in current_status.items():
-		print(task, status)
-
-	#is_initial = is_initial_marking(current_marking, petri_net)
-	#is_final = is_final_marking(current_marking, petri_net)
-
+	is_initial = is_initial_marking(current_marking, petri_net)
+	is_final = is_final_marking(current_marking, petri_net)
 	active_regions = {}
 	if not is_initial:
 		active_regions = get_active_region_by_pn(petri_net, current_marking)
+	'''
+	is_initial, is_final, status_with_names, status_with_ids = get_status(bpmn, status)
 
-	print("bpmn_snapshot_to_dot:", active_regions, is_initial, is_final)
-
-	bpmn_dot_str = bpmn_to_dot(bpmn, active_regions, is_initial, is_final)
-
-	return bpmn_dot_str
-
-
-def bpmn_to_dot(bpmn, active_regions = {}, is_initial = True, is_final = False) -> str:
 	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
 	bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
 
+	for task, status in status_with_names.items():
+		print(task, status)
 
 	resp = requests.get(URL_SERVER + "create_bpmn",
 						json={
 							"bpmn": bpmn,
-							"active_regions": list(active_regions),
-							"is_initial": is_initial,
-							"is_final": is_final
+							"status": status_with_ids
 						},
 						headers=HEADERS)
 	resp.raise_for_status()

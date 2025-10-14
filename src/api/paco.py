@@ -22,12 +22,9 @@ def register_paco_api(app: FastAPI):
 			raise HTTPException(status_code=400, detail="No BPMN found")
 		if EXPRESSION not in bpmn or bpmn[EXPRESSION] == "":
 			raise HTTPException(status_code=400, detail="No BPMN expression found")
-		active_regions = request.get("active_regions", [])
-		is_initial = request.get("is_initial", True)
-		is_final = request.get("is_final", False)
 
-		print("bpmn_to_dot:", active_regions, is_initial, is_final)
-
+		status = request.get("status", {})
+		print("status:", status)
 		if IMPACTS_NAMES not in bpmn or bpmn[IMPACTS_NAMES] is None:
 			raise HTTPException(status_code=400, detail="No impacts names found")
 		if not isinstance(bpmn[IMPACTS_NAMES], list) or not all(isinstance(name, str) for name in bpmn[IMPACTS_NAMES]):
@@ -41,7 +38,7 @@ def register_paco_api(app: FastAPI):
 		try:
 			parse_tree, _, _, _ = create_parse_tree(bpmn)
 
-			return { "parse_tree" : parse_tree.to_dict(), "bpmn_dot": get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], active_regions, is_initial, is_final) }
+			return { "parse_tree" : parse_tree.to_dict(), "bpmn_dot": get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status) }
 		except Exception as e:
 			raise HTTPException(status_code=500, detail=str(e))
 

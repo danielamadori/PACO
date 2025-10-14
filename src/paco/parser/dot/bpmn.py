@@ -1,5 +1,6 @@
 from ..parse_node import ParseNode, Nature, Parallel, Sequential, Loop, Choice, Task
 from ..parse_tree import ParseTree
+from ...saturate_execution.states import ActivityState
 
 ACTIVE_BORDER_COLOR = "red"
 ACTIVE_BORDER_WIDTH = 4
@@ -166,8 +167,7 @@ def arc_to_dot(source, target, label=None):
 
 
 
-def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str], active_regions: set[str],
-                                 is_initial: bool, is_final: bool):
+def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str], status:dict):
 
     """
     Wrapper to create the dot representation of the BPMN.
@@ -176,6 +176,9 @@ def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str]
     :param active_regions: Ids of the active regions to highlight
     :return: Dot representation of the BPMN
     """
+    is_initial = parse_tree.root not in status.keys() or status[parse_tree.root] == ActivityState.WAITING
+    is_final = parse_tree.root in status.keys() and status[parse_tree.root] > ActivityState.ACTIVE
+
 
     code = "digraph G {\n"
     code += "rankdir=LR;\n"
@@ -197,7 +200,7 @@ def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str]
                         border_color=border_color,
                         border_size=border_size) + "\n"
 
-    other_code, entry_id, exit_id, exit_p = region_to_dot(parse_tree.root, impacts_names, active_regions)
+    other_code, entry_id, exit_id, exit_p = region_to_dot(parse_tree.root, impacts_names, status)
     code += other_code
     code += f'node_start -> node_{entry_id};\n'
     code += f'node_{exit_id} -> node_end[label="{exit_p}"];\n'
@@ -217,15 +220,10 @@ def serial_generator():
 id_generator = serial_generator()
 
 
-def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tuple[str, int, int, float]:
-    """
-    Create the dot representation of a region.
-    :param region_root: Parse tree of the expression
-    :param impacts_names: Impacts names to display
-    :param active_regions: Ids of the active regions to highlight
-    :return: Dot representation of the region, entry id, exit id, probability to reach the exit
-    """
-    is_active = region_root.id in active_regions
+def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, int, int, float]:
+    print("region_to_dot: ", type(region_root.id), type(status.keys()))
+    is_active = region_root.id in status and status[region_root.id] == ActivityState.ACTIVE
+    is_completed = region_root.id in status and status[region_root.id] > ActivityState.ACTIVE
 
     type_by_name = type(region_root).__name__
     if isinstance(region_root, Task) or type_by_name == 'Task':
@@ -262,7 +260,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tupl
 
         # Child
         other_code, child_entry_id, child_exit_id, exit_p = region_to_dot(region_root.children[0], impacts_names,
-                                                                          active_regions)
+                                                                          status)
         code += other_code
         p = region_root.probability
         code += arc_to_dot(entry_id, child_entry_id)
@@ -292,7 +290,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tupl
 
         # Children
         for child in region_root.children:
-            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, status)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id)
             code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
@@ -318,7 +316,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tupl
 
         # Children
         for child in region_root.children:
-            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, status)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id)
             code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
@@ -346,7 +344,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tupl
 
         # Children
         for child, p in zip(region_root.children, region_root.distribution):
-            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, status)
             code += child_code
             code += arc_to_dot(entry_id, child_entry_id, p)
             code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
@@ -359,7 +357,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, active_regions) -> tupl
         last_exit_p = None
 
         for i, child in enumerate(region_root.children):
-            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, active_regions)
+            child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, status)
             code += child_code
 
             if last_exit_id is not None:
