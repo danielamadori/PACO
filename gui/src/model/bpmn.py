@@ -1,4 +1,5 @@
 from typing import TypedDict, Dict, List
+import enum
 
 class BPMNDict(TypedDict):
     expression: str
@@ -48,3 +49,15 @@ def get_active_region_by_pn(petri_net, marking):
             active_regions.add(entry_region_id)
 
     return active_regions
+
+class ActivityState(enum.IntEnum):
+    WILL_NOT_BE_EXECUTED = -1
+    WAITING = 0
+    ACTIVE = 1
+    COMPLETED = 2
+    COMPLETED_WITHOUT_PASSING_OVER = 3
+
+    def __str__(self):
+        if self.value > 2:
+            return "Completed"
+        return self.name.lower().replace("_", " ").capitalize()

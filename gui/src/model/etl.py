@@ -45,7 +45,8 @@ from gui.src.model.sqlite import (
 	save_bpmn_dot,
 	update_bpmn_dot as _update_bpmn_record,
 )
-from gui.src.model.bpmn import get_active_region_by_pn
+from gui.src.model.bpmn import get_active_region_by_pn, ActivityState
+
 
 def load_bpmn_dot(bpmn: dict) -> str:
 	"""
@@ -85,6 +86,40 @@ def dot_to_base64svg(dot: str) -> str:
 	return svg_base64
 
 
+def get_activity_status(root, status:dict) -> dict[str, ActivityState]:
+	node_id = str(root['id'])
+
+	if root['type'] == 'task':
+		if node_id in status.keys():
+			return {root['label']: ActivityState(status[node_id])}
+		return {root['label']: ActivityState.WAITING}
+
+	result = {}
+	if root['type'] == 'choice' or root['type'] == 'nature':
+		if node_id in status:
+			result[root['label']] = ActivityState(status[node_id])
+		else:
+			result[root['label']] = ActivityState.WAITING
+
+	for child in root['children']:
+		result.update(get_activity_status(child, status))
+
+	return result
+
+def get_status(bpmn, status:dict):
+	parse_tree = load_parse_tree(bpmn)
+
+	is_initial = True
+	is_final = False
+	if parse_tree['id'] in status.keys() and status[parse_tree['id']] > ActivityState.WAITING:
+		is_initial = False
+		if status[parse_tree['id']] > ActivityState.ACTIVE:
+			is_final = True
+
+
+	return is_initial, is_final, get_activity_status(parse_tree, status)
+
+
 def bpmn_snapshot_to_dot(bpmn) -> str:
 	"""
 	Given a BPMN process, return its DOT representation.
@@ -92,6 +127,8 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
 	:param bpmn: BPMN dictionary
 	:return: BPMN DOT string
 	"""
+
+
 	print("bpmn_snapshot_to_dot:", bpmn)
 	petri_net, _ = get_petri_net(bpmn, step=0)
 	print("petri_net:", petri_net)
@@ -99,15 +136,13 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
 	print("execution_tree:", execution_tree)
 	current_node = get_execution_node(execution_tree, current_execution_node)
 	current_marking = current_node['snapshot']['marking']
-	current_status = current_node['snapshot']['status']
-	print("current_status: ", current_status, type(current_status))
-	#print("current_marking[0]: ", current_status['0'])
-	is_initial = len(current_status) == 0
 
+	is_initial, is_final, current_status = get_status(bpmn, current_node['snapshot']['status'])
+	for task, status in current_status.items():
+		print(task, status)
 
 	#is_initial = is_initial_marking(current_marking, petri_net)
-
-	is_final = is_final_marking(current_marking, petri_net)
+	#is_final = is_final_marking(current_marking, petri_net)
 
 	active_regions = {}
 	if not is_initial:
