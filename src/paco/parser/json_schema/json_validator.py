@@ -8,23 +8,24 @@ SCHEMAS = {}
 for schema_file in os.listdir(SCHEMA_DIR):
 	if not schema_file.endswith("_schema.json"):
 		continue
-	schema_name = schema_file.replace("_schema.json", "")
+
 	with open(os.path.join(SCHEMA_DIR, schema_file), 'r') as f:
-		SCHEMAS[schema_name] = json.load(f)
+		SCHEMAS[schema_file.replace("_schema.json", "")] = json.load(f)
 
 
 def validate_node(node_data: dict) -> dict:
-	node_type = node_data['type']
-	schema = SCHEMAS.get(node_type)
+	node_data['type'] = node_data['type'].lower()
+	schema = SCHEMAS.get(node_data['type'])
+
 	if not schema:
-		raise ValueError(f"Unsupported node type: {node_type}")
+		raise ValueError(f"Unsupported node type: {node_data['type']}")
 
 	try:
 		validate(instance=node_data, schema=schema)
 	except ValidationError as e:
-		raise ValueError(f"Validation error in node with id:{node_data['id']} and type:{node_type} : {e}")
+		raise ValueError(f"Validation error in node with id:{node_data['id']} and type:{node_data['type']} : {e}")
 
-	if node_type == "task":
+	if node_data['type'] == "task":
 		return {node_data['id'] : (node_data['label'], len(node_data['impacts']), 0)}#TODO Daniel: len(node_data['non_cumulative_impact'])
 
 	results = {}

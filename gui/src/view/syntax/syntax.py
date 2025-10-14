@@ -28,9 +28,16 @@ A Gateway represents an intersection where multiple paths converge or diverge. T
                         ), width=6),
                     dbc.Col(
                         html.Div(
-                            dcc.Markdown(
-                                f'''Here is the complete grammar:\n{sese_diagram_grammar}''', style={"marginBottom": "5px"}
-                            ), style={'width': '100%', 'textAlign': 'left'}, className="mb-3"
+							dbc.Card([
+								dbc.CardHeader("Grammar"),
+								dbc.CardBody(
+									dcc.Markdown(
+										str(sese_diagram_grammar),
+										style={"marginBottom": "5px"}
+									)
+								)
+							])
+							, style={'width': '100%', 'textAlign': 'left'}, className="mb-3"
                         ), width=6),
                 ], class_name="mb-4")
             ], fluid=True)
