@@ -95,13 +95,18 @@ def get_activity_status(root, status:dict) -> dict[str, ActivityState]:
 		return {root['label']: ActivityState.WAITING}, {root['id']: ActivityState.WAITING}
 
 	result_with_ids, result_with_names  = {}, {}
+
 	if root['type'] == 'choice' or root['type'] == 'nature':
-		if node_id in status:
-			result_with_ids[root['id']] = ActivityState(status[node_id])
-			result_with_names[root['label']] = ActivityState(status[node_id])
-		else:
-			result_with_ids[root['id']] = ActivityState.WAITING
-			result_with_names[root['label']] = ActivityState.WAITING
+		node_name = root['label']
+	else:
+		node_name = f"{root['type'].capitalize()}_{node_id}"
+
+	if node_id in status:
+		result_with_ids[node_id] = ActivityState(status[node_id])
+		result_with_names[node_name] = ActivityState(status[node_id])
+	else:
+		result_with_ids[node_id] = ActivityState.WAITING
+		result_with_names[node_name] = ActivityState.WAITING
 
 	for child in root['children']:
 		sub_status_with_names, sub_status_with_ids = get_activity_status(child, status)

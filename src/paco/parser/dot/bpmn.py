@@ -176,8 +176,11 @@ def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str]
     :param active_regions: Ids of the active regions to highlight
     :return: Dot representation of the BPMN
     """
-    is_initial = parse_tree.root not in status.keys() or status[parse_tree.root] == ActivityState.WAITING
-    is_final = parse_tree.root in status.keys() and status[parse_tree.root] > ActivityState.ACTIVE
+    node_status = _get_status(status, parse_tree.root.id)
+
+    is_initial = node_status is None or node_status == ActivityState.WAITING
+    print("Root id", parse_tree.root.id, " status:", node_status, "is_initial:", is_initial)
+    is_final = node_status is not None and node_status > ActivityState.ACTIVE
 
 
     code = "digraph G {\n"
