@@ -6,6 +6,17 @@ ACTIVE_BORDER_COLOR = "red"
 ACTIVE_BORDER_WIDTH = 4
 ACTIVE_STYLE = "solid"
 
+TASK_FILL_COLOR = "lightblue"
+TASK_COMPLETED_FILL_COLOR = "lightskyblue"
+EXCLUSIVE_GATEWAY_FILL_COLOR = "orange"
+EXCLUSIVE_GATEWAY_COMPLETED_FILL_COLOR = "darkorange"
+PARALLEL_GATEWAY_FILL_COLOR = "green"
+PARALLEL_GATEWAY_COMPLETED_FILL_COLOR = "forestgreen"
+PROBABILISTIC_GATEWAY_FILL_COLOR = "yellowgreen"
+PROBABILISTIC_GATEWAY_COMPLETED_FILL_COLOR = "olivedrab"
+LOOP_GATEWAY_FILL_COLOR = "yellowgreen"
+LOOP_GATEWAY_COMPLETED_FILL_COLOR = "olivedrab"
+
 
 def node_to_dot(_id, shape, label, style, fillcolor, border_color=None, border_size=None):
     """
@@ -43,7 +54,7 @@ def gateway_to_dot(_id, label, style, fillcolor, border_color=None, border_size=
     return node_to_dot(_id, "diamond", label, style, fillcolor, border_color, border_size)
 
 
-def exclusive_gateway_to_dot(_id, label, style, border_color=None, border_size=None):
+def exclusive_gateway_to_dot(_id, label, style, fillcolor=None, border_color=None, border_size=None):
     """
     Create the dot representation of an exclusive gateway.
 
@@ -58,10 +69,12 @@ def exclusive_gateway_to_dot(_id, label, style, border_color=None, border_size=N
         style = "filled"
     else:
         style = f"filled,{style}"
-    return gateway_to_dot(_id, label, style, "orange", border_color, border_size)
+    if fillcolor is None:
+        fillcolor = EXCLUSIVE_GATEWAY_FILL_COLOR
+    return gateway_to_dot(_id, label, style, fillcolor, border_color, border_size)
 
 
-def parallel_gateway_to_dot(_id, style=None, border_color=None, border_size=None):
+def parallel_gateway_to_dot(_id, style=None, fillcolor=None, border_color=None, border_size=None):
     """
     Create the dot representation of a parallel gateway.
 
@@ -71,10 +84,12 @@ def parallel_gateway_to_dot(_id, style=None, border_color=None, border_size=None
     :param border_size: Border size of the gateway
     :return: Dot representation of the gateway
     """
-    return gateway_to_dot(_id, f"+", style, "green", border_color, border_size)
+    if fillcolor is None:
+        fillcolor = PARALLEL_GATEWAY_FILL_COLOR
+    return gateway_to_dot(_id, f"+", style, fillcolor, border_color, border_size)
 
 
-def probabilistic_gateway_to_dot(_id, name, style, border_color=None, border_size=None):
+def probabilistic_gateway_to_dot(_id, name, style, fillcolor=None, border_color=None, border_size=None):
     """
     Create the dot representation of a probabilistic gateway.
 
@@ -89,10 +104,12 @@ def probabilistic_gateway_to_dot(_id, name, style, border_color=None, border_siz
         style = "filled"
     else:
         style = f"filled,{style}"
-    return gateway_to_dot(_id, f"{name}", style, "yellowgreen", border_color, border_size)
+    if fillcolor is None:
+        fillcolor = PROBABILISTIC_GATEWAY_FILL_COLOR
+    return gateway_to_dot(_id, f"{name}", style, fillcolor, border_color, border_size)
 
 
-def loop_gateway_to_dot(_id, label, style, border_color=None, border_size=None):
+def loop_gateway_to_dot(_id, label, style, fillcolor=None, border_color=None, border_size=None):
     """
     Create the dot representation of a loop gateway.
 
@@ -107,10 +124,12 @@ def loop_gateway_to_dot(_id, label, style, border_color=None, border_size=None):
         style = "filled"
     else:
         style = f"filled,{style}"
-    return gateway_to_dot(_id, label, style, "yellowgreen", border_color, border_size)
+    if fillcolor is None:
+        fillcolor = LOOP_GATEWAY_FILL_COLOR
+    return gateway_to_dot(_id, label, style, fillcolor, border_color, border_size)
 
 
-def task_to_dot(_id, name, style, impacts, duration, impacts_names, border_color=None, border_size=None):
+def task_to_dot(_id, name, style, impacts, duration, impacts_names, fillcolor=None, border_color=None, border_size=None):
     """
     Create the dot representation of a task.
 
@@ -140,12 +159,15 @@ def task_to_dot(_id, name, style, impacts, duration, impacts_names, border_color
     else:
         style = f"rounded,filled,{style}"
 
+    if fillcolor is None:
+        fillcolor = TASK_FILL_COLOR
+
     return node_to_dot(
         _id,
         "rectangle",
         f"{name}{additional_label}",
         style,
-        "lightblue",
+        fillcolor,
         border_color,
         border_size
     )
@@ -248,6 +270,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
             region_root.impacts,
             region_root.duration,
             impacts_names,
+            fillcolor=TASK_COMPLETED_FILL_COLOR if is_completed else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         ), _id, _id, 1.0
@@ -260,6 +283,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
             entry_id,
             region_root.name,
             style=None,
+            fillcolor=LOOP_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None,
         )
 
         # Exit point
@@ -267,6 +291,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
             exit_id,
             region_root.name,
             style=None,
+            fillcolor=LOOP_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
@@ -290,6 +315,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
             entry_id,
             region_root.name,
             ACTIVE_STYLE if is_active else None,
+            fillcolor=EXCLUSIVE_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
@@ -298,7 +324,8 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
         code += exclusive_gateway_to_dot(
             last_exit_id,
             region_root.name,
-            style=None
+            style=None,
+            fillcolor=EXCLUSIVE_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None
         )
 
         # Children
@@ -317,6 +344,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
         code = parallel_gateway_to_dot(
             entry_id,
             style=ACTIVE_STYLE if is_active else None,
+            fillcolor=PARALLEL_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
@@ -324,7 +352,8 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
         # Exit point
         code += parallel_gateway_to_dot(
             last_exit_id,
-            style=None
+            style=None,
+            fillcolor=PARALLEL_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None
         )
 
         # Children
@@ -344,6 +373,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
             entry_id,
             region_root.name,
             style=ACTIVE_STYLE if is_active else None,
+            fillcolor=PROBABILISTIC_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None,
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         )
@@ -352,7 +382,8 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
         code += probabilistic_gateway_to_dot(
             last_exit_id,
             region_root.name,
-            style=None
+            style=None,
+            fillcolor=PROBABILISTIC_GATEWAY_COMPLETED_FILL_COLOR if is_completed else None
         )
 
         # Children
