@@ -10,9 +10,19 @@ from gui.src.model.etl import (
     get_simulation_data,
 )
 from gui.src.model.execution_tree import get_prev_execution_node
+from gui.src.env import EXPRESSION
 
 
 def register_simulator_callbacks(callback):
+    @callback(
+        Output("btn-back", "disabled"),
+        Output("btn-forward", "disabled"),
+        Input("bpmn-store", "data"),
+    )
+    def toggle_simulation_controls(bpmn_store):
+        is_disabled = not bpmn_store or bpmn_store.get(EXPRESSION, "") == ""
+        return is_disabled, is_disabled
+
     @callback(
         Output("simulation-store", "data", allow_duplicate=True),
         Output({"type": "bpmn-svg-store", "index": "main"}, 'data', allow_duplicate=True),
