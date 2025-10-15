@@ -24,7 +24,7 @@ def register_paco_api(app: FastAPI):
 			raise HTTPException(status_code=400, detail="No BPMN expression found")
 
 		status = request.get("status", {})
-		print("status:", status)
+
 		if IMPACTS_NAMES not in bpmn or bpmn[IMPACTS_NAMES] is None:
 			raise HTTPException(status_code=400, detail="No impacts names found")
 		if not isinstance(bpmn[IMPACTS_NAMES], list) or not all(isinstance(name, str) for name in bpmn[IMPACTS_NAMES]):
