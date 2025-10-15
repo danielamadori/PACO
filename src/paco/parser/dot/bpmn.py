@@ -220,10 +220,23 @@ def serial_generator():
 id_generator = serial_generator()
 
 
+def _get_status(status, node_id):
+    """Return the status value for *node_id* supporting both int and str keys."""
+
+    if node_id in status:
+        return status[node_id]
+
+    str_key = str(node_id)
+    if str_key in status:
+        return status[str_key]
+
+    return None
+
+
 def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, int, int, float]:
-    print("region_to_dot: ", type(region_root.id), type(status.keys()))
-    is_active = region_root.id in status and status[region_root.id] == ActivityState.ACTIVE
-    is_completed = region_root.id in status and status[region_root.id] > ActivityState.ACTIVE
+    node_status = _get_status(status, region_root.id)
+    is_active = node_status == ActivityState.ACTIVE
+    is_completed = node_status is not None and node_status > ActivityState.ACTIVE
 
     type_by_name = type(region_root).__name__
     if isinstance(region_root, Task) or type_by_name == 'Task':
