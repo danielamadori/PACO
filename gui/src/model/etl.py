@@ -231,7 +231,6 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
 	:param bpmn: BPMN dictionary
 	:return: Tuple of execution tree dictionary and current execution node ID
 	"""
-	print("load_execution_tree:bpmn", bpmn)
 	if bpmn[EXPRESSION] == '':
 		return {}, None
 
