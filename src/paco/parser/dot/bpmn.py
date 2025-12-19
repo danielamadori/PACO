@@ -17,6 +17,8 @@ PROBABILISTIC_GATEWAY_COMPLETED_FILL_COLOR = "olivedrab"
 LOOP_GATEWAY_FILL_COLOR = "yellowgreen"
 LOOP_GATEWAY_COMPLETED_FILL_COLOR = "olivedrab"
 
+SKIPPED_FILL_COLOR = "lightgray"
+
 
 def node_to_dot(_id, shape, label, style, fillcolor, border_color=None, border_size=None):
     """
@@ -228,7 +230,8 @@ def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str]
     other_code, entry_id, exit_id, exit_p = region_to_dot(parse_tree.root, impacts_names, status)
     code += other_code
     code += f'node_start -> node_{entry_id};\n'
-    code += f'node_{exit_id} -> node_end[label="{exit_p}"];\n'
+    end_label = f'[label="{exit_p}"]' if exit_p != 1.0 else ''
+    code += f'node_{exit_id} -> node_end{end_label};\n'
     code += "\n}"
 
     return code
@@ -262,6 +265,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
     node_status = _get_status(status, region_root.id)
     is_active = node_status == ActivityState.ACTIVE
     is_completed = node_status is not None and node_status > ActivityState.ACTIVE
+    is_skipped = node_status == ActivityState.WILL_NOT_BE_EXECUTED
 
     type_by_name = type(region_root).__name__
     if isinstance(region_root, Task) or type_by_name == 'Task':
@@ -273,7 +277,7 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
             region_root.impacts,
             region_root.duration,
             impacts_names,
-            fillcolor=TASK_COMPLETED_FILL_COLOR if is_completed else None,
+            fillcolor=SKIPPED_FILL_COLOR if is_skipped else (TASK_COMPLETED_FILL_COLOR if is_completed else None),
             border_color=ACTIVE_BORDER_COLOR if is_active else None,
             border_size=ACTIVE_BORDER_WIDTH if is_active else None
         ), _id, _id, 1.0

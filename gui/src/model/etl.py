@@ -533,7 +533,7 @@ def get_task_statuses(bpmn: dict) -> dict[str, str]:
 	return task_statuses
 
 
-def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = None):
+def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | None = None):
 	"""
 	Execute the given gateway decisions on the BPMN process.
 	Update the Petri net and execution tree in the database.
@@ -541,7 +541,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
 
 	:param bpmn: BPMN dictionary
 	:param gateway_decisions: List of gateway decision IDs
-	:param step: Optional step number. Ignored in current implementation.
+	:param time_step: Time step for TimeStrategy (None = use saturation/CounterExecution)
 	:return: Updated simulation data dictionary or None if error occurs
 	"""
 	if bpmn[EXPRESSION] == '':
@@ -551,9 +551,9 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
 
 	decisions = list(gateway_decisions)
 
-	print("execute_decisions:", bpmn, gateway_decisions, step)
+	print("execute_decisions:", bpmn, gateway_decisions, time_step)
 	parse_tree = load_parse_tree(bpmn)
-	petri_net, petri_net_dot = get_petri_net(bpmn, step)
+	petri_net, petri_net_dot = get_petri_net(bpmn, None)
 	execution_tree, current_execution = load_execution_tree(bpmn)
 
 	request = {
@@ -562,6 +562,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
 		"petri_net_dot": petri_net_dot,
 		"execution_tree": {"root": execution_tree, "current_node": current_execution},
 		"choices": decisions,
+		"time_step": time_step,
 	}
 
 	try:
@@ -572,7 +573,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
 			raise
 
 		parse_tree = load_parse_tree(bpmn, force_refresh=True)
-		petri_net, petri_net_dot = get_petri_net(bpmn, step, force_refresh=True)
+		petri_net, petri_net_dot = get_petri_net(bpmn, None, force_refresh=True)
 		execution_tree, current_execution = load_execution_tree(bpmn, force_refresh=True)
 
 		request = {
@@ -581,6 +582,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = Non
 			"petri_net_dot": petri_net_dot,
 			"execution_tree": {"root": execution_tree, "current_node": current_execution},
 			"choices": decisions,
+			"time_step": time_step,
 		}
 
 		response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)

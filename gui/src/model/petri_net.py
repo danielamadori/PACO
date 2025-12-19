@@ -134,14 +134,18 @@ def get_pending_decisions(petri_net, marking):
 
     for place in active_places:
         place_info = get_place_info(petri_net, place)
-        region_label = place_info['label']
-        if place_info['region_type'] not in ['choice', 'nature', 'loop']:
+        if place_info is None:
+            continue
+        region_label = place_info.get('label')
+        if region_label is None:
+            continue
+        if place_info.get('region_type') not in ['choice', 'nature', 'loop']:
             # skip non-gateway places
             continue
         if marking[place]['age'] < place_info.get('duration', 0.0):
             # skip if not yet ready
             continue
-        if place_info['region_type'] == 'loop':
+        if place_info.get('region_type') == 'loop':
             visit_limit_reached = marking[place]['visit_count'] >= place_info.get('visit_limit', float('inf'))
             choices = get_loop_choices(petri_net, place_info['id'], visit_limit_reached)
         else:

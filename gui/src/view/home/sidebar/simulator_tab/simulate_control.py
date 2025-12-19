@@ -18,13 +18,13 @@ def get_control():
 					]), width="auto"
 				),
 				dbc.Col([
-					html.Label("Step", style={"marginRight": "10px", "marginBottom": "0", "lineHeight": "38px"}),
+					html.Label("Time", style={"marginRight": "10px", "marginBottom": "0", "lineHeight": "38px"}),
 					dbc.Input(
-						id="step-input",
+						id="time-input",
 						type="number",
-						min=1,
-						value=1,
-						step=1,
+						min=0.1,
+						value=1.0,
+						step=0.1,
 						style={"width": "80px", "display": "inline-block", "verticalAlign": "middle"}
 					)
 				], width="auto", className="d-flex align-items-center")

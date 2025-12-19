@@ -14,7 +14,7 @@ def status_info():
                         })
                 )
         ], className="mb-3", style={
-                "minHeight": "300px",
+                "minWidth": "370px",
                 "width": "100%"
         })
 
@@ -81,7 +81,7 @@ def update_status_info(impacts, expected_impacts, time, probability):
 		], className="mb-2")
 	]
 
-	return html.Div(elements)
+	return html.Div(elements, style={"width": "100%"})
 
 
 def task_status_table():

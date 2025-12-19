@@ -28,9 +28,9 @@ def get_simulator_tab():
                 dbc.Container([
                     dbc.Row(
                         [
-                            dbc.Col(get_control()),
-                            dbc.Col(status_info()),
-                            dbc.Col(get_pending_decisions()),
+                            dbc.Col(get_control(), width=12),
+                            dbc.Col(status_info(), width=12),
+                            dbc.Col(get_pending_decisions(), width=12),
                         ],
                         className="g-3",
                     ),
