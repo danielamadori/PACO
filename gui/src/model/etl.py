@@ -439,12 +439,13 @@ def get_current_state(bpmn):
 	return get_current_marking_from_execution_tree(execution_tree, current_execution)
 
 
-def get_simulation_data(bpmn):
+def get_simulation_data(bpmn, bound_store=None):
 	"""
 	Get the simulation data for the given BPMN process.
 	This includes pending gateway decisions, impacts, expected impacts, probability, and execution time.
 
 	:param bpmn: BPMN dictionary
+	:param bound_store: Bound dictionary (optional, to fetch strategy)
 	:return: Simulation data dictionary
 	"""
 	if bpmn[EXPRESSION] == '':
@@ -454,8 +455,19 @@ def get_simulation_data(bpmn):
 	current_state = get_current_state(bpmn)
 	pending_decisions = get_pending_decisions(petri_net, current_state)
 
+	# Fetch strategy explainers if bound_store is provided
+	if bound_store and pending_decisions:
+		bdds = _fetch_strategy_data(bpmn, bound_store)
+		if bdds:
+			for gateway in pending_decisions:
+				if gateway in bdds:
+					# Inject explainer into the decision dict
+					# bdds[gateway] is (type, svg_base64)
+					pending_decisions[gateway]["__explainer__"] = bdds[gateway][1]
+
 	execution_tree, current_execution = load_execution_tree(bpmn)
 	probability = get_execution_probability(execution_tree, current_execution)
+
 	execution_time = get_execution_time(execution_tree, current_execution)
 
 	raw_impacts = get_execution_impacts(execution_tree, current_execution)
@@ -533,7 +545,7 @@ def get_task_statuses(bpmn: dict) -> dict[str, str]:
 	return task_statuses
 
 
-def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | None = None):
+def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | None = None, bound_store=None):
 	"""
 	Execute the given gateway decisions on the BPMN process.
 	Update the Petri net and execution tree in the database.
@@ -541,7 +553,8 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 
 	:param bpmn: BPMN dictionary
 	:param gateway_decisions: List of gateway decision IDs
-	:param time_step: Time step for TimeStrategy (None = use saturation/CounterExecution)
+	:param time_step: Time step for TimeStrategy
+	:param bound_store: Bound dictionary (optional)
 	:return: Updated simulation data dictionary or None if error occurs
 	"""
 	if bpmn[EXPRESSION] == '':
@@ -600,4 +613,28 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
 	save_execution_tree(normalized_bpmn, json.dumps(execution_tree), current_execution)
 
-	return get_simulation_data(bpmn)
+	return get_simulation_data(bpmn, bound_store)
+
+
+def _fetch_strategy_data(bpmn_store, bound_store):
+	"""Helper to fetch strategy BDDs."""
+	if not bound_store or BOUND not in bound_store or not bound_store[BOUND]:
+		return None
+	
+	try:
+		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
+		bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
+		if not bpmn.get(IMPACTS_NAMES):
+			return None
+		bound = [float(bound_store[BOUND].get(impact_name, 0)) for impact_name in bpmn[IMPACTS_NAMES]]
+		
+		record = fetch_strategy(bpmn, bound)
+		if record and record.bdds:
+			# The record.bdds is a JSON string containing the dict of (type, svg_base64)
+			# saved by load_strategy. We don't need to re-encode it.
+			return json.loads(record.bdds)
+	except Exception as e:
+		print(f"Error fetching strategy: {e}")
+		return None
+	return None
+

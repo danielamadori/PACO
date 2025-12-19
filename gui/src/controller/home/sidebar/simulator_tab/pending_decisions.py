@@ -44,16 +44,17 @@ def register_pending_decision_callbacks(callback):
             gw = gw_obj["id"]
             if triggered == {"type": "random-button", "id": gw} or triggered == "global-random":
                 options = []
-                for opt in sim_data["gateway_decisions"][gw].keys():
-                    options.append(
-                        sim_data["gateway_decisions"][gw][opt]["transition_id"]
-                    )
                 weights = []
-                for opt in sim_data["gateway_decisions"][gw]:
-                    weights.append(
-                        sim_data["gateway_decisions"][gw][opt]["probability"]
-                    )
-                result.append(random.choices(options, weights=weights)[0])
+                for opt, val in sim_data["gateway_decisions"][gw].items():
+                    if opt == "__explainer__":
+                        continue
+                    options.append(val["transition_id"])
+                    weights.append(val["probability"])
+                
+                if options:
+                    result.append(random.choices(options, weights=weights)[0])
+                else:
+                    result.append(no_update)
             else:
                 result.append(no_update)
 

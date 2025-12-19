@@ -38,11 +38,20 @@ def update_pending_decisions(gateway_decisions):
     rows = []
     for gateway in sorted(gateway_decisions.keys()):
         decisions = gateway_decisions[gateway]
-        options = list(decisions.keys())
+        
+        # Extract explainer if present
+        explainer = decisions.get("__explainer__")
+        
+        # Filter options to exclude explainer key
+        options = [k for k in decisions.keys() if k != "__explainer__"]
+
+        if not options:
+            continue
 
         dropdown_options = {decisions[d]['transition_id']: d for d in options}
         default_value = decisions[options[0]]['transition_id'] if dropdown_options else None
-        rows.append(
+        
+        row_content = [
             html.Div([
                 html.Div(gateway, style={"fontWeight": "bold", "whiteSpace": "nowrap"}),
 
@@ -73,5 +82,15 @@ def update_pending_decisions(gateway_decisions):
                 "flexWrap": "nowrap",
                 "width": "100%"
             })
-        )
+        ]
+        
+        if explainer:
+            row_content.append(
+                html.Div(
+                    html.Img(src=explainer, style={"maxWidth": "100%", "marginTop": "5px"}),
+                    style={"flexBasis": "100%", "textAlign": "center"}
+                )
+            )
+
+        rows.append(html.Div(row_content, style={"marginBottom": "15px", "borderBottom": "1px solid #eee", "paddingBottom": "10px"}))
     return rows

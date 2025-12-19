@@ -51,9 +51,10 @@ def register_simulator_callbacks(callback):
         State("simulation-store", "data"),
         State({"type": "bpmn-svg-store", "index": "main"}, 'data'),
         State("time-input", "value"),
+        State("bound-store", "data"),
         prevent_initial_call=True
     )
-    def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data, bpmn_svg_store, time_step):
+    def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data, bpmn_svg_store, time_step, bound_store):
         triggered = ctx.triggered_id
         step = -1 if triggered == "btn-back" else 1 if triggered == "btn-forward" else 0
 
@@ -76,12 +77,12 @@ def register_simulator_callbacks(callback):
 
                 update_bpmn_dot(bpmn_store, dot_svg)
 
-                data = get_simulation_data(bpmn_store)
+                data = get_simulation_data(bpmn_store, bound_store)
                 data["expression"] = bpmn_store.get(EXPRESSION)
                 return data, dot_svg
             case 1:
                 # Go forward in the simulation with time_step
-                new_sim_data = execute_decisions(bpmn_store, gateway_values, time_step=time_step)
+                new_sim_data = execute_decisions(bpmn_store, gateway_values, time_step=time_step, bound_store=bound_store)
                 bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
                 dot_svg = dot_to_base64svg(bpmn_dot)
 
