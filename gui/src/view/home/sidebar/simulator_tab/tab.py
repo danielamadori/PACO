@@ -5,7 +5,7 @@ from gui.src.view.home.sidebar.simulator_tab.pending_decisions import (
     get_pending_decisions,
 )
 from gui.src.view.home.sidebar.simulator_tab.simulate_control import get_control
-from gui.src.view.home.sidebar.simulator_tab.status_info import status_info
+from gui.src.view.home.sidebar.simulator_tab.status_info import status_info, task_status_table
 
 
 def get_simulator_tab():
@@ -25,7 +25,7 @@ def get_simulator_tab():
                 },
             ),
             html.Div(
-                dbc.Container(
+                dbc.Container([
                     dbc.Row(
                         [
                             dbc.Col(get_control()),
@@ -34,6 +34,10 @@ def get_simulator_tab():
                         ],
                         className="g-3",
                     ),
+                    dbc.Row([
+                        dbc.Col(task_status_table(), width=12)
+                    ], className="mt-3"),
+                ],
                     fluid=True,
                     className="p-3",
                 ),

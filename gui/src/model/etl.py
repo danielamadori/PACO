@@ -463,7 +463,7 @@ def get_simulation_data(bpmn):
 	impacts = {name: round(value, 2) for name, value in zip(bpmn[IMPACTS_NAMES], raw_impacts)}
 	expected_impacts = {name: round(value * probability, 2) for name, value in zip(bpmn[IMPACTS_NAMES], raw_impacts)}
 
-	active_regions = get_active_regions_names(bpmn)
+	task_statuses = get_task_statuses(bpmn)
 
 	return {
 		"gateway_decisions": pending_decisions,
@@ -471,7 +471,7 @@ def get_simulation_data(bpmn):
 		"expected_impacts": expected_impacts,
 		"probability": probability,
 		"execution_time": execution_time,
-		"active_regions": active_regions
+		"task_statuses": task_statuses
 	}
 
 
@@ -491,27 +491,38 @@ def get_formatted_label(node: dict) -> str:
 
 	return "None"
 
-def get_active_regions_names(bpmn: dict) -> list[str]:
+def get_task_statuses(bpmn: dict) -> dict[str, str]:
+	"""Get status of all tasks (not gateways) from the simulation snapshot."""
 	execution_tree, current_execution_node = load_execution_tree(bpmn)
 	node = get_execution_node(execution_tree, current_execution_node)
-	status = node['snapshot']['status'] # dict[str_id, int_status]
+	status = node['snapshot']['status']  # dict[str_id, int_status]
 
-	# We need to map ID to Label. Parse Tree has the structure.
 	parse_tree = load_parse_tree(bpmn)
 	
-	active_names = []
+	task_statuses = {}
 	
-	# Helper to traverse and find active
+	# Map ActivityState enum to human-readable names
+	status_names = {
+		ActivityState.WAITING: "Waiting",
+		ActivityState.ACTIVE: "Active", 
+		ActivityState.COMPLETED: "Completed",
+		ActivityState.COMPLETED_WITHOUT_PASSING_OVER: "Completed",
+		ActivityState.WILL_NOT_BE_EXECUTED: "Skipped"
+	}
+	
 	def traverse(root):
 		node_id = str(root['id'])
-		# Status 2 is ACTIVE (assuming enum)
-		# ActivityState.ACTIVE is 2? Need to check imports or use value.
-		# ActivityState imported in etl.py. ActivityState.ACTIVE
+		node_type = root.get('type', '').lower()
 		
-		# Check if this node is active
-		if node_id in status and status[node_id] == ActivityState.ACTIVE:
-			active_names.append(get_formatted_label(root))
-			
+		# Only include tasks (not gateways/sequential/parallel)
+		if node_type == 'task':
+			label = root.get('label', f"Task_{node_id}")
+			if node_id in status:
+				state = status[node_id]
+				task_statuses[label] = status_names.get(state, str(state))
+			else:
+				task_statuses[label] = "Waiting"
+				
 		children = root.get('children', [])
 		for child in children:
 			traverse(child)
@@ -519,7 +530,7 @@ def get_active_regions_names(bpmn: dict) -> list[str]:
 	if parse_tree:
 		traverse(parse_tree)
 		
-	return active_names
+	return task_statuses
 
 
 def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = None):
