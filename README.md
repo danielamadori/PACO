@@ -29,13 +29,6 @@ RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact ve
 #link to installation and usage
 You can find the installation and usage instructions [here](docs/installation_and_usage.md).
 
-## Authors
-
-* **Daniel Amadori**
-* **Emanuele Chini**
-* **Pietro Sala**
-* **Andrea Simonetti**
-* **Omid Zare**
 
 ## Contributing
 
