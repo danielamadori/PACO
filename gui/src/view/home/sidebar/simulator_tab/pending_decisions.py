@@ -36,11 +36,15 @@ def get_pending_decisions():
 
 def update_pending_decisions(gateway_decisions):
     rows = []
+    has_any_explainer = False
+    
     for gateway in sorted(gateway_decisions.keys()):
         decisions = gateway_decisions[gateway]
         
         # Extract explainer if present
         explainer = decisions.get("__explainer__")
+        if explainer:
+            has_any_explainer = True
         
         # Filter options to exclude explainer key
         options = [k for k in decisions.keys() if k != "__explainer__"]
@@ -93,4 +97,16 @@ def update_pending_decisions(gateway_decisions):
             )
 
         rows.append(html.Div(row_content, style={"marginBottom": "15px", "borderBottom": "1px solid #eee", "paddingBottom": "10px"}))
+    
+    # Add a general warning at the top if no explainers are available at all
+    if rows and not has_any_explainer:
+        warning_banner = dbc.Alert([
+            html.Strong("Strategy Suggestions Not Available"),
+            html.Br(),
+            "To receive decision suggestions (explainers/BDDs), please first calculate a strategy in the ",
+            html.Strong("Strategy Tab"),
+            " with appropriate bounds before starting the simulation."
+        ], color="info", className="mb-3")
+        rows.insert(0, warning_banner)
+    
     return rows

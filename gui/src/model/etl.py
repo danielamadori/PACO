@@ -630,11 +630,16 @@ def _fetch_strategy_data(bpmn_store, bound_store):
 		
 		record = fetch_strategy(bpmn, bound)
 		if record and record.bdds:
-			# The record.bdds is a JSON string containing the dict of (type, svg_base64)
-			# saved by load_strategy. We don't need to re-encode it.
-			return json.loads(record.bdds)
+			bdds_raw = record.bdds
+			if isinstance(bdds_raw, dict):
+				return bdds_raw
+			if isinstance(bdds_raw, str):
+				try:
+					# record.bdds can be JSON or a Python literal string from save_strategy.
+					return json.loads(bdds_raw)
+				except json.JSONDecodeError:
+					return ast.literal_eval(bdds_raw)
 	except Exception as e:
 		print(f"Error fetching strategy: {e}")
 		return None
 	return None
-
