@@ -463,13 +463,63 @@ def get_simulation_data(bpmn):
 	impacts = {name: round(value, 2) for name, value in zip(bpmn[IMPACTS_NAMES], raw_impacts)}
 	expected_impacts = {name: round(value * probability, 2) for name, value in zip(bpmn[IMPACTS_NAMES], raw_impacts)}
 
+	active_regions = get_active_regions_names(bpmn)
+
 	return {
 		"gateway_decisions": pending_decisions,
 		"impacts": impacts,
 		"expected_impacts": expected_impacts,
 		"probability": probability,
-		"execution_time": execution_time
+		"execution_time": execution_time,
+		"active_regions": active_regions
 	}
+
+
+def get_formatted_label(node: dict) -> str:
+	label = node.get('label')
+	if label:
+		return label
+
+	children = node.get('children', [])
+	if children:
+		children_labels = [get_formatted_label(child) for child in children]
+		node_type = node.get('type', '').lower()
+		if node_type == 'sequential':
+			return f"({', '.join(children_labels)})"
+		elif node_type == 'parallel':
+			return f"({' || '.join(children_labels)})"
+
+	return "None"
+
+def get_active_regions_names(bpmn: dict) -> list[str]:
+	execution_tree, current_execution_node = load_execution_tree(bpmn)
+	node = get_execution_node(execution_tree, current_execution_node)
+	status = node['snapshot']['status'] # dict[str_id, int_status]
+
+	# We need to map ID to Label. Parse Tree has the structure.
+	parse_tree = load_parse_tree(bpmn)
+	
+	active_names = []
+	
+	# Helper to traverse and find active
+	def traverse(root):
+		node_id = str(root['id'])
+		# Status 2 is ACTIVE (assuming enum)
+		# ActivityState.ACTIVE is 2? Need to check imports or use value.
+		# ActivityState imported in etl.py. ActivityState.ACTIVE
+		
+		# Check if this node is active
+		if node_id in status and status[node_id] == ActivityState.ACTIVE:
+			active_names.append(get_formatted_label(root))
+			
+		children = root.get('children', [])
+		for child in children:
+			traverse(child)
+
+	if parse_tree:
+		traverse(parse_tree)
+		
+	return active_names
 
 
 def execute_decisions(bpmn, gateway_decisions: list[str], step: int | None = None):

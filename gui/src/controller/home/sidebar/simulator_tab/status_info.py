@@ -16,6 +16,7 @@ def register_status_info_callbacks(callback):
         expected_values = data.get("expected_impacts", {})
         time = data.get("execution_time", 0.0)
         probability = data.get("probability", 1.0)
+        active_regions = data.get("active_regions", [])
 
-        return update_status_info(impacts, expected_values, time, probability)
+        return update_status_info(impacts, expected_values, time, probability, active_regions)
 

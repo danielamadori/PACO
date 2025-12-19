@@ -52,8 +52,8 @@ def make_table_card(title, dictionary):
 	})
 
 
-def update_status_info(impacts, expected_impacts, time, probability):
-	return html.Div([
+def update_status_info(impacts, expected_impacts, time, probability, active_regions=None):
+	elements = [
 		dbc.Row([
 			dbc.Col(html.Div([
 				html.Strong("Time: "),
@@ -68,4 +68,24 @@ def update_status_info(impacts, expected_impacts, time, probability):
 			dbc.Col(make_table_card("Impacts", impacts)),
 			dbc.Col(make_table_card("Expected Impacts", expected_impacts))
 		])
-	])
+	]
+
+	if active_regions:
+		elements.append(
+			dbc.Row([
+				dbc.Col(
+					dbc.Card([
+						dbc.CardHeader(html.H6("Active Regions"), style={"padding": "0.5rem 1rem", "marginBottom": "0px"}),
+						dbc.CardBody(
+							dbc.ListGroup(
+								[dbc.ListGroupItem(r, style={"padding": "0.25rem 0.5rem", "fontSize": "0.9rem"}) for r in active_regions],
+								flush=True
+							),
+							style={"padding": "0"}
+						)
+					], style={"marginTop": "10px"})
+				)
+			])
+		)
+
+	return html.Div(elements)
