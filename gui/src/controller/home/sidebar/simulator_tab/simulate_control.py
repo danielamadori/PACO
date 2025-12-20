@@ -27,9 +27,10 @@ def register_simulator_callbacks(callback):
         Output("simulation-store", "data", allow_duplicate=True),
         Input("bpmn-store", "data"),
         State("simulation-store", "data"),
+        State("bound-store", "data"),
         prevent_initial_call=True
     )
-    def reset_simulation_data(bpmn_store, sim_store):
+    def reset_simulation_data(bpmn_store, sim_store, bound_store):
         if not bpmn_store:
             return no_update
         
@@ -38,8 +39,13 @@ def register_simulator_callbacks(callback):
         
         if current_expr == saved_expr:
             return no_update
-            
-        return {"expression": current_expr}
+
+        if not current_expr:
+            return {"expression": current_expr}
+
+        data = get_simulation_data(bpmn_store, bound_store)
+        data["expression"] = current_expr
+        return data
 
     @callback(
         Output("simulation-store", "data", allow_duplicate=True),
