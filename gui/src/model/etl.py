@@ -74,6 +74,25 @@ def load_bpmn_dot(bpmn: dict) -> str:
 	return bpmn_svg_base64
 
 
+def load_petri_net_svg(bpmn: dict) -> str:
+	"""
+	Given a BPMN process, return its Petri Net DOT representation as an SVG base64 string.
+
+	:param bpmn: BPMN dictionary
+	:return: SVG base64 string of the Petri Net DOT representation
+	"""
+	if bpmn[EXPRESSION] == '':
+		return None
+
+	normalized_bpmn = _normalize_bpmn(bpmn)
+	petri_net, petri_net_dot = get_petri_net(normalized_bpmn, 0)
+	
+	if not petri_net_dot:
+		return None
+
+	return dot_to_base64svg(petri_net_dot)
+
+
 def dot_to_base64svg(dot: str) -> str:
 	"""
 	Convert a DOT string to an SVG base64 string.
@@ -613,7 +632,54 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
 	save_execution_tree(normalized_bpmn, json.dumps(execution_tree), current_execution)
 
-	return get_simulation_data(bpmn, bound_store)
+	# Convert DOT to SVG for return
+	petri_net_svg = dot_to_base64svg(petri_net_dot)
+
+	return get_simulation_data(bpmn, bound_store), petri_net_svg
+
+
+def update_petri_net_svg_from_simulation(bpmn: dict) -> str:
+	"""
+	Call the simulator render endpoint to get the Petri Net DOT for the current execution state.
+	Does NOT advance the simulation.
+	Updates the local DB with the visual DOT.
+	Returns the SVG base64.
+	"""
+	if bpmn[EXPRESSION] == '':
+		return None
+	normalized_bpmn = _normalize_bpmn(bpmn)
+	
+	# Load current state from DB
+	parse_tree = load_parse_tree(bpmn)
+	petri_net, petri_net_dot = get_petri_net(bpmn, None)
+	execution_tree, current_execution = load_execution_tree(bpmn)
+	
+	# Prepare request
+	request = {
+		"bpmn": parse_tree,
+		"petri_net": petri_net,
+		"petri_net_dot": petri_net_dot,
+		"execution_tree": {"root": execution_tree, "current_node": current_execution},
+		"choices": [], # No decisions for rendering
+		"time_step": 0,
+	}
+	
+	# Call /render
+	resp = requests.post(SIMULATOR_SERVER + "render", json=request, headers=HEADERS)
+	resp.raise_for_status()
+	resp_json = resp.json()
+	
+	if 'error' in resp_json:
+		raise ValueError(f"Simulator error: {resp_json['error']}")
+		
+	# Get the DOT
+	new_petri_net_dot = resp_json.get('petri_net_dot')
+	new_petri_net = resp_json.get('petri_net')
+	
+	# Update DB with the visual state
+	save_petri_net(normalized_bpmn, json.dumps(new_petri_net, sort_keys=True), new_petri_net_dot)
+	
+	return dot_to_base64svg(new_petri_net_dot)
 
 
 def log_debug(msg):

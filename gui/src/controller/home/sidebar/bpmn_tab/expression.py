@@ -3,7 +3,7 @@ from dash import Output, Input, State
 import dash_bootstrap_components as dbc
 from dash import ctx
 from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
-from gui.src.model.etl import load_bpmn_dot
+from gui.src.model.etl import load_bpmn_dot, load_petri_net_svg
 from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes, IMPACTS_NAMES, BOUND, IMPACTS
 from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
 from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
@@ -14,6 +14,7 @@ def register_expression_callbacks(expression_callbacks):
     @expression_callbacks(
         Output('bpmn-store', 'data'),
         Output({"type": "bpmn-svg-store", "index": "main"}, "data"),
+        Output({"type": "petri-svg-store", "index": "main"}, "data"),
         Output("bound-store", "data", allow_duplicate=True),
         Output('bpmn-alert', 'children'),
         Output('task-impacts-table', 'children', allow_duplicate=True),
@@ -38,22 +39,22 @@ def register_expression_callbacks(expression_callbacks):
         loops_table = dash.no_update
 
         if current_expression is None:
-            return dash.no_update, dash.no_update, dash.no_update, alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
         current_expression = current_expression.replace("\n", "").replace("\t", "").strip().replace(" ", "")
         if current_expression == '':
-            return bpmn_store, dash.no_update, dash.no_update, dbc.Alert("The expression is empty", color="warning", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+            return bpmn_store, dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), dbc.Alert("The expression is empty", color="warning", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
         if current_expression != bpmn_store.get(EXPRESSION, ''):
             try:
                 SESE_PARSER.parse(current_expression)
             except Exception as e:
-                return dash.no_update, dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+                return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dbc.Alert(f"Parsing error: {str(e)}", color="danger", dismissable=True), tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
             bpmn_store[EXPRESSION] = current_expression
 
 
         if bpmn_store[EXPRESSION] == '':
-            return dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+            return dash.no_update, dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
         tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 
@@ -71,12 +72,15 @@ def register_expression_callbacks(expression_callbacks):
         try:
             #print(f"expression.py: {bpmn_store[IMPACTS]}")
             bpmn_dot = load_bpmn_dot(bpmn_store)
+            
+            petri_svg = load_petri_net_svg(bpmn_store)
+
             #print("evaluate_expression: bpmn_store:impacts_names:", bpmn_store[IMPACTS_NAMES])
-            return bpmn_store, bpmn_dot, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+            return bpmn_store, bpmn_dot, petri_svg, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
         except Exception as exception:
             alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
-        return bpmn_store, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+        return bpmn_store, dash.no_update, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
 
     @expression_callbacks(

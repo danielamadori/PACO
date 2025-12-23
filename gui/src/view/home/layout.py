@@ -1,5 +1,6 @@
 import dash
 from dash import dcc, html
+import dash_bootstrap_components as dbc
 from dash_split_pane import DashSplitPane
 from gui.src.controller.home.sidebar.bpmn_tab.download import register_download_callbacks
 from gui.src.controller.home.sidebar.bpmn_tab.table.tasks_impacts_names import register_task_impacts_names_callbacks
@@ -19,12 +20,13 @@ from gui.src.controller.home.sidebar.bpmn_tab.table.tasks_duration_table import 
 from gui.src.controller.home.sidebar.strategy_tab.strategy import register_strategy_callbacks
 from gui.src.view.home.sidebar.sidebar import get_sidebar
 from gui.src.view.visualizer.RenderSVG import RenderSvg
+from gui.src.controller.home.view_control import register_view_callbacks
 
 
 def layout():
     sidebar_min_width = 450
-
     bpmn_visualizer = RenderSvg(type="bpmn-svg", index="main", zoom_min=0.1, zoom_max=5.5)
+    petri_visualizer = RenderSvg(type="petri-svg", index="main", zoom_min=0.1, zoom_max=5.5)
 
     return html.Div([
         dcc.Store(id='bpmn-store', data={
@@ -39,6 +41,9 @@ def layout():
             LOOP_ROUND: {},
         }, storage_type='session'),
         dcc.Store(id={"type": "bpmn-svg-store", "index": "main"}, data="", storage_type='session'),
+        dcc.Store(id={"type": "petri-svg-store", "index": "main"}, data="", storage_type='session'),
+        dcc.Store(id="view-mode", data="bpmn", storage_type='session'),
+        
         dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
 
         dcc.Store(id='chat-history', data=[], storage_type='session'),
@@ -56,7 +61,16 @@ def layout():
             size=sidebar_min_width,
             children=[
                 get_sidebar(),
-                bpmn_visualizer.get_visualizer()
+                html.Div([
+                    dbc.Button("Switch to PetriNet", id="view-toggle-btn", size="sm", color="dark", style={
+                        "position": "absolute",
+                        "top": "1rem",
+                        "left": "1rem",
+                        "zIndex": 100,
+                    }),
+                    html.Div(bpmn_visualizer.get_visualizer(), id="bpmn-container", style={"height": "100%", "width": "100%"}),
+                    html.Div(petri_visualizer.get_visualizer(), id="petri-container", style={"display": "none", "height": "100%", "width": "100%"})
+                ], style={"position": "relative", "width": "100%", "height": "100%", "display": "flex", "flexDirection": "column"})
             ],
             style={"height": "calc(100vh - 60px)", "display": "flex", "flexDirection": "row"}
 
@@ -65,6 +79,7 @@ def layout():
 
 
 RenderSvg.register_callbacks(dash.callback, "bpmn-svg")
+RenderSvg.register_callbacks(dash.callback, "petri-svg")
 RenderSvg.register_callbacks(dash.callback, "bdd")
 register_task_impacts_callbacks(dash.callback)
 register_task_durations_callbacks(dash.callback)
@@ -81,3 +96,4 @@ register_download_callbacks(dash.callback)
 register_pending_decision_callbacks(dash.callback)
 register_status_info_callbacks(dash.callback)
 register_simulator_callbacks(dash.callback)
+register_view_callbacks(dash.callback)
