@@ -61,6 +61,7 @@ def register_simulator_callbacks(callback):
         State({"type": "petri-svg-store", "index": "main"}, 'data'),
         State("time-input", "value"),
         State("bound-store", "data"),
+        prevent_initial_call=True
     )
     def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data, bpmn_svg_store, petri_svg_store, time_step, bound_store):
         try:
