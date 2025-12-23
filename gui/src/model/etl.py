@@ -616,20 +616,32 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 	return get_simulation_data(bpmn, bound_store)
 
 
+def log_debug(msg):
+    try:
+        with open("debug.log", "a") as f:
+            f.write(f"{msg}\n")
+    except Exception as e:
+        pass
+
 def _fetch_strategy_data(bpmn_store, bound_store):
 	"""Helper to fetch strategy BDDs."""
+	log_debug(f"DEBUG: _fetch_strategy_data called. Boundstore keys: {list(bound_store.keys()) if bound_store else 'None'}")
 	if not bound_store or BOUND not in bound_store or not bound_store[BOUND]:
+		log_debug("DEBUG: bound_store missing or empty BOUND key.")
 		return None
 	
 	try:
 		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
 		bpmn = filter_bpmn(bpmn_store, tasks, choices, natures, loops)
 		if not bpmn.get(IMPACTS_NAMES):
+			log_debug("DEBUG: No IMPACTS_NAMES in bpmn.")
 			return None
 		bound = [float(bound_store[BOUND].get(impact_name, 0)) for impact_name in bpmn[IMPACTS_NAMES]]
+		log_debug(f"DEBUG: Computed bound: {bound}")
 		
 		record = fetch_strategy(bpmn, bound)
 		if record and record.bdds:
+			log_debug("DEBUG: Strategy record found with BDDs.")
 			bdds_raw = record.bdds
 			if isinstance(bdds_raw, dict):
 				return bdds_raw
@@ -639,7 +651,9 @@ def _fetch_strategy_data(bpmn_store, bound_store):
 					return json.loads(bdds_raw)
 				except json.JSONDecodeError:
 					return ast.literal_eval(bdds_raw)
+		else:
+			log_debug("DEBUG: No strategy record found or no BDDs.")
 	except Exception as e:
-		print(f"Error fetching strategy: {e}")
+		log_debug(f"Error fetching strategy: {e}")
 		return None
 	return None

@@ -61,6 +61,12 @@ def register_simulator_callbacks(callback):
         prevent_initial_call=True
     )
     def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data, bpmn_svg_store, time_step, bound_store):
+        try:
+            with open("debug.log", "a") as f:
+                f.write(f"DEBUG: run_simulation_on_step triggered. bound_store keys: {list(bound_store.keys()) if bound_store else 'None'}\n")
+        except:
+            pass
+
         triggered = ctx.triggered_id
         step = -1 if triggered == "btn-back" else 1 if triggered == "btn-forward" else 0
 

@@ -18,3 +18,11 @@ redis~=5.2.0
 requests~=2.32.3
 overrides>=7.4
 pm4py~=2.7.10
+# GUI Dependencies
+dash~=2.18.2
+dash-bootstrap-components~=1.6.0
+dash_split_pane~=1.0.0
+dash_iconify~=0.1.2
+pony~=0.7.19
+anytree~=2.13.0
+pydantic-settings~=2.10.1
