@@ -103,9 +103,7 @@ def update_pending_decisions(gateway_decisions):
         warning_banner = dbc.Alert([
             html.Strong("Strategy Suggestions Not Available"),
             html.Br(),
-            "To receive decision suggestions (explainers/BDDs), please first calculate a strategy in the ",
-            html.Strong("Strategy Tab"),
-            " with appropriate bounds before starting the simulation."
+            "To receive decision suggestions (explainers), please first calculate a strategy"
         ], color="info", className="mb-3")
         rows.insert(0, warning_banner)
     

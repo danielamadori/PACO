@@ -28,7 +28,7 @@ def register_simulator_callbacks(callback):
         Input("bpmn-store", "data"),
         State("simulation-store", "data"),
         State("bound-store", "data"),
-        prevent_initial_call=True
+        prevent_initial_call='initial_duplicate'
     )
     def reset_simulation_data(bpmn_store, sim_store, bound_store):
         if not bpmn_store:

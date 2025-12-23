@@ -49,7 +49,7 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
 
         children = lark_tree.children[1]
         child, last_id, pending_choices, pending_natures, pending_loops = parse(children, probabilities, impacts, durations, delays, loop_probability, loop_round, id=id+1, h=h, parent=loop, index_in_parent=0)
-        loop.set_children(child)
+        loop.set_children([child])
 
         return loop, last_id, pending_choices, pending_natures, pending_loops
 
