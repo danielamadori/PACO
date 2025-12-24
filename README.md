@@ -26,8 +26,12 @@ RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact ve
 ![alt text](image.png)
 
 ### Usage
-#link to installation and usage
-You can find the installation and usage instructions [here](docs/installation_and_usage.md).
+To set up the project (install dependencies or build Docker image), you can use the automated scripts:
+
+- **Linux/macOS**: `./run.sh` (use `--docker` for Docker mode)
+- **Windows**: `.\run.bat` (use `--docker` for Docker mode)
+
+Please refer to the [Installation and Usage Documentation](docs/installation_and_usage.md) for detailed instructions and all available options.
 
 
 ## Contributing

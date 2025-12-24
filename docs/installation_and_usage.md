@@ -40,6 +40,39 @@ To start the application using Docker, follow these steps:
    You will find multiple `.ipynb` notebooks available — **we recommend [starting with `tutorial.ipynb`](https://nbviewer.org/github/danielamadori/PACO/blob/main/tutorial.ipynb)**, which provides a guided walkthrough of the main functionalities.
 
 ## Installation
+
+### Automated Build (Recommended)
+
+We provide scripts to automate the setup and build process for both local (Python) and Docker environments.
+
+**Linux / macOS**
+```bash
+# Make script executable
+chmod +x run.sh
+
+# Local setup (installs dependencies) - Default
+./run.sh
+
+# Explicit Local setup
+./run.sh --local
+
+# Docker build
+./run.sh --docker
+```
+
+**Windows**
+```batch
+REM Local setup
+.\run.bat
+
+REM Docker build
+.\run.bat --docker
+```
+
+Run `./run.sh --help` or `.\run.bat --help` for available options.
+
+
+### Manual Installation
 1. Clone the repository with submodules:
     ```bash
     git clone --recurse-submodules https://github.com/danielamadori/PACO.git
