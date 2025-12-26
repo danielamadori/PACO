@@ -6,7 +6,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html
 
-from .env import APP_NAME
+from .env import APP_NAME, GUI_HOST, GUI_PORT
 from .view.navbar import navbar
 from .view.home.layout import layout as home_layout
 from .view.syntax.layout import layout as syntax_layout
@@ -137,4 +137,4 @@ def display_page(pathname):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host=GUI_HOST, port=GUI_PORT, debug=True)

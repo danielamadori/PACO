@@ -1,9 +1,38 @@
+import os
+
 from lark import Lark, ParseTree
 
 APP_NAME = "PACO GUI"
 
-URL_SERVER = 'http://127.0.0.1:8000/' #'http://host.docker.internal:8000/'
-SIMULATOR_SERVER = 'http://127.0.0.1:8001/'
+def _normalize_base_url(value: str | None, default: str) -> str:
+    if not value:
+        return default
+    url = value.strip()
+    if not url:
+        return default
+    return url if url.endswith("/") else f"{url}/"
+
+
+def _get_env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if not value:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
+_API_PORT = _get_env_int("PACO_API_PORT", 8000)
+_SIMULATOR_PORT = _get_env_int("SIMULATOR_API_PORT", 8001)
+
+URL_SERVER = _normalize_base_url(os.getenv("PACO_API_URL"), f"http://127.0.0.1:{_API_PORT}/")
+SIMULATOR_SERVER = _normalize_base_url(
+    os.getenv("PACO_SIMULATOR_URL"),
+    f"http://127.0.0.1:{_SIMULATOR_PORT}/",
+)
+GUI_HOST = os.getenv("PACO_GUI_HOST", "0.0.0.0")
+GUI_PORT = _get_env_int("PACO_GUI_PORT", 8050)
 HEADERS = {"Content-Type": "application/json"}
 
 DB_PATH = 'bpmn_cpi.sqlite'

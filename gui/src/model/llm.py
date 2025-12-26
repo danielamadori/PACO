@@ -1,6 +1,16 @@
 import uuid
+
 import requests
-from gui.src.env import extract_nodes, SESE_PARSER, EXPRESSION, IMPACTS, IMPACTS_NAMES, H
+
+from gui.src.env import (
+	URL_SERVER,
+	extract_nodes,
+	SESE_PARSER,
+	EXPRESSION,
+	IMPACTS,
+	IMPACTS_NAMES,
+	H,
+)
 from gui.src.model.etl import filter_bpmn
 
 EXPECTED_FIELDS = {"bpmn", "message", "session_id"}
@@ -25,7 +35,7 @@ def llm_response(bpmn_store: dict, user_message: str) -> dict:
 	}
 
 	try:
-		response = requests.post("http://localhost:8000/llm_bpmn_chat", json=payload)
+		response = requests.post(f"{URL_SERVER}llm_bpmn_chat", json=payload)
 		if not response.ok:
 			raise RuntimeError(f"API Error [{response.status_code}]: {response.text}")
 

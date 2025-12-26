@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import graphviz
 import requests
+from requests.exceptions import RequestException
 
 from gui.src.env import (
 	URL_SERVER,
@@ -164,6 +165,19 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
 	return bpmn_to_dot(bpmn, current_node['snapshot']['status'])
 
 
+def _get_bpmn_dot_local(bpmn: dict, status_with_ids: dict) -> str:
+	from src.paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
+	from src.paco.parser.parse_tree import ParseTree
+
+	parse_tree_dict = load_parse_tree(bpmn)
+	parse_tree, _, _ = ParseTree.from_json(
+		parse_tree_dict,
+		impact_size=len(bpmn[IMPACTS_NAMES]),
+		non_cumulative_impact_size=0,
+	)
+	return get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status_with_ids)
+
+
 def bpmn_to_dot(bpmn, status = {}) -> str:
 	'''
 	current_marking = current_node['snapshot']['marking']
@@ -181,15 +195,19 @@ def bpmn_to_dot(bpmn, status = {}) -> str:
 	for task, status in status_with_names.items():
 		print(task, status)
 
-	resp = requests.get(URL_SERVER + "create_bpmn",
-						json={
-							"bpmn": bpmn,
-							"status": status_with_ids
-						},
-						headers=HEADERS)
-	resp.raise_for_status()
-
-	bpmn_dot_str =  resp.json()["bpmn_dot"]
+	try:
+		resp = requests.get(
+			URL_SERVER + "create_bpmn",
+			json={
+				"bpmn": bpmn,
+				"status": status_with_ids,
+			},
+			headers=HEADERS,
+		)
+		resp.raise_for_status()
+		bpmn_dot_str = resp.json()["bpmn_dot"]
+	except RequestException:
+		bpmn_dot_str = _get_bpmn_dot_local(bpmn, status_with_ids)
 
 	return bpmn_dot_str
 
@@ -213,6 +231,17 @@ def _normalize_bpmn(bpmn_store: dict) -> dict:
 	return filter_bpmn(bpmn_store, tasks, choices, natures, loops)
 
 
+def _create_parse_tree_local(bpmn: dict) -> dict:
+	from src.utils.check_syntax import check_bpmn_syntax, set_max_duration
+	from src.paco.parser.bpmn_parser import create_parse_tree
+
+	bpmn_copy = deepcopy(bpmn)
+	check_bpmn_syntax(bpmn_copy)
+	bpmn_copy[DURATIONS] = set_max_duration(bpmn_copy[DURATIONS])
+	parse_tree, _, _, _ = create_parse_tree(bpmn_copy)
+	return parse_tree.to_dict()
+
+
 def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
 	"""
 	Given a BPMN process, return its parse tree.
@@ -232,8 +261,14 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
 		return json.loads(record.parse_tree)
 	print("load_parse_tree:bpmn", bpmn)
 
-	resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": normalized_bpmn}, headers=HEADERS)
-	resp.raise_for_status()
+	try:
+		resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": normalized_bpmn}, headers=HEADERS)
+		resp.raise_for_status()
+	except RequestException as exc:
+		print(f"load_parse_tree: falling back to local parser: {exc}")
+		parse_tree = _create_parse_tree_local(normalized_bpmn)
+		save_parse_tree(normalized_bpmn, json.dumps(parse_tree))
+		return parse_tree
 
 	resp_json = resp.json()
 	if 'error' in resp_json:
