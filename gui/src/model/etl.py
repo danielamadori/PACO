@@ -86,8 +86,11 @@ def load_petri_net_svg(bpmn: dict) -> str:
 		return None
 
 	normalized_bpmn = _normalize_bpmn(bpmn)
-	petri_net, petri_net_dot = get_petri_net(normalized_bpmn, 0)
+	petri_net, petri_net_dot, spin_svg = get_petri_net(normalized_bpmn, 0)
 	
+	if spin_svg:
+		return f"data:image/svg+xml;base64,{base64.b64encode(spin_svg.encode('utf-8')).decode('utf-8')}"
+
 	if not petri_net_dot:
 		return None
 
@@ -156,7 +159,7 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
 	:param bpmn: BPMN dictionary
 	:return: BPMN DOT string
 	"""
-	petri_net, _ = get_petri_net(bpmn, step=0)
+	petri_net, _, _ = get_petri_net(bpmn, step=0)
 
 	execution_tree, current_execution_node = load_execution_tree(bpmn)
 
@@ -333,7 +336,7 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
 	return execution_tree_root, current_execution_node
 
 
-def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tuple[dict, str]:
+def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tuple[dict, str, str|None]:
 	"""
 	Given a BPMN process, return its Petri net representation and its DOT format.
 	If the Petri net is already stored in the database, retrieve it from there.
@@ -341,15 +344,15 @@ def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tupl
 
 	:param bpmn: BPMN dictionary
 	:param step: Step number (currently unused)
-	:return: Tuple of Petri net dictionary and DOT string
+	:return: Tuple of Petri net dictionary, DOT string, and Spin SVG string (optional)
 	"""
 	if bpmn[EXPRESSION] == '':
-		return None, None
+		return None, None, None
 	normalized_bpmn = _normalize_bpmn(bpmn)
 
 	record = fetch_bpmn(normalized_bpmn)
 	if not force_refresh and record and record.petri_net and record.petri_net_dot:
-		return json.loads(record.petri_net), record.petri_net_dot
+		return json.loads(record.petri_net), record.petri_net_dot, record.spin_svg
 
 	parse_tree = load_parse_tree(bpmn, force_refresh=force_refresh)
 
@@ -370,13 +373,14 @@ def get_petri_net(bpmn: dict, step: int, *, force_refresh: bool = False) -> tupl
 
 	petri_net = resp_json.get('petri_net', None)
 	petri_net_dot = resp_json.get('petri_net_dot', None)
+	spin_svg = resp_json.get('spin_svg', None)
 
 	if petri_net is None or petri_net_dot is None:
 		raise ValueError("Simulator error: Incomplete Petri net data")
 
-	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
+	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot, spin_svg=spin_svg)
 
-	return petri_net, petri_net_dot
+	return petri_net, petri_net_dot, spin_svg
 
 
 def load_strategy(bpmn_store, bound_store):
@@ -505,7 +509,7 @@ def get_simulation_data(bpmn, bound_store=None):
 	if bpmn[EXPRESSION] == '':
 		raise ValueError("BPMN expression is empty")
 
-	petri_net, _ = get_petri_net(bpmn, 0)
+	petri_net, _, _ = get_petri_net(bpmn, 0)
 	current_state = get_current_state(bpmn)
 	pending_decisions = get_pending_decisions(petri_net, current_state)
 
@@ -620,7 +624,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 
 	print("execute_decisions:", bpmn, gateway_decisions, time_step)
 	parse_tree = load_parse_tree(bpmn)
-	petri_net, petri_net_dot = get_petri_net(bpmn, None)
+	petri_net, petri_net_dot, _ = get_petri_net(bpmn, None)
 	execution_tree, current_execution = load_execution_tree(bpmn)
 
 	request = {
@@ -640,7 +644,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 			raise
 
 		parse_tree = load_parse_tree(bpmn, force_refresh=True)
-		petri_net, petri_net_dot = get_petri_net(bpmn, None, force_refresh=True)
+		petri_net, petri_net_dot, _ = get_petri_net(bpmn, None, force_refresh=True)
 		execution_tree, current_execution = load_execution_tree(bpmn, force_refresh=True)
 
 		request = {
@@ -656,65 +660,41 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 		response.raise_for_status()
 
 	resp_json = response.json()
+
 	if 'error' in resp_json:
 		raise ValueError(f"Simulator error: {resp_json['error']}")
+	
+	# Check for error response format (type, message, traceback)
+	if 'type' in resp_json and resp_json.get('type') == 'error':
+		error_msg = resp_json.get('message', 'Unknown error')
+		tb = resp_json.get('traceback', [])
+		if tb:
+			tb_str = '\n'.join(tb) if isinstance(tb, list) else str(tb)
+			raise ValueError(f"Simulator error: {error_msg}\nTraceback:\n{tb_str}")
+		raise ValueError(f"Simulator error: {error_msg}")
+	
+	# Check for required keys with helpful error message
+	if 'petri_net' not in resp_json:
+		raise ValueError(f"Simulator response missing 'petri_net'. Response keys: {list(resp_json.keys())}")
 
 	petri_net = resp_json['petri_net']
 	petri_net_dot = resp_json['petri_net_dot']
 	execution_tree = resp_json['execution_tree']['root']
 	current_execution = resp_json['execution_tree']['current_node']
+	spin_svg = resp_json.get('spin_svg')
 
-	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot)
+
+
+	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), petri_net_dot, spin_svg=spin_svg)
 	save_execution_tree(normalized_bpmn, json.dumps(execution_tree), current_execution)
 
 	# Convert DOT to SVG for return
-	petri_net_svg = dot_to_base64svg(petri_net_dot)
+	if spin_svg:
+		petri_net_svg = f"data:image/svg+xml;base64,{base64.b64encode(spin_svg.encode('utf-8')).decode('utf-8')}"
+	else:
+		petri_net_svg = dot_to_base64svg(petri_net_dot)
 
 	return get_simulation_data(bpmn, bound_store), petri_net_svg
-
-
-def update_petri_net_svg_from_simulation(bpmn: dict) -> str:
-	"""
-	Call the simulator render endpoint to get the Petri Net DOT for the current execution state.
-	Does NOT advance the simulation.
-	Updates the local DB with the visual DOT.
-	Returns the SVG base64.
-	"""
-	if bpmn[EXPRESSION] == '':
-		return None
-	normalized_bpmn = _normalize_bpmn(bpmn)
-	
-	# Load current state from DB
-	parse_tree = load_parse_tree(bpmn)
-	petri_net, petri_net_dot = get_petri_net(bpmn, None)
-	execution_tree, current_execution = load_execution_tree(bpmn)
-	
-	# Prepare request
-	request = {
-		"bpmn": parse_tree,
-		"petri_net": petri_net,
-		"petri_net_dot": petri_net_dot,
-		"execution_tree": {"root": execution_tree, "current_node": current_execution},
-		"choices": [], # No decisions for rendering
-		"time_step": 0,
-	}
-	
-	# Call /render
-	resp = requests.post(SIMULATOR_SERVER + "render", json=request, headers=HEADERS)
-	resp.raise_for_status()
-	resp_json = resp.json()
-	
-	if 'error' in resp_json:
-		raise ValueError(f"Simulator error: {resp_json['error']}")
-		
-	# Get the DOT
-	new_petri_net_dot = resp_json.get('petri_net_dot')
-	new_petri_net = resp_json.get('petri_net')
-	
-	# Update DB with the visual state
-	save_petri_net(normalized_bpmn, json.dumps(new_petri_net, sort_keys=True), new_petri_net_dot)
-	
-	return dot_to_base64svg(new_petri_net_dot)
 
 
 def log_debug(msg):

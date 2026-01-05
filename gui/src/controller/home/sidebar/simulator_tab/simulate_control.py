@@ -8,7 +8,7 @@ from gui.src.model.etl import (
     set_actual_execution,
     execute_decisions,
     get_simulation_data,
-    update_petri_net_svg_from_simulation,
+    load_petri_net_svg,
 )
 from gui.src.model.execution_tree import get_prev_execution_node
 from gui.src.env import EXPRESSION
@@ -90,8 +90,8 @@ def register_simulator_callbacks(callback):
                 dot_svg = dot_to_base64svg(bpmn_dot)
                 update_bpmn_dot(bpmn_store, dot_svg)
                 
-                # Update Petri Net
-                petri_svg = update_petri_net_svg_from_simulation(bpmn_store)
+                # Get Petri Net SVG from database (cached spin_svg)
+                petri_svg = load_petri_net_svg(bpmn_store)
 
                 data = get_simulation_data(bpmn_store, bound_store)
                 data["expression"] = bpmn_store.get(EXPRESSION)

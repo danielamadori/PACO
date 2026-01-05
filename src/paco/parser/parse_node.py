@@ -133,7 +133,21 @@ class Choice(ExclusiveGateway):
 class Nature(ExclusiveGateway):
     def __init__(self, parent: Gateway, index_in_parent: int, id: int, name: str, distribution: list[float]) -> None:
         super().__init__(parent, index_in_parent, id, name)
-        self.distribution = np.array(distribution, dtype=np.float64)
+        self.distribution = np.array(self._normalize_distribution(distribution), dtype=np.float64)
+
+    @staticmethod
+    def _normalize_distribution(distribution: list[float], precision: int | None = None) -> list[float]:
+        values = np.asarray(distribution, dtype=np.float64)
+        if values.size == 0:
+            return []
+        if values.size == 1:
+            return [1.0]
+        values = values.copy()
+        values[-1] = 1.0 - np.sum(values[:-1], dtype=np.float64)
+        decimals = np.finfo(np.float64).precision if precision is None else precision
+        values = np.round(values, decimals=decimals)
+        values[-1] = np.round(1.0 - np.sum(values[:-1], dtype=np.float64), decimals=decimals)
+        return values.tolist()
 
     def dot(self):
         return f'\n node_{self.id}[shape=diamond label="{self.name} id:{self.id}" style="filled" fillcolor=yellowgreen];'

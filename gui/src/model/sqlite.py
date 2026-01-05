@@ -11,6 +11,7 @@ class BPMN(db.Entity):
 	execution_tree = Optional(str, nullable=True)
 	petri_net = Optional(str, nullable=True)
 	petri_net_dot = Optional(str, nullable=True)
+	spin_svg = Optional(str, nullable=True)
 	execution_petri_net = Optional(str, nullable=True)
 	actual_execution = Optional(str, nullable=True)
 
@@ -129,13 +130,14 @@ def save_strategy(bpmn_dict: dict, bound_list: list, result:str, expected_impact
 
 
 @db_session
-def save_petri_net(bpmn_dict:dict, petri_net:str, petri_net_dot:str):
+def save_petri_net(bpmn_dict:dict, petri_net:str, petri_net_dot:str, spin_svg:str=None):
 	bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
 	record = BPMN.get(bpmn=bpmn_str)
 	if not record:
 		record = BPMN(bpmn=bpmn_str)
 	record.petri_net = petri_net or ""
 	record.petri_net_dot = petri_net_dot or ""
+	record.spin_svg = spin_svg or ""
 	commit()
 
 
