@@ -25,6 +25,11 @@ def validate_node(node_data: dict) -> dict:
 	except ValidationError as e:
 		raise ValueError(f"Validation error in node with id:{node_data['id']} and type:{node_data['type']} : {e}")
 
+	if node_data['type'] == "sequential":
+		children = node_data.get("children")
+		if isinstance(children, list) and len(children) > 2:
+			raise ValueError(f"Sequential node {node_data['id']} has more than two children")
+
 	if node_data['type'] == "task":
 		return {node_data['id'] : (node_data['label'], len(node_data['impacts']), 0)}#TODO Daniel: len(node_data['non_cumulative_impact'])
 

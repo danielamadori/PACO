@@ -129,6 +129,9 @@ class ParseTree:
 			#dx_child_data = node_data.get("dx_child")
 			children_data = node_data.get("children")#Is a list
 
+			if isinstance(node, Sequential) and children_data and len(children_data) > 2:
+				raise ValueError(f"Sequential node {node_id} has more than two children")
+
 			children = []
 			for child_data in children_data:
 				child, pending_choice, spending_natures = (
