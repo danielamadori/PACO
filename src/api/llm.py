@@ -48,6 +48,9 @@ def register_api_llm(app: FastAPI):
                 message=req.message,
                 session_id=session_id,
                 max_attempts=req.max_attempts,
+                provider=req.provider,
+                model=req.model,
+                api_key=req.api_key,
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

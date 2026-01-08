@@ -8,7 +8,10 @@ class LLMChatRequest(BaseModel):
     bpmn: dict
     message: str
     session_id: str | None = None
-    max_attempts: int = 3
+    max_attempts: int = 7
     reset: bool = False
+    provider: str | None = None
+    model: str | None = None
+    api_key: str | None = None
 
 

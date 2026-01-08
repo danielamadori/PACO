@@ -44,6 +44,46 @@ MODEL = "lmstudio-community/Llama-3.1-Nemotron-70B-Instruct-HF-GGUF/Llama-3.1-Ne
 MODEL_1 = "lmstudio-community/Llama-3.1-Nemotron-70B-Instruct-HF-GGUF"
 MODEL_2 = "lmstudio-community/Llama-3.1-Nemotron-70B-Instruct-HF-GGUF/Llama-3.1-Nemotron-70B-Instruct-HF-Q4_K_M.gguf:2"
 
+LM_STUDIO_MODEL = (os.getenv("LM_STUDIO_MODEL") or "deepseek-r1-distill-llama-8b").strip()
+OPENAI_MODEL = (os.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip()
+ANTHROPIC_MODEL = (os.getenv("ANTHROPIC_MODEL") or "claude-3-5-sonnet-20241022").strip()
+GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-1.5-pro").strip()
+OPENROUTER_MODEL = (os.getenv("OPENROUTER_MODEL") or "openai/gpt-4o-mini").strip()
+
+LLM_MODEL_CHOICES = [
+    {
+        "label": f"LM Studio (local) - {LM_STUDIO_MODEL}",
+        "provider": "lmstudio",
+        "model": LM_STUDIO_MODEL,
+    },
+    {
+        "label": f"OpenAI - {OPENAI_MODEL}",
+        "provider": "openai",
+        "model": OPENAI_MODEL,
+    },
+    {
+        "label": f"OpenRouter - {OPENROUTER_MODEL}",
+        "provider": "openrouter",
+        "model": OPENROUTER_MODEL,
+    },
+    {
+        "label": f"Claude - {ANTHROPIC_MODEL}",
+        "provider": "anthropic",
+        "model": ANTHROPIC_MODEL,
+    },
+    {
+        "label": f"Gemini - {GEMINI_MODEL}",
+        "provider": "gemini",
+        "model": GEMINI_MODEL,
+    },
+]
+
+LLM_MODEL_OPTIONS = [
+    {"label": choice["label"], "value": f"{choice['provider']}|{choice['model']}"}
+    for choice in LLM_MODEL_CHOICES
+]
+LLM_DEFAULT_MODEL = LLM_MODEL_OPTIONS[0]["value"]
+
 
 ###############
 # GRAMMAR

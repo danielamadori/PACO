@@ -2,6 +2,7 @@ from dash import dcc, html
 
 from gui.src.view.home.sidebar.llm_tab.header import get_header
 from gui.src.view.home.sidebar.llm_tab.input_bar import get_input_bar
+from gui.src.view.home.sidebar.llm_tab.model_selector import get_model_selector
 
 
 def get_llm_tab():
@@ -12,6 +13,7 @@ def get_llm_tab():
 		children=[
 			html.Div([
 				get_header(),
+				get_model_selector(),
 
 				html.Div(
 					id='chat-output',

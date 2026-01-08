@@ -51,16 +51,25 @@ def register_llm_callbacks(callback, clientside_callback):
 		State('chat-history', 'data'),
 		State('bpmn-store', 'data'),
 		State('bound-store', 'data'),
+		State('llm-model', 'value'),
+		State('llm-model-custom', 'value'),
+		State('llm-api-key', 'value'),
 		prevent_initial_call=True
 	)
-	def resolve_response(pending_id, history, bpmn_store, bound_store):
+	def resolve_response(pending_id, history, bpmn_store, bound_store, model_choice, custom_model, api_key):
 		if not pending_id or not history:
 			raise dash.exceptions.PreventUpdate
 
 		replaced = False
 		for i in range(len(history) - 1, -1, -1):
 			if history[i].get('id') == pending_id:
-				history[i]['text'], new_bpmn = llm_response(bpmn_store, history[i - 1]['text'])
+				history[i]['text'], new_bpmn = llm_response(
+					bpmn_store,
+					history[i - 1]['text'],
+					model_choice,
+					custom_model,
+					api_key,
+				)
 				del history[i]['id']
 				replaced = True
 				break

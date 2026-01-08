@@ -7,6 +7,9 @@ def register_llm_effects_callbacks(callback, clientside_callback):
 		Output('chat-send-btn', 'style'),
 		Output('chat-clear-btn', 'disabled'),
 		Output('chat-clear-btn', 'style'),
+		Output('llm-model', 'disabled'),
+		Output('llm-api-key', 'disabled'),
+		Output('llm-model-custom', 'disabled'),
 		Input('pending-message', 'data'),
 		Input('reset-trigger', 'data'),
 		prevent_initial_call=False
@@ -24,7 +27,7 @@ def register_llm_effects_callbacks(callback, clientside_callback):
 		}
 		clear_style = style.copy()
 		clear_style['backgroundColor'] = '#dc3545'
-		return is_disabled, style, is_disabled, clear_style
+		return is_disabled, style, is_disabled, clear_style, is_disabled, is_disabled, is_disabled
 
 	clientside_callback(
 		"""
