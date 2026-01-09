@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pathlib import Path
 
 import requests
 from langchain_openai import ChatOpenAI
@@ -12,6 +13,31 @@ from src.ai.prompt import define_role, examples_bpmn
 from src.utils.check_syntax import check_bpmn_syntax
 
 CHAT_MEMORY = {}
+
+# Load instruction files
+_AI_DIR = Path(__file__).parent
+_LLM_INSTRUCTIONS = None
+_DESIGN_TEMPLATE = None
+
+def _load_instruction_files():
+    """Load the LLM system instructions and process design template."""
+    global _LLM_INSTRUCTIONS, _DESIGN_TEMPLATE
+    
+    if _LLM_INSTRUCTIONS is None:
+        instructions_path = _AI_DIR / "llm_system_instructions.md"
+        if instructions_path.exists():
+            _LLM_INSTRUCTIONS = instructions_path.read_text(encoding='utf-8')
+        else:
+            _LLM_INSTRUCTIONS = ""
+    
+    if _DESIGN_TEMPLATE is None:
+        template_path = _AI_DIR / "process_design_template.md"
+        if template_path.exists():
+            _DESIGN_TEMPLATE = template_path.read_text(encoding='utf-8')
+        else:
+            _DESIGN_TEMPLATE = ""
+    
+    return _LLM_INSTRUCTIONS, _DESIGN_TEMPLATE
 
 
 def _get_env_int(name: str, default: int) -> int:
@@ -119,30 +145,90 @@ def _invoke_gemini(prompt: str, model: str, api_key: str | None) -> str:
 
 
 def build_few_shot_prompt(bpmn_dict: dict, message: str) -> str:
+    """Build the initial prompt with system instructions, template, and examples."""
+    llm_instructions, design_template = _load_instruction_files()
+    
     examples = "\n".join([
         f"User: {ex['input'].strip()}\nTranslation: {ex['answer'].strip()}"
         for ex in examples_bpmn
     ])
 
-    return (
-        f"{define_role}\n"
-        f"Here are a few examples:\n"
-        f"{examples}\n\n"
-        f"Now respond with a valid JSON object in this format:\n"
-        f"{{ \"bpmn\": <updated_bpmn_dict>, \"message\": <explanation> }}\n"
-        f"Respond ONLY with JSON. No comments. No code blocks. No explanations outside the JSON."
-        f"\n\nInstruction: {message}\n"
-        f"Current BPMN:\n{json.dumps(bpmn_dict, indent=2)}"
-    )
+    prompt_parts = []
+    
+    # Part 1: System Instructions (comprehensive guide)
+    if llm_instructions:
+        prompt_parts.append("=== SYSTEM INSTRUCTIONS ===")
+        prompt_parts.append(llm_instructions)
+        prompt_parts.append("\n")
+    
+    # Part 2: Process Design Template (structured approach)
+    if design_template:
+        prompt_parts.append("=== PROCESS DESIGN TEMPLATE ===")
+        prompt_parts.append("When designing a process from natural language, follow this systematic template:")
+        prompt_parts.append(design_template)
+        prompt_parts.append("\n")
+    
+    # Part 3: Legacy role definition (backward compatibility)
+    prompt_parts.append("=== CORE INSTRUCTIONS ===")
+    prompt_parts.append(define_role)
+    prompt_parts.append("\n")
+    
+    # Part 4: Examples
+    prompt_parts.append("=== EXAMPLES ===")
+    prompt_parts.append(examples)
+    prompt_parts.append("\n")
+    
+    # Part 5: Output format requirements
+    prompt_parts.append("=== OUTPUT FORMAT ===")
+    prompt_parts.append("You MUST respond with a valid JSON object in this exact format:")
+    prompt_parts.append('{ "bpmn": <updated_bpmn_dict>, "message": <explanation> }')
+    prompt_parts.append("CRITICAL: Respond ONLY with JSON. No markdown code blocks. No comments. No text outside the JSON structure.")
+    prompt_parts.append("\n")
+    
+    # Part 6: Current task
+    prompt_parts.append("=== CURRENT TASK ===")
+    prompt_parts.append(f"User Instruction: {message}")
+    prompt_parts.append(f"Current BPMN State:\n{json.dumps(bpmn_dict, indent=2)}")
+    
+    return "\n".join(prompt_parts)
 
 
-def build_followup_prompt(history: list, message: str) -> str:
-    prompt_lines = []
+def build_followup_prompt(history: list, message: str, bpmn_dict: dict) -> str:
+    """Build follow-up prompt with conversation history and current BPMN state."""
+    llm_instructions, _ = _load_instruction_files()
+    
+    prompt_parts = []
+    
+    # Include condensed system instructions for context
+    prompt_parts.append("=== SYSTEM CONTEXT ===")
+    prompt_parts.append("You are a BPMN+CPI process design assistant. Key syntax:")
+    prompt_parts.append("- Sequential: (A, B)  |  Parallel: (A || B)")
+    prompt_parts.append("- Choice: (A /[C1] B) with delays  |  Nature: (A ^[N1] B) with probabilities")
+    prompt_parts.append("- Loop: <[L1] Task> with loop_probability and loop_round")
+    prompt_parts.append("- All impacts must be positive. Durations: [min, max] where min ≤ max")
+    prompt_parts.append("")
+    
+    # Include conversation history
+    prompt_parts.append("=== CONVERSATION HISTORY ===")
     for msg in history:
-        prompt_lines.append(f"User: {msg['user']}")
-        prompt_lines.append(f"Assistant: {msg['assistant']['message']}")
-    prompt_lines.append(f"User: {message}")
-    return "\n".join(prompt_lines)
+        prompt_parts.append(f"User: {msg['user']}")
+        prompt_parts.append(f"Assistant: {msg['assistant']['message']}")
+        if 'bpmn' in msg['assistant']:
+            prompt_parts.append(f"Generated Expression: {msg['assistant']['bpmn'].get('expression', 'N/A')}")
+    prompt_parts.append("")
+    
+    # Current state and new request
+    prompt_parts.append("=== CURRENT STATE ===")
+    prompt_parts.append(f"Current BPMN:\n{json.dumps(bpmn_dict, indent=2)}")
+    prompt_parts.append("")
+    prompt_parts.append("=== NEW REQUEST ===")
+    prompt_parts.append(f"User: {message}")
+    prompt_parts.append("")
+    prompt_parts.append("=== OUTPUT FORMAT ===")
+    prompt_parts.append("Respond with valid JSON only:")
+    prompt_parts.append('{ "bpmn": <updated_bpmn_dict>, "message": <explanation> }')
+    
+    return "\n".join(prompt_parts)
 
 
 def run_llm_on_bpmn(
@@ -171,7 +257,7 @@ def run_llm_on_bpmn(
         CHAT_MEMORY[session_id] = []
 
     is_first_message = len(CHAT_MEMORY[session_id]) == 0
-    prompt = build_few_shot_prompt(bpmn_dict, message) if is_first_message else build_followup_prompt(CHAT_MEMORY[session_id], message)
+    prompt = build_few_shot_prompt(bpmn_dict, message) if is_first_message else build_followup_prompt(CHAT_MEMORY[session_id], message, bpmn_dict)
 
     llm = None
     if provider == "lmstudio":
