@@ -10,7 +10,8 @@ from gui.src.env import (
 	IMPACTS,
 	IMPACTS_NAMES,
 	H,
-	LLM_DEFAULT_MODEL,
+	LLM_DEFAULT_MODEL_BY_PROVIDER,
+	LLM_DEFAULT_PROVIDER,
 )
 from gui.src.model.etl import filter_bpmn
 
@@ -19,17 +20,23 @@ EXPECTED_FIELDS = {"bpmn", "message", "session_id"}
 SESSION_ID = str(uuid.uuid4())
 
 
-def _parse_model_choice(model_choice: str | None) -> tuple[str, str]:
-	value = model_choice or LLM_DEFAULT_MODEL
-	if "|" in value:
-		provider, model = value.split("|", 1)
-		return provider.strip(), model.strip()
-	return "lmstudio", value.strip()
+def _resolve_provider_model(
+	provider: str | None,
+	model: str | None,
+	custom_model: str | None,
+) -> tuple[str, str]:
+	provider = (provider or LLM_DEFAULT_PROVIDER).strip()
+	model = (model or LLM_DEFAULT_MODEL_BY_PROVIDER.get(provider, "")).strip()
+	custom_model = (custom_model or "").strip()
+	if custom_model:
+		model = custom_model
+	return provider, model
 
 
 def llm_response(
 	bpmn_store: dict,
 	user_message: str,
+	provider: str | None,
 	model_choice: str | None,
 	custom_model: str | None,
 	api_key: str | None,
@@ -42,10 +49,9 @@ def llm_response(
 		impact = bpmn[IMPACTS][task]
 		converted[task] = dict(zip(bpmn[IMPACTS_NAMES], impact))
 	bpmn[IMPACTS] = converted
-	provider, model = _parse_model_choice(model_choice)
-	custom_model = (custom_model or "").strip()
-	if custom_model:
-		model = custom_model
+	provider, model = _resolve_provider_model(provider, model_choice, custom_model)
+	if not model:
+		return f"Error: Missing model for {provider}.", bpmn_store
 	api_key = (api_key or "").strip()
 	if provider in {"openai", "anthropic", "gemini", "openrouter"} and not api_key:
 		return f"Error: Missing API key for {provider}.", bpmn_store

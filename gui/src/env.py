@@ -50,39 +50,28 @@ ANTHROPIC_MODEL = (os.getenv("ANTHROPIC_MODEL") or "claude-3-5-sonnet-20241022")
 GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-1.5-pro").strip()
 OPENROUTER_MODEL = (os.getenv("OPENROUTER_MODEL") or "openai/gpt-4o-mini").strip()
 
-LLM_MODEL_CHOICES = [
-    {
-        "label": f"LM Studio (local) - {LM_STUDIO_MODEL}",
-        "provider": "lmstudio",
-        "model": LM_STUDIO_MODEL,
-    },
-    {
-        "label": f"OpenAI - {OPENAI_MODEL}",
-        "provider": "openai",
-        "model": OPENAI_MODEL,
-    },
-    {
-        "label": f"OpenRouter - {OPENROUTER_MODEL}",
-        "provider": "openrouter",
-        "model": OPENROUTER_MODEL,
-    },
-    {
-        "label": f"Claude - {ANTHROPIC_MODEL}",
-        "provider": "anthropic",
-        "model": ANTHROPIC_MODEL,
-    },
-    {
-        "label": f"Gemini - {GEMINI_MODEL}",
-        "provider": "gemini",
-        "model": GEMINI_MODEL,
-    },
+LLM_PROVIDER_OPTIONS = [
+    {"label": "LM Studio (local)", "value": "lmstudio"},
+    {"label": "OpenAI", "value": "openai"},
+    {"label": "OpenRouter", "value": "openrouter"},
+    {"label": "Claude", "value": "anthropic"},
+    {"label": "Gemini", "value": "gemini"},
 ]
-
-LLM_MODEL_OPTIONS = [
-    {"label": choice["label"], "value": f"{choice['provider']}|{choice['model']}"}
-    for choice in LLM_MODEL_CHOICES
-]
-LLM_DEFAULT_MODEL = LLM_MODEL_OPTIONS[0]["value"]
+LLM_DEFAULT_PROVIDER = "lmstudio"
+LLM_MODELS_BY_PROVIDER = {
+    "lmstudio": [LM_STUDIO_MODEL, MODEL, MODEL_1, MODEL_2],
+    "openai": [OPENAI_MODEL],
+    "openrouter": [OPENROUTER_MODEL],
+    "anthropic": [ANTHROPIC_MODEL, "claude-3-5-opus"],
+    "gemini": [GEMINI_MODEL, "gemini-2-flash", "gemini-2-5-flash-lite"],
+}
+LLM_MODEL_OPTIONS_BY_PROVIDER = {
+    provider: [{"label": model, "value": model} for model in models]
+    for provider, models in LLM_MODELS_BY_PROVIDER.items()
+}
+LLM_DEFAULT_MODEL_BY_PROVIDER = {
+    provider: models[0] for provider, models in LLM_MODELS_BY_PROVIDER.items() if models
+}
 
 
 ###############

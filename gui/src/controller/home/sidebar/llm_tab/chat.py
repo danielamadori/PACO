@@ -2,6 +2,7 @@ from dash import Input, Output, State
 import random, dash
 
 from gui.src.controller.home.sidebar.llm_tab.effects import register_llm_effects_callbacks
+from gui.src.controller.home.sidebar.llm_tab.model_selector import register_llm_model_selector_callbacks
 from gui.src.controller.home.sidebar.llm_tab.reset import register_llm_reset_callbacks
 from gui.src.model.etl import load_bpmn_dot
 from gui.src.model.llm import llm_response
@@ -16,6 +17,7 @@ from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes
 def register_llm_callbacks(callback, clientside_callback):
 	register_llm_reset_callbacks(callback)
 	register_llm_effects_callbacks(callback, clientside_callback)
+	register_llm_model_selector_callbacks(callback)
 
 	@callback(
 		Output('chat-history', 'data', allow_duplicate=True),
@@ -51,12 +53,13 @@ def register_llm_callbacks(callback, clientside_callback):
 		State('chat-history', 'data'),
 		State('bpmn-store', 'data'),
 		State('bound-store', 'data'),
+		State('llm-provider', 'value'),
 		State('llm-model', 'value'),
 		State('llm-model-custom', 'value'),
 		State('llm-api-key', 'value'),
 		prevent_initial_call=True
 	)
-	def resolve_response(pending_id, history, bpmn_store, bound_store, model_choice, custom_model, api_key):
+	def resolve_response(pending_id, history, bpmn_store, bound_store, provider, model_choice, custom_model, api_key):
 		if not pending_id or not history:
 			raise dash.exceptions.PreventUpdate
 
@@ -66,6 +69,7 @@ def register_llm_callbacks(callback, clientside_callback):
 				history[i]['text'], new_bpmn = llm_response(
 					bpmn_store,
 					history[i - 1]['text'],
+					provider,
 					model_choice,
 					custom_model,
 					api_key,
