@@ -1,0 +1,281 @@
+{
+  "bpmn": {
+    "expression": "(((VesselLying,unloading)^[PriorityVessel](TugVessel,priorityUnloading)),transferContainers,(Storage/[putInAccessiblePlace]ShortStorage),(((locateBigContainer,(MoveMRG^[located](NotifyAdministration,PickAnotherContainer)),moveMRG,(PickUp/[additionalConsolidation]ConsolidateAndPickup),moveContainer))||(locateSmallContainer,(MoveTrailer^[located](NotifyAdministration,PickAnotherContainer)),pickUp,transportWithTrailer))),((CheckTrainAvailability,(Reschedule^[trainAvailable]loadTrain))||(CheckTruckAvailability,(RescheduleTruck^[truckAvailable]loadTruck))),checkout",
+    "impacts": {
+      "checkout": {
+        "CO2Emission": 0.5,
+        "GasConsumption": 0.0,
+        "TireConsumption": 0.0,
+        "workerHours": 0.25
+      },
+      "CheckTruckAvailability": {
+        "CO2Emission": 0.1,
+        "GasConsumption": 0.0,
+        "TireConsumption": 0.0,
+        "workerHours": 0.15
+      },
+      "loadTruck": {
+        "CO2Emission": 8.5,
+        "GasConsumption": 3.2,
+        "TireConsumption": 0.05,
+        "workerHours": 1.5
+      },
+      "MoveMRG": {
+        "CO2Emission": 12.0,
+        "GasConsumption": 4.5,
+        "TireConsumption": 0.08,
+        "workerHours": 0.5
+      },
+      "MoveTrailer": {
+        "CO2Emission": 6.5,
+        "GasConsumption": 2.5,
+        "TireConsumption": 0.12,
+        "workerHours": 0.75
+      },
+      "moveContainer": {
+        "CO2Emission": 15.0,
+        "GasConsumption": 5.8,
+        "TireConsumption": 0.1,
+        "workerHours": 1.0
+      },
+      "NotifyAdministration": {
+        "CO2Emission": 0.05,
+        "GasConsumption": 0.0,
+        "TireConsumption": 0.0,
+        "workerHours": 0.3
+      },
+      "ShortStorage": {
+        "CO2Emission": 2.0,
+        "GasConsumption": 0.8,
+        "TireConsumption": 0.02,
+        "workerHours": 0.5
+      },
+      "loadTrain": {
+        "CO2Emission": 10.0,
+        "GasConsumption": 3.8,
+        "TireConsumption": 0.06,
+        "workerHours": 2.0
+      },
+      "PickUp": {
+        "CO2Emission": 4.5,
+        "GasConsumption": 1.8,
+        "TireConsumption": 0.04,
+        "workerHours": 0.5
+      },
+      "RescheduleTruck": {
+        "CO2Emission": 0.2,
+        "GasConsumption": 0.0,
+        "TireConsumption": 0.0,
+        "workerHours": 0.4
+      },
+      "transportWithTrailer": {
+        "CO2Emission": 18.0,
+        "GasConsumption": 7.0,
+        "TireConsumption": 0.25,
+        "workerHours": 1.5
+      },
+      "moveMRG": {
+        "CO2Emission": 12.0,
+        "GasConsumption": 4.5,
+        "TireConsumption": 0.08,
+        "workerHours": 0.5
+      },
+      "ConsolidateAndPickup": {
+        "CO2Emission": 6.0,
+        "GasConsumption": 2.3,
+        "TireConsumption": 0.05,
+        "workerHours": 1.2
+      },
+      "TugVessel": {
+        "CO2Emission": 45.0,
+        "GasConsumption": 18.0,
+        "TireConsumption": 0.0,
+        "workerHours": 2.5
+      },
+      "PickAnotherContainer": {
+        "CO2Emission": 3.0,
+        "GasConsumption": 1.2,
+        "TireConsumption": 0.03,
+        "workerHours": 0.75
+      },
+      "CheckTrainAvailability": {
+        "CO2Emission": 0.1,
+        "GasConsumption": 0.0,
+        "TireConsumption": 0.0,
+        "workerHours": 0.2
+      },
+      "locateSmallContainer": {
+        "CO2Emission": 1.5,
+        "GasConsumption": 0.6,
+        "TireConsumption": 0.02,
+        "workerHours": 0.3
+      },
+      "pickUp": {
+        "CO2Emission": 4.5,
+        "GasConsumption": 1.8,
+        "TireConsumption": 0.04,
+        "workerHours": 0.5
+      },
+      "VesselLying": {
+        "CO2Emission": 25.0,
+        "GasConsumption": 10.0,
+        "TireConsumption": 0.0,
+        "workerHours": 1.0
+      },
+      "Storage": {
+        "CO2Emission": 3.5,
+        "GasConsumption": 1.4,
+        "TireConsumption": 0.03,
+        "workerHours": 0.8
+      },
+      "transferContainers": {
+        "CO2Emission": 20.0,
+        "GasConsumption": 7.5,
+        "TireConsumption": 0.15,
+        "workerHours": 3.0
+      },
+      "unloading": {
+        "CO2Emission": 35.0,
+        "GasConsumption": 13.0,
+        "TireConsumption": 0.2,
+        "workerHours": 4.0
+      },
+      "priorityUnloading": {
+        "CO2Emission": 38.0,
+        "GasConsumption": 14.5,
+        "TireConsumption": 0.22,
+        "workerHours": 3.5
+      },
+      "locateBigContainer": {
+        "CO2Emission": 2.5,
+        "GasConsumption": 1.0,
+        "TireConsumption": 0.02,
+        "workerHours": 0.4
+      },
+      "Reschedule": {
+        "CO2Emission": 0.2,
+        "GasConsumption": 0.0,
+        "TireConsumption": 0.0,
+        "workerHours": 0.5
+      }
+    },
+    "durations": {
+      "checkout": [
+        0,
+        1
+      ],
+      "CheckTruckAvailability": [
+        0,
+        1
+      ],
+      "loadTruck": [
+        0,
+        3
+      ],
+      "MoveMRG": [
+        0,
+        1
+      ],
+      "MoveTrailer": [
+        0,
+        3
+      ],
+      "moveContainer": [
+        0,
+        2
+      ],
+      "NotifyAdministration": [
+        0,
+        1
+      ],
+      "ShortStorage": [
+        0,
+        5
+      ],
+      "loadTrain": [
+        0,
+        3
+      ],
+      "PickUp": [
+        0,
+        3
+      ],
+      "RescheduleTruck": [
+        0,
+        1
+      ],
+      "transportWithTrailer": [
+        0,
+        6
+      ],
+      "moveMRG": [
+        0,
+        1
+      ],
+      "ConsolidateAndPickup": [
+        0,
+        3
+      ],
+      "TugVessel": [
+        0,
+        9
+      ],
+      "PickAnotherContainer": [
+        0,
+        2
+      ],
+      "CheckTrainAvailability": [
+        0,
+        1
+      ],
+      "locateSmallContainer": [
+        0,
+        2
+      ],
+      "pickUp": [
+        0,
+        1
+      ],
+      "VesselLying": [
+        0,
+        5
+      ],
+      "Storage": [
+        0,
+        1
+      ],
+      "transferContainers": [
+        0,
+        2
+      ],
+      "unloading": [
+        0,
+        10
+      ],
+      "priorityUnloading": [
+        0,
+        8
+      ],
+      "locateBigContainer": [
+        0,
+        4
+      ],
+      "Reschedule": [
+        0,
+        1
+      ]
+    },
+    "probabilities": {
+      "PriorityVessel": 0.85,
+      "located": 0.75,
+      "trainAvailable": 0.4,
+      "truckAvailable": 0.1
+    },
+    "loop_probability": {},
+    "delays": {
+      "putInAccessiblePlace": 0,
+      "additionalConsolidation": 0
+    },
+    "loop_round": {}
+  }
+}
