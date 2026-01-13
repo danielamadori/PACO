@@ -5,6 +5,7 @@ from ...saturate_execution.states import ActivityState
 ACTIVE_BORDER_COLOR = "red"
 ACTIVE_BORDER_WIDTH = 4
 ACTIVE_STYLE = "solid"
+WAITING_STYLE = "dashed"
 
 TASK_FILL_COLOR = "lightblue"
 TASK_COMPLETED_FILL_COLOR = "lightskyblue"
@@ -264,16 +265,18 @@ def _get_status(status, node_id):
 def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, int, int, float]:
     node_status = _get_status(status, region_root.id)
     is_active = node_status == ActivityState.ACTIVE
+    is_pending = node_status is None or node_status <= ActivityState.ACTIVE
     is_completed = node_status is not None and node_status > ActivityState.ACTIVE
     is_skipped = node_status == ActivityState.WILL_NOT_BE_EXECUTED
 
     type_by_name = type(region_root).__name__
     if isinstance(region_root, Task) or type_by_name == 'Task':
         _id = next(id_generator)
+        task_style = WAITING_STYLE if is_pending else None
         return task_to_dot(
             _id,
             region_root.name,
-            ACTIVE_STYLE if is_active else None,
+            task_style,
             region_root.impacts,
             region_root.duration,
             impacts_names,

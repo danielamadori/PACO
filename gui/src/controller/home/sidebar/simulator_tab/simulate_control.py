@@ -8,7 +8,7 @@ from gui.src.model.etl import (
     set_actual_execution,
     execute_decisions,
     get_simulation_data,
-    load_petri_net_svg,
+    preview_petri_net_svg,
 )
 from gui.src.model.execution_tree import get_prev_execution_node
 from gui.src.env import EXPRESSION
@@ -90,8 +90,8 @@ def register_simulator_callbacks(callback):
                 dot_svg = dot_to_base64svg(bpmn_dot)
                 update_bpmn_dot(bpmn_store, dot_svg)
                 
-                # Get Petri Net SVG from database (cached spin_svg)
-                petri_svg = load_petri_net_svg(bpmn_store)
+                # Re-render Petri net SVG for the current execution node
+                petri_svg = preview_petri_net_svg(bpmn_store)
 
                 data = get_simulation_data(bpmn_store, bound_store)
                 data["expression"] = bpmn_store.get(EXPRESSION)
@@ -108,3 +108,14 @@ def register_simulator_callbacks(callback):
                 return new_sim_data, dot_svg, petri_svg
             case _:
                 return sim_data, bpmn_svg_store, petri_svg_store
+
+    @callback(
+        Output({"type": "petri-svg-store", "index": "main"}, 'data', allow_duplicate=True),
+        Input("view-mode", "data"),
+        State("bpmn-store", "data"),
+        prevent_initial_call=True
+    )
+    def refresh_petri_on_view(view_mode, bpmn_store):
+        if view_mode != "petri" or not bpmn_store or bpmn_store.get(EXPRESSION, "") == "":
+            return no_update
+        return preview_petri_net_svg(bpmn_store)
