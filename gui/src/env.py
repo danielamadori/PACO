@@ -62,8 +62,8 @@ LLM_MODELS_BY_PROVIDER = {
     "lmstudio": [LM_STUDIO_MODEL, MODEL, MODEL_1, MODEL_2],
     "openai": [OPENAI_MODEL],
     "openrouter": [OPENROUTER_MODEL],
-    "anthropic": [ANTHROPIC_MODEL, "claude-3-5-opus"],
-    "gemini": [GEMINI_MODEL, "gemini-2-flash", "gemini-2-5-flash-lite"],
+    "anthropic": [ANTHROPIC_MODEL, "claude-3.5-opus"],
+    "gemini": [GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-flash-lite"],
 }
 LLM_MODEL_OPTIONS_BY_PROVIDER = {
     provider: [{"label": model, "value": model} for model in models]
