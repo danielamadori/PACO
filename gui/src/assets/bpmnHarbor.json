@@ -1,281 +1,270 @@
 {
   "bpmn": {
-    "expression": "(((VesselLying,unloading)^[PriorityVessel](TugVessel,priorityUnloading)),transferContainers,(Storage/[putInAccessiblePlace]ShortStorage),(((locateBigContainer,(MoveMRG^[located](NotifyAdministration,PickAnotherContainer)),moveMRG,(PickUp/[additionalConsolidation]ConsolidateAndPickup),moveContainer))||(locateSmallContainer,(MoveTrailer^[located](NotifyAdministration,PickAnotherContainer)),pickUp,transportWithTrailer))),((CheckTrainAvailability,(Reschedule^[trainAvailable]loadTrain))||(CheckTruckAvailability,(RescheduleTruck^[truckAvailable]loadTruck))),checkout",
+    "expression": "(PriorityDeterminationTask,((VesselLying,StandardUnloading)^[N1](TuggingOperation,PriorityUnloading)),ContainerTransfer,(ShortStorage/[C1]RegularStorage),((LocateBigContainers,(((BigLocated_Empty)^[N2](NotifyAdminBig,EstablishNewPositionBig)),RMGCraneMovement),(ContainerConsolidation/[C2]ConsolidationSkip),PickupBig,MoveBigContainersTerminal)||(LocateSmallContainers,(((SmallLocated_Empty)^[N3](NotifyAdminSmall,EstablishNewPositionSmall)),MoveTrailer),PickupSmall,TransportToOutbound)),((CheckTrainAvailability,(TrainLoading^[N4]RescheduleTrainLoading))||(CheckTruckAvailability,(TruckLoading^[N5]RescheduleTruckLoading))),FinalCheckout)",
     "impacts": {
-      "checkout": {
-        "CO2Emission": 0.5,
-        "GasConsumption": 0.0,
-        "TireConsumption": 0.0,
-        "workerHours": 0.25
+      "StandardUnloading": {
+        "cost": 800.0,
+        "energy": 150.0
       },
       "CheckTruckAvailability": {
-        "CO2Emission": 0.1,
-        "GasConsumption": 0.0,
-        "TireConsumption": 0.0,
-        "workerHours": 0.15
+        "cost": 15.0,
+        "energy": 0.0
       },
-      "loadTruck": {
-        "CO2Emission": 8.5,
-        "GasConsumption": 3.2,
-        "TireConsumption": 0.05,
-        "workerHours": 1.5
+      "PriorityDeterminationTask": {
+        "cost": 0.0,
+        "energy": 0.0
       },
-      "MoveMRG": {
-        "CO2Emission": 12.0,
-        "GasConsumption": 4.5,
-        "TireConsumption": 0.08,
-        "workerHours": 0.5
+      "LocateSmallContainers": {
+        "cost": 80.0,
+        "energy": 15.0
       },
-      "MoveTrailer": {
-        "CO2Emission": 6.5,
-        "GasConsumption": 2.5,
-        "TireConsumption": 0.12,
-        "workerHours": 0.75
+      "TuggingOperation": {
+        "cost": 500.0,
+        "energy": 40.0
       },
-      "moveContainer": {
-        "CO2Emission": 15.0,
-        "GasConsumption": 5.8,
-        "TireConsumption": 0.1,
-        "workerHours": 1.0
+      "RescheduleTruckLoading": {
+        "cost": 60.0,
+        "energy": 0.0
       },
-      "NotifyAdministration": {
-        "CO2Emission": 0.05,
-        "GasConsumption": 0.0,
-        "TireConsumption": 0.0,
-        "workerHours": 0.3
+      "TruckLoading": {
+        "cost": 300.0,
+        "energy": 50.0
+      },
+      "NotifyAdminBig": {
+        "cost": 30.0,
+        "energy": 0.0
       },
       "ShortStorage": {
-        "CO2Emission": 2.0,
-        "GasConsumption": 0.8,
-        "TireConsumption": 0.02,
-        "workerHours": 0.5
+        "cost": 50.0,
+        "energy": 5.0
       },
-      "loadTrain": {
-        "CO2Emission": 10.0,
-        "GasConsumption": 3.8,
-        "TireConsumption": 0.06,
-        "workerHours": 2.0
+      "MoveBigContainersTerminal": {
+        "cost": 100.0,
+        "energy": 30.0
       },
-      "PickUp": {
-        "CO2Emission": 4.5,
-        "GasConsumption": 1.8,
-        "TireConsumption": 0.04,
-        "workerHours": 0.5
+      "BigLocated_Empty": {
+        "cost": 0.0,
+        "energy": 0.0
       },
-      "RescheduleTruck": {
-        "CO2Emission": 0.2,
-        "GasConsumption": 0.0,
-        "TireConsumption": 0.0,
-        "workerHours": 0.4
+      "ContainerConsolidation": {
+        "cost": 150.0,
+        "energy": 35.0
       },
-      "transportWithTrailer": {
-        "CO2Emission": 18.0,
-        "GasConsumption": 7.0,
-        "TireConsumption": 0.25,
-        "workerHours": 1.5
+      "MoveTrailer": {
+        "cost": 60.0,
+        "energy": 15.0
       },
-      "moveMRG": {
-        "CO2Emission": 12.0,
-        "GasConsumption": 4.5,
-        "TireConsumption": 0.08,
-        "workerHours": 0.5
+      "ConsolidationSkip": {
+        "cost": 0.0,
+        "energy": 0.0
       },
-      "ConsolidateAndPickup": {
-        "CO2Emission": 6.0,
-        "GasConsumption": 2.3,
-        "TireConsumption": 0.05,
-        "workerHours": 1.2
+      "RMGCraneMovement": {
+        "cost": 80.0,
+        "energy": 25.0
       },
-      "TugVessel": {
-        "CO2Emission": 45.0,
-        "GasConsumption": 18.0,
-        "TireConsumption": 0.0,
-        "workerHours": 2.5
+      "EstablishNewPositionSmall": {
+        "cost": 40.0,
+        "energy": 0.0
       },
-      "PickAnotherContainer": {
-        "CO2Emission": 3.0,
-        "GasConsumption": 1.2,
-        "TireConsumption": 0.03,
-        "workerHours": 0.75
-      },
-      "CheckTrainAvailability": {
-        "CO2Emission": 0.1,
-        "GasConsumption": 0.0,
-        "TireConsumption": 0.0,
-        "workerHours": 0.2
-      },
-      "locateSmallContainer": {
-        "CO2Emission": 1.5,
-        "GasConsumption": 0.6,
-        "TireConsumption": 0.02,
-        "workerHours": 0.3
-      },
-      "pickUp": {
-        "CO2Emission": 4.5,
-        "GasConsumption": 1.8,
-        "TireConsumption": 0.04,
-        "workerHours": 0.5
+      "NotifyAdminSmall": {
+        "cost": 30.0,
+        "energy": 0.0
       },
       "VesselLying": {
-        "CO2Emission": 25.0,
-        "GasConsumption": 10.0,
-        "TireConsumption": 0.0,
-        "workerHours": 1.0
+        "cost": 200.0,
+        "energy": 10.0
       },
-      "Storage": {
-        "CO2Emission": 3.5,
-        "GasConsumption": 1.4,
-        "TireConsumption": 0.03,
-        "workerHours": 0.8
+      "LocateBigContainers": {
+        "cost": 100.0,
+        "energy": 20.0
       },
-      "transferContainers": {
-        "CO2Emission": 20.0,
-        "GasConsumption": 7.5,
-        "TireConsumption": 0.15,
-        "workerHours": 3.0
+      "TransportToOutbound": {
+        "cost": 120.0,
+        "energy": 40.0
       },
-      "unloading": {
-        "CO2Emission": 35.0,
-        "GasConsumption": 13.0,
-        "TireConsumption": 0.2,
-        "workerHours": 4.0
+      "PickupBig": {
+        "cost": 70.0,
+        "energy": 20.0
       },
-      "priorityUnloading": {
-        "CO2Emission": 38.0,
-        "GasConsumption": 14.5,
-        "TireConsumption": 0.22,
-        "workerHours": 3.5
+      "FinalCheckout": {
+        "cost": 50.0,
+        "energy": 10.0
       },
-      "locateBigContainer": {
-        "CO2Emission": 2.5,
-        "GasConsumption": 1.0,
-        "TireConsumption": 0.02,
-        "workerHours": 0.4
+      "CheckTrainAvailability": {
+        "cost": 20.0,
+        "energy": 0.0
       },
-      "Reschedule": {
-        "CO2Emission": 0.2,
-        "GasConsumption": 0.0,
-        "TireConsumption": 0.0,
-        "workerHours": 0.5
+      "SmallLocated_Empty": {
+        "cost": 0.0,
+        "energy": 0.0
+      },
+      "EstablishNewPositionBig": {
+        "cost": 50.0,
+        "energy": 0.0
+      },
+      "RescheduleTrainLoading": {
+        "cost": 80.0,
+        "energy": 0.0
+      },
+      "RegularStorage": {
+        "cost": 150.0,
+        "energy": 30.0
+      },
+      "TrainLoading": {
+        "cost": 600.0,
+        "energy": 100.0
+      },
+      "PickupSmall": {
+        "cost": 50.0,
+        "energy": 10.0
+      },
+      "ContainerTransfer": {
+        "cost": 400.0,
+        "energy": 80.0
+      },
+      "PriorityUnloading": {
+        "cost": 1200.0,
+        "energy": 200.0
       }
     },
     "durations": {
-      "checkout": [
-        0,
-        1
+      "StandardUnloading": [
+        120,
+        240
       ],
       "CheckTruckAvailability": [
-        0,
-        1
-      ],
-      "loadTruck": [
-        0,
-        3
-      ],
-      "MoveMRG": [
-        0,
-        1
-      ],
-      "MoveTrailer": [
-        0,
-        3
-      ],
-      "moveContainer": [
-        0,
-        2
-      ],
-      "NotifyAdministration": [
-        0,
-        1
-      ],
-      "ShortStorage": [
-        0,
-        5
-      ],
-      "loadTrain": [
-        0,
-        3
-      ],
-      "PickUp": [
-        0,
-        3
-      ],
-      "RescheduleTruck": [
-        0,
-        1
-      ],
-      "transportWithTrailer": [
-        0,
-        6
-      ],
-      "moveMRG": [
-        0,
-        1
-      ],
-      "ConsolidateAndPickup": [
-        0,
-        3
-      ],
-      "TugVessel": [
-        0,
-        9
-      ],
-      "PickAnotherContainer": [
-        0,
-        2
-      ],
-      "CheckTrainAvailability": [
-        0,
-        1
-      ],
-      "locateSmallContainer": [
-        0,
-        2
-      ],
-      "pickUp": [
-        0,
-        1
-      ],
-      "VesselLying": [
-        0,
-        5
-      ],
-      "Storage": [
-        0,
-        1
-      ],
-      "transferContainers": [
-        0,
-        2
-      ],
-      "unloading": [
-        0,
+        5,
         10
       ],
-      "priorityUnloading": [
-        0,
-        8
+      "PriorityDeterminationTask": [
+        5,
+        5
       ],
-      "locateBigContainer": [
-        0,
-        4
+      "LocateSmallContainers": [
+        20,
+        40
       ],
-      "Reschedule": [
+      "TuggingOperation": [
+        20,
+        45
+      ],
+      "RescheduleTruckLoading": [
+        20,
+        40
+      ],
+      "TruckLoading": [
+        30,
+        60
+      ],
+      "NotifyAdminBig": [
+        10,
+        20
+      ],
+      "ShortStorage": [
+        15,
+        30
+      ],
+      "MoveBigContainersTerminal": [
+        20,
+        45
+      ],
+      "BigLocated_Empty": [
         0,
-        1
+        0
+      ],
+      "ContainerConsolidation": [
+        30,
+        60
+      ],
+      "MoveTrailer": [
+        10,
+        25
+      ],
+      "ConsolidationSkip": [
+        0,
+        0
+      ],
+      "RMGCraneMovement": [
+        15,
+        30
+      ],
+      "EstablishNewPositionSmall": [
+        15,
+        30
+      ],
+      "NotifyAdminSmall": [
+        10,
+        20
+      ],
+      "VesselLying": [
+        30,
+        120
+      ],
+      "LocateBigContainers": [
+        30,
+        60
+      ],
+      "TransportToOutbound": [
+        30,
+        60
+      ],
+      "PickupBig": [
+        45,
+        60
+      ],
+      "FinalCheckout": [
+        15,
+        30
+      ],
+      "CheckTrainAvailability": [
+        5,
+        15
+      ],
+      "SmallLocated_Empty": [
+        0,
+        0
+      ],
+      "EstablishNewPositionBig": [
+        20,
+        40
+      ],
+      "RescheduleTrainLoading": [
+        30,
+        60
+      ],
+      "RegularStorage": [
+        60,
+        120
+      ],
+      "TrainLoading": [
+        60,
+        120
+      ],
+      "PickupSmall": [
+        15,
+        30
+      ],
+      "ContainerTransfer": [
+        60,
+        180
+      ],
+      "PriorityUnloading": [
+        60,
+        120
       ]
     },
     "probabilities": {
-      "PriorityVessel": 0.85,
-      "located": 0.75,
-      "trainAvailable": 0.4,
-      "truckAvailable": 0.1
+      "N2": 0.85,
+      "N3": 0.8,
+      "N1": 0.85,
+      "N4": 0.7,
+      "N5": 0.8
+    },
+    "delays": {
+      "C1": 0,
+      "C2": 10
     },
     "loop_probability": {},
-    "delays": {
-      "putInAccessiblePlace": 0,
-      "additionalConsolidation": 0
-    },
     "loop_round": {}
   }
 }

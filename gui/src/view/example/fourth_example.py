@@ -36,7 +36,13 @@ def get_fourth_example(id, bpmn, bpmn_dot):
 						], style={'width': '100%', 'textAlign': 'left'}, className="mb-3"),
 						html.Div([
 							html.H5("Use Case Description", className="mb-2"),
-							html.P("This is the complete use case description used in the tool paper. This prompt was used to automatically generate the BPMN diagram shown below:", className="text-muted mb-2"),
+							html.P([
+								"This is the complete use case description used in the tool paper. This prompt was used to automatically generate the BPMN diagram shown below. ",
+								"The process has been inspired/expanded by the use case in Termini, M.G., Palumbo, F., Vaglini, G., Ferro, E., Celandroni, N., La Rosa, D.: ",
+								"Evaluating the impact of smart technologies on harbor's logistics via BPMN modeling and simulation. ",
+								"Information Technology and Management 18(3), 223–239 (2017). ",
+								html.A("Read the paper", href="https://dl.acm.org/doi/abs/10.1007/s10799-016-0266-4", target="_blank", className="text-primary")
+							], className="text-muted mb-2"),
 							html.Div(prompt_use_case, style={
 								'maxHeight': '400px',
 								'overflowY': 'auto',
@@ -49,7 +55,7 @@ def get_fourth_example(id, bpmn, bpmn_dot):
 						], className="mb-3"),
 						get_download_layout(id + "-download",
 											f'''Now it's your turn!
-								Download the BPMN JSON file and try to find a winning strategy that respects the expected impact bounds [173.75, 66.4, 1.172, 18.3525],
+								Download the BPMN JSON file and try to find a winning strategy that respects the expected impact bounds [3144.8, 582.07],
 								respectively for [{', '.join(bpmn[IMPACTS_NAMES])}].
 							''')
 					], width=4),
