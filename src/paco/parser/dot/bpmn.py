@@ -175,7 +175,7 @@ def task_to_dot(_id, name, style, impacts, duration, impacts_names, fillcolor=No
     )
 
 
-def arc_to_dot(source, target, label=None):
+def arc_to_dot(source, target, label=None, style=None):
     """
     Create the dot representation of an arc.
 
@@ -184,10 +184,13 @@ def arc_to_dot(source, target, label=None):
     :param label: Label of the arc
     :return: Dot representation of the arc
     """
-    if label is None:
-        return f'\nnode_{source} -> node_{target};\n'
-    else:
-        return f'\nnode_{source} -> node_{target}[label="{label}"];\n'
+    attrs = []
+    if label is not None:
+        attrs.append(f'label="{label}"')
+    if style is not None:
+        attrs.append(f"style={style}")
+    attrs_code = f"[{' '.join(attrs)}]" if attrs else ""
+    return f'\nnode_{source} -> node_{target}{attrs_code};\n'
 
 
 
@@ -336,11 +339,17 @@ def region_to_dot(region_root: ParseNode, impacts_names, status) -> tuple[str, i
         )
 
         # Children
-        for child in region_root.children:
+        for child_index, child in enumerate(region_root.children):
             child_code, child_entry_id, child_exit_id, exit_p = region_to_dot(child, impacts_names, status)
             code += child_code
-            code += arc_to_dot(entry_id, child_entry_id)
-            code += arc_to_dot(child_exit_id, last_exit_id, label=exit_p if exit_p != 1 else None)
+            edge_style = "dashed" if (child_index % 2 == 0) else None
+            code += arc_to_dot(entry_id, child_entry_id, style=edge_style)
+            code += arc_to_dot(
+                child_exit_id,
+                last_exit_id,
+                label=exit_p if exit_p != 1 else None,
+                style=edge_style,
+            )
 
         return code, entry_id, last_exit_id, 1.0
     elif isinstance(region_root, Parallel) or type_by_name == 'Parallel':
