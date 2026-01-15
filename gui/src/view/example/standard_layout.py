@@ -56,12 +56,23 @@ def get_render_example(bpmn_dot, id, zoom_min=0.1, zoom_max=3.5):
 
 
 
-def get_download_layout(id, text_description):
+def get_download_layout(id, text_description, example_key=None):
+	buttons = []
+	if example_key:
+		buttons.append(
+			dcc.Link(
+				dbc.Button("Try this example", color="success", className="me-2"),
+				href=f"/?example={example_key}",
+				style={"textDecoration": "none"}
+			)
+		)
+	buttons.append(dbc.Button("Download BPMN JSON", id=id + "-btn"))
+
 	return dbc.Card([
 		dbc.CardHeader("Try it yourself!"),
 		dbc.CardBody([
 			html.P(text_description),
-			dbc.Button("Download BPMN JSON", id=id + "-btn"),
+			html.Div(buttons, className="d-flex flex-wrap gap-2"),
 			dcc.Download(id=id)
 		])
 	])

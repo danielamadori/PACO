@@ -7,7 +7,7 @@ from gui.src.view.example.first_example.strategy_example import get_strategy_exa
 from gui.src.view.example.standard_layout import get_download_layout, get_description, get_render_example
 
 
-def get_first_example(id, bpmn, bpmn_dot):
+def get_first_example(id, bpmn, bpmn_dot, example_key=None):
 	return dbc.Card([
 		dbc.CardHeader("Example of BPMN+CPI"),
 		dbc.CardBody([
@@ -31,7 +31,8 @@ def get_first_example(id, bpmn, bpmn_dot):
 							f'''Now it’s your turn!
 								Download the BPMN JSON file and try to find a winning strategy that respects the expected impact bound [135, 15],
 								respectively for [{', '.join(bpmn[IMPACTS_NAMES])}].
-							''')
+							''',
+							example_key=example_key)
 					], width=12)
 				])
 

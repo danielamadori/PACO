@@ -22,7 +22,7 @@ Simultaneously on the truck track, we check truck availability, taking 5 to 10 m
 Both outbound paths eventually converge, and we perform a final checkout operation where we complete documentation, verify loads, and authorize departure. This checkout takes 15 to 30 minutes, costs \$50, and uses 10 kWh for the gate systems and documentation processing.
 Our operational constraints are fairly strict: we have a maximum budget of \$5000 per vessel operation to remain profitable, we cannot exceed 12 hours of total processing time to maintain berth efficiency and meet schedule commitments, and we're limited to 800 kWh of total energy consumption due to our power supply capacity and environmental commitments. The goal is to find the optimal strategy for the two main decision points—whether to perform container consolidation and how to handle the priority vessel routing—that minimizes our expected total operational cost while ensuring we stay within all three resource bounds, accounting for the various probabilistic outcomes in container location success rates and transportation availability.
 '''
-def get_fourth_example(id, bpmn, bpmn_dot):
+def get_fourth_example(id, bpmn, bpmn_dot, example_key=None):
 	return dbc.Card([
 		dbc.CardHeader("Use case BPMN+CPI"),
 		dbc.CardBody([
@@ -57,7 +57,8 @@ def get_fourth_example(id, bpmn, bpmn_dot):
 											f'''Now it's your turn!
 								Download the BPMN JSON file and try to find a winning strategy that respects the expected impact bounds [3144.8, 582.07],
 								respectively for [{', '.join(bpmn[IMPACTS_NAMES])}].
-							''')
+							''',
+						example_key=example_key)
 					], width=4),
 					dbc.Col(get_render_example(bpmn_dot, id, zoom_min=1.0, zoom_max=5.0), width=8)
 				], class_name="mb-4")
