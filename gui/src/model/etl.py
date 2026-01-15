@@ -49,13 +49,14 @@ from gui.src.model.sqlite import (
 from gui.src.model.bpmn import get_active_region_by_pn, ActivityState
 
 
-def load_bpmn_dot(bpmn: dict) -> str:
+def load_bpmn_dot(bpmn: dict, *, force_refresh: bool = False) -> str:
 	"""
 	Given a BPMN process, return its DOT representation as an SVG base64 string.
 	If the DOT representation is already stored in the database, retrieve it from there.
 	Otherwise, generate it, store it in the database, and return it.
 
 	:param bpmn: BPMN dictionary
+	:param force_refresh: If True, re-generate the DOT even if cached
 	:return: SVG base64 string of the BPMN DOT representation
 	"""
 	if bpmn[EXPRESSION] == '':
@@ -64,29 +65,33 @@ def load_bpmn_dot(bpmn: dict) -> str:
 	normalized_bpmn = _normalize_bpmn(bpmn)
 
 	record = fetch_bpmn(normalized_bpmn)
-	if record and record.bpmn_dot:
+	if not force_refresh and record and record.bpmn_dot:
 		return record.bpmn_dot
 
 	bpmn_dot = bpmn_snapshot_to_dot(bpmn)
 	bpmn_svg_base64 = dot_to_base64svg(bpmn_dot)
 
-	save_bpmn_dot(normalized_bpmn, bpmn_svg_base64)
+	if record:
+		_update_bpmn_record(normalized_bpmn, bpmn_svg_base64)
+	else:
+		save_bpmn_dot(normalized_bpmn, bpmn_svg_base64)
 
 	return bpmn_svg_base64
 
 
-def load_petri_net_svg(bpmn: dict) -> str:
+def load_petri_net_svg(bpmn: dict, *, force_refresh: bool = False) -> str:
 	"""
 	Given a BPMN process, return its Petri Net DOT representation as an SVG base64 string.
 
 	:param bpmn: BPMN dictionary
+	:param force_refresh: If True, re-generate the Petri net even if cached
 	:return: SVG base64 string of the Petri Net DOT representation
 	"""
 	if bpmn[EXPRESSION] == '':
 		return None
 
 	normalized_bpmn = _normalize_bpmn(bpmn)
-	petri_net, petri_net_dot, spin_svg = get_petri_net(normalized_bpmn, 0)
+	petri_net, petri_net_dot, spin_svg = get_petri_net(normalized_bpmn, 0, force_refresh=force_refresh)
 	
 	if spin_svg:
 		return f"data:image/svg+xml;base64,{base64.b64encode(spin_svg.encode('utf-8')).decode('utf-8')}"
@@ -95,6 +100,23 @@ def load_petri_net_svg(bpmn: dict) -> str:
 		return None
 
 	return dot_to_base64svg(petri_net_dot)
+
+
+def reset_simulation_state(bpmn: dict, bound_store: dict | None = None) -> tuple[str | None, str | None, dict]:
+	"""
+	Force-refresh execution tree and Petri net, then return updated SVGs and simulation data.
+	"""
+	if bpmn[EXPRESSION] == '':
+		return None, None, {"expression": ""}
+
+	load_execution_tree(bpmn, force_refresh=True)
+	bpmn_svg = load_bpmn_dot(bpmn, force_refresh=True)
+	petri_svg = load_petri_net_svg(bpmn, force_refresh=True)
+
+	sim_data = get_simulation_data(bpmn, bound_store)
+	sim_data["expression"] = bpmn.get(EXPRESSION, "")
+
+	return bpmn_svg, petri_svg, sim_data
 
 
 def dot_to_base64svg(dot: str) -> str:
@@ -695,6 +717,71 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 		petri_net_svg = dot_to_base64svg(petri_net_dot)
 
 	return get_simulation_data(bpmn, bound_store), petri_net_svg
+
+
+def preview_petri_net_svg(bpmn: dict) -> str | None:
+	"""
+	Request a preview of the current Petri net state (no execution), returning the SVG.
+	"""
+	if bpmn[EXPRESSION] == '':
+		return None
+
+	normalized_bpmn = _normalize_bpmn(bpmn)
+	parse_tree = load_parse_tree(bpmn)
+	petri_net, petri_net_dot, _ = get_petri_net(bpmn, 0)
+	execution_tree, current_execution = load_execution_tree(bpmn)
+
+	request = {
+		"bpmn": parse_tree,
+		"petri_net": petri_net,
+		"execution_tree": {"root": execution_tree, "current_node": current_execution},
+		"preview": True,
+	}
+
+	try:
+		response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
+		response.raise_for_status()
+	except requests.exceptions.HTTPError as exc:
+		if exc.response is None or exc.response.status_code != 422:
+			raise
+
+		parse_tree = load_parse_tree(bpmn, force_refresh=True)
+		petri_net, petri_net_dot, _ = get_petri_net(bpmn, 0, force_refresh=True)
+		execution_tree, current_execution = load_execution_tree(bpmn, force_refresh=True)
+
+		request = {
+			"bpmn": parse_tree,
+			"petri_net": petri_net,
+			"execution_tree": {"root": execution_tree, "current_node": current_execution},
+			"preview": True,
+		}
+
+		response = requests.post(SIMULATOR_SERVER + "execute", json=request, headers=HEADERS)
+		response.raise_for_status()
+
+	resp_json = response.json()
+
+	if 'error' in resp_json:
+		raise ValueError(f"Simulator error: {resp_json['error']}")
+
+	if 'type' in resp_json and resp_json.get('type') == 'error':
+		error_msg = resp_json.get('message', 'Unknown error')
+		tb = resp_json.get('traceback', [])
+		if tb:
+			tb_str = '\n'.join(tb) if isinstance(tb, list) else str(tb)
+			raise ValueError(f"Simulator error: {error_msg}\nTraceback:\n{tb_str}")
+		raise ValueError(f"Simulator error: {error_msg}")
+
+	new_petri_net_dot = resp_json.get('petri_net_dot') or petri_net_dot
+	spin_svg = resp_json.get('spin_svg')
+
+	save_petri_net(normalized_bpmn, json.dumps(petri_net, sort_keys=True), new_petri_net_dot or "", spin_svg=spin_svg)
+
+	if spin_svg:
+		return f"data:image/svg+xml;base64,{base64.b64encode(spin_svg.encode('utf-8')).decode('utf-8')}"
+	if not new_petri_net_dot:
+		return None
+	return dot_to_base64svg(new_petri_net_dot)
 
 
 def log_debug(msg):

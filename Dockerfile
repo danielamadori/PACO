@@ -33,4 +33,4 @@ EXPOSE 8001
 EXPOSE 8050
 EXPOSE 8888
 
-CMD sh -c "jupyter notebook --notebook-dir=/app --ip=0.0.0.0 --port=8888 --no-browser --allow-root --IdentityProvider.token='' & exec python3 src --gui"
+CMD ["sh", "-c", "jupyter notebook --notebook-dir=/app --ip=0.0.0.0 --port=8888 --no-browser --allow-root --IdentityProvider.token='' & exec python3 src --gui"]
