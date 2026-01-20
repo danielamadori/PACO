@@ -18,3 +18,4 @@ logs/
 
 CPIs/
 tests/reports/
+simulator/tests/spin/output/time_steps/
