@@ -4,14 +4,10 @@ Generates markdown files with BPMN and Petri Net visualizations at each step.
 Uses EXISTING API endpoint /create_bpmn for BPMN rendering (as shown in tutorial.ipynb).
 """
 import pytest
-import sys
 import os
 import subprocess
 import requests
 from pathlib import Path
-
-sys.path.append(os.path.abspath("simulator/src"))
-sys.path.append(os.path.abspath("src"))
 
 from fastapi.testclient import TestClient
 from lark import Lark
@@ -112,8 +108,8 @@ class ReportGenerator:
         
     def generate_bpmn_image(self):
         """Generate BPMN diagram using existing paco methods directly."""
-        from paco.parser.bpmn_parser import create_parse_tree as paco_create_parse_tree
-        from paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
+        from src.paco.parser.bpmn_parser import create_parse_tree as paco_create_parse_tree
+        from src.paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
         
         durations = self.config.get(DURATIONS, {})
         probabilities = self.config.get(PROBABILITIES, {})
@@ -152,8 +148,8 @@ class ReportGenerator:
         
     def add_step(self, step_num, petri_net, snapshot, choices_made=None, pn_dot=None):
         """Generate BPMN diagram with current status AND Petri Net with tokens at each step."""
-        from paco.parser.bpmn_parser import create_parse_tree as paco_create_parse_tree
-        from paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
+        from src.paco.parser.bpmn_parser import create_parse_tree as paco_create_parse_tree
+        from src.paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
         
         exec_time = snapshot.get("execution_time", 0.0) if snapshot else 0.0
         status = snapshot.get("status", {}) if snapshot else {}

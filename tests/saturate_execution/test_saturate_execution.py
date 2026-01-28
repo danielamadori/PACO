@@ -1,14 +1,14 @@
 import unittest
 import os
 
-from paco.parser.bpmn_parser import create_parse_tree
-from paco.saturate_execution.saturate_execution import saturate_execution_decisions
-from paco.saturate_execution.states import States, states_info, ActivityState
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import Sequential, Task, Nature, Choice, Parallel
+from src.paco.parser.bpmn_parser import create_parse_tree
+from src.paco.saturate_execution.saturate_execution import saturate_execution_decisions
+from src.paco.saturate_execution.states import States, states_info, ActivityState
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import Sequential, Task, Nature, Choice, Parallel
 
-from utils import check_syntax as cs
-from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
+from src.utils import check_syntax as cs
+from src.utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
 
 
 def test_create_parse_tree(bpmn: dict) -> ParseTree:
