@@ -54,7 +54,7 @@ LM_STUDIO_API_BASE = (os.getenv("LM_STUDIO_API_BASE") or "http://localhost:1234/
 DEFAULT_LM_STUDIO_MODEL = (os.getenv("LM_STUDIO_MODEL") or "deepseek-r1-distill-llama-8b").strip()
 DEFAULT_OPENAI_MODEL = (os.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip()
 DEFAULT_ANTHROPIC_MODEL = (os.getenv("ANTHROPIC_MODEL") or "claude-3-5-sonnet-20241022").strip()
-DEFAULT_GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-1.5-pro").strip()
+DEFAULT_GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-2.5-flash-lite").strip()
 DEFAULT_OPENROUTER_MODEL = (os.getenv("OPENROUTER_MODEL") or "openai/gpt-4o-mini").strip()
 GEMINI_API_BASE = (
     os.getenv("GEMINI_API_BASE") or "https://generativelanguage.googleapis.com/v1beta/models"
@@ -106,8 +106,21 @@ def _require_user_key(api_key: str | None, provider_label: str) -> str:
     return key
 
 
-def _get_gemini_api_key(api_key: str | None) -> str:
-    return _require_user_key(api_key, "Gemini")
+def _get_gemini_api_key(api_key: str | None, model: str | None = None) -> str:
+    user_key = (api_key or "").strip()
+    
+    # If user provided a key, use it (overrides system key)
+    if user_key:
+        return user_key
+    
+    # No user key provided - use system key for gemini-2.5-flash-lite only
+    if model == "gemini-2.5-flash-lite":
+        system_key = os.getenv("GEN_AI_API_KEY", "").strip()
+        if system_key:
+            return system_key
+    
+    # No user key and no system key available
+    raise RuntimeError("Gemini API key missing. Enter it in the UI.")
 
 
 def _extract_gemini_text(response_data: dict) -> str:
@@ -132,7 +145,7 @@ def _invoke_gemini(prompt: str, model: str, api_key: str | None) -> str:
     }
     headers = {
         "Content-Type": "application/json",
-        "X-goog-api-key": _get_gemini_api_key(api_key),
+        "X-goog-api-key": _get_gemini_api_key(api_key, model),
     }
     response = requests.post(
         endpoint,

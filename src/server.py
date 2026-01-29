@@ -1,10 +1,16 @@
 import os
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.llm import register_api_llm
 from src.api.paco import register_paco_api
 import uvicorn
+
+# Load .env file from project root
+_project_root = Path(__file__).parent.parent
+load_dotenv(_project_root / ".env")
 
 def _get_env_int(name: str, default: int) -> int:
 	value = os.getenv(name)

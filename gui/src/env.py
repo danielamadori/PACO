@@ -47,7 +47,7 @@ MODEL_2 = "lmstudio-community/Llama-3.1-Nemotron-70B-Instruct-HF-GGUF/Llama-3.1-
 LM_STUDIO_MODEL = (os.getenv("LM_STUDIO_MODEL") or "openai/gpt-oss-20b").strip()
 OPENAI_MODEL = (os.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip()
 ANTHROPIC_MODEL = (os.getenv("ANTHROPIC_MODEL") or "claude-3-5-sonnet-20241022").strip()
-GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-1.5-pro").strip()
+GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-2.5-flash-lite").strip()
 OPENROUTER_MODEL = (os.getenv("OPENROUTER_MODEL") or "openai/gpt-4o-mini").strip()
 
 LLM_PROVIDER_OPTIONS = [
@@ -63,7 +63,7 @@ LLM_MODELS_BY_PROVIDER = {
     "openai": [OPENAI_MODEL],
     "openrouter": [OPENROUTER_MODEL],
     "anthropic": [ANTHROPIC_MODEL, "claude-3.5-opus"],
-    "gemini": [GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-flash-lite"],
+    "gemini": ["gemini-2.5-flash-lite", GEMINI_MODEL, "gemini-2.5-flash"],
 }
 LLM_MODEL_OPTIONS_BY_PROVIDER = {
     provider: [{"label": model, "value": model} for model in models]

@@ -11,6 +11,27 @@ from gui.src.env import (
 def get_model_selector():
     return html.Div(
         [
+            html.Div(
+                [
+                    html.P(
+                        [
+                            html.Strong("Note: "),
+                            "The system currently includes a working ",
+                            html.Strong("Gemini 2.5-flash-lite"),
+                            " model. To use other models, please add your API key and select your preferred option.",
+                        ],
+                        style={
+                            "backgroundColor": "#e3f2fd",
+                            "padding": "10px",
+                            "borderRadius": "4px",
+                            "border": "1px solid #90caf9",
+                            "marginBottom": "12px",
+                            "fontSize": "0.9em",
+                            "color": "#1565c0",
+                        },
+                    ),
+                ],
+            ),
             html.Label(
                 "Provider",
                 htmlFor="llm-provider",
@@ -65,7 +86,7 @@ def get_model_selector():
                     dcc.Input(
                         id="llm-api-key",
                         type="password",
-                        placeholder="Required for OpenAI / OpenRouter / Claude / Gemini",
+                        placeholder="Required (provided for Gemini 2.5-flash-lite only, use your own key for others)",
                         style={
                             "width": "100%",
                             "padding": "6px 8px",

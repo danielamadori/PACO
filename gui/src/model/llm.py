@@ -53,8 +53,11 @@ def llm_response(
 	if not model:
 		return f"Error: Missing model for {provider}.", bpmn_store
 	api_key = (api_key or "").strip()
-	if provider in {"openai", "anthropic", "gemini", "openrouter"} and not api_key:
+	# Allow empty API key for Gemini 2.5-flash-lite (system provides it)
+	if provider in {"openai", "anthropic", "openrouter"} and not api_key:
 		return f"Error: Missing API key for {provider}.", bpmn_store
+	if provider == "gemini" and not api_key and model != "gemini-2.5-flash-lite":
+		return f"Error: Missing API key for Gemini model {model}.", bpmn_store
 
 	payload = {
 		"bpmn": bpmn,
