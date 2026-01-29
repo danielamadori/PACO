@@ -25,8 +25,9 @@ RESPISE is an algorithm that given a *BPMN + CPI*  diagram and a bound impact ve
 * **Daniel Amadori**
 * **Emanuele Chini**
 * **Pietro Sala**
-* **Andrea Simonetti**
-* **Omid Zare**
+* **Sidra Nasir Rajput**
+* **Matteo Baldi**
+* **Mattia Cappelletti**
 
 ## Contributing
 
