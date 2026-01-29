@@ -1,14 +1,14 @@
 import unittest
 import os
 
-from paco.parser.bpmn_parser import create_parse_tree
-from paco.saturate_execution.saturate_execution import saturate_execution_decisions
-from paco.saturate_execution.states import States, states_info, ActivityState
-from paco.parser.parse_tree import ParseTree
-from paco.parser.parse_node import Sequential, Task, Nature, Choice, Parallel
+from src.paco.parser.bpmn_parser import create_parse_tree
+from src.paco.saturate_execution.saturate_execution import saturate_execution_decisions
+from src.paco.saturate_execution.states import States, states_info, ActivityState
+from src.paco.parser.parse_tree import ParseTree
+from src.paco.parser.parse_node import Sequential, Task, Nature, Choice, Parallel
 
-from utils import check_syntax as cs
-from utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
+from src.utils import check_syntax as cs
+from src.utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
 
 
 def test_create_parse_tree(bpmn: dict) -> ParseTree:
@@ -45,8 +45,8 @@ class TestSaturateExecution(unittest.TestCase):
 
 
         s1 = Sequential(None, 0, 0)
-        t1 = Task(s1, 0, 1, "T1", [], [], 1)
-        t2 = Task(s1, 1, 2, "T2", [], [], 2)
+        t1 = Task(s1, 0, 1, "T1", [], 1)
+        t2 = Task(s1, 1, 2, "T2", [], 2)
 
         self.assertEqual(states.activityState[s1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
                          "The root should be completed without passing over")
@@ -75,9 +75,9 @@ class TestSaturateExecution(unittest.TestCase):
 
         s1 = Sequential(None, 0, 0)
         n1 = Nature(s1, 0, 1,"N1", 0.6)
-        t1 = Task(n1, 0, 2, "T1", [], [], 0)
-        t2 = Task(n1, 1, 3, "T2", [], [], 0)
-        t3 = Task(s1, 1, 4, "T3", [], [], 0)
+        t1 = Task(n1, 0, 2, "T1", [], 0)
+        t2 = Task(n1, 1, 3, "T2", [], 0)
+        t3 = Task(s1, 1, 4, "T3", [], 0)
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -134,10 +134,10 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "sequential_task_nature")
 
         s1 = Sequential(None, 0, 0)
-        t1 = Task(s1, 0, 1, "T1", [], [], 0)
+        t1 = Task(s1, 0, 1, "T1", [], 0)
         n1 = Nature(s1, 1, 2,"N1", 0.6)
-        t2 = Task(n1, 0, 3, "T2", [], [], 0)
-        t3 = Task(s1, 1, 4, "T3", [], [], 0)
+        t2 = Task(n1, 0, 3, "T2", [], 0)
+        t3 = Task(s1, 1, 4, "T3", [], 0)
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -194,9 +194,9 @@ class TestSaturateExecution(unittest.TestCase):
 
         s1 = Sequential(None, 0, 0)
         c1 = Nature(s1, 0, 1,"C1", 0.6)
-        t1 = Task(c1, 0, 2, "T1", [], [], 0)
-        t2 = Task(c1, 1, 3, "T2", [], [], 0)
-        t3 = Task(s1, 1, 4, "T3", [], [], 0)
+        t1 = Task(c1, 0, 2, "T1", [], 0)
+        t2 = Task(c1, 1, 3, "T2", [], 0)
+        t3 = Task(s1, 1, 4, "T3", [], 0)
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -253,10 +253,10 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "sequential_task_choice")
 
         s1 = Sequential(None, 0, 0)
-        t1 = Task(s1, 0, 1, "T1", [], [], 0)
+        t1 = Task(s1, 0, 1, "T1", [], 0)
         c1 = Choice(s1, 1, 2,"C1", 0)
-        t2 = Task(c1, 0, 3, "T2", [], [], 0)
-        t3 = Task(c1, 1, 4, "T3", [], [], 0)
+        t2 = Task(c1, 0, 3, "T2", [], 0)
+        t3 = Task(c1, 1, 4, "T3", [], 0)
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -314,11 +314,11 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "sequential_sequential_nature")
 
         s1 = Sequential(None, 0, 0)
-        t1 = Task(s1, 0, 2, "T1", [], [], 0)
-        t2 = Task(s1, 1, 3, "T2", [], [], 0)
+        t1 = Task(s1, 0, 2, "T1", [], 0)
+        t2 = Task(s1, 1, 3, "T2", [], 0)
         n1 = Nature(s1, 1, 4, "N1", 0.6)
-        t3 = Task(n1, 0, 5, "T3", [], [], 0)
-        t4 = Task(n1, 1, 6, "T4", [], [], 0)
+        t3 = Task(n1, 0, 5, "T3", [], 0)
+        t4 = Task(n1, 1, 6, "T4", [], 0)
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[s1], 1, "S1 should be executed with time 1")
@@ -368,11 +368,11 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "sequential_sequential_choice")
 
         s1 = Sequential(None, 0, 0)
-        t1 = Task(s1, 0, 2, "T1", [], [], 0)
-        t2 = Task(s1, 1, 3, "T2", [], [], 0)
+        t1 = Task(s1, 0, 2, "T1", [], 0)
+        t2 = Task(s1, 1, 3, "T2", [], 0)
         c1 = Nature(s1, 1, 4, "N1", 0.6)
-        t3 = Task(c1, 0, 5, "T3", [], [], 0)
-        t4 = Task(c1, 1, 6, "T4", [], [], 0)
+        t3 = Task(c1, 0, 5, "T3", [], 0)
+        t4 = Task(c1, 1, 6, "T4", [], 0)
 
         self.assertEqual(states.activityState[s1], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[s1], 1, "S1 should be executed with time 1")
@@ -471,8 +471,8 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "parallel_task1_eq_task2")
 
         p1 = Parallel(None, 0, 0)
-        t1 = Task(p1, 0, 1, "T1", [], [], 1)
-        t2 = Task(p1, 1, 2, "T2", [], [], 2)
+        t1 = Task(p1, 0, 1, "T1", [], 1)
+        t2 = Task(p1, 1, 2, "T2", [], 2)
 
 
         self.assertEqual(states.activityState[p1], ActivityState.COMPLETED_WITHOUT_PASSING_OVER,
@@ -552,9 +552,9 @@ class TestSaturateExecution(unittest.TestCase):
 
         p1 = Parallel(None, 0, 0)
         c1 = Choice(p1, 0, 1, "C1", 1)
-        t1 = Task(p1, 1, 4, "T1", [], [], 1)
-        t2 = Task(p1, 0, 2, "T2", [], [], 2)
-        t3 = Task(c1, 1, 3, "T3", [], [], 1)
+        t1 = Task(p1, 1, 4, "T1", [], 1)
+        t2 = Task(p1, 0, 2, "T2", [], 2)
+        t3 = Task(c1, 1, 3, "T3", [], 1)
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -722,12 +722,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         p1 = Parallel(None, 0, 0)
         n1 = Nature(p1, 0, 1, "N1", 0.6)
-        t1a = Task(p1, 0, 2, "T1A", [], [], 0)
-        t1b = Task(p1, 1, 3, "T1B", [], [], 0)
+        t1a = Task(p1, 0, 2, "T1A", [], 0)
+        t1b = Task(p1, 1, 3, "T1B", [], 0)
 
         n2 = Nature(p1, 1, 4, "N2", 0.7)
-        t2a = Task(p1, 0, 5, "T2A", [], [], 0)
-        t2b = Task(p1, 1, 6, "T2B", [], [], 0)
+        t2a = Task(p1, 0, 5, "T2A", [], 0)
+        t2b = Task(p1, 1, 6, "T2B", [], 0)
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -818,12 +818,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         p1 = Parallel(None, 0, 0)
         c1 = Choice(p1, 0, 1, "C1", 1)
-        t1a = Task(p1, 0, 2, "T1A", [], [], 0)
-        t1b = Task(p1, 1, 3, "T1B", [], [], 0)
+        t1a = Task(p1, 0, 2, "T1A", [], 0)
+        t1b = Task(p1, 1, 3, "T1B", [], 0)
 
         c2 = Choice(p1, 1, 4, "C2", 1)
-        t2a = Task(p1, 0, 5, "T2A", [], [], 0)
-        t2b = Task(p1, 1, 6, "T2B", [], [], 0)
+        t2a = Task(p1, 0, 5, "T2A", [], 0)
+        t2b = Task(p1, 1, 6, "T2B", [], 0)
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -1036,12 +1036,12 @@ class TestSaturateExecution(unittest.TestCase):
 
         p1 = Parallel(None, 0, 0)
         n1 = Nature(p1, 0, 1, "N1", 0.6)
-        t1a = Task(p1, 0, 2, "T1A", [], [], 0)
-        t1b = Task(p1, 1, 3, "T1B", [], [], 0)
+        t1a = Task(p1, 0, 2, "T1A", [], 0)
+        t1b = Task(p1, 1, 3, "T1B", [], 0)
 
         c2 = Choice(p1, 1, 4, "C2", 1)
-        t2a = Task(p1, 0, 5, "T2A", [], [], 0)
-        t2b = Task(p1, 1, 6, "T2B", [], [], 0)
+        t2a = Task(p1, 0, 5, "T2A", [], 0)
+        t2b = Task(p1, 1, 6, "T2B", [], 0)
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -1197,16 +1197,16 @@ class TestSaturateExecution(unittest.TestCase):
         p1 = Parallel(None, 0, 0)
         p2 = Parallel(p1, 0, 1)
         c1 = Choice(p1, 0, 2, "C1", 0)
-        t1a = Task(p1, 0, 3, "T1A", [], [], 0)
-        t1b = Task(p1, 1, 4, "T1B", [], [], 0)
+        t1a = Task(p1, 0, 3, "T1A", [], 0)
+        t1b = Task(p1, 1, 4, "T1B", [], 0)
 
         n2 = Nature(p1, 1, 5, "N2", 0.6)
-        t2a = Task(p1, 0, 6, "T2A", [], [], 0)
-        t2b = Task(p1, 1, 7, "T2B", [], [], 0)
+        t2a = Task(p1, 0, 6, "T2A", [], 0)
+        t2b = Task(p1, 1, 7, "T2B", [], 0)
 
         n3 = Nature(p1, 1, 8, "N3", 0.7)
-        t3a = Task(p1, 0, 9, "T3A", [], [], 0)
-        t3b = Task(p1, 1, 10, "T3B", [], [], 0)
+        t3a = Task(p1, 0, 9, "T3A", [], 0)
+        t3b = Task(p1, 1, 10, "T3B", [], 0)
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE,
                          "The root should be active")
@@ -1378,11 +1378,11 @@ class TestSaturateExecution(unittest.TestCase):
         self.info(parse_tree, states, "parallel_sequential_nature")
 
         p1 = Parallel(None, 0, 0)
-        t1 = Task(p1, 0, 1, "T1", [], [], 0)
-        t2 = Task(p1, 0, 3, "T2", [], [], 0)
+        t1 = Task(p1, 0, 1, "T1", [], 0)
+        t2 = Task(p1, 0, 3, "T2", [], 0)
         n1 = Nature(p1, 1, 4, "N1", 0.6)
-        t3 = Task(p1, 0, 5, "T3", [], [], 0)
-        t4 = Task(p1, 1, 6, "T4", [], [], 0)
+        t3 = Task(p1, 0, 5, "T3", [], 0)
+        t4 = Task(p1, 1, 6, "T4", [], 0)
 
         self.assertEqual(states.activityState[p1], ActivityState.ACTIVE, "The root should be active")
         self.assertEqual(states.executed_time[p1], 1, "P1 should be executed with time 1")

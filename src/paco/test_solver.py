@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 
 from src.paco.execution_tree.execution_tree import ExecutionTree
@@ -15,6 +17,8 @@ from src.utils.env import (
     LOOP_ROUND,
 )
 from src.paco.solver import paco
+
+__test__ = False
 
 bpmn_new_example = {
     "bpmn": [{
@@ -233,7 +237,7 @@ bpmn_ex = {
 
 
 
-def test_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
+def run_calc_strategy_paco(bpmn_ex_dicts:dict, selected:int = -1):
     if selected == -1:
         for name, example in bpmn_ex_dicts.items():
             print(example[0], example[1])
@@ -288,10 +292,20 @@ bpmn_paper_example = {
 }
 
 
-#test_calc_strategy_paco(bpmn_paper_example, 0)
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run PACO solver on built-in examples.")
+    parser.add_argument("--suite", choices=["examples", "paper"], default="examples", help="Example suite.")
+    parser.add_argument("--index", type=int, default=0, help="Index of the example in the suite.")
+    args = parser.parse_args()
 
-test_calc_strategy_paco(bpmn_ex, 0)
+    if args.suite == "paper":
+        run_calc_strategy_paco(bpmn_paper_example, args.index)
+    else:
+        run_calc_strategy_paco(bpmn_ex, args.index)
+    return 0
 
-#test_calc_strategy_paco(bpmn_ex, 14)
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 
 
