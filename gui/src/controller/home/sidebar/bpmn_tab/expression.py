@@ -23,15 +23,14 @@ def register_expression_callbacks(expression_callbacks):
         Output('choice-table', 'children'),
         Output('nature-table', 'children'),
         Output('loop-table', 'children'),
-        Input('generate-bpmn-btn', 'n_clicks'),
-        State('expression-bpmn', 'value'),
+        Input('expression-bpmn', 'value'),
         State('bpmn-store', 'data'),
         State('bound-store', 'data'),
         prevent_initial_call=True
     )
-    def evaluate_expression(n_clicks, current_expression, bpmn_store, bound_store):
-        if ctx.triggered_id != 'generate-bpmn-btn':
-             raise dash.exceptions.PreventUpdate
+    def evaluate_expression(current_expression, bpmn_store, bound_store):
+        if ctx.triggered_id != 'expression-bpmn':
+            raise dash.exceptions.PreventUpdate
 
         alert = ''
         tasks_impacts_table = dash.no_update

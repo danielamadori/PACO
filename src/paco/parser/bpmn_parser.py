@@ -36,7 +36,7 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
     if lark_tree.data == 'task':
         name = lark_tree.children[0].value
         impact = impacts.get(name, [])
-        task = Task(parent, index_in_parent, id, name=name, impact=impact, duration=durations[name])
+        task = Task(parent, index_in_parent, id, name=name, impact=impact[0:len(impact) - h], duration=durations[name])
         #print(f"Task: {task.name}, Impact: {task.impact}, Non-cumulative Impact: {task.non_cumulative_impact}, Duration: {task.duration}, ID: {id}")
         return task, id, pending_choices, pending_natures, pending_loops
 
