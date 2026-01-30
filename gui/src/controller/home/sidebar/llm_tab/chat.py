@@ -11,7 +11,7 @@ from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_
 from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
 from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
-from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes
+from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes, IMPACTS, IMPACTS_NAMES, DURATIONS, DELAYS, PROBABILITIES, LOOP_PROBABILITY, LOOP_ROUND, H
 
 
 def register_llm_callbacks(callback, clientside_callback):
@@ -105,6 +105,56 @@ def register_llm_callbacks(callback, clientside_callback):
 
 
 		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(new_bpmn[EXPRESSION]))
+		
+		# Ensure all tasks have impacts
+		if IMPACTS not in new_bpmn:
+			new_bpmn[IMPACTS] = {}
+		if IMPACTS_NAMES not in new_bpmn:
+			new_bpmn[IMPACTS_NAMES] = bpmn_store.get(IMPACTS_NAMES, [])
+
+		for task in tasks:
+			if task not in new_bpmn[IMPACTS]:
+				new_bpmn[IMPACTS][task] = {name: 0.0 for name in new_bpmn[IMPACTS_NAMES]}
+			# Ensure no missing impact names
+			for name in new_bpmn[IMPACTS_NAMES]:
+				if name not in new_bpmn[IMPACTS][task]:
+					new_bpmn[IMPACTS][task][name] = 0.0
+
+		# Ensure Durations
+		if DURATIONS not in new_bpmn:
+			new_bpmn[DURATIONS] = {}
+		for task in tasks:
+			if task not in new_bpmn[DURATIONS]:
+				new_bpmn[DURATIONS][task] = [0, 1]
+
+		# Ensure Delays for Choices
+		if DELAYS not in new_bpmn:
+			new_bpmn[DELAYS] = {}
+		for choice in choices:
+			if choice not in new_bpmn[DELAYS]:
+				new_bpmn[DELAYS][choice] = [0, 0]
+
+		# Ensure Probabilities for Natures
+		if PROBABILITIES not in new_bpmn:
+			new_bpmn[PROBABILITIES] = {}
+		for nature in natures:
+			if nature not in new_bpmn[PROBABILITIES]:
+				# Default probability? Usually dict of {branch: prob}
+				# For now assume nature is just a node ID, probability map is {nature_id: {path: 0.5}}?
+				# Let's check etl.py usage. 
+				# In etl.py: bpmn[PROBABILITIES] is {nature: bpmn_store...}
+				# It seems probability is linked to outgoing paths.
+				# If we don't have paths, we can't set it easily.
+				# But let's init empty dict if missing.
+				new_bpmn[PROBABILITIES][nature] = {} 
+
+		if LOOP_PROBABILITY not in new_bpmn: new_bpmn[LOOP_PROBABILITY] = {}
+		if LOOP_ROUND not in new_bpmn: new_bpmn[LOOP_ROUND] = {}
+		
+		# Ensure Horizon is 0 to avoid parsing issues with scalar impacts
+		new_bpmn[H] = 0
+
+
 		#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
 		tasks_impacts_table = create_tasks_impacts_table(new_bpmn, tasks)
 		tasks_duration_table = create_tasks_duration_table(new_bpmn, tasks)
@@ -122,7 +172,7 @@ def register_llm_callbacks(callback, clientside_callback):
 			return history, None, new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
 		except Exception as exception:
-			history[i]['text'] += f"\nProcessing bpmn image error: {str(exception)}"
+			history[i]['text'] += f"\nProcessing bpmn image error: {str(exception)}\nDEBUG BPMN: {str(new_bpmn)}"
 		return history, None, new_bpmn, sync_bound_store_from_bpmn(bpmn_store, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
 
 
