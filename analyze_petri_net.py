@@ -5,7 +5,7 @@ sys.path.append('simulator/src')
 sys.path.append('src')
 import requests
 
-URL = "127.0.0.1"
+URL = "0.0.0.0"
 SIMULATOR_PORT = 8001
 SOLVER_PORT = 8000
 HEADERS = {"Content-Type": "application/json"}
