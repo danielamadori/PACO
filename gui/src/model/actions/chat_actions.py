@@ -9,7 +9,19 @@ from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_
 from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
 from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
 from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
-from gui.src.env import EXPRESSION, SESE_PARSER, extract_nodes
+from gui.src.env import (
+    EXPRESSION,
+    SESE_PARSER,
+    extract_nodes,
+    H,
+    IMPACTS_NAMES,
+    IMPACTS,
+    DURATIONS,
+    DELAYS,
+    PROBABILITIES,
+    LOOP_PROBABILITY,
+    LOOP_ROUND,
+)
 
 
 def resolve_llm_response(pending_id, history, bpmn_store, bound_store, 
@@ -86,6 +98,81 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
     if new_history:
         target_idx = msg_index if msg_index >= 0 else -1
         proposal_svg = None
+        # Ensure required fields before generating preview SVG
+        new_bpmn.setdefault(H, 0)
+        new_bpmn.setdefault(IMPACTS_NAMES, [])
+        new_bpmn.setdefault(IMPACTS, {})
+        new_bpmn.setdefault(DURATIONS, {})
+        new_bpmn.setdefault(DELAYS, {})
+        new_bpmn.setdefault(PROBABILITIES, {})
+        new_bpmn.setdefault(LOOP_PROBABILITY, {})
+        new_bpmn.setdefault(LOOP_ROUND, {})
+
+        if not isinstance(new_bpmn.get(IMPACTS), dict):
+            new_bpmn[IMPACTS] = {}
+        if not isinstance(new_bpmn.get(DURATIONS), dict):
+            new_bpmn[DURATIONS] = {}
+        if not isinstance(new_bpmn.get(DELAYS), dict):
+            new_bpmn[DELAYS] = {}
+        if not isinstance(new_bpmn.get(PROBABILITIES), dict):
+            new_bpmn[PROBABILITIES] = {}
+        if not isinstance(new_bpmn.get(LOOP_PROBABILITY), dict):
+            new_bpmn[LOOP_PROBABILITY] = {}
+        if not isinstance(new_bpmn.get(LOOP_ROUND), dict):
+            new_bpmn[LOOP_ROUND] = {}
+
+        tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(new_bpmn[EXPRESSION]))
+
+        if not new_bpmn.get(IMPACTS_NAMES):
+            inferred_impacts = None
+            impacts_val = new_bpmn.get(IMPACTS)
+            if isinstance(impacts_val, dict) and impacts_val:
+                for val in impacts_val.values():
+                    if isinstance(val, dict) and val:
+                        inferred_impacts = list(val.keys())
+                        break
+                    if isinstance(val, (list, tuple)) and val:
+                        inferred_impacts = None
+                        break
+            new_bpmn[IMPACTS_NAMES] = inferred_impacts or ["kWh"]
+
+        impacts_dict = new_bpmn[IMPACTS]
+        for task in tasks:
+            val = impacts_dict.get(task)
+            if isinstance(val, dict):
+                for name in new_bpmn[IMPACTS_NAMES]:
+                    val.setdefault(name, 0.0)
+                impacts_dict[task] = val
+            elif isinstance(val, (list, tuple)):
+                impacts_dict[task] = {
+                    name: float(val[idx]) if idx < len(val) else 0.0
+                    for idx, name in enumerate(new_bpmn[IMPACTS_NAMES])
+                }
+            else:
+                impacts_dict[task] = {name: 0.0 for name in new_bpmn[IMPACTS_NAMES]}
+
+        durations_dict = new_bpmn[DURATIONS]
+        for task in tasks:
+            val = durations_dict.get(task)
+            if isinstance(val, (list, tuple)) and len(val) >= 2:
+                durations_dict[task] = (val[0], val[1])
+            else:
+                durations_dict[task] = (0, 1)
+
+        delays_dict = new_bpmn[DELAYS]
+        for choice in choices:
+            delays_dict.setdefault(choice, 0)
+
+        probs_dict = new_bpmn[PROBABILITIES]
+        for nature in natures:
+            probs_dict.setdefault(nature, 0.5)
+
+        loops_prob_dict = new_bpmn[LOOP_PROBABILITY]
+        loops_round_dict = new_bpmn[LOOP_ROUND]
+        for loop in loops:
+            loops_prob_dict.setdefault(loop, 0.5)
+            loops_round_dict.setdefault(loop, 1)
+
         try:
             proposal_svg = load_bpmn_dot(new_bpmn)
         except Exception as exc:
