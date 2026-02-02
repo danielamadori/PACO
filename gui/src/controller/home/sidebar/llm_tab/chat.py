@@ -71,7 +71,11 @@ def register_llm_callbacks(callback, clientside_callback):
 					if isinstance(btn_id, dict) and btn_id.get('index') == idx:
 						pos = i
 						break
-			if pos is not None and svg_data and pos < len(svg_data):
+			if pos is None:
+				return is_open, no_update
+			if not btn_clicks or pos >= len(btn_clicks) or not btn_clicks[pos]:
+				return is_open, no_update
+			if svg_data and pos < len(svg_data):
 				return True, svg_data[pos]
 			return True, no_update
 		return is_open, no_update

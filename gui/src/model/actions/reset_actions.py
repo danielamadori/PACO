@@ -11,7 +11,7 @@ def reset_chat_logic():
     Returns tuple of 3 values:
     (chat_history, pending_message, reset_trigger)
     """
-    return [], None, True
+    return [], None, False
 
 
 def acknowledge_reset_logic(trigger):
