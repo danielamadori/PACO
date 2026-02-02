@@ -4,6 +4,7 @@ import random, dash
 from gui.src.controller.home.sidebar.llm_tab.effects import register_llm_effects_callbacks
 from gui.src.controller.home.sidebar.llm_tab.model_selector import register_llm_model_selector_callbacks
 from gui.src.controller.home.sidebar.llm_tab.reset import register_llm_reset_callbacks
+from gui.src.controller.home.sidebar.llm_tab.resolution import register_llm_resolution_callback
 from gui.src.model.etl import load_bpmn_dot
 from gui.src.model.llm import llm_response
 from gui.src.view.home.sidebar.llm_tab.chat import get_message
@@ -18,6 +19,7 @@ def register_llm_callbacks(callback, clientside_callback):
 	register_llm_reset_callbacks(callback)
 	register_llm_effects_callbacks(callback, clientside_callback)
 	register_llm_model_selector_callbacks(callback)
+	register_llm_resolution_callback(callback)
 
 	# ------------------------------------------------------------------
 	# NOTE: send_message callback migrated to store_manager.py

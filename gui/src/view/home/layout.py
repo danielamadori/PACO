@@ -59,10 +59,6 @@ def layout():
         dcc.Store(id="sidebar-visible", data=True, storage_type='session'),
         dcc.Store(id="sidebar-width", data=sidebar_min_width, storage_type='session'),
 
-		# Hidden buttons to satisfy callback dependencies
-		html.Button(id="btn-accept-proposal", style={"display": "none"}),
-		html.Button(id="btn-reject-proposal", style={"display": "none"}),
-
         DashSplitPane(
             id="split-pane",
             split="vertical",

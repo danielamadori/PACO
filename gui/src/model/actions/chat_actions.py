@@ -32,8 +32,11 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
     replaced = False
     msg_index = -1
     
+    print(f"DEBUG: resolving pending msg {pending_id}")
+
     for i in range(len(history) - 1, -1, -1):
         if history[i].get('id') == pending_id:
+            print(f"DEBUG: Found pending msg at index {i}. Calling llm_response...")
             history[i]['text'], new_bpmn = llm_response(
                 bpmn_store,
                 history[i - 1]['text'],
@@ -42,6 +45,7 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
                 custom_model,
                 api_key,
             )
+            print("DEBUG: llm_response returned.")
             del history[i]['id']
             replaced = True
             msg_index = i
@@ -77,11 +81,19 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
     # Proposal Mode: Do NOT generate tables or reset simulation yet.
     # Just validate parsing and return proposal.
     
-    # Update History with Proposal Flag
+    # Update History with Proposal Flag (+ preview SVG)
     new_history = [msg.copy() for msg in history]
     if new_history:
-        new_history[-1]['is_proposal'] = True
-        new_history[-1]['text'] += "\n\n💡 **Proposal Ready**. Review and Accept."
+        target_idx = msg_index if msg_index >= 0 else -1
+        proposal_svg = None
+        try:
+            proposal_svg = load_bpmn_dot(new_bpmn)
+        except Exception as exc:
+            print(f"DEBUG: Failed to generate proposal SVG: {exc}")
+        new_history[target_idx]['is_proposal'] = True
+        new_history[target_idx]['text'] += "\n\n💡 **Proposal Ready**. Review and Accept."
+        if proposal_svg:
+            new_history[target_idx]['proposal_svg'] = proposal_svg
 
     # Return 13 values:
     # 0: history

@@ -3,11 +3,44 @@ import dash_bootstrap_components as dbc
 
 def get_message(msg):
     content = [html.Div(msg['text'])]
+
+    proposal_svg = msg.get('proposal_svg')
+    if proposal_svg:
+        content.append(
+            html.Div(
+                html.Img(
+                    src=proposal_svg,
+                    style={
+                        'width': '100%',
+                        'height': 'auto',
+                        'display': 'block'
+                    }
+                ),
+                style={
+                    'marginTop': '10px',
+                    'padding': '6px',
+                    'border': '1px solid #d0d0d0',
+                    'borderRadius': '8px',
+                    'backgroundColor': '#ffffff'
+                }
+            )
+        )
     
     if msg.get('is_proposal'):
         content.append(html.Div([
-            dbc.Button("Accept", id="btn-accept-proposal", color="success", size="sm", className="me-2"),
-            dbc.Button("Reject", id="btn-reject-proposal", color="danger", size="sm")
+            dbc.Button(
+                "Accept",
+                id={"type": "proposal-action", "action": "accept", "index": "single"},
+                color="success",
+                size="sm",
+                className="me-2",
+            ),
+            dbc.Button(
+                "Reject",
+                id={"type": "proposal-action", "action": "reject", "index": "single"},
+                color="danger",
+                size="sm",
+            )
         ], style={'marginTop': '10px'}))
 
     return html.Div(

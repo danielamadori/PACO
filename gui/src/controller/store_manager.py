@@ -62,7 +62,6 @@ def register_store_manager_callbacks(callback_provider):
         Input({'type': ALL, 'index': ALL}, 'n_clicks'),
         Input({'type': 'add-impact-button', 'index': ALL}, 'n_clicks'),
         Input({'type': 'selected_bound', 'index': ALL, 'table': ALL}, 'n_clicks'),
-        Input('pending-message', 'data'),
         Input('generate-bpmn-btn', 'n_clicks'),
         Input('upload-data', 'contents'),
         Input('btn-back', 'n_clicks'),
@@ -73,8 +72,8 @@ def register_store_manager_callbacks(callback_provider):
         Input('chat-send-btn', 'n_clicks'),
         Input('find-strategy-button', 'n_clicks'),
         Input('url', 'search'),
-        Input('btn-accept-proposal', 'n_clicks'), # NEW
-        Input('btn-reject-proposal', 'n_clicks'), # NEW
+        Input({'type': 'proposal-action', 'action': 'accept', 'index': ALL}, 'n_clicks'),
+        Input({'type': 'proposal-action', 'action': 'reject', 'index': ALL}, 'n_clicks'),
 
         # === STATES ===
         State({'type': ALL, 'index': ALL}, 'id'),
@@ -99,10 +98,10 @@ def register_store_manager_callbacks(callback_provider):
         prevent_initial_call=True
     )
     def central_store_manager(
-        all_values, all_clicks, add_btn_list, pending_msg, generate_btn,
+        all_values, all_clicks, add_btn_list, selected_bound_clicks, generate_btn,
         upload_contents, btn_back, btn_forward, view_mode,
         chat_clear, reset_trigger, chat_send, find_strategy, url_search,
-        accept_proposal, reject_proposal, selected_bound_clicks,
+        accept_proposal_clicks, reject_proposal_clicks,
         all_ids_state, new_impact_name_list, bpmn_store, bound_store, chat_history,
         expression_value, upload_filename, sim_store, gateway_values, time_step,
         llm_provider, llm_model, llm_model_custom, llm_api_key, chat_input,
@@ -126,8 +125,8 @@ def register_store_manager_callbacks(callback_provider):
             res = reset_chat_logic()
             return (
                 no_update, no_update, no_update, no_update, no_update,
-                res[0], res[1], res[2], no_update, no_update, no_update,
-                no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update,
+                no_update, no_update, no_update, no_update, no_update, no_update,
+                res[0], res[1], res[2], no_update, no_update, no_update, no_update, no_update,
                 no_update, no_update 
             )
 
@@ -138,8 +137,8 @@ def register_store_manager_callbacks(callback_provider):
                 return no_updates()
             return (
                 no_update, no_update, no_update, no_update, no_update,
-                no_update, no_update, res, no_update, no_update, no_update,
-                no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update,
+                no_update, no_update, no_update, no_update, no_update, no_update,
+                no_update, no_update, res, no_update, no_update, no_update, no_update, no_update,
                 no_update, no_update
             )
 
@@ -230,37 +229,28 @@ def register_store_manager_callbacks(callback_provider):
             print(f"DEBUG: final output len={len(final_res)}")
             return final_res
 
-        # ========= CHAT PENDING MESSAGE =========
-        if trigger == 'pending-message':
-            res = resolve_llm_response(
-                pending_msg, chat_history, bpmn_store, bound_store,
-                llm_provider, llm_model, llm_model_custom, llm_api_key
-            )
-            return (
-                res[2], res[4], res[5], res[6], res[3], no_update,
-                res[7], res[8], res[9], res[10], res[11],
-                res[0], res[1], no_update, no_update, no_update, no_update, no_update,
-                res[12], no_update, no_update
-            )
-
         # ========= PROPOSAL ACCEPT/REJECT =========
-        if trigger == 'btn-accept-proposal':
-            res = accept_proposal_logic(proposed_bpmn_store, chat_history, bound_store)
-            return (
-                res[2], res[4], res[5], res[6], res[3], no_update,
-                res[7], res[8], res[9], res[10], res[11],
-                res[12], res[1], no_update, no_update, no_update, no_update, no_update,
-                res[0], no_update, no_update
-            )
-
-        if trigger == 'btn-reject-proposal':
-            res = reject_proposal_logic(chat_history)
-            return (
-                res[2], res[4], res[5], res[6], res[3], no_update,
-                res[7], res[8], res[9], res[10], res[11],
-                res[12], res[1], no_update, no_update, no_update, no_update, no_update,
-                res[0], no_update, no_update
-            )
+        if isinstance(trigger, dict) and trigger.get('type') == 'proposal-action':
+            action = trigger.get('action')
+            if action == 'accept':
+                res = accept_proposal_logic(proposed_bpmn_store, chat_history, bound_store)
+                expr_value = no_update
+                if res[2] is not no_update and res[2] and EXPRESSION in res[2]:
+                    expr_value = res[2][EXPRESSION]
+                return (
+                    res[2], res[4], res[5], res[6], res[3], no_update,
+                    res[7], res[8], res[9], res[10], res[11],
+                    res[12], res[1], no_update, expr_value, no_update, no_update, no_update,
+                    res[0], no_update, no_update
+                )
+            if action == 'reject':
+                res = reject_proposal_logic(chat_history)
+                return (
+                    res[2], res[4], res[5], res[6], res[3], no_update,
+                    res[7], res[8], res[9], res[10], res[11],
+                    res[12], res[1], no_update, no_update, no_update, no_update, no_update,
+                    res[0], no_update, no_update
+                )
 
         # ========= SIMULATION CONTROLS =========
         if trigger == 'btn-back':

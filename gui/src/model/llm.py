@@ -70,11 +70,19 @@ def llm_response(
 	}
 
 	try:
+		print(f"DEBUG: Sending LLM request to {URL_SERVER}llm_bpmn_chat")
+		print(f"DEBUG: Payload keys: {list(payload.keys())}")
+		print(f"DEBUG: Model: {model}, Provider: {provider}")
+		
 		response = requests.post(f"{URL_SERVER}llm_bpmn_chat", json=payload)
+		
+		print(f"DEBUG: Response Status: {response.status_code}")
 		if not response.ok:
+			print(f"DEBUG: Response Text: {response.text}")
 			raise RuntimeError(f"API Error [{response.status_code}]: {response.text}")
 
 		data = response.json()
+		# print(f"DEBUG: Response Data keys: {list(data.keys())}")
 		missing = EXPECTED_FIELDS - data.keys()
 		if missing:
 			raise ValueError(f"Missing fields in response: {missing}")
@@ -82,4 +90,6 @@ def llm_response(
 		return data["message"], data["bpmn"]
 
 	except Exception as e:
+		import traceback
+		traceback.print_exc()
 		return f"Error: {str(e)}", bpmn_store
