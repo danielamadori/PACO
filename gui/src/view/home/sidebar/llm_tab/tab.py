@@ -1,4 +1,5 @@
 from dash import dcc, html
+import dash_bootstrap_components as dbc
 
 from gui.src.view.home.sidebar.llm_tab.header import get_header
 from gui.src.view.home.sidebar.llm_tab.input_bar import get_input_bar
@@ -32,6 +33,31 @@ def get_llm_tab():
 				),
 
 				get_input_bar(),
+
+				dbc.Modal(
+					[
+						dbc.ModalHeader(dbc.ModalTitle("Proposal Preview")),
+						dbc.ModalBody(
+							html.Img(
+								id='proposal-preview-img',
+								style={
+									'width': '100%',
+									'height': 'auto',
+									'display': 'block'
+								}
+							),
+							style={'padding': '0.5rem'}
+						),
+						dbc.ModalFooter(
+							dbc.Button("Close", id="proposal-preview-close", color="secondary")
+						),
+					],
+					id='proposal-preview-modal',
+					is_open=False,
+					size="xl",
+					fullscreen=True,
+					scrollable=True
+				),
 
 				html.Div(id='dummy-output', style={'display': 'none'}),
 			], style={'padding': '20px'})

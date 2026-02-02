@@ -1,11 +1,12 @@
-from dash import html
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-def get_message(msg):
+def get_message(msg, idx):
     content = [html.Div(msg['text'])]
-
+    
     proposal_svg = msg.get('proposal_svg')
     if proposal_svg:
+        content.append(dcc.Store(id={'type': 'proposal-preview-data', 'index': idx}, data=proposal_svg))
         content.append(
             html.Div(
                 html.Img(
@@ -23,6 +24,15 @@ def get_message(msg):
                     'borderRadius': '8px',
                     'backgroundColor': '#ffffff'
                 }
+            )
+        )
+        content.append(
+            dbc.Button(
+                "Full screen",
+                id={'type': 'proposal-preview-btn', 'index': idx},
+                color="secondary",
+                size="sm",
+                style={'marginTop': '6px'}
             )
         )
     

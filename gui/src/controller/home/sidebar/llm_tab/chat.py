@@ -1,4 +1,4 @@
-from dash import Input, Output, State
+from dash import Input, Output, State, ctx, no_update, ALL
 import random, dash
 
 from gui.src.controller.home.sidebar.llm_tab.effects import register_llm_effects_callbacks
@@ -47,5 +47,32 @@ def register_llm_callbacks(callback, clientside_callback):
 	def render_chat(history):
 		if not history:
 			return []
-		return [ get_message(msg) for msg in history ]
+		return [get_message(msg, idx) for idx, msg in enumerate(history)]
+
+	@callback(
+		Output('proposal-preview-modal', 'is_open'),
+		Output('proposal-preview-img', 'src'),
+		Input({'type': 'proposal-preview-btn', 'index': ALL}, 'n_clicks'),
+		Input('proposal-preview-close', 'n_clicks'),
+		State({'type': 'proposal-preview-btn', 'index': ALL}, 'id'),
+		State({'type': 'proposal-preview-data', 'index': ALL}, 'data'),
+		State('proposal-preview-modal', 'is_open'),
+		prevent_initial_call=True
+	)
+	def toggle_proposal_preview(btn_clicks, close_clicks, btn_ids, svg_data, is_open):
+		triggered = ctx.triggered_id
+		if triggered == 'proposal-preview-close':
+			return False, no_update
+		if isinstance(triggered, dict) and triggered.get('type') == 'proposal-preview-btn':
+			idx = triggered.get('index')
+			pos = None
+			if btn_ids:
+				for i, btn_id in enumerate(btn_ids):
+					if isinstance(btn_id, dict) and btn_id.get('index') == idx:
+						pos = i
+						break
+			if pos is not None and svg_data and pos < len(svg_data):
+				return True, svg_data[pos]
+			return True, no_update
+		return is_open, no_update
 
