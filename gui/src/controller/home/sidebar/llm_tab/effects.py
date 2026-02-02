@@ -16,7 +16,14 @@ def register_llm_effects_callbacks(callback, clientside_callback):
 		prevent_initial_call=False
 	)
 	def toggle_buttons(pending, resetting):
-		is_disabled = pending is not None or resetting
+		"""Toggle chat UI button states during async operations.
+		
+		Bug #8 fix: Use explicit boolean comparison (resetting is True)
+		instead of truthy check to handle None/False correctly.
+		- pending is not None: async LLM request in progress
+		- resetting is True: chat reset in progress
+		"""
+		is_disabled = pending is not None or resetting is True
 		style = {
 			'padding': '10px 20px',
 			'borderRadius': '5px',
