@@ -47,6 +47,9 @@ def layout():
         dcc.Store(id={"type": "petri-svg-store", "index": "main"}, data="", storage_type='session'),
         dcc.Store(id="view-mode", data="bpmn", storage_type='session'),
         
+        dcc.Store(id="sort_store_guaranteed", data={"sort_by": None, "sort_order": "asc", "data": []}, storage_type='session'),
+        dcc.Store(id="sort_store_possible_min", data={"sort_by": None, "sort_order": "asc", "data": []}, storage_type='session'),
+
         dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
 
         dcc.Store(id='chat-history', data=[], storage_type='session'),

@@ -34,8 +34,8 @@ def find_strategy_logic(bpmn_store, bound_store):
             guaranteed_bounds, possible_min_solution, bdds,
             sorted(bpmn_store[IMPACTS_NAMES]))
 
-        return results, alert
+        return results, alert, guaranteed_bounds, possible_min_solution
 
     except requests.exceptions.HTTPError as e:
         alert = dbc.Alert(f"HTTP Error ({e})", color="danger", dismissable=True)
-        return html.Div(), alert
+        return html.Div(), alert, [], []

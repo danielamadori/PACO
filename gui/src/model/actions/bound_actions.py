@@ -37,20 +37,12 @@ def update_bound_logic(trigger_id, values, ids, bound_store):
     return no_update
 
 
-def update_bound_from_selection_logic(trigger_id, values_list, bound_store, bpmn_store, table_type):
+def update_bound_from_selection_logic(selected_bound, bound_store, bpmn_store):
     """
     Update bounds from strategy table selection (guaranteed or possible_min).
     
     Returns: bound_store or PreventUpdate
     """
-    if not trigger_id:
-        return no_update
-    
-    idx = trigger_id.get("index")
-    if idx is None or idx >= len(values_list):
-        return no_update
-    
-    selected_bound = values_list[idx]
     if not selected_bound:
         return no_update
     

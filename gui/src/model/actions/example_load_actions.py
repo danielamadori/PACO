@@ -62,15 +62,18 @@ def load_example_logic(search, bound_store):
         nature_table = create_natures_table(new_bpmn, natures)
         loop_table = create_loops_table(new_bpmn, loops)
 
-        bpmn_dot = load_bpmn_dot(new_bpmn)
-
         if not bound_store or BOUND not in bound_store:
             bound_store = {BOUND: {}}
+            
+        updated_bound_store = sync_bound_store_from_bpmn(new_bpmn, bound_store)
+        bpmn_dot, petri_svg, sim_data = reset_simulation_state(new_bpmn, updated_bound_store)
 
         return (
             new_bpmn,
-            sync_bound_store_from_bpmn(new_bpmn, bound_store),
+            updated_bound_store,
             bpmn_dot,
+            petri_svg, 
+            sim_data,
             task_impacts,
             task_durations,
             choice_table,
