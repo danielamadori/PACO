@@ -9,13 +9,13 @@ class RenderSvg:
 		self.index = index
 
 		self.input_store_id = {"type": f"{type}-store", "index": index}
-		self.visualizer_id = {"type": f"{type}-content", "index": index}
-		self.svg_div_id = {"type": f"{type}-svg", "index": index}
-		self.zoom_slider_id = {"type": f"{type}-zoom-slider", "index": index}
-		self.zoom_reset_id = {"type": f"{type}-reset-zoom", "index": index}
-		self.zoom_in_id = {"type": f"{type}-increase-zoom", "index": index}
-		self.zoom_out_id = {"type": f"{type}-decrease-zoom", "index": index}
-		self.zoom_settings_id = {"type": f"{type}-zoom-settings", "index": index}
+		self.visualizer_id = {"viz_type": f"{type}-content", "index": index}
+		self.svg_div_id = {"viz_type": f"{type}-svg", "index": index}
+		self.zoom_slider_id = {"viz_type": f"{type}-zoom-slider", "index": index}
+		self.zoom_reset_id = {"viz_type": f"{type}-reset-zoom", "index": index}
+		self.zoom_in_id = {"viz_type": f"{type}-increase-zoom", "index": index}
+		self.zoom_out_id = {"viz_type": f"{type}-decrease-zoom", "index": index}
+		self.zoom_settings_id = {"viz_type": f"{type}-zoom-settings", "index": index}
 
 		self.zoom_min = zoom_min
 		self.zoom_max = zoom_max
@@ -88,14 +88,14 @@ class RenderSvg:
 	def register_callbacks(callback, type):
 
 		@callback(
-			Output({"type": f"{type}-svg", "index": MATCH}, "children"),
-			Output({"type": f"{type}-zoom-slider", "index": MATCH}, "value"),
+			Output({"viz_type": f"{type}-svg", "index": MATCH}, "children"),
+			Output({"viz_type": f"{type}-zoom-slider", "index": MATCH}, "value"),
 			Input({"type": f"{type}-store", "index": MATCH}, "data"),
-			Input({"type": f"{type}-zoom-slider", "index": MATCH}, "value"),
-			Input({"type": f"{type}-reset-zoom", "index": MATCH}, "n_clicks"),
-			Input({"type": f"{type}-increase-zoom", "index": MATCH}, "n_clicks"),
-			Input({"type": f"{type}-decrease-zoom", "index": MATCH}, "n_clicks"),
-			State({"type": f"{type}-zoom-settings", "index": MATCH}, "data")
+			Input({"viz_type": f"{type}-zoom-slider", "index": MATCH}, "value"),
+			Input({"viz_type": f"{type}-reset-zoom", "index": MATCH}, "n_clicks"),
+			Input({"viz_type": f"{type}-increase-zoom", "index": MATCH}, "n_clicks"),
+			Input({"viz_type": f"{type}-decrease-zoom", "index": MATCH}, "n_clicks"),
+			State({"viz_type": f"{type}-zoom-settings", "index": MATCH}, "data")
 		)
 		def render_and_zoom(dot_data, zoom_value, reset_clicks, plus_clicks, minus_clicks, zoom_settings):
 
@@ -115,11 +115,11 @@ class RenderSvg:
 			triggered = ctx.triggered_id
 			zoom = zoom_value or 1.0
 
-			if triggered and triggered["type"] == f"{type}-reset-zoom":
+			if triggered and isinstance(triggered, dict) and triggered.get("viz_type") == f"{type}-reset-zoom":
 				zoom = 1.0
-			elif triggered and triggered["type"] == f"{type}-increase-zoom":
+			elif triggered and isinstance(triggered, dict) and triggered.get("viz_type") == f"{type}-increase-zoom":
 				zoom = round(min(zoom_max, zoom + 0.1), 1)
-			elif triggered and triggered["type"] == f"{type}-decrease-zoom":
+			elif triggered and isinstance(triggered, dict) and triggered.get("viz_type") == f"{type}-decrease-zoom":
 				zoom = round(max(zoom_min, zoom - 0.1), 1)
 
 			return html.Div([

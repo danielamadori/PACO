@@ -22,9 +22,10 @@ from gui.src.model.actions.bound_actions import update_bound_logic, update_bound
 from gui.src.model.actions.strategy_actions import find_strategy_logic
 from gui.src.model.actions.example_load_actions import load_example_logic
 from gui.src.model.actions.reset_actions import reset_chat_logic, acknowledge_reset_logic
+from gui.src.model.actions.proposal_actions import accept_proposal_logic, reject_proposal_logic
 
-# Total outputs: 18
-OUTPUT_COUNT = 18
+# Total outputs: 19
+OUTPUT_COUNT = 19
 
 
 def register_store_manager_callbacks(callback_provider):
@@ -52,6 +53,7 @@ def register_store_manager_callbacks(callback_provider):
         Output('strategy_output', 'children'),                            # 15
         Output('strategy-alert', 'children'),                             # 16
         Output('chat-input', 'value'),                                    # 17
+        Output('proposed-bpmn-store', 'data'),                            # 18
 
         # === INPUTS ===
         Input({'type': ALL, 'index': ALL}, 'value'),
@@ -68,6 +70,8 @@ def register_store_manager_callbacks(callback_provider):
         Input('chat-send-btn', 'n_clicks'),
         Input('find-strategy-button', 'n_clicks'),
         Input('url', 'search'),
+        Input('btn-accept-proposal', 'n_clicks'), # NEW
+        Input('btn-reject-proposal', 'n_clicks'), # NEW
 
         # === STATES ===
         State({'type': ALL, 'index': ALL}, 'id'),
@@ -85,6 +89,7 @@ def register_store_manager_callbacks(callback_provider):
         State('llm-model-custom', 'value'),
         State('llm-api-key', 'value'),
         State('chat-input', 'value'),
+        State('proposed-bpmn-store', 'data'), # NEW
         
         prevent_initial_call=True
     )
@@ -92,9 +97,11 @@ def register_store_manager_callbacks(callback_provider):
         all_values, all_clicks, add_btn, pending_msg, generate_btn,
         upload_contents, btn_back, btn_forward, view_mode,
         chat_clear, reset_trigger, chat_send, find_strategy, url_search,
+        accept_proposal, reject_proposal, # NEW INPUTS
         all_ids_state, new_impact_name, bpmn_store, bound_store, chat_history,
         expression_value, upload_filename, sim_store, gateway_values, time_step,
-        llm_provider, llm_model, llm_model_custom, llm_api_key, chat_input
+        llm_provider, llm_model, llm_model_custom, llm_api_key, chat_input,
+        proposed_bpmn_store # NEW STATE
     ):
         trigger = ctx.triggered_id
         if not trigger:
@@ -107,9 +114,8 @@ def register_store_manager_callbacks(callback_provider):
         if trigger == 'chat-clear-btn':
             res = reset_chat_logic()
             return (
-                no_update, no_update, no_update, no_update, no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                res[0], res[1], res[2], no_update, no_update, no_update, no_update
+                res[0], res[1], res[2], no_update, no_update, no_update, no_update, no_update
             )
 
         # ========= RESET TRIGGER =========
@@ -118,9 +124,8 @@ def register_store_manager_callbacks(callback_provider):
             if res is None:
                 return no_updates()
             return (
-                no_update, no_update, no_update, no_update, no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                no_update, no_update, res, no_update, no_update, no_update, no_update
+                no_update, no_update, res, no_update, no_update, no_update, no_update, no_update
             )
 
         # ========= CHAT SEND =========
@@ -135,7 +140,7 @@ def register_store_manager_callbacks(callback_provider):
             return (
                 no_update, no_update, no_update, no_update, no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                history, loading_id, no_update, no_update, no_update, no_update, ''
+                history, loading_id, no_update, no_update, no_update, no_update, '', no_update
             )
 
         # ========= FIND STRATEGY =========
@@ -143,9 +148,8 @@ def register_store_manager_callbacks(callback_provider):
             res = find_strategy_logic(bpmn_store, bound_store)
             # res: (output, alert)
             return (
-                no_update, no_update, no_update, no_update, no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                no_update, no_update, no_update, no_update, res[0], res[1], no_update
+                no_update, no_update, no_update, no_update, res[0], res[1], no_update, no_update
             )
 
         # ========= EXAMPLE LOAD =========
@@ -153,26 +157,64 @@ def register_store_manager_callbacks(callback_provider):
             res = load_example_logic(url_search, bound_store)
             # res: 10 values (bpmn, bound, svg, 5 tables, expr, alert)
             return (
-                res[0], res[2], no_update, no_update, res[1], res[9],
                 res[3], res[4], res[5], res[6], res[7],
-                no_update, no_update, no_update, res[8], no_update, no_update, no_update
+                no_update, no_update, no_update, res[8], no_update, no_update, no_update, no_update
             )
 
         # ========= UPLOAD =========
         if trigger == 'upload-data':
             res = upload_json_bpmn_logic(upload_contents, upload_filename, bound_store)
-            # res: 12 values
+            print(f"DEBUG: upload info: {len(res)} items")
+            # res: (bpmn=0, bound=1, svg=2, petri=3, sim=4, impacts=5, dur=6, cho=7, nat=8, loop=9, expr=10, alert=11)
+            
+            # Outputs:
+            # 0: bpmn-store -> res[0]
+            # 1: bpmn-svg -> res[2]
+            # 2: petri-svg -> res[3]
+            # 3: sim-store -> res[4]
+            # 4: bound-store -> res[1]
+            # 5: alert -> res[11]
+            # 6: impacts -> res[5]
+            # 7: durations -> res[6]
+            # 8: choices -> res[7]
+            # 9: natures -> res[8]
+            # 10: loops -> res[9]
+            # 11: chat-history -> no_update
+            # 12: pending -> no_update
+            # 13: reset -> no_update
+            # 14: expression -> res[10]
+            # 15: strategy -> no_update
+            # 16: strategy-alert -> no_update
+            # 17: chat-input -> no_update
+            # 18: proposed -> no_update
+
             return (
-                res[0], res[2], res[3], res[4], res[1], res[11],
-                res[5], res[6], res[7], res[8], res[9],
-                no_update, no_update, no_update, res[10], no_update, no_update, no_update
+                res[0], res[2], res[3], res[4], res[1],
+                res[11], res[5], res[6], res[7], res[8], res[9],
+                no_update, no_update, no_update, res[10], no_update, no_update, no_update, no_update
             )
 
         # ========= GENERATE BPMN =========
         if trigger == 'generate-bpmn-btn':
             res = evaluate_expression_logic(expression_value, bpmn_store, bound_store)
-            # res: 11 values
-            return res + (no_update,) * 7
+            print(f"DEBUG: generate output len={len(res)}")
+            
+            # Defensive fix for mysterious 5-item return
+            if len(res) == 5:
+                # Assuming returns (impacts, durations, choices, natures, loops)
+                # We need to prepend 6 items: 
+                # (bpmn, bpmn_svg, petri_svg, sim, bound, alert)
+                res = (no_update, no_update, no_update, no_update, no_update, no_update) + res
+                print("DEBUG: Padded 5-item result to 11 items.")
+            
+            if len(res) != 11:
+                 print(f"CRITICAL ERROR: Expected 11 outputs from evaluate_expression_logic, got {len(res)}")
+                 # Attempt to return safe no-updates mostly
+                 return (no_update,) * OUTPUT_COUNT
+
+            final_res = res + (no_update,) * 8
+            print(f"DEBUG: final output len={len(final_res)}")
+            return final_res
 
         # ========= CHAT PENDING MESSAGE =========
         if trigger == 'pending-message':
@@ -181,9 +223,29 @@ def register_store_manager_callbacks(callback_provider):
                 llm_provider, llm_model, llm_model_custom, llm_api_key
             )
             return (
-                res[2], res[4], no_update, no_update, res[3], no_update,
-                res[5], res[6], res[7], res[8], res[9],
-                res[0], res[1], no_update, no_update, no_update, no_update, no_update
+                res[2], res[4], res[5], res[6], res[3], no_update,
+                res[7], res[8], res[9], res[10], res[11],
+                res[0], res[1], no_update, no_update, no_update, no_update, no_update,
+                res[12] # proposed-bpmn-store
+            )
+
+        # ========= PROPOSAL ACCEPT/REJECT =========
+        if trigger == 'btn-accept-proposal':
+            res = accept_proposal_logic(proposed_bpmn_store, chat_history, bound_store)
+            return (
+                res[2], res[4], res[5], res[6], res[3], no_update,
+                res[7], res[8], res[9], res[10], res[11],
+                res[12], res[1], no_update, no_update, no_update, no_update, no_update,
+                res[0]
+            )
+
+        if trigger == 'btn-reject-proposal':
+            res = reject_proposal_logic(chat_history)
+            return (
+                res[2], res[4], res[5], res[6], res[3], no_update,
+                res[7], res[8], res[9], res[10], res[11],
+                res[12], res[1], no_update, no_update, no_update, no_update, no_update,
+                res[0]
             )
 
         # ========= SIMULATION CONTROLS =========
@@ -192,7 +254,7 @@ def register_store_manager_callbacks(callback_provider):
             return (
                 no_update, sim_res[1], sim_res[2], sim_res[0], no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                no_update, no_update, no_update, no_update, no_update, no_update, no_update
+                no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
             )
 
         if trigger == 'btn-forward':
@@ -200,7 +262,7 @@ def register_store_manager_callbacks(callback_provider):
             return (
                 no_update, sim_res[1], sim_res[2], sim_res[0], no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                no_update, no_update, no_update, no_update, no_update, no_update, no_update
+                no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
             )
 
         if trigger == 'view-mode':
@@ -208,15 +270,15 @@ def register_store_manager_callbacks(callback_provider):
             return (
                 no_update, no_update, petri, no_update, no_update, no_update,
                 no_update, no_update, no_update, no_update, no_update,
-                no_update, no_update, no_update, no_update, no_update, no_update, no_update
+                no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
             )
 
         # ========= ADD COLUMN =========
         if trigger == 'add-impact-button':
             res = add_impact_column_logic(new_impact_name, bpmn_store, bound_store)
             if res[0] is no_update:
-                return (no_update,) * 5 + (res[3],) + (no_update,) * 12
-            return (res[0], res[1], no_update, no_update, res[2], res[3], res[4]) + (no_update,) * 11
+                return (no_update,) * 5 + (res[3],) + (no_update,) * 13
+            return (res[0], res[1], no_update, no_update, res[2], res[3], res[4]) + (no_update,) * 12
 
         # ========= PATTERN MATCHING =========
         if isinstance(trigger, dict):
@@ -229,7 +291,7 @@ def register_store_manager_callbacks(callback_provider):
                                        if v['type'] == t_type and v['index'] == t_index)
                     val = all_values[trigger_idx]
                     res = update_impacts_logic(trigger, val, bpmn_store)
-                    return (res[0], res[1], no_update, no_update, no_update, res[2]) + (no_update,) * 12
+                    return (res[0], res[1], no_update, no_update, no_update, res[2]) + (no_update,) * 13
                 except StopIteration:
                     return no_updates()
 
@@ -239,13 +301,13 @@ def register_store_manager_callbacks(callback_provider):
                                        if v['type'] == t_type and v['index'] == t_index)
                     val = all_values[trigger_idx]
                     res = update_gateway_logic(trigger, val, bpmn_store)
-                    return (res[0], res[1], no_update, no_update, no_update, res[2]) + (no_update,) * 12
+                    return (res[0], res[1], no_update, no_update, no_update, res[2]) + (no_update,) * 13
                 except:
                     pass
 
             if t_type == 'remove-impact':
                 res = remove_impact_column_logic(trigger, bpmn_store, bound_store)
-                return (res[0], res[1], no_update, no_update, res[2], res[3], res[4]) + (no_update,) * 11
+                return (res[0], res[1], no_update, no_update, res[2], res[3], res[4]) + (no_update,) * 12
             
             if t_type in ['min-duration', 'max-duration']:
                 try:
@@ -262,21 +324,21 @@ def register_store_manager_callbacks(callback_provider):
                         current_pair[1] = val or 1
                     bpmn_store[DURATIONS][task] = current_pair
                     bpmn_dot = load_bpmn_dot(bpmn_store)
-                    return (bpmn_store, bpmn_dot, no_update, no_update, no_update, '') + (no_update,) * 12
+                    return (bpmn_store, bpmn_dot, no_update, no_update, no_update, '') + (no_update,) * 13
                 except Exception as e:
-                    return (no_update, no_update, no_update, no_update, no_update, dbc.Alert(str(e), color="danger")) + (no_update,) * 12
+                    return (no_update, no_update, no_update, no_update, no_update, dbc.Alert(str(e), color="danger")) + (no_update,) * 13
 
             if t_type == 'bound-input':
                 res = update_bound_logic(trigger, all_values, all_ids_state, bound_store)
                 if res is not no_update:
-                    return (no_update, no_update, no_update, no_update, res, no_update) + (no_update,) * 12
+                    return (no_update, no_update, no_update, no_update, res, no_update) + (no_update,) * 13
                 return no_updates()
 
             if t_type == 'selected_bound':
                 table_type = trigger.get('table')
                 res = update_bound_from_selection_logic(trigger, all_clicks, bound_store, bpmn_store, table_type)
                 if res is not no_update:
-                    return (no_update, no_update, no_update, no_update, res, no_update) + (no_update,) * 12
+                    return (no_update, no_update, no_update, no_update, res, no_update) + (no_update,) * 13
                 return no_updates()
 
         return no_updates()

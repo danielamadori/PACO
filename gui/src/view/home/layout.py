@@ -42,6 +42,7 @@ def layout():
             LOOP_PROBABILITY: {},
             LOOP_ROUND: {},
         }, storage_type='session'),
+        dcc.Store(id='proposed-bpmn-store', data=None, storage_type='session'),
         dcc.Store(id={"type": "bpmn-svg-store", "index": "main"}, data="", storage_type='session'),
         dcc.Store(id={"type": "petri-svg-store", "index": "main"}, data="", storage_type='session'),
         dcc.Store(id="view-mode", data="bpmn", storage_type='session'),
@@ -54,6 +55,10 @@ def layout():
 
         dcc.Store(id="sidebar-visible", data=True, storage_type='session'),
         dcc.Store(id="sidebar-width", data=sidebar_min_width, storage_type='session'),
+
+		# Hidden buttons to satisfy callback dependencies
+		html.Button(id="btn-accept-proposal", style={"display": "none"}),
+		html.Button(id="btn-reject-proposal", style={"display": "none"}),
 
         DashSplitPane(
             id="split-pane",

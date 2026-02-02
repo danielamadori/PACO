@@ -3,7 +3,7 @@ Chat Actions Module
 Handles LLM response processing logic, separated from Dash callbacks.
 """
 import dash
-from gui.src.model.etl import load_bpmn_dot
+from gui.src.model.etl import load_bpmn_dot, reset_simulation_state
 from gui.src.model.llm import llm_response
 from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_bound_store_from_bpmn
 from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
@@ -25,9 +25,9 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
      impacts_table, durations_table, choices_table, natures_table, loops_table)
     """
     NO_UPDATE = dash.no_update
-    
+
     if not pending_id or not history:
-        return (NO_UPDATE,) * 10
+        return (NO_UPDATE,) * 13
     
     replaced = False
     msg_index = -1
@@ -48,7 +48,7 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
             break
 
     if not replaced:
-        return (NO_UPDATE,) * 10
+        return (NO_UPDATE,) * 13
 
     # Default no-updates
     tasks_impacts_table = NO_UPDATE
@@ -60,29 +60,52 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
 
     if EXPRESSION not in new_bpmn:
         history[msg_index]['text'] += "\nNo expression found in the BPMN"
-        return history, None, bpmn_store, bound_store, bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+        return history, None, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, None
 
     new_bpmn[EXPRESSION] = new_bpmn[EXPRESSION].replace("\n", "").replace("\t", "").strip().replace(" ", "")
     if new_bpmn[EXPRESSION] == '':
         history[msg_index]['text'] += "\nEmpty expression found in the BPMN"
-        return history, None, bpmn_store, bound_store, bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+        return history, None, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, None
 
     try:
         SESE_PARSER.parse(new_bpmn[EXPRESSION])
     except Exception as e:
         history[msg_index]['text'] += f"\nParsing error: {str(e)}"
-        return history, None, bpmn_store, bound_store, bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+        history[msg_index]['text'] += f"\nParsing error: {str(e)}"
+        return history, None, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, None
 
-    tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(new_bpmn[EXPRESSION]))
-    tasks_impacts_table = create_tasks_impacts_table(new_bpmn, tasks)
-    tasks_duration_table = create_tasks_duration_table(new_bpmn, tasks)
-    choices_table = create_choices_table(new_bpmn, choices)
-    natures_table = create_natures_table(new_bpmn, natures)
-    loops_table = create_loops_table(new_bpmn, loops)
+    # Proposal Mode: Do NOT generate tables or reset simulation yet.
+    # Just validate parsing and return proposal.
+    
+    # Update History with Proposal Flag
+    new_history = [msg.copy() for msg in history]
+    if new_history:
+        new_history[-1]['is_proposal'] = True
+        new_history[-1]['text'] += "\n\n💡 **Proposal Ready**. Review and Accept."
 
-    try:
-        bpmn_dot = load_bpmn_dot(new_bpmn)
-        return history, None, new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
-    except Exception as exception:
-        history[msg_index]['text'] += f"\nProcessing bpmn image error: {str(exception)}"
-        return history, None, new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+    # Return 13 values:
+    # 0: history
+    # 1: pending
+    # 2: bpmn_store (NO UPDATE)
+    # 3: bound_store (NO UPDATE)
+    # 4: bpmn_svg (NO UPDATE)
+    # 5: petri_svg (NO UPDATE)
+    # 6: sim_data (NO UPDATE)
+    # 7-11: Tables (NO UPDATE)
+    # 12: proposed_bpmn (NEW)
+
+    return (
+        new_history, 
+        None, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE, 
+        NO_UPDATE,
+        new_bpmn # proposed_bpmn
+    )
