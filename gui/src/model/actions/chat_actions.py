@@ -43,13 +43,14 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
     
     replaced = False
     msg_index = -1
+    is_error = False
     
-    print(f"DEBUG: resolving pending msg {pending_id}")
+    # print(f"DEBUG: resolving pending msg {pending_id}")
 
     for i in range(len(history) - 1, -1, -1):
         if history[i].get('id') == pending_id:
-            print(f"DEBUG: Found pending msg at index {i}. Calling llm_response...")
-            history[i]['text'], new_bpmn = llm_response(
+            # print(f"DEBUG: Found pending msg at index {i}. Calling llm_response...")
+            history[i]['text'], new_bpmn, is_error = llm_response(
                 bpmn_store,
                 history[i - 1]['text'],
                 provider,
@@ -57,7 +58,7 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
                 custom_model,
                 api_key,
             )
-            print("DEBUG: llm_response returned.")
+            # print("DEBUG: llm_response returned.")
             del history[i]['id']
             replaced = True
             msg_index = i
@@ -65,6 +66,9 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
 
     if not replaced:
         return (NO_UPDATE,) * 13
+
+    if is_error:
+        return history, None, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, NO_UPDATE, None
 
     # Default no-updates
     tasks_impacts_table = NO_UPDATE
@@ -176,7 +180,7 @@ def resolve_llm_response(pending_id, history, bpmn_store, bound_store,
         try:
             proposal_svg = load_bpmn_dot(new_bpmn)
         except Exception as exc:
-            print(f"DEBUG: Failed to generate proposal SVG: {exc}")
+            print(f"ERROR: Failed to generate proposal SVG: {exc}")
         new_history[target_idx]['is_proposal'] = True
         new_history[target_idx]['text'] += "\n\n💡 **Proposal Ready**. Review and Accept."
         if proposal_svg:

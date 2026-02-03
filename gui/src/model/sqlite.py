@@ -86,7 +86,7 @@ def save_execution_tree(bpmn_dict: dict, execution_tree: str, actual_execution: 
 
 @db_session
 def save_parse_tree(bpmn_dict:dict, parse_tree:str):
-	print("save_parse_tree: ", parse_tree)
+	# print("save_parse_tree: ", parse_tree)
 	bpmn_str = json.dumps(bpmn_dict, sort_keys=True)
 	record = BPMN.get(bpmn=bpmn_str)
 	if not record:

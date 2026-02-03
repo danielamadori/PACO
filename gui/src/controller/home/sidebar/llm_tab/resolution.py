@@ -47,7 +47,7 @@ def register_llm_resolution_callback(callback):
         if not pending_msg:
             return (no_update,) * 13
         
-        print(f"DEBUG: resolve_pending_message triggered with msg={pending_msg}")
+        # print(f"DEBUG: resolve_pending_message triggered with msg={pending_msg}")
         
         res = resolve_llm_response(
             pending_msg, chat_history, bpmn_store, bound_store,

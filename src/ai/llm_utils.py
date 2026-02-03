@@ -113,8 +113,8 @@ def _get_gemini_api_key(api_key: str | None, model: str | None = None) -> str:
     if user_key:
         return user_key
     
-    # No user key provided - use system key for gemini-2.5-flash-lite only
-    if model == "gemini-2.5-flash-lite":
+    # No user key provided - use system key for gemini-2.5-flash-lite/flash only
+    if model == "gemini-2.5-flash-lite" or model == "gemini-2.5-flash":
         system_key = os.getenv("GEN_AI_API_KEY", "").strip()
         if system_key:
             return system_key

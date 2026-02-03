@@ -17,8 +17,10 @@ def get_model_selector():
                         [
                             html.Strong("Note: "),
                             "The system currently includes a working ",
-                            html.Strong("Gemini 2.5-flash-lite"),
+                            html.Strong("Gemini 2.5-flash-lite or Gemini 2.5-flash"),
                             " model. To use other models, please add your API key and select your preferred option.",
+                            html.Br(),
+                            html.Strong("Important: the model may make mistakes; use with caution."),
                         ],
                         style={
                             "backgroundColor": "#e3f2fd",
@@ -86,7 +88,7 @@ def get_model_selector():
                     dcc.Input(
                         id="llm-api-key",
                         type="password",
-                        placeholder="Required (provided for Gemini 2.5-flash-lite only, use your own key for others)",
+                        placeholder="Required (provided for Gemini 2.5-flash-lite or Gemini 2.5-flash only, use your own key for others)",
                         style={
                             "width": "100%",
                             "padding": "6px 8px",

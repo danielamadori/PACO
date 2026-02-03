@@ -35,7 +35,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 		#	text_result += f"Guaranteed Bound {i}:\t{np.ceil(frontier_values[i])}\n"
 
 		text_result = "Failed"
-		print(str(datetime.now()) + " " + text_result)
+		# print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
 	result.update({"frontier_solution": frontier_solution,
@@ -44,7 +44,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 	if strategy is None:
 		text_result = f"Any choice taken will provide a winning strategy"# with an expected impact of: "
 		#text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in expected_impacts]))
-		print(str(datetime.now()) + " " + text_result)
+		# print(str(datetime.now()) + " " + text_result)
 		return text_result, result, times
 
 
@@ -54,7 +54,7 @@ def paco(bpmn:dict, bound:np.ndarray, parse_tree=None, pending_choices=None, pen
 	#text_result = f"This is the strategy, with an expected impact of: "
 	#text_result += " ".join(f"{key}: {round(value,2)}" for key, value in zip(bpmn[IMPACTS_NAMES],  [item for item in strategy_expected_impacts]))
 	text_result = f"Found, watch the explainers to make decisions"
-	print(str(datetime.now()) + " " + text_result)
+	# print(str(datetime.now()) + " " + text_result)
 
 	result.update({"strategy_tree": strategy_tree,
 				   "strategy_expected_impacts": strategy_expected_impacts,

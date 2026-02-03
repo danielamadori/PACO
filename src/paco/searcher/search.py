@@ -18,10 +18,10 @@ def search(execution_tree: ExecutionTree, bound: np.ndarray, impacts_names: list
 
     if frontier_solution is None:
         #TODO plot_pareto_frontier
-        print(f"Failed:\t\t{impacts_names}\nBound Impacts:\t{bound}")
+        #print(f"Failed:\t\t{impacts_names}\nBound Impacts:\t{bound}")
         return None, None, possible_min_solution, frontier_values, [], times
 
-    print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{expected_impacts}")
+    #print(f"Success:\t\t{impacts_names}\nBound Impacts:\t{bound}\nExp. Impacts:\t{expected_impacts}")
     if debug:
         execution_tree.save_dot(
             state=True, executed_time=True, diff=False,

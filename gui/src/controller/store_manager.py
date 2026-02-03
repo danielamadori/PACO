@@ -10,11 +10,9 @@ from gui.src.model.etl import load_bpmn_dot
 from gui.src.env import DURATIONS, EXPRESSION, BOUND
 
 # Action Modules
-from gui.src.model.actions.duration_actions import update_durations_logic
 from gui.src.model.actions.impact_actions import update_impacts_logic
 from gui.src.model.actions.gateway_actions import update_gateway_logic
 from gui.src.model.actions.column_actions import add_impact_column_logic, remove_impact_column_logic
-from gui.src.model.actions.chat_actions import resolve_llm_response
 from gui.src.model.actions.expression_actions import evaluate_expression_logic
 from gui.src.model.actions.upload_actions import upload_json_bpmn_logic
 from gui.src.model.actions.simulation_actions import step_simulation_logic, refresh_petri_logic
@@ -197,7 +195,7 @@ def register_store_manager_callbacks(callback_provider):
         # ========= UPLOAD =========
         if trigger == 'upload-data':
             res = upload_json_bpmn_logic(upload_contents, upload_filename, bound_store)
-            print(f"DEBUG: upload info: {len(res)} items")
+            # print(f"DEBUG: upload info: {len(res)} items")
             # res: (bpmn=0, bound=1, svg=2, petri=3, sim=4, impacts=5, dur=6, cho=7, nat=8, loop=9, expr=10, alert=11)
             
             return (
@@ -210,7 +208,7 @@ def register_store_manager_callbacks(callback_provider):
         # ========= GENERATE BPMN =========
         if trigger == 'generate-bpmn-btn':
             res = evaluate_expression_logic(expression_value, bpmn_store, bound_store)
-            print(f"DEBUG: generate output len={len(res)}")
+            # print(f"DEBUG: generate output len={len(res)}")
             
             # Defensive fix for mysterious 5-item return
             if len(res) == 5:
@@ -218,7 +216,7 @@ def register_store_manager_callbacks(callback_provider):
                 # We need to prepend 6 items: 
                 # (bpmn, bpmn_svg, petri_svg, sim, bound, alert)
                 res = (no_update, no_update, no_update, no_update, no_update, no_update) + res
-                print("DEBUG: Padded 5-item result to 11 items.")
+                # print("DEBUG: Padded 5-item result to 11 items.")
             
             if len(res) != 11:
                  print(f"CRITICAL ERROR: Expected 11 outputs from evaluate_expression_logic, got {len(res)}")
@@ -226,7 +224,7 @@ def register_store_manager_callbacks(callback_provider):
                  return (no_update,) * OUTPUT_COUNT
 
             final_res = res + (no_update,) * 10
-            print(f"DEBUG: final output len={len(final_res)}")
+            # print(f"DEBUG: final output len={len(final_res)}")
             return final_res
 
         # ========= PROPOSAL ACCEPT/REJECT =========

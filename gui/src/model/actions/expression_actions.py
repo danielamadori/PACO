@@ -66,22 +66,22 @@ def evaluate_expression_logic(current_expression, bpmn_store, bound_store):
     # Extract nodes from expression
     try:
         tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn_store[EXPRESSION]))
-        print(f"DEBUG: Extracted Tasks: {tasks}")
+        # print(f"DEBUG: Extracted Tasks: {tasks}")
     except Exception as e:
-        print(f"DEBUG: Extraction Error: {e}")
+        print(f"ERROR: Extraction Error: {e}")
         return (NO_UPDATE,) * 11
 
     # Initialize default impact if none exist
     if not bpmn_store.get(IMPACTS_NAMES):
-        print("DEBUG: Initializing default impacts")
+        # print("DEBUG: Initializing default impacts")
         impacts_names = 'kWh'
         bound_store[BOUND][impacts_names] = 0.0
         bpmn_store[IMPACTS_NAMES] = [impacts_names]
 
     # Create tables
-    print(f"DEBUG: Creating tables for tasks: {tasks}")
+    # print(f"DEBUG: Creating tables for tasks: {tasks}")
     tasks_impacts_table = create_tasks_impacts_table(bpmn_store, tasks)
-    print(f"DEBUG: Created Impacts Table type: {type(tasks_impacts_table)}")
+    # print(f"DEBUG: Created Impacts Table type: {type(tasks_impacts_table)}")
     tasks_duration_table = create_tasks_duration_table(bpmn_store, tasks)
     choices_table = create_choices_table(bpmn_store, choices)
     natures_table = create_natures_table(bpmn_store, natures)
