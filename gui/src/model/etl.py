@@ -217,8 +217,8 @@ def bpmn_to_dot(bpmn, status = {}) -> str:
 	tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(bpmn[EXPRESSION]))
 	bpmn = filter_bpmn(bpmn, tasks, choices, natures, loops)
 
-	for task, status in status_with_names.items():
-		print(task, status)
+	# for task, status in status_with_names.items():
+	# 	print(task, status)
 
 	try:
 		resp = requests.get(
@@ -284,13 +284,13 @@ def load_parse_tree(bpmn: dict, *, force_refresh: bool = False) -> dict:
 	record = fetch_bpmn(normalized_bpmn)
 	if not force_refresh and record and record.parse_tree:
 		return json.loads(record.parse_tree)
-	print("load_parse_tree:bpmn", bpmn)
+	# print("load_parse_tree:bpmn", bpmn)
 
 	try:
 		resp = requests.get(URL_SERVER + "create_parse_tree", json={"bpmn": normalized_bpmn}, headers=HEADERS)
 		resp.raise_for_status()
 	except RequestException as exc:
-		print(f"load_parse_tree: falling back to local parser: {exc}")
+		print(f"ERROR: load_parse_tree fallback to local parser: {exc}")
 		parse_tree = _create_parse_tree_local(normalized_bpmn)
 		save_parse_tree(normalized_bpmn, json.dumps(parse_tree))
 		return parse_tree
@@ -324,7 +324,7 @@ def load_execution_tree(bpmn: dict, *, force_refresh: bool = False) -> tuple[dic
 	if (not force_refresh and record and record.execution_tree and record.actual_execution):
 		return json.loads(record.execution_tree), record.actual_execution
 
-	print("load_execution_tree:", bpmn)
+	# print("load_execution_tree:", bpmn)
 	parse_tree = load_parse_tree(bpmn, force_refresh=force_refresh)
 
 	try:
@@ -420,9 +420,9 @@ def load_strategy(bpmn_store, bound_store):
 	# if record and record.bdds:
 	#   return record.bdds
 
-	print("load_strategy:", bpmn)
+	# print("load_strategy:", bpmn)
 	parse_tree = load_parse_tree(bpmn)
-	print(parse_tree)
+	# print(parse_tree)
 	#execution_tree = load_execution_tree(bpmn)
 	resp = requests.get(f'{URL_SERVER}create_execution_tree',
 						json={"bpmn": bpmn},  headers=HEADERS)
@@ -644,7 +644,7 @@ def execute_decisions(bpmn, gateway_decisions: list[str], time_step: float | Non
 
 	decisions = list(gateway_decisions)
 
-	print("execute_decisions:", bpmn, gateway_decisions, time_step)
+	# print("execute_decisions:", bpmn, gateway_decisions, time_step)
 	parse_tree = load_parse_tree(bpmn)
 	petri_net, petri_net_dot, _ = get_petri_net(bpmn, None)
 	execution_tree, current_execution = load_execution_tree(bpmn)

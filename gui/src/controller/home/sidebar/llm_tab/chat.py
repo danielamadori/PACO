@@ -1,9 +1,10 @@
-from dash import Input, Output, State
+from dash import Input, Output, State, ctx, no_update, ALL
 import random, dash
 
 from gui.src.controller.home.sidebar.llm_tab.effects import register_llm_effects_callbacks
 from gui.src.controller.home.sidebar.llm_tab.model_selector import register_llm_model_selector_callbacks
 from gui.src.controller.home.sidebar.llm_tab.reset import register_llm_reset_callbacks
+from gui.src.controller.home.sidebar.llm_tab.resolution import register_llm_resolution_callback
 from gui.src.model.etl import load_bpmn_dot
 from gui.src.model.llm import llm_response
 from gui.src.view.home.sidebar.llm_tab.chat import get_message
@@ -18,112 +19,24 @@ def register_llm_callbacks(callback, clientside_callback):
 	register_llm_reset_callbacks(callback)
 	register_llm_effects_callbacks(callback, clientside_callback)
 	register_llm_model_selector_callbacks(callback)
+	register_llm_resolution_callback(callback)
 
-	@callback(
-		Output('chat-history', 'data', allow_duplicate=True),
-		Output('pending-message', 'data', allow_duplicate=True),
-		Output('chat-input', 'value'),
-		Input('chat-send-btn', 'n_clicks'),
-		State('chat-input', 'value'),
-		State('chat-history', 'data'),
-		prevent_initial_call=True
-	)
-	def send_message(n_clicks, user_input, history):
-		if not user_input:
-			raise dash.exceptions.PreventUpdate
-		if history is None:
-			history = []
-		loading_id = f'loading-{random.randint(1000,9999)}'
-		history.append({'type': 'user', 'text': user_input})
-		history.append({'type': 'ai', 'text': '...', 'id': loading_id})
-		return history, loading_id, ''
+	# ------------------------------------------------------------------
+	# NOTE: send_message callback migrated to store_manager.py
+	# The chat-send-btn trigger is now handled centrally.
+	# ------------------------------------------------------------------
 
-	@callback(
-		Output('chat-history', 'data', allow_duplicate=True),
-		Output('pending-message', 'data', allow_duplicate=True),
-		Output('bpmn-store', 'data', allow_duplicate=True),
-		Output('bound-store', 'data', allow_duplicate=True),
-		Output({"type": "bpmn-svg-store", "index": "main"}, 'data', allow_duplicate=True),
-		Output('task-impacts-table', 'children', allow_duplicate=True),
-		Output('task-durations-table', 'children', allow_duplicate=True),
-		Output('choice-table', 'children', allow_duplicate=True),
-		Output('nature-table', 'children', allow_duplicate=True),
-		Output('loop-table', 'children', allow_duplicate=True),
-		Input('pending-message', 'data'),
-		State('chat-history', 'data'),
-		State('bpmn-store', 'data'),
-		State('bound-store', 'data'),
-		State('llm-provider', 'value'),
-		State('llm-model', 'value'),
-		State('llm-model-custom', 'value'),
-		State('llm-api-key', 'value'),
-		prevent_initial_call=True
-	)
-	def resolve_response(pending_id, history, bpmn_store, bound_store, provider, model_choice, custom_model, api_key):
-		if not pending_id or not history:
-			raise dash.exceptions.PreventUpdate
-
-		replaced = False
-		for i in range(len(history) - 1, -1, -1):
-			if history[i].get('id') == pending_id:
-				history[i]['text'], new_bpmn = llm_response(
-					bpmn_store,
-					history[i - 1]['text'],
-					provider,
-					model_choice,
-					custom_model,
-					api_key,
-				)
-				del history[i]['id']
-				replaced = True
-				break
-
-		if not replaced:
-			raise dash.exceptions.PreventUpdate
-
-		tasks_impacts_table = dash.no_update
-		tasks_duration_table = dash.no_update
-		choices_table = dash.no_update
-		natures_table = dash.no_update
-		loops_table = dash.no_update
-		bpmn_dot = dash.no_update
-
-		if EXPRESSION not in new_bpmn:
-			history[i]['text'] += "\nNo expression found in the BPMN"
-			return history, None, bpmn_store, bound_store, bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
-
-		new_bpmn[EXPRESSION] = new_bpmn[EXPRESSION].replace("\n", "").replace("\t", "").strip().replace(" ", "")
-		if new_bpmn[EXPRESSION] == '':
-			history[i]['text'] += "\nEmpty expression found in the BPMN"
-			return history, None, bpmn_store, bound_store, bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
-
-		try:
-			SESE_PARSER.parse(new_bpmn[EXPRESSION])
-		except Exception as e:
-			history[i]['text'] += f"\nParsing error: {str(e)}"
-			return history, None, bpmn_store, bound_store, bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
-
-
-		tasks, choices, natures, loops = extract_nodes(SESE_PARSER.parse(new_bpmn[EXPRESSION]))
-		#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
-		tasks_impacts_table = create_tasks_impacts_table(new_bpmn, tasks)
-		tasks_duration_table = create_tasks_duration_table(new_bpmn, tasks)
-
-		#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
-		choices_table = create_choices_table(new_bpmn, choices)
-		#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
-		natures_table = create_natures_table(new_bpmn, natures)
-		#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
-		loops_table = create_loops_table(new_bpmn, loops)
-
-		try:
-			bpmn_dot = load_bpmn_dot(new_bpmn)
-			#print("resolve_response: bpmn_store:impacts_names:", new_bpmn[IMPACTS_NAMES])
-			return history, None, new_bpmn, sync_bound_store_from_bpmn(new_bpmn, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
-
-		except Exception as exception:
-			history[i]['text'] += f"\nProcessing bpmn image error: {str(exception)}"
-		return history, None, new_bpmn, sync_bound_store_from_bpmn(bpmn_store, bound_store), bpmn_dot, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
+	# ------------------------------------------------------------------
+	# NOTE: resolve_response callback has been migrated to store_manager.py
+	# The logic is now in gui/src/model/actions/chat_actions.py
+	# Keeping this comment block for reference.
+	# ------------------------------------------------------------------
+	# @callback(
+	# 	Output('chat-history', 'data', allow_duplicate=True),
+	# 	... (see store_manager.py for full implementation)
+	# )
+	# def resolve_response(...): ...
+	# ------------------------------------------------------------------
 
 
 	@callback(
@@ -134,5 +47,36 @@ def register_llm_callbacks(callback, clientside_callback):
 	def render_chat(history):
 		if not history:
 			return []
-		return [ get_message(msg) for msg in history ]
+		return [get_message(msg, idx) for idx, msg in enumerate(history)]
+
+	@callback(
+		Output('proposal-preview-modal', 'is_open'),
+		Output('proposal-preview-img', 'src'),
+		Input({'type': 'proposal-preview-btn', 'index': ALL}, 'n_clicks'),
+		Input('proposal-preview-close', 'n_clicks'),
+		State({'type': 'proposal-preview-btn', 'index': ALL}, 'id'),
+		State({'type': 'proposal-preview-data', 'index': ALL}, 'data'),
+		State('proposal-preview-modal', 'is_open'),
+		prevent_initial_call=True
+	)
+	def toggle_proposal_preview(btn_clicks, close_clicks, btn_ids, svg_data, is_open):
+		triggered = ctx.triggered_id
+		if triggered == 'proposal-preview-close':
+			return False, no_update
+		if isinstance(triggered, dict) and triggered.get('type') == 'proposal-preview-btn':
+			idx = triggered.get('index')
+			pos = None
+			if btn_ids:
+				for i, btn_id in enumerate(btn_ids):
+					if isinstance(btn_id, dict) and btn_id.get('index') == idx:
+						pos = i
+						break
+			if pos is None:
+				return is_open, no_update
+			if not btn_clicks or pos >= len(btn_clicks) or not btn_clicks[pos]:
+				return is_open, no_update
+			if svg_data and pos < len(svg_data):
+				return True, svg_data[pos]
+			return True, no_update
+		return is_open, no_update
 

@@ -207,7 +207,7 @@ def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str]
     node_status = _get_status(status, parse_tree.root.id)
 
     is_initial = node_status is None or node_status == ActivityState.WAITING
-    print("Root id", parse_tree.root.id, " status:", node_status, "is_initial:", is_initial)
+    #print("Root id", parse_tree.root.id, " status:", node_status, "is_initial:", is_initial)
     is_final = node_status is not None and node_status > ActivityState.ACTIVE
 
 

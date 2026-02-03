@@ -13,7 +13,7 @@ from .view.syntax.layout import layout as syntax_layout
 from .view.example.layout import layout as example_layout
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)

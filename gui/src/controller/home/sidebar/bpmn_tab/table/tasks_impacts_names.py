@@ -76,8 +76,9 @@ def register_task_impacts_names_callbacks(tasks_callbacks):
 			try:
 				bpmn_dot = load_bpmn_dot(bpmn_store)
 			except Exception as exception:
+				# Bug #6 fix: Actually assign the alert (was created but not assigned)
 				if alert == '':
-					dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
+					alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
 
 				return bpmn_store, dash.no_update, sync_bound_store_from_bpmn(bpmn_store, bound_store), alert, tasks_table
 

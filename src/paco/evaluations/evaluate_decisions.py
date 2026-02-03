@@ -30,7 +30,7 @@ def find_all_decisions(region_tree: ParseTree) -> (list[ParseNode], list[str]):
 	for d in decisions:
 		_, decision_name, _ = get_next_task(d)
 		decisions_names.append(f"{d.parent.name}->{decision_name}")
-	print(f"Decisions: {decisions_names}")
+	# print(f"Decisions: {decisions_names}")
 	return decisions, decisions_names
 
 

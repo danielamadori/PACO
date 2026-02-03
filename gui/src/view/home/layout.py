@@ -22,6 +22,7 @@ from gui.src.controller.home.sidebar.strategy_tab.strategy import register_strat
 from gui.src.view.home.sidebar.sidebar import get_sidebar
 from gui.src.view.visualizer.RenderSVG import RenderSvg
 from gui.src.controller.home.view_control import register_view_callbacks
+from gui.src.controller.store_manager import register_store_manager_callbacks
 
 
 def layout():
@@ -41,10 +42,14 @@ def layout():
             LOOP_PROBABILITY: {},
             LOOP_ROUND: {},
         }, storage_type='session'),
+        dcc.Store(id='proposed-bpmn-store', data=None, storage_type='session'),
         dcc.Store(id={"type": "bpmn-svg-store", "index": "main"}, data="", storage_type='session'),
         dcc.Store(id={"type": "petri-svg-store", "index": "main"}, data="", storage_type='session'),
         dcc.Store(id="view-mode", data="bpmn", storage_type='session'),
         
+        dcc.Store(id="sort_store_guaranteed", data={"sort_by": None, "sort_order": "asc", "data": []}, storage_type='session'),
+        dcc.Store(id="sort_store_possible_min", data={"sort_by": None, "sort_order": "asc", "data": []}, storage_type='session'),
+
         dcc.Store(id='bound-store', data={BOUND: {}}, storage_type='session'),
 
         dcc.Store(id='chat-history', data=[], storage_type='session'),
@@ -82,10 +87,11 @@ def layout():
 RenderSvg.register_callbacks(dash.callback, "bpmn-svg")
 RenderSvg.register_callbacks(dash.callback, "petri-svg")
 RenderSvg.register_callbacks(dash.callback, "bdd")
-register_task_impacts_callbacks(dash.callback)
-register_task_durations_callbacks(dash.callback)
-register_task_impacts_names_callbacks(dash.callback)
-register_gateway_callbacks(dash.callback)
+# register_task_impacts_callbacks(dash.callback)
+# register_task_durations_callbacks(dash.callback)
+register_store_manager_callbacks(dash.callback)
+# register_task_impacts_names_callbacks(dash.callback)
+# register_gateway_callbacks(dash.callback)
 register_expression_callbacks(dash.callback)
 register_bound_callbacks(dash.callback)
 register_strategy_callbacks(dash.callback)

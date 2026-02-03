@@ -8,6 +8,7 @@ def register_llm_model_selector_callbacks(callback):
 		Output("llm-model", "options"),
 		Output("llm-model", "value"),
 		Output("llm-api-key-container", "style"),
+		Output("llm-model-custom", "value"),
 		Input("llm-provider", "value"),
 		State("llm-model", "value"),
 		prevent_initial_call=False,
@@ -23,4 +24,4 @@ def register_llm_model_selector_callbacks(callback):
 			value = default_model or (option_values[0] if option_values else None)
 
 		api_key_style = {"display": "none"} if provider == "lmstudio" else {"display": "block"}
-		return options, value, api_key_style
+		return options, value, api_key_style, ""

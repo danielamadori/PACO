@@ -5,14 +5,14 @@ from dash import html
 def get_new_impact_button():
 	return html.Div([
 		dbc.Input(
-			id='new-impact-name',
+			id={'type': 'impact-name-input', 'index': 'main'},
 			placeholder='New impact',
 			debounce=True,
 			style={'flexGrow': 1, 'marginRight': '4px'}
 		),
 		dbc.Button(
 			"+",
-			id='add-impact-button',
+			id={'type': 'add-impact-button', 'index': 'main'},
 			n_clicks=0,
 			color="success",
 			size="sm",

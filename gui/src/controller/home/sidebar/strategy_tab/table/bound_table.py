@@ -4,12 +4,35 @@ from gui.src.env import IMPACTS_NAMES, BOUND, EXPRESSION
 from gui.src.view.home.sidebar.strategy_tab.table.bound_table import get_bound_table
 from dash import html
 
+
 def sync_bound_store_from_bpmn(bpmn_store, bound_store):
-	for name in sorted(bpmn_store[IMPACTS_NAMES]):
+	"""Synchronize bound-store with bpmn-store impact names.
+	
+	This function:
+	- Adds default bounds (1.0) for new impact names
+	- Removes bounds for impact names that no longer exist (Bug #7 fix)
+	- Preserves existing user-set bound values (Bug #2: non-destructive)
+	"""
+	if not bpmn_store or IMPACTS_NAMES not in bpmn_store:
+		return bound_store
+	
+	if not bound_store or BOUND not in bound_store:
+		bound_store = {BOUND: {}}
+	
+	current_impacts = set(bpmn_store[IMPACTS_NAMES])
+	
+	# Add new impacts with default value
+	for name in current_impacts:
 		if name not in bound_store[BOUND]:
 			bound_store[BOUND][name] = 1.0
+	
+	# Remove obsolete impacts (Bug #7 fix)
+	obsolete_keys = set(bound_store[BOUND].keys()) - current_impacts
+	for key in obsolete_keys:
+		del bound_store[BOUND][key]
 
 	return bound_store
+
 
 def register_bound_callbacks(bound_callbacks):
 	@bound_callbacks(
@@ -19,82 +42,18 @@ def register_bound_callbacks(bound_callbacks):
 		prevent_initial_call=True
 	)
 	def regenerate_bound_table(bound_store, bpmn_store):
-		if not bpmn_store or bpmn_store[EXPRESSION] == '' or not bound_store or BOUND not in bound_store:
+		# Bug #12 fix: safe dict access with .get()
+		if not bpmn_store or bpmn_store.get(EXPRESSION, '') == '' or not bound_store or BOUND not in bound_store:
 			return html.Div()
 
-		return get_bound_table(bound_store, sorted(bpmn_store[IMPACTS_NAMES]))
+		return get_bound_table(bound_store, sorted(bpmn_store.get(IMPACTS_NAMES, [])))
 
-	@bound_callbacks(
-		Output('bound-store', 'data', allow_duplicate=True),
-		Input({'type': 'bound-input', 'index': ALL}, 'value'),
-		State({'type': 'bound-input', 'index': ALL}, 'id'),
-		State('bound-store', 'data'),
-		prevent_initial_call=True
-	)
-	def update_bounds(values, ids, bound_store):
-		if not values or not ids:
-			raise dash.exceptions.PreventUpdate
+	# ------------------------------------------------------------------
+	# NOTE: The following callbacks have been migrated to store_manager.py
+	# Logic now in gui/src/model/actions/bound_actions.py
+	# - update_bounds
+	# - update_bound_from_guaranteed
+	# - update_bound_from_possible_min
+	# ------------------------------------------------------------------
 
-		updated = False
-		for value, id_obj in zip(values, ids):
-			index = id_obj["index"]
-			new_val = float(value)
-			if bound_store[BOUND].get(index) != new_val:
-				bound_store[BOUND][index] = new_val
-				updated = True
-
-		if not updated:
-			raise dash.exceptions.PreventUpdate
-
-		return bound_store
-
-
-	@bound_callbacks(
-		Output("bound-store", "data", allow_duplicate=True),
-		Input({"type": "selected_bound", "index": ALL, "table": "guaranteed"}, "n_clicks"),
-		State({"type": "selected_bound", "index": ALL, "table": "guaranteed"}, "value"),
-		State("bound-store", "data"),
-		State("bpmn-store", "data"),
-		prevent_initial_call=True
-	)
-	def update_bound_from_guaranteed(n_clicks_list, values, bound_store, bpmn_store):
-		trigger = ctx.triggered_id
-		if not trigger:
-			raise dash.exceptions.PreventUpdate
-
-		idx = trigger["index"]
-		if idx >= len(n_clicks_list) or not n_clicks_list[idx]:
-			raise dash.exceptions.PreventUpdate
-
-		selected_bound = values[idx]
-
-		for name, value in zip(sorted(bpmn_store[IMPACTS_NAMES]), selected_bound):
-			bound_store[BOUND][name] = float(value)
-
-		return bound_store
-
-
-	@bound_callbacks(
-		Output("bound-store", "data", allow_duplicate=True),
-		Input({"type": "selected_bound", "index": ALL, "table": "possible_min"}, "n_clicks"),
-		State({"type": "selected_bound", "index": ALL, "table": "possible_min"}, "value"),
-		State("bound-store", "data"),
-		State("bpmn-store", "data"),
-		prevent_initial_call=True
-	)
-	def update_bound_from_possible_min(n_clicks_list, values, bound_store, bpmn_store):
-		trigger = ctx.triggered_id
-		if not trigger:
-			raise dash.exceptions.PreventUpdate
-
-		idx = trigger["index"]
-		if idx >= len(n_clicks_list) or not n_clicks_list[idx]:
-			raise dash.exceptions.PreventUpdate
-
-		selected_bound = values[idx]
-
-		for name, value in zip(sorted(bpmn_store[IMPACTS_NAMES]), selected_bound):
-			bound_store[BOUND][name] = float(value)
-
-		return bound_store
 

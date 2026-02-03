@@ -1,3 +1,4 @@
+import logging
 from dash import Input, Output, State, ctx, ALL, no_update
 
 from gui.src.model.etl import (
@@ -13,6 +14,8 @@ from gui.src.model.etl import (
 from gui.src.model.execution_tree import get_prev_execution_node
 from gui.src.env import EXPRESSION
 
+logger = logging.getLogger(__name__)
+
 
 def register_simulator_callbacks(callback):
     @callback(
@@ -24,98 +27,11 @@ def register_simulator_callbacks(callback):
         is_disabled = not bpmn_store or bpmn_store.get(EXPRESSION, "") == ""
         return is_disabled, is_disabled
 
-    @callback(
-        Output("simulation-store", "data", allow_duplicate=True),
-        Input("bpmn-store", "data"),
-        State("simulation-store", "data"),
-        State("bound-store", "data"),
-        prevent_initial_call='initial_duplicate'
-    )
-    def reset_simulation_data(bpmn_store, sim_store, bound_store):
-        if not bpmn_store:
-            return no_update
-        
-        current_expr = bpmn_store.get(EXPRESSION)
-        saved_expr = sim_store.get("expression") if sim_store else None
-        
-        if current_expr == saved_expr:
-            return no_update
+    # ------------------------------------------------------------------
+    # NOTE: The following callbacks have been migrated to store_manager.py
+    # Logic now in gui/src/model/actions/simulation_actions.py
+    # - reset_simulation_data
+    # - run_simulation_on_step
+    # - refresh_petri_on_view
+    # ------------------------------------------------------------------
 
-        if not current_expr:
-            return {"expression": current_expr}
-
-        data = get_simulation_data(bpmn_store, bound_store)
-        data["expression"] = current_expr
-        return data
-
-    @callback(
-        Output("simulation-store", "data", allow_duplicate=True),
-        Output({"type": "bpmn-svg-store", "index": "main"}, 'data', allow_duplicate=True),
-        Output({"type": "petri-svg-store", "index": "main"}, 'data', allow_duplicate=True),
-        Input("btn-back", "n_clicks"),
-        Input("btn-forward", "n_clicks"),
-        State("bpmn-store", "data"),
-        State({"type": "gateway", "id": ALL}, "value"),
-        State("simulation-store", "data"),
-        State({"type": "bpmn-svg-store", "index": "main"}, 'data'),
-        State({"type": "petri-svg-store", "index": "main"}, 'data'),
-        State("time-input", "value"),
-        State("bound-store", "data"),
-        prevent_initial_call=True
-    )
-    def run_simulation_on_step(btn_back_clicks, btn_forward_clicks, bpmn_store, gateway_values, sim_data, bpmn_svg_store, petri_svg_store, time_step, bound_store):
-        try:
-            with open("debug.log", "a") as f:
-                f.write(f"DEBUG: run_simulation_on_step triggered. bound_store keys: {list(bound_store.keys()) if bound_store else 'None'}\n")
-        except:
-            pass
-
-        triggered = ctx.triggered_id
-        step = -1 if triggered == "btn-back" else 1 if triggered == "btn-forward" else 0
-
-        # Default time_step to 1.0 if not provided
-        if time_step is None or time_step <= 0:
-            time_step = 1.0
-
-        match (step):
-            case -1:
-                # Go back in the simulation
-                execution_tree, actual_execution = load_execution_tree(bpmn_store)
-                prev_exec_node = get_prev_execution_node(execution_tree, actual_execution)
-                if prev_exec_node is None:
-                    return sim_data, bpmn_svg_store, petri_svg_store
-
-                set_actual_execution(bpmn_store, prev_exec_node['id'])
-                bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
-                dot_svg = dot_to_base64svg(bpmn_dot)
-                update_bpmn_dot(bpmn_store, dot_svg)
-                
-                # Re-render Petri net SVG for the current execution node
-                petri_svg = preview_petri_net_svg(bpmn_store)
-
-                data = get_simulation_data(bpmn_store, bound_store)
-                data["expression"] = bpmn_store.get(EXPRESSION)
-                return data, dot_svg, petri_svg
-            case 1:
-                # Go forward in the simulation with time_step
-                new_sim_data, petri_svg = execute_decisions(bpmn_store, gateway_values, time_step=time_step, bound_store=bound_store)
-                bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
-                dot_svg = dot_to_base64svg(bpmn_dot)
-
-                update_bpmn_dot(bpmn_store, dot_svg)
-
-                new_sim_data["expression"] = bpmn_store.get(EXPRESSION)
-                return new_sim_data, dot_svg, petri_svg
-            case _:
-                return sim_data, bpmn_svg_store, petri_svg_store
-
-    @callback(
-        Output({"type": "petri-svg-store", "index": "main"}, 'data', allow_duplicate=True),
-        Input("view-mode", "data"),
-        State("bpmn-store", "data"),
-        prevent_initial_call=True
-    )
-    def refresh_petri_on_view(view_mode, bpmn_store):
-        if view_mode != "petri" or not bpmn_store or bpmn_store.get(EXPRESSION, "") == "":
-            return no_update
-        return preview_petri_net_svg(bpmn_store)
