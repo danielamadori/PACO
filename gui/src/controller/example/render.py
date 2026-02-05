@@ -4,8 +4,8 @@ from gui.src.model.etl import dot_to_base64svg, bpmn_to_dot
 from gui.src.view.visualizer.RenderSVG import RenderSvg
 
 
-def register_example_callbacks(callback, id, example_path):
-	RenderSvg.register_callbacks(callback, id + "-svg")
+def register_example_callbacks(callback, clientside_callback, id, example_path):
+	RenderSvg.register_callbacks(callback, id + "-svg", clientside_callback)
 
 	@callback(
 		Output(id + "-download", "data"),

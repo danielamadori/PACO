@@ -84,9 +84,9 @@ def layout():
     ])
 
 
-RenderSvg.register_callbacks(dash.callback, "bpmn-svg")
-RenderSvg.register_callbacks(dash.callback, "petri-svg")
-RenderSvg.register_callbacks(dash.callback, "bdd")
+RenderSvg.register_callbacks(dash.callback, "bpmn-svg", dash.clientside_callback)
+RenderSvg.register_callbacks(dash.callback, "petri-svg", dash.clientside_callback)
+RenderSvg.register_callbacks(dash.callback, "bdd", dash.clientside_callback)
 # register_task_impacts_callbacks(dash.callback)
 # register_task_durations_callbacks(dash.callback)
 register_store_manager_callbacks(dash.callback)
