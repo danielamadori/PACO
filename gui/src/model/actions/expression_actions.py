@@ -96,6 +96,9 @@ def evaluate_expression_logic(current_expression, bpmn_store, bound_store):
             alert, tasks_impacts_table, tasks_duration_table, choices_table, natures_table, loops_table
         )
     except Exception as exception:
+        import traceback
+        traceback.print_exc()
+        print(f"ERROR: Processing error: {exception}")
         alert = dbc.Alert(f"Processing error: {str(exception)}", color="danger", dismissable=True)
         return (
             bpmn_store, NO_UPDATE, NO_UPDATE, NO_UPDATE,

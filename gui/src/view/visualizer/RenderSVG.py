@@ -1,4 +1,6 @@
 from uuid import uuid4
+import base64
+import re
 from dash import Output, Input, State, html, dcc, MATCH, ctx
 import dash_bootstrap_components as dbc
 
@@ -57,7 +59,7 @@ class RenderSvg:
 			dbc.Button("+", id=self.zoom_in_id, color="light", size="sm", className="mb-1"),
 			dbc.Button("−", id=self.zoom_out_id, color="light", size="sm", className="mt-1"),
 			html.Div("100%", id=self.zoom_label_id, style={"fontSize": "0.8rem", "marginTop": "0.35rem"}),
-			# dbc.Button("Rotate", id=self.orientation_toggle_id, color="light", size="sm", className="mt-1"),
+			dbc.Button("Rotate", id=self.orientation_toggle_id, color="light", size="sm", className="mt-1"),
 			dbc.Button("Auto", id=self.zoom_fit_id, color="light", size="sm", className="mt-1"),
 			dbc.Button("Reset", id=self.zoom_reset_id, color="light", size="sm", className="mt-1")
 		], style={
@@ -94,17 +96,80 @@ class RenderSvg:
 			else:
 				default_zoom = zoom_settings.get("default", 1.0)
 
-			svg = dot_data
+			orientation = orientation_value if orientation_value else "horizontal"
+			
+			svg = None
+			if isinstance(dot_data, dict):
+				# New native vertical support (BPMN)
+				svg = dot_data.get(orientation, dot_data.get("horizontal"))
+				is_native_vertical = (orientation == "vertical")
+				margin_top = "0px"
+				rotation = ""
+				transform_origin = "center center"
+			else:
+				# Legacy/String support (Petri Net)
+				svg = dot_data
+				is_native_vertical = False
+				is_vertical_rotated = (orientation == "vertical")
+				
+				# Vertical rotation logic for legacy string-based SVGs (Petri Net)
+				rotation = " rotate(90deg)" if is_vertical_rotated else ""
+				transform_origin = "center center" if is_vertical_rotated else "0 0"
+				
+				# Calculate margin for rotated non-native vertical
+				margin_top = "0px"
+				if is_vertical_rotated:
+					try:
+						comma_idx = svg.find(",")
+						if comma_idx != -1:
+							svg_bytes = base64.b64decode(svg[comma_idx + 1:])
+							svg_text = svg_bytes.decode("utf-8")
+							svg_width = None
+							svg_height = None
+							viewbox_match = re.search(r'viewBox="([^"]+)"', svg_text)
+							if viewbox_match:
+								parts = viewbox_match.group(1).split()
+								if len(parts) >= 4:
+									svg_width = float(parts[2])
+									svg_height = float(parts[3])
+							
+							if not svg_width:
+								width_match = re.search(r'width="([\d.]+)', svg_text)
+								if width_match:
+									svg_width = float(width_match.group(1))
+							if not svg_height:
+								height_match = re.search(r'height="([\d.]+)', svg_text)
+								if height_match:
+									svg_height = float(height_match.group(1))
+							
+							if svg_width:
+								h_val = svg_height if svg_height else 0
+								# Center rotation adjustment
+								margin_top = f"{(svg_width - h_val) * zoom_value / 2}px" if zoom_value else f"{(svg_width - h_val) / 2}px"
+					except Exception:
+						pass
+
 			zoom = zoom_value if zoom_value is not None else default_zoom
-			is_vertical = orientation_value == "vertical"
-			rotation = " rotate(90deg)" if is_vertical else ""
-			transform_origin = "center center" if is_vertical else "0 0"
 
 			current_index = None
 			try:
 				current_index = ctx.outputs_list[0]["id"]["index"]
 			except Exception:
 				current_index = "main"
+			
+			# Align top for vertical to avoid it being centered vertically
+			# But for rotated Petri Net, we might want center?
+			# User complaint was "position problem".
+			# Native vertical (BPMN) should probably be top-aligned (flex-start).
+			# Rotated Petri Net (CSS) might rely on center?
+			# Let's try flex-start for vertical, center for horizontal.
+			
+			align_items = "center"
+			justify_content = "center"
+			
+			if orientation == "vertical":
+				align_items = "flex-start" 
+				justify_content = "center" # Horizontal center
 
 			return html.Div([
 				html.Div(
@@ -122,10 +187,11 @@ class RenderSvg:
 					id={"viz_type": f"{type}-svg-wrap", "index": current_index},
 					style={
 						"display": "flex",
-						"alignItems": "center",
-						"justifyContent": "center",
+						"alignItems": align_items,
+						"justifyContent": justify_content,
 						"height": "100%",
 						"width": "100%",
+						"marginTop": margin_top,
 					}
 				)
 			], key=str(uuid4()))
@@ -151,6 +217,20 @@ class RenderSvg:
 
 				var zoom = (zoomValue === null || zoomValue === undefined) ? defaultZoom : zoomValue;
 				var triggered = ctx.triggered_id;
+				var orientation = orientationValue || "horizontal";
+				
+				// Handle svgData dict or string SAFELY
+				var actualSvgData = svgData;
+				if (svgData && typeof svgData === 'object' && !Array.isArray(svgData)) {
+					// Use specific orientation if available, else horizontal/default
+					actualSvgData = svgData[orientation] || svgData['horizontal'];
+				}
+				// If actualSvgData is still an object (e.g. invalid dict), fallback or it might start string logic?
+				// Important: check if string before calling indexOf
+				if (typeof actualSvgData !== 'string') {
+					// Fallback if something went wrong or data is missing
+					return zoom; 
+				}
 
 				if (triggered && triggered.viz_type === """ + f"\"{type}-increase-zoom\"" + """) {
 					return Math.round((zoom + 0.1) * 10) / 10;
@@ -160,19 +240,20 @@ class RenderSvg:
 				}
 				var isFitTrigger = triggered && triggered.viz_type === """ + f"\"{type}-fit-zoom\"" + """;
 				var isOrientationTrigger = triggered && triggered.viz_type === """ + f"\"{type}-orientation\"" + """;
+				
 				if (isFitTrigger || isOrientationTrigger) {
-					if (!svgData || !containerId) {
+					if (!actualSvgData || !containerId) {
 						return zoom;
 					}
 
-					var comma = svgData.indexOf(",");
+					var comma = actualSvgData.indexOf(",");
 					if (comma === -1) {
 						return zoom;
 					}
 
 					var svgText = "";
 					try {
-						svgText = atob(svgData.slice(comma + 1));
+						svgText = atob(actualSvgData.slice(comma + 1));
 					} catch (e) {
 						return zoom;
 					}
@@ -216,98 +297,42 @@ class RenderSvg:
 						return zoom;
 					}
 
-				var orientation = orientationValue || "horizontal";
-				var availableHeight = ch;
-				if (orientation === "vertical") {
-					var nav = document.querySelector(".navbar");
-					var navBottom = nav && nav.getBoundingClientRect ? nav.getBoundingClientRect().bottom : 0;
-					var rect = container.getBoundingClientRect ? container.getBoundingClientRect() : null;
-					var overlap = 0;
-					if (rect && navBottom > rect.top) {
-						overlap = navBottom - rect.top;
-					}
-					if (overlap > 0) {
-						availableHeight = Math.max(0, ch - overlap) || ch;
-					}
-				}
-
-					var fitScale = Math.min(cw / width, availableHeight / height);
-					if (!isFinite(fitScale) || fitScale <= 0) {
-						return zoom;
-					}
-
+					var availableHeight = ch;
 					if (orientation === "vertical") {
+						var nav = document.querySelector(".navbar");
+						var navBottom = nav && nav.getBoundingClientRect ? nav.getBoundingClientRect().bottom : 0;
+						var rect = container.getBoundingClientRect ? container.getBoundingClientRect() : null;
+						var overlap = 0;
+						if (rect && navBottom > rect.top) {
+							overlap = navBottom - rect.top;
+						}
+						if (overlap > 0) {
+							availableHeight = Math.max(0, ch - overlap) || ch;
+						}
+					}
+					
+					// Determine if we are using native vertical (dict input) or CSS rotation (string input)
+					var isNativeVertical = (svgData && typeof svgData === 'object' && !Array.isArray(svgData));
+					
+					if (orientation === "vertical" && !isNativeVertical) {
+						// CSS Rotation logic (swap width/height for fit calculation)
 						var fitScaleRot = Math.min(cw / height, availableHeight / width);
 						if (!isFinite(fitScaleRot) || fitScaleRot <= 0) {
 							return zoom;
 						}
-						return fitScaleRot / fitScale;
+						return fitScaleRot;
+					} else {
+						// Horizontal OR Native Vertical (width/height are already correct)
+						var fitScale = Math.min(cw / width, availableHeight / height);
+						if (!isFinite(fitScale) || fitScale <= 0) {
+							return zoom;
+						}
+						return fitScale;
 					}
-
-					return 1.0;
 				}
 				if (triggered && triggered.viz_type === """ + f"\"{type}-reset-zoom\"" + """) {
-					if (!svgData || !containerId) {
-						return zoom;
-					}
-
-					var comma = svgData.indexOf(",");
-					if (comma === -1) {
-						return zoom;
-					}
-
-					var svgText = "";
-					try {
-						svgText = atob(svgData.slice(comma + 1));
-					} catch (e) {
-						return zoom;
-					}
-
-					var viewBoxMatch = svgText.match(/viewBox="([^"]+)"/);
-					var width = null;
-					var height = null;
-					if (viewBoxMatch && viewBoxMatch[1]) {
-						var parts = viewBoxMatch[1].trim().split(/[\\s,]+/);
-						if (parts.length >= 4) {
-							width = parseFloat(parts[2]);
-							height = parseFloat(parts[3]);
-						}
-					}
-
-					if (!width || !height) {
-						var widthMatch = svgText.match(/width="([^"]+)"/);
-						var heightMatch = svgText.match(/height="([^"]+)"/);
-						if (widthMatch && heightMatch) {
-							width = parseFloat(widthMatch[1]);
-							height = parseFloat(heightMatch[1]);
-						}
-					}
-
-					if (!width || !height) {
-						return zoom;
-					}
-
-					var idString = JSON.stringify(containerId);
-					var container = document.getElementById(idString);
-					if (!container) {
-						container = document.querySelector('[id*="' + containerId.viz_type + '"]');
-					}
-					if (!container) {
-						return zoom;
-					}
-
-					var cw = container.clientWidth;
-					var ch = container.clientHeight;
-					if (!cw || !ch) {
-						return zoom;
-					}
-
-					var baseScale = Math.min(cw / width, ch / height);
-					if (!isFinite(baseScale) || baseScale <= 0) {
-						return zoom;
-					}
-
-					return 1 / baseScale;
+					// Reset zoom to 1.0 logic
+					return 1.0;
 				}
 
 				return zoom;
@@ -331,18 +356,26 @@ class RenderSvg:
 			function(zoomValue, svgData, orientationValue, containerId) {
 				var zoom = (zoomValue === null || zoomValue === undefined) ? 1.0 : zoomValue;
 				var label = Math.round(zoom * 100) + "%";
-				if (!svgData || !containerId) {
+				
+				// Safely handle svgData possibly being a dict
+				var actualSvgData = svgData;
+				var orientation = orientationValue || "horizontal";
+				if (svgData && typeof svgData === 'object' && !Array.isArray(svgData)) {
+					actualSvgData = svgData[orientation] || svgData['horizontal'];
+				}
+				
+				if (!actualSvgData || typeof actualSvgData !== 'string' || !containerId) {
 					return label;
 				}
 
-				var comma = svgData.indexOf(",");
+				var comma = actualSvgData.indexOf(",");
 				if (comma === -1) {
 					return label;
 				}
 
 				var svgText = "";
 				try {
-					svgText = atob(svgData.slice(comma + 1));
+					svgText = atob(actualSvgData.slice(comma + 1));
 				} catch (e) {
 					return label;
 				}
@@ -386,7 +419,6 @@ class RenderSvg:
 					return label;
 				}
 
-				var orientation = orientationValue || "horizontal";
 				var availableHeight = ch;
 				if (orientation === "vertical") {
 					var nav = document.querySelector(".navbar");
@@ -435,26 +467,4 @@ class RenderSvg:
 			prevent_initial_call=True
 		)
 
-		clientside_callback(
-			"""
-			function(orientationValue, zoomValue, svgData, wrapId) {
-				var orientation = orientationValue || "horizontal";
-				var paddingTop = "0px";
-				return {
-					display: "flex",
-					alignItems: orientation === "vertical" ? "flex-start" : "center",
-					justifyContent: orientation === "vertical" ? "flex-start" : "center",
-					height: "100%",
-					width: "100%",
-					paddingTop: paddingTop,
-					boxSizing: "border-box"
-				};
-			}
-			""",
-			Output({"viz_type": f"{type}-svg-wrap", "index": MATCH}, "style"),
-			Input({"viz_type": f"{type}-orientation", "index": MATCH}, "data"),
-			Input({"viz_type": f"{type}-zoom-value", "index": MATCH}, "data"),
-			Input({"type": f"{type}-store", "index": MATCH}, "data"),
-			State({"viz_type": f"{type}-svg-wrap", "index": MATCH}, "id"),
-			prevent_initial_call=True
-		)
+
