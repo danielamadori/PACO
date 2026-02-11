@@ -49,7 +49,7 @@ from gui.src.model.sqlite import (
 from gui.src.model.bpmn import get_active_region_by_pn, ActivityState
 
 
-def load_bpmn_dot(bpmn: dict, *, force_refresh: bool = False) -> str:
+def load_bpmn_dot(bpmn: dict, *, force_refresh: bool = False) -> dict:
 	"""
 	Given a BPMN process, return its DOT representation as an SVG base64 string.
 	If the DOT representation is already stored in the database, retrieve it from there.
@@ -57,26 +57,41 @@ def load_bpmn_dot(bpmn: dict, *, force_refresh: bool = False) -> str:
 
 	:param bpmn: BPMN dictionary
 	:param force_refresh: If True, re-generate the DOT even if cached
-	:return: SVG base64 string of the BPMN DOT representation
+	:return: dict of SVG base64 strings of the BPMN DOT representation
 	"""
 	if bpmn[EXPRESSION] == '':
 		return None
 
 	normalized_bpmn = _normalize_bpmn(bpmn)
 
+	# For now, we only cache the horizontal one in the DB. Use it if available.
+	# Vertical is always regenerated to avoid schema changes.
 	record = fetch_bpmn(normalized_bpmn)
+	cached_horizontal_dot = None
 	if not force_refresh and record and record.bpmn_dot:
-		return record.bpmn_dot
+		cached_horizontal_dot = record.bpmn_dot
 
-	bpmn_dot = bpmn_snapshot_to_dot(bpmn)
-	bpmn_svg_base64 = dot_to_base64svg(bpmn_dot)
+	# Always generate to get vertical (and horizontal if not cached)
+	# Optimization: check if we can skip horizontal generation if cached?
+	# But bpmn_to_dot does both in one API call.
+	bpmn_dots = bpmn_snapshot_to_dot(bpmn)
+	
+	horizontal_dot = cached_horizontal_dot if cached_horizontal_dot else bpmn_dots["horizontal"]
+	# If we have a cached horizontal but API returned a new one, we might want to use the new one?
+	# Let's trust the API/generation.
+	
+	horizontal_svg = dot_to_base64svg(bpmn_dots["horizontal"])
+	vertical_svg = dot_to_base64svg(bpmn_dots["vertical"])
 
-	if record:
-		_update_bpmn_record(normalized_bpmn, bpmn_svg_base64)
+	if not cached_horizontal_dot:
+		save_bpmn_dot(normalized_bpmn, bpmn_dots["horizontal"])
 	else:
-		save_bpmn_dot(normalized_bpmn, bpmn_svg_base64)
+		_update_bpmn_record(normalized_bpmn, bpmn_dots["horizontal"])
 
-	return bpmn_svg_base64
+	return {
+		"horizontal": horizontal_svg,
+		"vertical": vertical_svg
+	}
 
 
 def load_petri_net_svg(bpmn: dict, *, force_refresh: bool = False) -> str:
@@ -102,7 +117,7 @@ def load_petri_net_svg(bpmn: dict, *, force_refresh: bool = False) -> str:
 	return dot_to_base64svg(petri_net_dot)
 
 
-def reset_simulation_state(bpmn: dict, bound_store: dict | None = None) -> tuple[str | None, str | None, dict]:
+def reset_simulation_state(bpmn: dict, bound_store: dict | None = None) -> tuple[dict | None, str | None, dict]:
 	"""
 	Force-refresh execution tree and Petri net, then return updated SVGs and simulation data.
 	"""
@@ -110,13 +125,13 @@ def reset_simulation_state(bpmn: dict, bound_store: dict | None = None) -> tuple
 		return None, None, {"expression": ""}
 
 	load_execution_tree(bpmn, force_refresh=True)
-	bpmn_svg = load_bpmn_dot(bpmn, force_refresh=True)
+	bpmn_svgs = load_bpmn_dot(bpmn, force_refresh=True)
 	petri_svg = load_petri_net_svg(bpmn, force_refresh=True)
 
 	sim_data = get_simulation_data(bpmn, bound_store)
 	sim_data["expression"] = bpmn.get(EXPRESSION, "")
 
-	return bpmn_svg, petri_svg, sim_data
+	return bpmn_svgs, petri_svg, sim_data
 
 
 def dot_to_base64svg(dot: str) -> str:
@@ -126,6 +141,27 @@ def dot_to_base64svg(dot: str) -> str:
 	:param dot: DOT string
 	:return: SVG base64 string
 	"""
+	if not isinstance(dot, str):
+		# import traceback
+		# traceback.print_exc()
+		print(f"WARNING: dot_to_base64svg received non-string type: {type(dot)}")
+		
+		if isinstance(dot, dict):
+			# Extract horizontal or vertical if available
+			if "horizontal" in dot:
+				dot = dot["horizontal"]
+			elif "vertical" in dot:
+				dot = dot["vertical"]
+			else:
+				# Fallback: maybe it's a dict but we don't know the key? or convert to string
+				print(f"WARNING: dict keys are {dot.keys()}")
+				dot = str(dot)
+		elif isinstance(dot, list):
+			print("WARNING: converting list to string via join")
+			dot = "\n".join(dot)
+		else:
+			dot = str(dot)
+			
 	svg = graphviz.Source(dot).pipe(format='svg')
 	svg_base64 = f"data:image/svg+xml;base64,{base64.b64encode(svg).decode('utf-8')}"
 	return svg_base64
@@ -174,12 +210,12 @@ def get_status(bpmn, status:dict):
 	return is_initial, is_final, status_with_names, status_with_ids
 
 
-def bpmn_snapshot_to_dot(bpmn) -> str:
+def bpmn_snapshot_to_dot(bpmn) -> dict:
 	"""
 	Given a BPMN process, return its DOT representation.
 
 	:param bpmn: BPMN dictionary
-	:return: BPMN DOT string
+	:return: dict of BPMN DOT strings (horizontal, vertical)
 	"""
 	petri_net, _, _ = get_petri_net(bpmn, step=0)
 
@@ -190,7 +226,7 @@ def bpmn_snapshot_to_dot(bpmn) -> str:
 	return bpmn_to_dot(bpmn, current_node['snapshot']['status'])
 
 
-def _get_bpmn_dot_local(bpmn: dict, status_with_ids: dict) -> str:
+def _get_bpmn_dot_local(bpmn: dict, status_with_ids: dict) -> dict:
 	from src.paco.parser.dot.bpmn import get_bpmn_dot_from_parse_tree
 	from src.paco.parser.parse_tree import ParseTree
 
@@ -200,10 +236,13 @@ def _get_bpmn_dot_local(bpmn: dict, status_with_ids: dict) -> str:
 		impact_size=len(bpmn[IMPACTS_NAMES]),
 		non_cumulative_impact_size=0,
 	)
-	return get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status_with_ids)
+	return {
+		"horizontal": get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status_with_ids, orientation="horizontal"),
+		"vertical": get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status_with_ids, orientation="vertical")
+	}
 
 
-def bpmn_to_dot(bpmn, status = {}) -> str:
+def bpmn_to_dot(bpmn, status = {}) -> dict:
 	'''
 	current_marking = current_node['snapshot']['marking']
 	is_initial = is_initial_marking(current_marking, petri_net)
@@ -230,11 +269,15 @@ def bpmn_to_dot(bpmn, status = {}) -> str:
 			headers=HEADERS,
 		)
 		resp.raise_for_status()
-		bpmn_dot_str = resp.json()["bpmn_dot"]
+		data = resp.json()
+		bpmn_dots = {
+			"horizontal": data["bpmn_dot"],
+			"vertical": data.get("bpmn_dot_vertical", data["bpmn_dot"]) # Fallback if API mismatch
+		}
 	except RequestException:
-		bpmn_dot_str = _get_bpmn_dot_local(bpmn, status_with_ids)
+		bpmn_dots = _get_bpmn_dot_local(bpmn, status_with_ids)
 
-	return bpmn_dot_str
+	return bpmn_dots
 
 
 def update_bpmn_dot(bpmn: dict, bpmn_dot: str):
