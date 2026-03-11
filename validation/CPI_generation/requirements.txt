@@ -1,0 +1,6 @@
+tqdm~=4.67.1
+numpy~=2.2.4
+lark~=1.2.2
+ipython~=9.0.2
+graphviz~=0.20.3
+notebook~=7.3.3
