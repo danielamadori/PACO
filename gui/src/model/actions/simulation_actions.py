@@ -64,25 +64,33 @@ def step_simulation_logic(step, bpmn_store, gateway_values, sim_data,
             return sim_data, bpmn_svg_store, petri_svg_store
 
         set_actual_execution(bpmn_store, prev_exec_node['id'])
-        bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
-        dot_svg = dot_to_base64svg(bpmn_dot)
-        update_bpmn_dot(bpmn_store, dot_svg)
+        bpmn_dots = bpmn_snapshot_to_dot(bpmn_store)
+        # Convert both orientations to SVG
+        bpmn_svgs = {
+            "horizontal": dot_to_base64svg(bpmn_dots["horizontal"]),
+            "vertical": dot_to_base64svg(bpmn_dots["vertical"])
+        }
+        update_bpmn_dot(bpmn_store, bpmn_dots["horizontal"])  # Cache horizontal DOT
         petri_svg = preview_petri_net_svg(bpmn_store)
 
         data = get_simulation_data(bpmn_store, bound_store)
         data["expression"] = bpmn_store.get(EXPRESSION)
-        return data, dot_svg, petri_svg
+        return data, bpmn_svgs, petri_svg
         
     elif step == 1:
         # Go forward
         new_sim_data, petri_svg = execute_decisions(
             bpmn_store, gateway_values, time_step=time_step, bound_store=bound_store
         )
-        bpmn_dot = bpmn_snapshot_to_dot(bpmn_store)
-        dot_svg = dot_to_base64svg(bpmn_dot)
-        update_bpmn_dot(bpmn_store, dot_svg)
+        bpmn_dots = bpmn_snapshot_to_dot(bpmn_store)
+        # Convert both orientations to SVG
+        bpmn_svgs = {
+            "horizontal": dot_to_base64svg(bpmn_dots["horizontal"]),
+            "vertical": dot_to_base64svg(bpmn_dots["vertical"])
+        }
+        update_bpmn_dot(bpmn_store, bpmn_dots["horizontal"])  # Cache horizontal DOT
         new_sim_data["expression"] = bpmn_store.get(EXPRESSION)
-        return new_sim_data, dot_svg, petri_svg
+        return new_sim_data, bpmn_svgs, petri_svg
     
     return sim_data, bpmn_svg_store, petri_svg_store
 

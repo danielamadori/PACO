@@ -195,13 +195,13 @@ def arc_to_dot(source, target, label=None, style=None):
 
 
 
-def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str], status:dict):
-
+def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str], status:dict, orientation="horizontal"):
     """
     Wrapper to create the dot representation of the BPMN.
     :param parse_tree: Parse tree of the expression
     :param impacts_names: Impacts names to display
     :param active_regions: Ids of the active regions to highlight
+    :param orientation: Orientation of the BPMN ("horizontal" or "vertical")
     :return: Dot representation of the BPMN
     """
     node_status = _get_status(status, parse_tree.root.id)
@@ -212,7 +212,8 @@ def get_bpmn_dot_from_parse_tree(parse_tree: ParseTree, impacts_names: list[str]
 
 
     code = "digraph G {\n"
-    code += "rankdir=LR;\n"
+    rankdir = "LR" if orientation == "horizontal" else "TB"
+    code += f"rankdir={rankdir};\n"
     code += node_to_dot("start",
                         "circle",
                         "",

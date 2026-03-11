@@ -58,7 +58,7 @@ def layout():
     ], fluid=True)
 
 
-register_example_callbacks(dash.callback, id="bpmn-example", example_path=FIRST_EXAMPLE_PATH)
-register_example_callbacks(dash.callback, id="bpmn-example2", example_path=SECOND_EXAMPLE_PATH)
-register_example_callbacks(dash.callback, id="bpmn-example3", example_path=THIRD_EXAMPLE_PATH)
-register_example_callbacks(dash.callback, id="bpmn-example4", example_path=FOURTH_EXAMPLE_PATH)
+register_example_callbacks(dash.callback, dash.clientside_callback, id="bpmn-example", example_path=FIRST_EXAMPLE_PATH)
+register_example_callbacks(dash.callback, dash.clientside_callback, id="bpmn-example2", example_path=SECOND_EXAMPLE_PATH)
+register_example_callbacks(dash.callback, dash.clientside_callback, id="bpmn-example3", example_path=THIRD_EXAMPLE_PATH)
+register_example_callbacks(dash.callback, dash.clientside_callback, id="bpmn-example4", example_path=FOURTH_EXAMPLE_PATH)

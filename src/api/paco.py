@@ -38,7 +38,14 @@ def register_paco_api(app: FastAPI):
 		try:
 			parse_tree, _, _, _ = create_parse_tree(bpmn)
 
-			return { "parse_tree" : parse_tree.to_dict(), "bpmn_dot": get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status) }
+			bpmn_dot_horizontal = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status, orientation="horizontal")
+			bpmn_dot_vertical = get_bpmn_dot_from_parse_tree(parse_tree, bpmn[IMPACTS_NAMES], status, orientation="vertical")
+
+			return { 
+				"parse_tree" : parse_tree.to_dict(), 
+				"bpmn_dot": bpmn_dot_horizontal,
+				"bpmn_dot_vertical": bpmn_dot_vertical
+			}
 		except Exception as e:
 			raise HTTPException(status_code=500, detail=str(e))
 
