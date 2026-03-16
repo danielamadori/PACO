@@ -16,7 +16,7 @@ from src.utils.env import (
     H,
 )
 from src.paco.parser.grammar import ALL_SYNTAX
-from src.paco.parser.bpmn_parser import SESE_PARSER
+from src.paco.parser.bpmn_parser import SESE_PARSER, validate_unique_node_names
 import re
 import json
 from datetime import datetime
@@ -50,6 +50,7 @@ def check_bpmn_syntax(bpmn:dict) -> bool:
             raise ValueError(f"'{key}' has an invalid type. Expected {expected_type.__name__}, got {type(value).__name__}")
 
     lark_tree = SESE_PARSER.parse(bpmn[EXPRESSION])
+    validate_unique_node_names(lark_tree)
     # print((lark_tree).pretty())
     return lark_tree
 

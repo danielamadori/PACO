@@ -19,8 +19,75 @@ SESE_PARSER = Lark(sese_diagram_grammar, parser='lalr')
 DEFAULT_UNFOLDING_NUMBER = 3
 
 
+def _find_duplicates(values: list[str]) -> list[str]:
+    return sorted({value for value in values if values.count(value) > 1})
+
+
+def _collect_node_names(lark_tree):
+    tasks, choices, natures, loops = [], [], [], []
+
+    if lark_tree.data == 'task':
+        tasks.append(lark_tree.children[0].value)
+
+    elif lark_tree.data in {'choice', 'natural'}:
+        left_tasks, left_choices, left_natures, left_loops = _collect_node_names(lark_tree.children[0])
+        right_tasks, right_choices, right_natures, right_loops = _collect_node_names(lark_tree.children[2])
+        tasks.extend(left_tasks + right_tasks)
+        choices.extend(left_choices + right_choices)
+        natures.extend(left_natures + right_natures)
+        loops.extend(left_loops + right_loops)
+
+        if lark_tree.data == 'choice':
+            choices.append(lark_tree.children[1].value)
+        else:
+            natures.append(lark_tree.children[1].value)
+
+    elif lark_tree.data in {'sequential', 'parallel'}:
+        left_tasks, left_choices, left_natures, left_loops = _collect_node_names(lark_tree.children[0])
+        right_tasks, right_choices, right_natures, right_loops = _collect_node_names(lark_tree.children[1])
+        tasks.extend(left_tasks + right_tasks)
+        choices.extend(left_choices + right_choices)
+        natures.extend(left_natures + right_natures)
+        loops.extend(left_loops + right_loops)
+
+    elif lark_tree.data == 'loop':
+        child_tasks, child_choices, child_natures, child_loops = _collect_node_names(lark_tree.children[0])
+        tasks.extend(child_tasks)
+        choices.extend(child_choices)
+        natures.extend(child_natures)
+        loops.extend(child_loops)
+
+    elif lark_tree.data == 'loop_probability':
+        loops.append(lark_tree.children[0].value)
+        child_tasks, child_choices, child_natures, child_loops = _collect_node_names(lark_tree.children[1])
+        tasks.extend(child_tasks)
+        choices.extend(child_choices)
+        natures.extend(child_natures)
+        loops.extend(child_loops)
+
+    else:
+        raise ValueError(f"Unhandled lark_tree type: {lark_tree.data}")
+
+    return tasks, choices, natures, loops
+
+
+def validate_unique_node_names(lark_tree) -> None:
+    tasks, choices, natures, loops = _collect_node_names(lark_tree)
+    duplicates_by_kind = {
+        'task': _find_duplicates(tasks),
+        'choice': _find_duplicates(choices),
+        'nature': _find_duplicates(natures),
+        'loop': _find_duplicates(loops),
+    }
+
+    for kind, duplicates in duplicates_by_kind.items():
+        if duplicates:
+            raise ValueError(f"Duplicate {kind} name(s) are not allowed: {', '.join(duplicates)}")
+
+
 def create_parse_tree(bpmn: dict):
     tree = SESE_PARSER.parse(bpmn[EXPRESSION])
+    validate_unique_node_names(tree)
     #print(tree.pretty())
     root_parse_tree, last_id, pending_choice, pending_natures, pending_loops = parse(tree, bpmn[PROBABILITIES], bpmn[IMPACTS], bpmn[DURATIONS], bpmn[DELAYS], h=bpmn[H], loop_probability=bpmn[LOOP_PROBABILITY], loop_round=bpmn[LOOP_ROUND])
     parse_tree = ParseTree(root_parse_tree)
@@ -98,4 +165,3 @@ def parse(lark_tree, probabilities, impacts, durations, delays, loop_probability
     pending_loops.update(right_pending_loops)
 
     return node, last_id, pending_choices, pending_natures, pending_loops
-

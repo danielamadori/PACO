@@ -29,6 +29,19 @@ class TestSaturateExecution(unittest.TestCase):
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
+    def test_duplicate_task_names_raise_error(self):
+        with self.assertRaises(ValueError) as context:
+            build_parse_tree_for_test({
+                EXPRESSION: "T, T",
+                H: 0,
+                IMPACTS: {"T": [11, 15]},
+                DURATIONS: {"T": [0, 1]},
+                IMPACTS_NAMES: ["cost", "hours"],
+                PROBABILITIES: {}, DELAYS: {}, LOOP_PROBABILITY: {}, LOOP_ROUND: {}
+            })
+
+        self.assertIn("Duplicate task name(s) are not allowed", str(context.exception))
+
     # Sequential Tests
 
     def test_sequential_tasks(self):
@@ -1519,5 +1532,4 @@ class TestSaturateExecution(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
 
