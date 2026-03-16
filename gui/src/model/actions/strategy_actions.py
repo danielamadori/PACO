@@ -15,11 +15,8 @@ def find_strategy_logic(bpmn_store, bound_store):
     """
     Compute strategy for the given BPMN and bounds.
     
-    Returns tuple of 2 values:
-    (strategy_output, alert)
-    
-    Note: sort_store_guaranteed and sort_store_possible_min are managed
-    by update_advaced_table.py's callbacks, not by StoreManager.
+    Returns tuple of 4 values:
+    (strategy_output, alert, guaranteed_bounds, possible_min_solution)
     """
     try:
         alert = ''
@@ -27,7 +24,7 @@ def find_strategy_logic(bpmn_store, bound_store):
             result, expected_impacts, guaranteed_bounds, possible_min_solution, bdds = load_strategy(bpmn_store, bound_store)
         except ValueError as e:
             alert = dbc.Alert(str(e), color="warning", dismissable=True)
-            return html.Div(), alert
+            return html.Div(), alert, [], []
 
         results = strategy_results(
             result, expected_impacts,

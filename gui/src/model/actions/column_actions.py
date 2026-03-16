@@ -7,7 +7,7 @@ import dash
 
 def add_impact_column_logic(new_impact_name, bpmn_store, bound_store):
     if not new_impact_name or new_impact_name.strip() == '':
-        return dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     new_impact_name = new_impact_name.strip()
     if new_impact_name in bpmn_store[IMPACTS_NAMES]:
@@ -40,7 +40,7 @@ def remove_impact_column_logic(id_obj, bpmn_store, bound_store):
     if impact_to_remove in bpmn_store[IMPACTS_NAMES]:
         bpmn_store[IMPACTS_NAMES].remove(impact_to_remove)
     else:
-        return dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     # Bug #7 fix is inherent in sync_bound_store_from_bpmn which is called here
     try:

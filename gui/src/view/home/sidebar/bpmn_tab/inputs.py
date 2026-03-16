@@ -12,7 +12,7 @@ def get_bpmn_view():
 					], style={"textAlign": "left"})
 				),
 				dbc.CardBody([
-					dcc.Input(type="text", debounce=True, id='expression-bpmn', style={'width': '100%', 'height': '48px', 'marginBottom': '10px'}, value=''),
+					dcc.Input(type="text", debounce=False, id='expression-bpmn', style={'width': '100%', 'height': '48px', 'marginBottom': '10px'}, value=''),
 					dbc.Button("Generate BPMN", id="generate-bpmn-btn", color="primary", size="sm", style={"width": "100%"})
 				])
 			],
@@ -29,4 +29,3 @@ def get_bpmn_view():
 		"flexWrap": "wrap",
 		"justifyContent": "center"
 	})
-

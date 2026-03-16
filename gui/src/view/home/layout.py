@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 from dash_split_pane import DashSplitPane
+import dash_split_pane
 from gui.src.controller.home.sidebar.bpmn_tab.download import register_download_callbacks
 from gui.src.controller.home.sidebar.bpmn_tab.example_load import register_example_load_callbacks
 from gui.src.controller.home.sidebar.bpmn_tab.table.tasks_impacts_names import register_task_impacts_names_callbacks
@@ -23,6 +24,27 @@ from gui.src.view.home.sidebar.sidebar import get_sidebar
 from gui.src.view.visualizer.RenderSVG import RenderSvg
 from gui.src.controller.home.view_control import register_view_callbacks
 from gui.src.controller.store_manager import register_store_manager_callbacks
+
+
+def _strip_dash_split_pane_sourcemap_assets():
+    """
+    dash_split_pane v0.0.1 incorrectly exposes *.js.map as JS assets.
+    Dash injects them as <script>, causing browser parse errors like:
+    'Unexpected token :'.
+    """
+    def _filtered(dist):
+        return [
+            asset for asset in dist
+            if not asset.get("relative_package_path", "").endswith(".js.map")
+        ]
+
+    if hasattr(dash_split_pane, "_js_dist"):
+        dash_split_pane._js_dist = _filtered(dash_split_pane._js_dist)
+    if hasattr(DashSplitPane, "_js_dist"):
+        DashSplitPane._js_dist = _filtered(DashSplitPane._js_dist)
+
+
+_strip_dash_split_pane_sourcemap_assets()
 
 
 def layout():

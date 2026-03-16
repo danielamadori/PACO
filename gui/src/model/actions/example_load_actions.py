@@ -10,7 +10,7 @@ from gui.src.controller.home.sidebar.strategy_tab.table.bound_table import sync_
 from gui.src.env import BOUND, EXPRESSION, SESE_PARSER, extract_nodes
 from gui.src.example_registry import EXAMPLE_PATHS
 from gui.src.model.bpmn import validate_bpmn_dict
-from gui.src.model.etl import load_bpmn_dot
+from gui.src.model.etl import reset_simulation_state
 from gui.src.view.home.sidebar.bpmn_tab.table.gateways_table import create_choices_table, create_natures_table, create_loops_table
 from gui.src.view.home.sidebar.bpmn_tab.table.task_duration import create_tasks_duration_table
 from gui.src.view.home.sidebar.bpmn_tab.table.task_impacts import create_tasks_impacts_table
@@ -20,13 +20,14 @@ def load_example_logic(search, bound_store):
     """
     Load BPMN example from URL query parameter.
     
-    Returns tuple of 10 values:
-    (bpmn, bound, svg, impacts_tbl, durations_tbl, choices_tbl, natures_tbl, loops_tbl, expression_val, alert)
+    Returns tuple of 12 values:
+    (bpmn, bound, bpmn_svg, petri_svg, simulation_data, impacts_tbl,
+     durations_tbl, choices_tbl, natures_tbl, loops_tbl, expression_val, alert)
     """
-    NO_UPDATES = (no_update,) * 10
+    NO_UPDATES = (no_update,) * 12
     
     def error_alert(msg, color="danger"):
-        return (no_update,) * 9 + (dbc.Alert(msg, color=color, dismissable=True),)
+        return (no_update,) * 11 + (dbc.Alert(msg, color=color, dismissable=True),)
 
     if not search:
         return NO_UPDATES

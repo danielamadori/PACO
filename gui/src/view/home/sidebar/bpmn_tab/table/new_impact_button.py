@@ -7,7 +7,7 @@ def get_new_impact_button():
 		dbc.Input(
 			id={'type': 'impact-name-input', 'index': 'main'},
 			placeholder='New impact',
-			debounce=True,
+			debounce=False,
 			style={'flexGrow': 1, 'marginRight': '4px'}
 		),
 		dbc.Button(

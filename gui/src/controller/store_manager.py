@@ -29,10 +29,10 @@ OUTPUT_COUNT = 21
 def register_store_manager_callbacks(callback_provider):
     """
     FINAL StoreManager: Handles ALL mutations.
-    18 Outputs - No Duplicates
+    21 Outputs - No Duplicates
     """
     @callback_provider(
-        # === OUTPUTS (18 Total) ===
+        # === OUTPUTS (21 Total) ===
         Output('bpmn-store', 'data'),                                    # 0
         Output({"type": "bpmn-svg-store", "index": "main"}, "data"),     # 1
         Output({"type": "petri-svg-store", "index": "main"}, "data"),    # 2
@@ -168,6 +168,8 @@ def register_store_manager_callbacks(callback_provider):
                             pass
 
             res = find_strategy_logic(bpmn_store, bound_store)
+            if not isinstance(res, tuple) or len(res) != 4:
+                return no_updates()
             # res: (output, alert, guaranteed_data, possible_min_data)
             
             # Helper to format store data
@@ -189,7 +191,8 @@ def register_store_manager_callbacks(callback_provider):
             return (
                 res[0], res[2], res[3], res[4], res[1],
                 res[11], res[5], res[6], res[7], res[8], res[9],
-                no_update, no_update, no_update, res[10], no_update, no_update, no_update, no_update
+                no_update, no_update, no_update, res[10], no_update, no_update, no_update, no_update,
+                no_update, no_update
             )
 
         # ========= UPLOAD =========
@@ -282,6 +285,8 @@ def register_store_manager_callbacks(callback_provider):
         if isinstance(trigger, dict) and trigger.get('type') == 'add-impact-button':
             new_impact_name = get_pattern_value(new_impact_name_list)
             res = add_impact_column_logic(new_impact_name, bpmn_store, bound_store)
+            if not isinstance(res, tuple) or len(res) != 5:
+                return no_updates()
             if res[0] is no_update:
                 return (no_update,) * 5 + (res[3],) + (no_update,) * 15
             return (res[0], res[1], no_update, no_update, res[2], res[3], res[4]) + (no_update,) * 14
@@ -313,6 +318,8 @@ def register_store_manager_callbacks(callback_provider):
 
             if t_type == 'remove-impact':
                 res = remove_impact_column_logic(trigger, bpmn_store, bound_store)
+                if not isinstance(res, tuple) or len(res) != 5:
+                    return no_updates()
                 return (res[0], res[1], no_update, no_update, res[2], res[3], res[4]) + (no_update,) * 14
             
             if t_type in ['min-duration', 'max-duration']:
