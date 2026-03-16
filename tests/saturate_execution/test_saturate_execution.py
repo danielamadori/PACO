@@ -11,7 +11,7 @@ from src.utils import check_syntax as cs
 from src.utils.env import EXPRESSION, H, IMPACTS, DURATIONS, IMPACTS_NAMES, PROBABILITIES, DELAYS, LOOP_PROBABILITY, LOOP_ROUND
 
 
-def test_create_parse_tree(bpmn: dict) -> ParseTree:
+def build_parse_tree_for_test(bpmn: dict) -> ParseTree:
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS])
     tmp = create_parse_tree(bpmn)
     return tmp[:-1]
@@ -32,7 +32,7 @@ class TestSaturateExecution(unittest.TestCase):
     # Sequential Tests
 
     def test_sequential_tasks(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1, T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
@@ -62,7 +62,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "T2 should be completed at time 2")
 
     def test_sequential_nature_task(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1 ^ [N1] T2), T3",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -122,7 +122,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t2], ActivityState.ACTIVE, "T2 should be active")
 
     def test_sequential_task_nature(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1, (T2 ^ [N1] T3)",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -181,7 +181,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t3], ActivityState.ACTIVE, "T3 should be active")
 
     def test_sequential_choice_task(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1 / [C1] T2), T3",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -240,7 +240,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t2], ActivityState.ACTIVE, "T2 should be active")
 
     def test_sequential_task_choice(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1, (T2 / [C1] T3)",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -302,7 +302,7 @@ class TestSaturateExecution(unittest.TestCase):
     # Sequential Sequential Tests
 
     def test_sequential_sequential_nature(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1, T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
@@ -356,7 +356,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t4], ActivityState.ACTIVE, "T4 should be active")
 
     def test_sequential_sequential_choice(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1, T2,(T3 / [C1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
@@ -409,7 +409,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t4], ActivityState.ACTIVE, "T4 should be active")
 
         # Considering choice delay
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1, T2,(T3 / [C1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
@@ -459,7 +459,7 @@ class TestSaturateExecution(unittest.TestCase):
     # Parallel Tests
 
     def test_parallel_tasks(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1 || T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
@@ -489,7 +489,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "T2 should be completed at time 1")
 
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1 || T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
@@ -514,7 +514,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(states.executed_time[t2], 2,
                          "T2 should be completed at time 2")
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1 || T2",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2]},
@@ -539,7 +539,7 @@ class TestSaturateExecution(unittest.TestCase):
                          "T2 should be completed at time 1")
 
     def test_parallel_choice_task(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T2 / [C1] T3) || T1",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -599,7 +599,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t3], ActivityState.ACTIVE, "T3 should be active")
 
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T2 / [C1] T3) || T1",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -653,7 +653,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t3], ActivityState.ACTIVE, "T3 should be active")
 
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T2 / [C1] T3) || T1",
             H: 0,
             IMPACTS: {"T1": [11, 15], "T2": [4, 2], "T3": [1, 20]},
@@ -709,7 +709,7 @@ class TestSaturateExecution(unittest.TestCase):
     # TODO use parallel_natures, parallel_choices, parallel_nature_choice for the solver test
 
     def test_parallel_natures(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A ^[N1] T1B) || (T2A ^[N2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
@@ -805,7 +805,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[3].activityState[t2b], ActivityState.ACTIVE, "T2B should be active")
 
     def test_parallel_choices(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
@@ -901,7 +901,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[3].activityState[t2b], ActivityState.ACTIVE, "T2B should be active")
 
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
@@ -962,7 +962,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t1b], ActivityState.ACTIVE, "T1B should be active")
 
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
@@ -1023,7 +1023,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t2b], ActivityState.ACTIVE, "T1B should be active")
 
     def test_parallel_nature_choice(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A ^[N1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
@@ -1119,7 +1119,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[3].activityState[t2b], ActivityState.ACTIVE, "T2B should be active")
 
 
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A /[C1] T1B) || (T2A /[C2] T2B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4]},
@@ -1182,7 +1182,7 @@ class TestSaturateExecution(unittest.TestCase):
 
 
     def test_parallel_choice_nature_nature(self):
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "(T1A /[C1] T1B) || (T2A ^[N2] T2B) || (T3A ^[N3] T3B)",
             H: 0,
             IMPACTS: {"T1A": [0, 1], "T1B": [0, 2], "T2A": [0, 3], "T2B": [0, 4], "T3A": [0, 5], "T3B": [0, 6]},
@@ -1366,7 +1366,7 @@ class TestSaturateExecution(unittest.TestCase):
         # 3 test, parallel: T1 = T2, T1 < T2, T1 > T2
 
         # T1 T2 ended and N1 start at the same time
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1 || T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
@@ -1421,7 +1421,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t4], ActivityState.ACTIVE, "T4 should be active")
 
         # T1 ended first
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1 || T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
@@ -1469,7 +1469,7 @@ class TestSaturateExecution(unittest.TestCase):
         self.assertEqual(multi_branches[1].activityState[t4], ActivityState.ACTIVE, "T4 should be active")
 
         # T2 ended first
-        parse_tree, pending_choice, pending_natures = test_create_parse_tree({
+        parse_tree, pending_choice, pending_natures = build_parse_tree_for_test({
             EXPRESSION: "T1 || T2,(T3 ^ [N1] T4)",
             H: 0,
             IMPACTS: {"T1": [1, 2], "T2": [3, 4], "T3": [5, 6], "T4": [7, 8]},
