@@ -1,8 +1,18 @@
 import datetime
 import json
+from pathlib import Path
 
 from sources.refinements import refine_bounds
 from experiments.telegram.telegram_bot import send_telegram_message
+
+def _find_cpi_to_prism_root(start: Path) -> Path:
+    for parent in start.parents:
+        if parent.name == "cpi-to-prism":
+            return parent
+    raise RuntimeError(f"Unable to locate cpi-to-prism root from {start}")
+
+_CPI_TO_PRISM_DIR = _find_cpi_to_prism_root(Path(__file__).resolve())
+_CPIS_DIR = _CPI_TO_PRISM_DIR / "CPIs"
 
 
 def single_execution(cursor, conn, x, y, w, bundle):
@@ -20,7 +30,8 @@ def single_execution(cursor, conn, x, y, w, bundle):
     T = D.pop('metadata')
 
     # Write to current_benchmark.cpi
-    with open('CPIs/current_benchmark.cpi', 'w') as f:
+    benchmark_path = _CPIS_DIR / "current_benchmark.cpi"
+    with open(benchmark_path, 'w') as f:
         json.dump(D, f)
 
     # Record start time

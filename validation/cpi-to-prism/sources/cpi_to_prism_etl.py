@@ -1,7 +1,17 @@
 import json
 import os
+from pathlib import Path
 from cpi_to_spin.cpitospin import CPIToSPINConverter
 from process_to_prism import cpi_to_mdp
+
+def _find_cpi_to_prism_root(start: Path) -> Path:
+    for parent in start.parents:
+        if parent.name == "cpi-to-prism":
+            return parent
+    raise RuntimeError(f"Unable to locate cpi-to-prism root from {start}")
+
+_CPI_TO_PRISM_DIR = _find_cpi_to_prism_root(Path(__file__).resolve())
+_CPIS_DIR = _CPI_TO_PRISM_DIR / "CPIs"
 
 
 def cpi_to_model(filename):
@@ -24,8 +34,8 @@ def cpi_to_model(filename):
     
     # Handle filename with or without extension
     base_name = filename.replace('.cpi', '')
-    input_path = os.path.join('CPIs', f'{base_name}.cpi')
-    output_path = os.path.join('models', f'{base_name}.nm')
+    input_path = _CPIS_DIR / f'{base_name}.cpi'
+    output_path = Path('models') / f'{base_name}.nm'
     
     try:
         # Read CPI file
@@ -55,4 +65,3 @@ def cpi_to_model(filename):
     except Exception as e:
         print(f"Error converting {input_path}: {str(e)}")
         return None
-

@@ -38,7 +38,7 @@ def read_cpi_bundle(filepath: str) -> List[Dict]:
         return json.load(f)
 
 def read_cpi_bundles(
-    directory: str = 'CPIs',
+    directory: str = 'validation/cpi-to-prism/CPIs/',
     bundle_pattern: Optional[str] = None,
     x: Optional[int] = None,
     y: Optional[int] = None

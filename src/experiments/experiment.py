@@ -39,7 +39,7 @@ def single_execution(cursor, conn, x, y, w, bundle):
     T = D.pop('metadata')
 
     # Write to current_benchmark.cpi
-    with open('CPIs/current_benchmark.cpi', 'w') as f:
+    with open('validation/cpi-to-prism/CPIs/current_benchmark.cpi', 'w') as f:
         json.dump(D, f)
 
     # Record start time

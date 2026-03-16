@@ -1,6 +1,7 @@
 import os
 import json
 import gzip
+from pathlib import Path
 from generated_processes import get_process_from_file, translate_to_cpi
 from tqdm import tqdm
 from itertools import product
@@ -16,6 +17,11 @@ DEFAULT_GENERATION_MODES = [
 ]
 
 DEFAULT_CHOICE_DISTRIBUTIONS = [round(i/10, 1) for i in range(1, 10)]  # 0.1 to 0.9
+
+# Resolve CPI bundle directory relative to this file so it works from any CWD.
+_SRC_DIR = Path(__file__).resolve().parent
+_VALIDATION_DIR = _SRC_DIR.parent.parent
+_CPIS_DIR = _VALIDATION_DIR / "cpi-to-prism" / "CPIs"
 
 def read_cpi_bundles(
     bundle_pattern: Optional[str] = None,
@@ -33,24 +39,31 @@ def read_cpi_bundles(
     Returns:
         List of CPI dictionaries from all matching bundle files
     """
-    bundle_dir = 'CPIs'
+    bundle_dir = _CPIS_DIR
     all_cpis = []
     
     # Get list of files to process
     if x is not None and y is not None:
         files = [f"cpi_bundle_x{x}_y{y}.cpis.gz"]
     elif bundle_pattern:
-        files = [f for f in os.listdir(bundle_dir) 
-                if f.endswith('.cpis.gz') and bundle_pattern in f]
+        files = [
+            f.name
+            for f in bundle_dir.iterdir()
+            if f.is_file() and f.name.endswith('.cpis.gz') and bundle_pattern in f.name
+        ]
     else:
-        files = [f for f in os.listdir(bundle_dir) if f.endswith('.cpis.gz')]
+        files = [
+            f.name
+            for f in bundle_dir.iterdir()
+            if f.is_file() and f.name.endswith('.cpis.gz')
+        ]
     
     # Process each file
     with tqdm(total=len(files), desc="Reading CPI bundles") as pbar:
         for filename in files:
             try:
-                filepath = os.path.join(bundle_dir, filename)
-                if os.path.exists(filepath):
+                filepath = bundle_dir / filename
+                if filepath.exists():
                     with gzip.open(filepath, 'rt', encoding='utf-8') as f:
                         bundle_data = json.load(f)
                         all_cpis.extend(bundle_data)
@@ -93,7 +106,7 @@ def generate_cpi_files_parametrized(
     if choice_distributions is None:
         choice_distributions = DEFAULT_CHOICE_DISTRIBUTIONS
 
-    ensure_directory('CPIs')
+    ensure_directory(_CPIS_DIR)
     generated_bundles = []
     errors = []
     
@@ -120,7 +133,7 @@ def generate_cpi_files_parametrized(
                     duration_interval=duration_interval,
                     choice_distributions=choice_distributions
                 )
-                generated_bundles.append(os.path.basename(bundle_path))
+                generated_bundles.append(Path(bundle_path).name)
                 
             except Exception as e:
                 error_msg = f"Error processing bundle for x={x}, y={y}: {str(e)}"
@@ -225,9 +238,9 @@ def generate_cpi_bundle(
             pbar.update(1)
     
     # Save the bundle as compressed file with .cpis.gz extension
-    ensure_directory('CPIs')
+    ensure_directory(_CPIS_DIR)
     bundle_filename = f"cpi_bundle_x{x}_y{y}.cpis.gz"
-    bundle_path = os.path.join('CPIs', bundle_filename)
+    bundle_path = _CPIS_DIR / bundle_filename
     
     with gzip.open(bundle_path, 'wt', encoding='utf-8') as f:
         json.dump(cpi_bundle, f, indent=2)

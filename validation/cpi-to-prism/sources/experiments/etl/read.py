@@ -1,7 +1,16 @@
-import os
 import json
 import gzip
+from pathlib import Path
 from typing import List, Dict, Optional, Union
+
+def _find_cpi_to_prism_root(start: Path) -> Path:
+    for parent in start.parents:
+        if parent.name == "cpi-to-prism":
+            return parent
+    raise RuntimeError(f"Unable to locate cpi-to-prism root from {start}")
+
+_CPI_TO_PRISM_DIR = _find_cpi_to_prism_root(Path(__file__).resolve())
+_CPIS_DIR = _CPI_TO_PRISM_DIR / "CPIs"
 
 def read_cpi_file(filepath: str) -> Dict:
     """
@@ -38,7 +47,7 @@ def read_cpi_bundle(filepath: str) -> List[Dict]:
         return json.load(f)
 
 def read_cpi_bundles(
-    directory: str = 'CPIs',
+    directory: Union[str, Path] = _CPIS_DIR,
     bundle_pattern: Optional[str] = None,
     x: Optional[int] = None,
     y: Optional[int] = None
@@ -56,21 +65,29 @@ def read_cpi_bundles(
         List[Dict]: Combined list of CPI dictionaries from all matching bundles
     """
     all_cpis = []
+    directory_path = Path(directory)
     
     # Determine which files to process
     if x is not None and y is not None:
         files = [f"cpi_bundle_x{x}_y{y}.cpis.gz"]
     elif bundle_pattern:
-        files = [f for f in os.listdir(directory) 
-                if f.endswith('.cpis.gz') and bundle_pattern in f]
+        files = [
+            f.name
+            for f in directory_path.iterdir()
+            if f.is_file() and f.name.endswith('.cpis.gz') and bundle_pattern in f.name
+        ]
     else:
-        files = [f for f in os.listdir(directory) if f.endswith('.cpis.gz')]
+        files = [
+            f.name
+            for f in directory_path.iterdir()
+            if f.is_file() and f.name.endswith('.cpis.gz')
+        ]
     
     # Process each file
     for filename in files:
         try:
-            filepath = os.path.join(directory, filename)
-            if os.path.exists(filepath):
+            filepath = directory_path / filename
+            if filepath.exists():
                 bundle_data = read_cpi_bundle(filepath)
                 all_cpis.extend(bundle_data)
         except Exception as e:

@@ -1,9 +1,18 @@
 from typing import Dict, List
 import json
-import os
+from pathlib import Path
 from cpi_to_prism_etl import cpi_to_model
 from sampler import sample_expected_impact
 from analysis import analyze_bounds
+
+def _find_cpi_to_prism_root(start: Path) -> Path:
+    for parent in start.parents:
+        if parent.name == "cpi-to-prism":
+            return parent
+    raise RuntimeError(f"Unable to locate cpi-to-prism root from {start}")
+
+_CPI_TO_PRISM_DIR = _find_cpi_to_prism_root(Path(__file__).resolve())
+_CPIS_DIR = _CPI_TO_PRISM_DIR / "CPIs"
 
 def refine_bounds(process_name: str, num_refinements: int, verbose: bool=False) -> Dict[str, float]:
     """
@@ -20,7 +29,7 @@ def refine_bounds(process_name: str, num_refinements: int, verbose: bool=False) 
         raise ValueError("Number of refinements must be positive")
         
     # Load CPI file
-    cpi_path = os.path.join('CPIs', f'{process_name}.cpi')
+    cpi_path = _CPIS_DIR / f'{process_name}.cpi'
     try:
         with open(cpi_path, 'r') as f:
             cpi_dict = json.load(f)
