@@ -89,6 +89,21 @@ def handle_termination(signum, frame):
                 proc.terminate()
                 proc.wait(timeout=5)
                 logger.info(f"{label} process terminated successfully (PID {proc.pid})")
+            except subprocess.TimeoutExpired:
+                logger.warning(
+                    f"{label} process did not terminate within 5 seconds; forcing kill (PID {proc.pid})"
+                )
+                try:
+                    proc.kill()
+                    try:
+                        proc.wait(timeout=2)
+                        logger.info(f"{label} process killed successfully (PID {proc.pid})")
+                    except subprocess.TimeoutExpired:
+                        logger.warning(
+                            f"{label} process did not exit immediately after kill (PID {proc.pid}); continuing shutdown"
+                        )
+                except Exception as kill_exc:
+                    logger.error(f"Error while force-killing {label} process: {str(kill_exc)}")
             except Exception as e:
                 logger.error(f"Error while terminating {label} process: {str(e)}")
     logger.info("Main process exiting cleanly.")

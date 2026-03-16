@@ -22,7 +22,7 @@ def _get_env_int(name: str, default: int) -> int:
 		return default
 
 
-def run(port: int | None = None):
+def create_app() -> FastAPI:
 	app = FastAPI()
 	app.add_middleware(
 		CORSMiddleware,
@@ -43,10 +43,17 @@ def run(port: int | None = None):
 
 	register_paco_api(app)
 	register_api_llm(app)
+	return app
+
+
+api = create_app()
+
+
+def run(port: int | None = None):
 
 	api_host = os.getenv("PACO_API_HOST", "0.0.0.0")
 	api_port = port if port is not None else _get_env_int("PACO_API_PORT", 8000)
-	uvicorn.run(app, host=api_host, port=api_port)
+	uvicorn.run(api, host=api_host, port=api_port)
 
 
 if __name__ == "__main__":
