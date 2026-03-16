@@ -85,6 +85,7 @@ def single_execution(cursor, conn, x, y, w, bundle):
         times['strategy_tree_time'] = 0.0
         times['initial_bounds'] = 0
         times['final_bounds'] = 0
+        times['frontier_size'] = 0
 
     for k, v in times.items():
         print(f"{k}: {v}")
@@ -99,7 +100,8 @@ def single_execution(cursor, conn, x, y, w, bundle):
 		UPDATE experiments 
 		SET vte = ?, time_create_execution_tree = ?, time_evaluate_cei_execution_tree = ?,
 			found_strategy_time = ?, build_strategy_time = ?, time_explain_strategy = ?, 
-			strategy_tree_time = ?, initial_bounds = ?, final_bounds = ?, error = ?
+			strategy_tree_time = ?, initial_bounds = ?, final_bounds = ?, error = ?,
+			frontier_size = ?
 		WHERE x = ? AND y = ? AND w = ?
 		""",
         (vte,
@@ -112,6 +114,7 @@ def single_execution(cursor, conn, x, y, w, bundle):
          str(times['initial_bounds']),
          str(times['final_bounds']),
          str(error),
+         times.get('frontier_size', 0),
          x, y, w)
     )
     conn.commit()

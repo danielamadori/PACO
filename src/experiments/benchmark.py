@@ -50,6 +50,7 @@ def run_benchmarks():
             initial_bounds TEXT,
             final_bounds TEXT,
             error TEXT,
+            frontier_size INTEGER,
             PRIMARY KEY (x, y, w)
         )
     ''')
