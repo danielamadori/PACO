@@ -82,6 +82,31 @@ def single_execution(cursor, conn, x, y, w, bundle):
         times['found_strategy_time'] = 0.0
         times['build_strategy_time'] = 0.0
         times['time_explain_strategy'] = 0.0
+        times['time_explain_strategy_impacts_based'] = 0.0
+        times['time_explain_strategy_decision_based'] = 0.0
+        times['time_explain_strategy_hybrid'] = 0.0
+        times['explain_strategy_impacts_based_status'] = "not_attempted"
+        times['explain_strategy_decision_based_status'] = "not_attempted"
+        times['explain_strategy_hybrid_status'] = "not_attempted"
+        times['explainer_leaves_impacts_based'] = 0
+        times['explainer_leaves_decision_based'] = 0
+        times['explainer_leaves_hybrid'] = 0
+        times['explainer_leaves_total'] = 0
+        times['explainer_choices_impacts_based_total'] = 0
+        times['explainer_choices_impacts_based_forced'] = 0
+        times['explainer_choices_impacts_based_arbitrary'] = 0
+        times['explainer_choices_impacts_based_impacts'] = 0
+        times['explainer_choices_impacts_based_decision'] = 0
+        times['explainer_choices_decision_based_total'] = 0
+        times['explainer_choices_decision_based_forced'] = 0
+        times['explainer_choices_decision_based_arbitrary'] = 0
+        times['explainer_choices_decision_based_impacts'] = 0
+        times['explainer_choices_decision_based_decision'] = 0
+        times['explainer_choices_hybrid_total'] = 0
+        times['explainer_choices_hybrid_forced'] = 0
+        times['explainer_choices_hybrid_arbitrary'] = 0
+        times['explainer_choices_hybrid_impacts'] = 0
+        times['explainer_choices_hybrid_decision'] = 0
         times['strategy_tree_time'] = 0.0
         times['initial_bounds'] = 0
         times['final_bounds'] = 0
@@ -97,22 +122,59 @@ def single_execution(cursor, conn, x, y, w, bundle):
     # Update record with end time
     cursor.execute(
         """
-		UPDATE experiments 
-		SET vte = ?, time_create_execution_tree = ?, time_evaluate_cei_execution_tree = ?,
-			found_strategy_time = ?, build_strategy_time = ?, time_explain_strategy = ?, 
-			strategy_tree_time = ?, initial_bounds = ?, final_bounds = ?, error = ?,
-			frontier_size = ?
-		WHERE x = ? AND y = ? AND w = ?
-		""",
+			UPDATE experiments 
+			SET vte = ?, time_create_execution_tree = ?, time_evaluate_cei_execution_tree = ?,
+					found_strategy_time = ?, build_strategy_time = ?, time_explain_strategy = ?, 
+					time_explain_strategy_impacts_based = ?, time_explain_strategy_decision_based = ?,
+					time_explain_strategy_hybrid = ?, explain_strategy_impacts_based_status = ?,
+					explain_strategy_decision_based_status = ?, explain_strategy_hybrid_status = ?,
+					explainer_leaves_impacts_based = ?, explainer_leaves_decision_based = ?, explainer_leaves_hybrid = ?,
+					explainer_leaves_total = ?,
+					explainer_choices_impacts_based_total = ?, explainer_choices_impacts_based_forced = ?,
+					explainer_choices_impacts_based_arbitrary = ?, explainer_choices_impacts_based_impacts = ?,
+					explainer_choices_impacts_based_decision = ?, explainer_choices_decision_based_total = ?,
+					explainer_choices_decision_based_forced = ?, explainer_choices_decision_based_arbitrary = ?,
+					explainer_choices_decision_based_impacts = ?, explainer_choices_decision_based_decision = ?,
+					explainer_choices_hybrid_total = ?, explainer_choices_hybrid_forced = ?,
+					explainer_choices_hybrid_arbitrary = ?, explainer_choices_hybrid_impacts = ?,
+					explainer_choices_hybrid_decision = ?, strategy_tree_time = ?, initial_bounds = ?, final_bounds = ?, error = ?,
+					frontier_size = ?
+				WHERE x = ? AND y = ? AND w = ?
+				""",
         (vte,
-         times['time_create_execution_tree'],
-         times['time_evaluate_cei_execution_tree'],
-         times['found_strategy_time'],
-         times['build_strategy_time'],
-         times['time_explain_strategy'],
-         times['strategy_tree_time'],
-         str(times['initial_bounds']),
-         str(times['final_bounds']),
+         times.get('time_create_execution_tree', 0.0),
+         times.get('time_evaluate_cei_execution_tree', 0.0),
+         times.get('found_strategy_time', 0.0),
+         times.get('build_strategy_time', 0.0),
+         times.get('time_explain_strategy', 0.0),
+         times.get('time_explain_strategy_impacts_based', 0.0),
+         times.get('time_explain_strategy_decision_based', 0.0),
+         times.get('time_explain_strategy_hybrid', 0.0),
+         times.get('explain_strategy_impacts_based_status', 'not_attempted'),
+         times.get('explain_strategy_decision_based_status', 'not_attempted'),
+         times.get('explain_strategy_hybrid_status', 'not_attempted'),
+         times.get('explainer_leaves_impacts_based', 0),
+         times.get('explainer_leaves_decision_based', 0),
+         times.get('explainer_leaves_hybrid', 0),
+         times.get('explainer_leaves_total', 0),
+         times.get('explainer_choices_impacts_based_total', 0),
+         times.get('explainer_choices_impacts_based_forced', 0),
+         times.get('explainer_choices_impacts_based_arbitrary', 0),
+         times.get('explainer_choices_impacts_based_impacts', 0),
+         times.get('explainer_choices_impacts_based_decision', 0),
+         times.get('explainer_choices_decision_based_total', 0),
+         times.get('explainer_choices_decision_based_forced', 0),
+         times.get('explainer_choices_decision_based_arbitrary', 0),
+         times.get('explainer_choices_decision_based_impacts', 0),
+         times.get('explainer_choices_decision_based_decision', 0),
+         times.get('explainer_choices_hybrid_total', 0),
+         times.get('explainer_choices_hybrid_forced', 0),
+         times.get('explainer_choices_hybrid_arbitrary', 0),
+         times.get('explainer_choices_hybrid_impacts', 0),
+         times.get('explainer_choices_hybrid_decision', 0),
+         times.get('strategy_tree_time', 0.0),
+         str(times.get('initial_bounds', 0)),
+         str(times.get('final_bounds', 0)),
          str(error),
          times.get('frontier_size', 0),
          x, y, w)

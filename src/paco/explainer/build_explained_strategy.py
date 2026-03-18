@@ -1,21 +1,60 @@
 from datetime import datetime
-from src.paco.explainer.explain_strategy import explain_strategy
+from src.paco.explainer.explain_strategy import explain_strategy, explain_strategy_with_attempts, explanation_mode_name
 from src.paco.explainer.full_strategy import full_strategy
 from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.explainer.bdd.bdds import bdds_count_leaves
 from src.paco.parser.parse_tree import ParseTree
 from src.paco.parser.parse_node import ParseNode
 from src.paco.execution_tree.execution_tree import ExecutionTree
 
 def build_explained_strategy(parse_tree:ParseTree, strategy: dict[ParseNode, dict[ParseNode, set[ExecutionTree]]], type_strategy: ExplanationType, impacts_names: list,  pending_choices:set, pending_natures:set, debug=False):
-    times = {}
+    times = {
+        "time_explain_strategy_impacts_based": 0.0,
+        "time_explain_strategy_decision_based": 0.0,
+        "time_explain_strategy_hybrid": 0.0,
+        "explain_strategy_impacts_based_status": "not_attempted",
+        "explain_strategy_decision_based_status": "not_attempted",
+        "explain_strategy_hybrid_status": "not_attempted",
+        "explainer_leaves_impacts_based": 0,
+        "explainer_leaves_decision_based": 0,
+        "explainer_leaves_hybrid": 0,
+        "explain_strategy_impacts_based_error": "",
+        "explain_strategy_decision_based_error": "",
+        "explain_strategy_hybrid_error": "",
+    }
 
     #print(f'{datetime.now()} Explain Strategy: ')
     t = datetime.now()
-    worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy, debug)
+    if type_strategy == ExplanationType.HYBRID:
+        worst_type_strategy, bdds, explain_attempts, _ = explain_strategy_with_attempts(parse_tree, strategy, impacts_names, debug)
+    else:
+        worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, impacts_names, type_strategy, debug)
+        finished_at = datetime.now()
+        explain_attempts = [{
+            "mode": explanation_mode_name(type_strategy),
+            "type": str(type_strategy),
+            "status": "success",
+            "success": True,
+            "duration_ms": (finished_at - t).total_seconds() * 1000,
+            "error": "",
+            "captured_at": finished_at.isoformat(timespec="milliseconds"),
+        }]
+
     t1 = datetime.now()
     time_explain_strategy = (t1 - t).total_seconds()*1000
     #print(f"{t1} Explain Strategy:completed: {time_explain_strategy} ms")
     times["time_explain_strategy"] = time_explain_strategy
+    times["explain_strategy_attempts"] = explain_attempts
+    for attempt in explain_attempts:
+        mode_name = attempt["mode"]
+        times[f"time_explain_strategy_{mode_name}"] = attempt["duration_ms"]
+        times[f"explain_strategy_{mode_name}_status"] = attempt.get("status", "success" if attempt["success"] else "failed")
+        times[f"explain_strategy_{mode_name}_error"] = attempt["error"]
+        times[f"explainer_leaves_{mode_name}"] = attempt.get("leaves_total", 0)
+
+    explainer_leaves_total, explainer_leaves_per_choice = bdds_count_leaves(bdds)
+    times["explainer_leaves_total"] = explainer_leaves_total
+    times["explainer_leaves_per_choice"] = explainer_leaves_per_choice
 
     s = f": {worst_type_strategy}"
     if type_strategy == ExplanationType.HYBRID:
