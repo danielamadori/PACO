@@ -197,6 +197,38 @@ class Bdd:
 			nodes.extend(self.get_minimum_tree_nodes(target_f))
 		return nodes
 
+	def get_minimum_tree_leaves(self, node: DagNode = None, visited: set = None):
+		if self.typeStrategy == ExplanationType.FORCED_DECISION:
+			return []
+
+		if self.root is None:
+			return []
+
+		if node is None:
+			node = self.root
+		if visited is None:
+			visited = set()
+		if node in visited:
+			return []
+		visited.add(node)
+
+		if not node.splittable or node.best_test is None or len(node.edges) == 0:
+			return [node]
+
+		target_t, target_f = node.get_targets(node.best_test)
+		if target_t is None or target_f is None:
+			return [node]
+
+		leaves = []
+		leaves.extend(self.get_minimum_tree_leaves(target_t, visited))
+		leaves.extend(self.get_minimum_tree_leaves(target_f, visited))
+		return leaves
+
+	def count_leaves(self) -> int:
+		if self.typeStrategy == ExplanationType.FORCED_DECISION:
+			return 1
+		return len(self.get_minimum_tree_leaves())
+
 	def choose(self, vector: np.ndarray):
 		if self.root is None:# forced decision give always the same decision
 			return self.class_0

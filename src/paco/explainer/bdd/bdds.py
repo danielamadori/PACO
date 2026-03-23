@@ -24,3 +24,14 @@ def bdds_to_json(bdds: dict[ParseNode:Bdd]) -> str:
 
 def bdds_to_dict_dot(bdds: dict[ParseNode:Bdd]) -> dict[str, str]:
 	return {choice.name: (str(bdd.typeStrategy), bdd.bdd_to_dot()) for choice, bdd in bdds.items()}
+
+
+def bdds_count_leaves(bdds: dict[ParseNode:Bdd]) -> tuple[int, dict]:
+	total = 0
+	leaves_per_choice = {}
+	for choice, bdd in bdds.items():
+		leaves = bdd.count_leaves()
+		choice_key = choice.name if choice.name else str(choice.id)
+		leaves_per_choice[choice_key] = leaves
+		total += leaves
+	return total, leaves_per_choice

@@ -60,7 +60,7 @@ Ensure all dependencies are installed and your environment is correctly configur
 
 ### Preparing CPI Bundle
 
-Place your CPI bundle into the `CPIs` folder. If you don't want to use the one provided just create them using the code in `CPI_generation` folder.
+Place your CPI bundle into the local `CPIs` folder (`validation/cpi-to-prism/CPIs` from repository root). If you don't want to use the one provided, create new bundles using the code in `validation/CPI_generation`.
 
 ### Running the Script
 

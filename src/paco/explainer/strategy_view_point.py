@@ -8,13 +8,14 @@ from src.paco.saturate_execution.states import States
 
 class StrategyViewPoint(ViewPoint):
 	def __init__(self, bpmn_root: ParseNode, id: int, states: States, decisions: tuple[ParseNode], choices: dict[ParseNode:Bdd], natures: list[ParseNode],
-				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = {}):
+				 is_final_state: bool, probability:np.float64, impacts: np.ndarray, pending_choices:set, pending_natures:set, parent = None, expected_impacts: np.ndarray = None, expected_time: np.float64 = None, explained_choices: dict[ParseNode:Bdd] = None):
 		super().__init__(id, states, decisions, is_final_state, tuple(natures), tuple(choices), pending_choices, pending_natures, parent)
 
 		self.probability = probability
 		self.impacts = impacts
 		self.executed_time = states.executed_time[bpmn_root]
-		self.explained_choices = explained_choices
+		# Avoid sharing a mutable default dict across nodes / runs.
+		self.explained_choices = {} if explained_choices is None else dict(explained_choices)
 
 		if expected_impacts is None or expected_time is None:
 			self.expected_impacts = probability * impacts

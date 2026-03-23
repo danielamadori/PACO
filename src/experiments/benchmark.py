@@ -18,6 +18,41 @@ def handle_termination(signum, frame):
     sys.exit(0)
 
 
+def ensure_experiments_columns(cursor):
+    expected_columns = {
+        "time_explain_strategy_impacts_based": "REAL",
+        "time_explain_strategy_decision_based": "REAL",
+        "time_explain_strategy_hybrid": "REAL",
+        "explain_strategy_impacts_based_status": "TEXT",
+        "explain_strategy_decision_based_status": "TEXT",
+        "explain_strategy_hybrid_status": "TEXT",
+        "explainer_leaves_impacts_based": "INTEGER",
+        "explainer_leaves_decision_based": "INTEGER",
+        "explainer_leaves_hybrid": "INTEGER",
+        "explainer_leaves_total": "INTEGER",
+        "explainer_choices_impacts_based_total": "INTEGER",
+        "explainer_choices_impacts_based_forced": "INTEGER",
+        "explainer_choices_impacts_based_arbitrary": "INTEGER",
+        "explainer_choices_impacts_based_impacts": "INTEGER",
+        "explainer_choices_impacts_based_decision": "INTEGER",
+        "explainer_choices_decision_based_total": "INTEGER",
+        "explainer_choices_decision_based_forced": "INTEGER",
+        "explainer_choices_decision_based_arbitrary": "INTEGER",
+        "explainer_choices_decision_based_impacts": "INTEGER",
+        "explainer_choices_decision_based_decision": "INTEGER",
+        "explainer_choices_hybrid_total": "INTEGER",
+        "explainer_choices_hybrid_forced": "INTEGER",
+        "explainer_choices_hybrid_arbitrary": "INTEGER",
+        "explainer_choices_hybrid_impacts": "INTEGER",
+        "explainer_choices_hybrid_decision": "INTEGER",
+    }
+    cursor.execute("PRAGMA table_info(experiments)")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+    for column_name, column_type in expected_columns.items():
+        if column_name not in existing_columns:
+            cursor.execute(f"ALTER TABLE experiments ADD COLUMN {column_name} {column_type}")
+
+
 def run_benchmarks():
     global conn
     conn = sqlite3.connect(BENCHMARKS_DB)
@@ -46,6 +81,31 @@ def run_benchmarks():
             found_strategy_time REAL,
             build_strategy_time REAL,
             time_explain_strategy REAL, 
+            time_explain_strategy_impacts_based REAL,
+            time_explain_strategy_decision_based REAL,
+            time_explain_strategy_hybrid REAL,
+            explain_strategy_impacts_based_status TEXT,
+            explain_strategy_decision_based_status TEXT,
+            explain_strategy_hybrid_status TEXT,
+            explainer_leaves_impacts_based INTEGER,
+            explainer_leaves_decision_based INTEGER,
+            explainer_leaves_hybrid INTEGER,
+            explainer_leaves_total INTEGER,
+            explainer_choices_impacts_based_total INTEGER,
+            explainer_choices_impacts_based_forced INTEGER,
+            explainer_choices_impacts_based_arbitrary INTEGER,
+            explainer_choices_impacts_based_impacts INTEGER,
+            explainer_choices_impacts_based_decision INTEGER,
+            explainer_choices_decision_based_total INTEGER,
+            explainer_choices_decision_based_forced INTEGER,
+            explainer_choices_decision_based_arbitrary INTEGER,
+            explainer_choices_decision_based_impacts INTEGER,
+            explainer_choices_decision_based_decision INTEGER,
+            explainer_choices_hybrid_total INTEGER,
+            explainer_choices_hybrid_forced INTEGER,
+            explainer_choices_hybrid_arbitrary INTEGER,
+            explainer_choices_hybrid_impacts INTEGER,
+            explainer_choices_hybrid_decision INTEGER,
             strategy_tree_time REAL,
             initial_bounds TEXT,
             final_bounds TEXT,
@@ -54,6 +114,7 @@ def run_benchmarks():
             PRIMARY KEY (x, y, w)
         )
     ''')
+    ensure_experiments_columns(cursor)
     conn.commit()
 
     print(str(datetime.now()) + " Starting benchmark...")

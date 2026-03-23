@@ -21,7 +21,7 @@ COPY src ./src
 COPY gui/src ./gui/src/
 COPY docs ./docs
 COPY *.ipynb ./
-COPY CPIs ./CPIs
+COPY validation/cpi-to-prism/CPIs ./validation/cpi-to-prism/CPIs
 COPY simulator/ ./simulator/
 COPY *.json ./
 COPY dot.py ./

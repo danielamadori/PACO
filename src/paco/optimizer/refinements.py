@@ -1,6 +1,8 @@
 from src.paco.evaluations.evaluate_cumulative_expected_impacts import evaluate_cumulative_expected_impacts
-from src.paco.explainer.explain_strategy import explain_strategy
+from src.paco.explainer.explain_strategy import explain_strategy_with_attempts
 from src.paco.explainer.full_strategy import full_strategy
+from src.paco.explainer.explanation_type import ExplanationType
+from src.paco.explainer.bdd.bdds import bdds_count_leaves
 from src.paco.searcher.build_strategy import build_strategy
 from src.paco.searcher.create_execution_tree import create_execution_tree
 from src.paco.searcher.found_strategy import found_strategy
@@ -35,6 +37,44 @@ def get_strategy_scenarios_count(strategy_tree: ExecutionTree) -> int:
 	return len(visited_nodes)
 
 
+def get_strategy_choice_typology(strategy_tree: ExecutionTree) -> dict[str, int]:
+	visited_nodes = set()
+	arbitrary_choices = set()
+	forced_choices = set()
+	impacts_choices = set()
+	decision_choices = set()
+
+	def dfs(node: StrategyViewPoint):
+		if node.id in visited_nodes:
+			return
+		visited_nodes.add(node.id)
+
+		for choice in node.choices:
+			choice_id = choice.id
+			bdd = node.explained_choices.get(choice)
+			if bdd is None:
+				arbitrary_choices.add(choice_id)
+			elif bdd.typeStrategy == ExplanationType.FORCED_DECISION:
+				forced_choices.add(choice_id)
+			elif bdd.typeStrategy == ExplanationType.CURRENT_IMPACTS:
+				impacts_choices.add(choice_id)
+			elif bdd.typeStrategy == ExplanationType.DECISION_BASED:
+				decision_choices.add(choice_id)
+
+		for transition_tuple, child_tree in node.transitions.items():
+			dfs(child_tree.root)
+
+	dfs(strategy_tree.root)
+	total_choices = len(arbitrary_choices.union(forced_choices).union(impacts_choices).union(decision_choices))
+	return {
+		"choices_total": total_choices,
+		"choices_arbitrary": len(arbitrary_choices),
+		"choices_forced": len(forced_choices),
+		"choices_impacts": len(impacts_choices),
+		"choices_decision": len(decision_choices),
+	}
+
+
 def record_stage_timing(stage_timings: list[dict], stage_name: str, started_at: datetime) -> float:
 	ended_at = datetime.now()
 	duration_ms = (ended_at - started_at).total_seconds() * 1000
@@ -46,15 +86,47 @@ def record_stage_timing(stage_timings: list[dict], stage_name: str, started_at: 
 	return duration_ms
 
 
+def set_explain_strategy_mode_timings(metadata: dict, explain_attempts: list[dict]) -> None:
+	metadata["time_explain_strategy_impacts_based"] = 0.0
+	metadata["time_explain_strategy_decision_based"] = 0.0
+	metadata["time_explain_strategy_hybrid"] = 0.0
+	metadata["explain_strategy_impacts_based_status"] = "not_attempted"
+	metadata["explain_strategy_decision_based_status"] = "not_attempted"
+	metadata["explain_strategy_hybrid_status"] = "not_attempted"
+	metadata["explainer_leaves_impacts_based"] = 0
+	metadata["explainer_leaves_decision_based"] = 0
+	metadata["explainer_leaves_hybrid"] = 0
+	for mode_name in ["impacts_based", "decision_based", "hybrid"]:
+		metadata[f"explainer_choices_{mode_name}_total"] = 0
+		metadata[f"explainer_choices_{mode_name}_forced"] = 0
+		metadata[f"explainer_choices_{mode_name}_arbitrary"] = 0
+		metadata[f"explainer_choices_{mode_name}_impacts"] = 0
+		metadata[f"explainer_choices_{mode_name}_decision"] = 0
+	metadata["explain_strategy_impacts_based_error"] = ""
+	metadata["explain_strategy_decision_based_error"] = ""
+	metadata["explain_strategy_hybrid_error"] = ""
+	for attempt in explain_attempts:
+		mode_name = attempt["mode"]
+		metadata[f"time_explain_strategy_{mode_name}"] = attempt["duration_ms"]
+		metadata[f"explain_strategy_{mode_name}_status"] = attempt.get("status", "success" if attempt["success"] else "failed")
+		metadata[f"explain_strategy_{mode_name}_error"] = attempt["error"]
+		metadata[f"explainer_leaves_{mode_name}"] = attempt.get("leaves_total", 0)
+		metadata[f"explainer_choices_{mode_name}_total"] = attempt.get("choices_total", 0)
+		metadata[f"explainer_choices_{mode_name}_forced"] = attempt.get("choices_forced", 0)
+		metadata[f"explainer_choices_{mode_name}_arbitrary"] = attempt.get("choices_arbitrary", 0)
+		metadata[f"explainer_choices_{mode_name}_impacts"] = attempt.get("choices_impacts", 0)
+		metadata[f"explainer_choices_{mode_name}_decision"] = attempt.get("choices_decision", 0)
+
+
 def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bounds, num_refinements = 10):
 	t = datetime.now()
 	execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
 	metadata = {"time_create_execution_tree" : (datetime.now() - t).total_seconds()*1000}
-	print(f"{datetime.now()} CreateExecutionTree: {metadata["time_create_execution_tree"]} ms")
+	print(f"{datetime.now()} CreateExecutionTree: {metadata['time_create_execution_tree']} ms")
 	t = datetime.now()
 	evaluate_cumulative_expected_impacts(execution_tree)
 	metadata["time_evaluate_cei_execution_tree"] = (datetime.now() - t).total_seconds()*1000
-	print(f"{datetime.now()} CreateExecutionTree:CEI: {metadata["time_evaluate_cei_execution_tree"]} ms")
+	print(f"{datetime.now()} CreateExecutionTree:CEI: {metadata['time_evaluate_cei_execution_tree']} ms")
 
 	cumulative_found_strategy_time = 0
 
@@ -109,13 +181,53 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 	t = datetime.now()
 	_, strategy = build_strategy(final_frontier_solution)
 	metadata["build_strategy_time"] = record_stage_timing(post_frontier_stage_timings, "build_strategy", t)
-	print(f"{datetime.now()} Build Strategy: {metadata["build_strategy_time"]} ms")
+	print(f"{datetime.now()} Build Strategy: {metadata['build_strategy_time']} ms")
+	strategy = None if len(strategy) == 0 else strategy
 
 	if strategy is not None:
 		t = datetime.now()
-		worst_type_strategy, bdds = explain_strategy(parse_tree, strategy, bpmn[IMPACTS_NAMES])
-		metadata["time_explain_strategy"] = record_stage_timing(post_frontier_stage_timings, "explain_strategy", t)
+		_, bdds, explain_attempts, attempt_bdds_by_mode = explain_strategy_with_attempts(parse_tree, strategy, bpmn[IMPACTS_NAMES])
+		for attempt in explain_attempts:
+			attempt["choices_total"] = 0
+			attempt["choices_forced"] = 0
+			attempt["choices_arbitrary"] = 0
+			attempt["choices_impacts"] = 0
+			attempt["choices_decision"] = 0
+			if not attempt.get("success", False):
+				continue
+
+			mode_name = attempt["mode"]
+			mode_bdds = attempt_bdds_by_mode.get(mode_name)
+			if mode_bdds is None:
+				continue
+
+			mode_pending_choices = set(pending_choices) if pending_choices is not None else set()
+			mode_pending_natures = set(pending_natures) if pending_natures is not None else set()
+			mode_strategy_tree, _, _, _, _, _, _ = full_strategy(
+				parse_tree,
+				mode_bdds,
+				len(bpmn[IMPACTS_NAMES]),
+				mode_pending_choices,
+				mode_pending_natures,
+			)
+			mode_counts = get_strategy_choice_typology(mode_strategy_tree)
+			attempt["choices_total"] = mode_counts["choices_total"]
+			attempt["choices_forced"] = mode_counts["choices_forced"]
+			attempt["choices_arbitrary"] = mode_counts["choices_arbitrary"]
+			attempt["choices_impacts"] = mode_counts["choices_impacts"]
+			attempt["choices_decision"] = mode_counts["choices_decision"]
+
+		metadata["time_explain_strategy"] = record_stage_timing(post_frontier_stage_timings, "explain_strategy_total", t)
+		metadata["explain_strategy_attempts"] = explain_attempts
+		set_explain_strategy_mode_timings(metadata, explain_attempts)
+		explainer_leaves_total, explainer_leaves_per_choice = bdds_count_leaves(bdds)
+		metadata["explainer_leaves_total"] = explainer_leaves_total
+		metadata["explainer_leaves_per_choice"] = explainer_leaves_per_choice
 		print(f"{datetime.now()} Explain Strategy: {metadata['time_explain_strategy']} ms")
+		print(f"{datetime.now()} Explainer leaves total: {metadata['explainer_leaves_total']}")
+		for attempt in explain_attempts:
+			outcome = attempt.get("status", "success" if attempt["success"] else "failed")
+			print(f"{attempt['captured_at']} ExplainStrategy:{attempt['mode']}:{outcome}: {attempt['duration_ms']} ms")
 
 		t = datetime.now()
 		strategy_tree, children, expected_impacts, expected_time, pending_choices, pending_natures, _ = full_strategy(parse_tree, bdds, len(bpmn[IMPACTS_NAMES]), pending_choices, pending_natures)
@@ -131,6 +243,12 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 	else:
 		print(f"{datetime.now()} No needed: ")
 		metadata["frontier_size"] = 1 # 1 scenario valid for any choice if no strategy is defined
+		metadata["time_explain_strategy"] = 0.0
+		metadata["strategy_tree_time"] = 0.0
+		metadata["explain_strategy_attempts"] = []
+		set_explain_strategy_mode_timings(metadata, [])
+		metadata["explainer_leaves_total"] = 0
+		metadata["explainer_leaves_per_choice"] = {}
 
 	metadata["post_frontier_stage_timings"] = post_frontier_stage_timings
 	metadata["post_frontier_timing_samples"] = len(post_frontier_stage_timings)

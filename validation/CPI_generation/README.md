@@ -7,7 +7,7 @@
 
 ## Description
 This repository contains the code and resources for generating synthetic data as described in the validation section of the paper.  
-By executing the main file, it is possible to reproduce all the synthetic datasets used in the validation. The `CPIs` folder contains all the BPMN+CPI models employed in the experiments.  
+By executing the main file, it is possible to reproduce all the synthetic datasets used in the validation. The CPI bundles used in the experiments are stored in `validation/cpi-to-prism/CPIs` (repository-root path).  
 It should be noted, however, that the BPMN+CPI models are generated randomly within their respective complexity classes (i.e., the values of MNXN and MIX remain fixed, while the processes are generated randomly within the same complexity class).  
 The generation method is run as described in the Section 5.
 
@@ -51,4 +51,4 @@ To start the application using Python, follow these steps:
 ---
 
 ## Output
-The generated bundle will be saved in the `CPI_generation/CPIs` folder.
+The generated bundle will be saved in the `validation/cpi-to-prism/CPIs` folder.

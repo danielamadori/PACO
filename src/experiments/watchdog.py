@@ -19,6 +19,14 @@ from src.experiments.telegram.telegram_bot import (
 def clean_stuck_rows(current_threshold):
 	conn = sqlite3.connect(BENCHMARKS_DB)
 	cursor = conn.cursor()
+	cursor.execute(
+		"SELECT name FROM sqlite_master WHERE type='table' AND name='experiments'"
+	)
+	if cursor.fetchone() is None:
+		print("Table 'experiments' does not exist yet, skipping stuck rows cleanup.")
+		conn.close()
+		return
+
 	cursor.execute("DELETE FROM experiments WHERE vte IS NULL")
 	print(f"Removed {cursor.rowcount} stuck rows with NULL vte from the database.")
 	conn.commit()
