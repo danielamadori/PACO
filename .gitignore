@@ -16,6 +16,8 @@ logs/
 *.egg-info/
 *.log
 
+# Optional local CPI scratch folder at repository root.
+# Canonical experiment bundles are in validation/cpi-to-prism/CPIs.
 CPIs/
 tests/reports/
 simulator/tests/spin/output/time_steps/
