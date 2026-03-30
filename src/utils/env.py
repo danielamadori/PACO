@@ -54,7 +54,7 @@ BOUND = 'bound'
 BENCHMARKS_DB = 'benchmarks.sqlite'
 LOG_FILENAME = 'benchmark_output.log'
 TELEGRAM_CONFIG = "src/experiments/telegram/telegram_config.json"
-
+BENCHMARKS_DB_NOT_UR = 'benchmarks_not_ur.sqlite'
 
 # Logger
 import sys

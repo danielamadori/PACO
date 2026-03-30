@@ -8,7 +8,7 @@ import subprocess
 import sqlite3
 from datetime import datetime
 
-from src.utils.env import BENCHMARKS_DB, LOG_FILENAME
+from src.utils.env import BENCHMARKS_DB, LOG_FILENAME, BENCHMARKS_DB_NOT_UR
 from src.experiments.telegram.telegram_bot import (
     send_telegram_message,
     listen_for_messages,
@@ -16,8 +16,8 @@ from src.experiments.telegram.telegram_bot import (
 )
 
 
-def clean_stuck_rows(current_threshold):
-	conn = sqlite3.connect(BENCHMARKS_DB)
+def clean_stuck_rows(current_threshold, db_path=BENCHMARKS_DB):
+	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 	cursor.execute(
 		"SELECT name FROM sqlite_master WHERE type='table' AND name='experiments'"
@@ -32,7 +32,7 @@ def clean_stuck_rows(current_threshold):
 	conn.commit()
 	conn.close()
 
-	shutil.copy(BENCHMARKS_DB, f"{current_threshold}_{BENCHMARKS_DB}")
+	shutil.copy(db_path, f"{current_threshold}_{db_path}")
 
 
 process = None
@@ -45,11 +45,11 @@ def watchdog_handle_termination(signum, frame):
 	sys.exit(0)
 
 
-def execute_benchmark():
+def execute_benchmark(not_use_Ur = False):
 	with open(LOG_FILENAME, 'a') as log_file:
 		benchmark_path = os.path.join(
 			os.path.dirname(os.path.abspath(__file__)),
-			"benchmark.py")
+			"benchmark.py --not-use-Ur" if not_use_Ur else "benchmark.py")
 
 		if not os.path.exists(benchmark_path):
 			raise FileNotFoundError(f"benchmark.py not found at {benchmark_path}")
@@ -59,7 +59,7 @@ def execute_benchmark():
 
 
 
-def run(current_threshold, check_interval):
+def run(current_threshold, check_interval, not_use_Ur = False):
 	global process
 
 	signal.signal(signal.SIGTERM, watchdog_handle_termination)
@@ -72,7 +72,7 @@ def run(current_threshold, check_interval):
 	try:
 
 		while True:
-			process = execute_benchmark()
+			process = execute_benchmark(not_use_Ur)
 
 			while True:
 				time.sleep(check_interval)
@@ -81,11 +81,12 @@ def run(current_threshold, check_interval):
 					#s = f"Benchmark with {current_threshold} minutes threshold done"
 					#print(str(datetime.now()) + " " + s)
 					#send_telegram_message(s)
-					clean_stuck_rows(current_threshold)
+					clean_stuck_rows(current_threshold, BENCHMARKS_DB_NOT_UR if not_use_Ur else BENCHMARKS_DB)
 					current_threshold *= 2
 					break
-
-				if os.path.getmtime(BENCHMARKS_DB) < time.time() - 60 * current_threshold:
+				
+				benchmarcks_db = os.path.getmtime(BENCHMARKS_DB_NOT_UR) if not_use_Ur else os.path.getmtime(BENCHMARKS_DB)
+				if benchmarcks_db < time.time() - 60 * current_threshold:
 					s = f"A experiment was stuck for {current_threshold} min and I killed it"
 					print(str(datetime.now()) + " " + s)
 					send_telegram_message(s)

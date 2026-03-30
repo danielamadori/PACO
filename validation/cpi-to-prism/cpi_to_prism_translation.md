@@ -1,4 +1,4 @@
-# Encoding BPMN*CPI into PRISM
+# Encoding BPMN+CPI into PRISM
 
 In this section, we describe the transformation from BPMN+CPI models to [PRISM](https://www.prismmodelchecker.org/), a well-established probabilistic model checker. This encoding enables validation of our approach and provides a foundation for comparative analysis. We explain the mapping between \spin\ semantics and PRISM modules, how time progression is handled, the formula-based coordination mechanisms, and strategies for managing unnecessary state space explosion. 
 

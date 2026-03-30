@@ -4,4 +4,4 @@ if __name__ == '__main__':
 	while True:
 		#First argument is the current threshold (minutes) for the watchdog
 		#Second is the check interval
-		run(1, 20)
+		run(1, 20, not_use_Ur = True)

@@ -6,7 +6,7 @@ import signal
 import sys
 import time
 from src.experiments.telegram.telegram_bot import send_telegram_message
-from src.utils.env import BENCHMARKS_DB
+from src.utils.env import BENCHMARKS_DB, BENCHMARKS_DB_NOT_UR
 
 conn = sqlite3.connect(BENCHMARKS_DB)
 cursor = conn.cursor()
@@ -53,9 +53,9 @@ def ensure_experiments_columns(cursor):
             cursor.execute(f"ALTER TABLE experiments ADD COLUMN {column_name} {column_type}")
 
 
-def run_benchmarks():
+def run_benchmarks(not_use_Ur = False):
     global conn
-    conn = sqlite3.connect(BENCHMARKS_DB)
+    conn = sqlite3.connect(BENCHMARKS_DB_NOT_UR if not_use_Ur else BENCHMARKS_DB)
 
     signal.signal(signal.SIGTERM, handle_termination)
     signal.signal(signal.SIGINT, handle_termination)
@@ -135,7 +135,7 @@ def run_benchmarks():
                         send_telegram_message(s)
                     else:
                         for w in range(0, len(bundle)):
-                            single_execution(cursor, conn, x, y, w, bundle)
+                            single_execution(cursor, conn, x, y, w, bundle, not_use_Ur)
 
                             if time.time() - last_time > 1:
                                 last_time = time.time()
@@ -146,6 +146,9 @@ def run_benchmarks():
         conn.rollback()
 
 if __name__ == '__main__':
-    run_benchmarks()
+    arguments = sys.argv[1:]
+    not_use_Ur = "--not-use-Ur" in arguments
+    print(str(datetime.now()) + " Starting benchmark..." + (" without Ur" if not_use_Ur else " with Ur"))
+    run_benchmarks(not_use_Ur=not_use_Ur)
     conn.close()
     print(str(datetime.now()) + " Benchmark completed.")

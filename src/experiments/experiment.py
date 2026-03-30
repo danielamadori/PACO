@@ -10,7 +10,7 @@ from src.paco.parser.bpmn_parser import create_parse_tree
 from src.utils.env import DURATIONS
 
 
-def single_experiment(D, num_refinements = 10):
+def single_experiment(D, num_refinements = 10, not_use_Ur = False):
     bpmn = cpi_to_standard_format(D)
     bpmn[DURATIONS] = cs.set_max_duration(bpmn[DURATIONS]) # set max duration
 
@@ -19,12 +19,12 @@ def single_experiment(D, num_refinements = 10):
     if not initial_bounds:
         raise ValueError("No impacts found in the model")
 
-    parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures)
+    parse_tree, pending_choices, pending_natures, execution_tree, times = create(bpmn, parse_tree, pending_choices, pending_natures, None, debug=False, not_use_Ur=not_use_Ur)
 
-    return refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bounds, num_refinements)
+    return refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bounds, num_refinements, debug=False, not_use_Ur=not_use_Ur)
 
 
-def single_execution(cursor, conn, x, y, w, bundle):
+def single_execution(cursor, conn, x, y, w, bundle, not_use_Ur = False):
     # Check if experiment already exists
     cursor.execute(
         "SELECT COUNT(*) FROM experiments WHERE x=? AND y=? AND w=?",
@@ -72,7 +72,7 @@ def single_execution(cursor, conn, x, y, w, bundle):
     print(f"\nRunning benchmark for x={x}, y={y}, w={w}")
     times = {}
     try:
-        times = single_experiment(D, num_refinements=10)
+        times = single_experiment(D, num_refinements=10, not_use_Ur=not_use_Ur)
     except Exception as e:
         s = f"Error during benchmark x={x}, y={y}, w={w}: {str(e)}"
         send_telegram_message(s)

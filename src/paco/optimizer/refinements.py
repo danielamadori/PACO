@@ -118,7 +118,7 @@ def set_explain_strategy_mode_timings(metadata: dict, explain_attempts: list[dic
 		metadata[f"explainer_choices_{mode_name}_decision"] = attempt.get("choices_decision", 0)
 
 
-def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bounds, num_refinements = 10):
+def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bounds, num_refinements = 10, debug=False, not_use_Ur=False):
 	t = datetime.now()
 	execution_tree = create_execution_tree(parse_tree, bpmn[IMPACTS_NAMES], pending_choices, pending_natures)
 	metadata = {"time_create_execution_tree" : (datetime.now() - t).total_seconds()*1000}
