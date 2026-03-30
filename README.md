@@ -44,6 +44,12 @@ This generates process templates in `validation/CPI_generation/generated_process
 
 #### Translate CPI to PRISM / run benchmarks
 Navigate to `validation/cpi-to-prism/`. Make sure PRISM is available (e.g. binaries included or installed).
+
+> ⚠️ **BPMN+CPI TO PRISM & SPIN TO PRISM Translations**  
+> For the ecoding details please refer to: 
+> * Check [BPMN+CPI → PRISM translation](validation/cpi-to-prism/cpi_to_prism_translation.md) for the translation of BPMN+CPI processes into PRISM (and so STORM) MDPs.
+> * Check [SPIN → PRISM translation](validation/cpi-to-prism/spin_to_prism_translation.md) for the translation of BPMN+CPI processes into PRISM (and so STORM) MDPs.
+
 Run:
 ```
 chmod +x run_benchmark.sh
