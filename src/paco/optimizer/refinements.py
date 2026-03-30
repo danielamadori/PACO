@@ -124,7 +124,8 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 	metadata = {"time_create_execution_tree" : (datetime.now() - t).total_seconds()*1000}
 	print(f"{datetime.now()} CreateExecutionTree: {metadata['time_create_execution_tree']} ms")
 	t = datetime.now()
-	evaluate_cumulative_expected_impacts(execution_tree)
+	if not not_use_Ur:
+		evaluate_cumulative_expected_impacts(execution_tree)
 	metadata["time_evaluate_cei_execution_tree"] = (datetime.now() - t).total_seconds()*1000
 	print(f"{datetime.now()} CreateExecutionTree:CEI: {metadata['time_evaluate_cei_execution_tree']} ms")
 
@@ -143,7 +144,7 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 
 			test_bounds[current_impact] = (intervals[current_impact][0] + intervals[current_impact][1]) / 2
 			t = datetime.now()
-			frontier_solution, expected_impacts, frontier_values, possible_min_solution = found_strategy([execution_tree], np.array(test_bounds))
+			frontier_solution, expected_impacts, frontier_values, possible_min_solution = found_strategy([execution_tree], np.array(test_bounds), not_use_Ur=not_use_Ur)
 			found_strategy_time = (datetime.now() - t).total_seconds()*1000
 			cumulative_found_strategy_time += found_strategy_time
 
@@ -159,7 +160,7 @@ def refine_bounds(bpmn, parse_tree, pending_choices, pending_natures, initial_bo
 
 
 	t = datetime.now()
-	final_frontier_solution, expected_impacts, frontier_values, possible_min_solution = found_strategy([execution_tree], np.array(bounds))
+	final_frontier_solution, expected_impacts, frontier_values, possible_min_solution = found_strategy([execution_tree], np.array(bounds), not_use_Ur=not_use_Ur)
 	found_strategy_time = (datetime.now() - t).total_seconds()*1000
 	cumulative_found_strategy_time += found_strategy_time
 	print(f"{datetime.now()} FoundStrategy: {found_strategy_time} ms")
