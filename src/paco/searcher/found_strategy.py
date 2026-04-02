@@ -76,7 +76,7 @@ def frontier_info(frontier: list[ExecutionTree]) -> str:
 	return "[" + result[:-2] + "]"
 
 
-def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray, typeSearch: TypeSearch = TypeSearch.WEIGHTED_PROBABILITY) -> (list[ExecutionTree], np.ndarray, list[np.ndarray], list[np.ndarray]):
+def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray, typeSearch: TypeSearch = TypeSearch.WEIGHTED_PROBABILITY, not_use_Ur: bool = False) -> (list[ExecutionTree], np.ndarray, list[np.ndarray], list[np.ndarray]):
 	#print("frontier: ", frontier_info(frontier))
 	# Return:
 	# 1. frontier_solution: list of ExecutionTree or None if no solution found
@@ -84,15 +84,26 @@ def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray, typeSearch:
 	# 3. frontier_solution_bottom_up: list of np.ndarray, solutions value
 	# 4. frontier_solution_top_down: list of np.ndarray, possible minimum solutions value
 
-	frontier_bottom_up:np.ndarray = np.sum([tree.root.cei_bottom_up for tree in frontier], axis=0)
 	frontier_top_down:np.ndarray = np.sum([tree.root.cei_top_down for tree in frontier], axis=0)
 
-	if np.all(compare_bound(frontier_bottom_up, bound) <= 0):
-		return frontier, frontier_bottom_up, [frontier_bottom_up + frontier_top_down], []
+	if not_use_Ur:
+		if np.all(compare_bound(frontier_top_down, bound) > 0):
+			return None, None, [], [frontier_top_down]
 
-	if np.all(compare_bound(frontier_top_down, bound) > 0) or all(tree.root.is_leaf for tree in frontier):
-		#print("Failed top_down: not a valid choose")
-		return None, None, [frontier_bottom_up], [frontier_top_down]
+		if all(tree.root.is_leaf for tree in frontier):
+			if np.all(compare_bound(frontier_top_down, bound) <= 0):
+				return frontier, frontier_top_down, [frontier_top_down], []
+			else:
+				return None, None, [], [frontier_top_down]
+	else:
+		frontier_bottom_up:np.ndarray = np.sum([tree.root.cei_bottom_up for tree in frontier], axis=0)
+
+		if np.all(compare_bound(frontier_bottom_up, bound) <= 0):
+			return frontier, frontier_bottom_up, [frontier_bottom_up + frontier_top_down], []
+
+		if np.all(compare_bound(frontier_top_down, bound) > 0) or all(tree.root.is_leaf for tree in frontier):
+			#print("Failed top_down: not a valid choose")
+			return None, None, [frontier_bottom_up], [frontier_top_down]
 
 	tree = pick([tree for tree in frontier if not tree.root.is_leaf], typeSearch)
 
@@ -111,7 +122,7 @@ def found_strategy(frontier: list[ExecutionTree], bound: np.ndarray, typeSearch:
 		new_frontier.remove(tree)
 		new_frontier.extend(chose_frontier)
 		#print("new_frontier: ", frontier_info(new_frontier))
-		frontier_solution, new_frontier_solution, new_frontier_solution_bottom_up, new_frontier_solution_top_down = found_strategy(new_frontier, bound, typeSearch)
+		frontier_solution, new_frontier_solution, new_frontier_solution_bottom_up, new_frontier_solution_top_down = found_strategy(new_frontier, bound, typeSearch, not_use_Ur)
 		#print("end_rec")
 		if frontier_solution is None:
 			tested_frontier_solution.extend(chose_frontier)

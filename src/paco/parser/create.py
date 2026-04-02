@@ -36,7 +36,8 @@ def create(bpmn:dict, parse_tree:ParseTree=None, pending_choices:set=None, pendi
 		time_create_execution_tree = (t1 - t).total_seconds()*1000
 		#print(f"{t1} CreateExecutionTree:completed: {time_create_execution_tree} ms")
 		t = datetime.now()
-		evaluate_cumulative_expected_impacts(execution_tree)
+		if not not_use_Ur:
+			evaluate_cumulative_expected_impacts(execution_tree)
 		t1 = datetime.now()
 		time_evaluate_cei_execution_tree = (t1 - t).total_seconds()*1000
 		#print(f"{t1} CreateExecutionTree:CEI evaluated: {time_evaluate_cei_execution_tree} ms")
