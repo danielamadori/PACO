@@ -1,8 +1,12 @@
 # Encoding BPMN+CPI into PRISM
 
-In this section, we describe the transformation from BPMN+CPI models to [PRISM](https://www.prismmodelchecker.org/), a well-established probabilistic model checker. This encoding enables validation of our approach and provides a foundation for comparative analysis. We explain the mapping between \spin\ semantics and PRISM modules, how time progression is handled, the formula-based coordination mechanisms, and strategies for managing unnecessary state space explosion. 
+In this section, we describe the transformation from BPMN+CPI models to [PRISM](https://www.prismmodelchecker.org/), a well-established probabilistic model checker. This encoding enables validation of our approach and provides a foundation for comparative analysis. We explain the mapping between SPIN semantics and PRISM modules, how time progression is handled, the formula-based coordination mechanisms, and strategies for managing unnecessary state space explosion.
 
-Before discussing the specific encoding, it is helpful to understand how the PRISM module system works. PRISM uses a state-based formalism where systems are composed of modules that interact through synchronized actions. Each module in PRISM has the following structure:
+Before discussing the specific encoding, it is helpful to understand how the PRISM module system works. PRISM uses a state-based formalism where systems are composed of modules that interact through synchronized actions. Each module in PRISM has the following structure, shown in [Listing 1](#lst-prism-module-structure):
+
+<a id="lst-prism-module-structure"></a>
+
+**Listing 1 - PRISM module structure**
 
 ```prism
 module module_name
@@ -16,7 +20,7 @@ endmodule
 
 The key mechanism in PRISM that makes it particularly suitable for encoding BPMN+CPI processes is the handling of guards and updates:
 
-1. **Guards**: These are boolean conditions that determine when transitions are enabled. Importantly, guards can reference variables from any module in the system as well as global formulas. This allows modules to condition their behavior on the state of other modules, essential for encoding correctly activations between parent-child in \CPI.
+1. **Guards**: These are boolean conditions that determine when transitions are enabled. Importantly, guards can reference variables from any module in the system as well as global formulas. This allows modules to condition their behavior on the state of other modules, which is essential for correctly encoding parent-child activations in \CPI.
 
 2. **Updates**: These define how variables change when transitions occur. A crucial restriction is that each module can only update its own variables, not those of other modules. This encapsulation aligns well with the localized behavior of BPMN+CPI components.
 
@@ -42,7 +46,11 @@ Each module maintains a state variable tracking progression through discrete exe
 For task modules, an additional step counter is maintained, tracking progress from 0 to the task duration, modeling the passage of time within activities.
 
 
-The transition system is carefully designed to enforce the same execution semantics as the \spin\ formalism. A key aspect of this mapping is how the `[step]` action in PRISM directly corresponds to the empty transitions $\emptyset$ in \spin:
+The transition system is carefully designed to enforce the same execution semantics as the \spin\ formalism. A key aspect of this mapping is how the `[step]` action in PRISM directly corresponds to the empty transitions $\emptyset$ in \spin, as illustrated in [Listing 2](#lst-task-module-step):
+
+<a id="lst-task-module-step"></a>
+
+**Listing 2 - Task module step progression**
 
 ```prism
 module task{id}
@@ -59,7 +67,7 @@ module task{id}
 endmodule
 ```
 
-In this encoding, each PRISM `[step]` action maps directly to an $\emptyset$ transition in the \spin\ formalism. The $\emptyset$ transitions in \spin\ represent the passage of time when no transitions occur, and similarly, the `[step]` action in PRISM represents a global clock tick that advances time across all modules when no state-changing transitions are possible. This correspondence is critical for preserving the temporal semantics of BPMN+CPI processes.
+In [Listing 2](#lst-task-module-step), each PRISM `[step]` action maps directly to an $\emptyset$ transition in the \spin\ formalism. The $\emptyset$ transitions in \spin\ represent the passage of time when no transitions occur, and similarly, the `[step]` action in PRISM represents a global clock tick that advances time across all modules when no state-changing transitions are possible. This correspondence is critical for preserving the temporal semantics of BPMN+CPI processes.
 
 Key aspects of this transformation include:
 
@@ -72,27 +80,43 @@ Key aspects of this transformation include:
 This direct mapping between `[step]` actions and $\emptyset$ transitions ensures that the temporal and causal relationships between process elements are preserved in the transformation, validating that the specialized algorithm and the general-purpose PRISM verification operate on equivalent semantic models.
 
 
-A key challenge in the encoding is coordinating the behavior of multiple modules to faithfully represent the semantics of \CPI. The PRISM formula mechanism is instrumental in this regard. A sophisticated network of formulas is used to manage the complex interdependencies between process components:
+A key challenge in the encoding is coordinating the behavior of multiple modules to faithfully represent the semantics of \CPI. The PRISM formula mechanism is instrumental in this regard. A sophisticated network of formulas is used to manage the complex interdependencies between process components, as shown in [Listing 3](#lst-ready-pending-formula), [Listing 4](#lst-closing-pending-formula), [Listing 5](#lst-step-available-formula), and [Listing 6](#lst-prioritization-formula):
 
-1. **ReadyPending Formula**:
+1. **ReadyPending Formula** ([Listing 3](#lst-ready-pending-formula)):
+
+<a id="lst-ready-pending-formula"></a>
+
+**Listing 3 - ReadyPending formula**
 
 ```prism
 formula ReadyPending_sequence{id} = state{id}=1 & (parent_condition);
 ```
 
-2. **ClosingPending Formula**:
+2. **ClosingPending Formula** ([Listing 4](#lst-closing-pending-formula)):
+
+<a id="lst-closing-pending-formula"></a>
+
+**Listing 4 - ClosingPending formula**
 
 ```prism
 formula ClosingPending_parallel{id} = state{id}=3 & state{child1_id} >= 4 & state{child2_id} >= 4;
 ```
 
-3. **StepAvailable Formula**:
+3. **StepAvailable Formula** ([Listing 5](#lst-step-available-formula)):
+
+<a id="lst-step-available-formula"></a>
+
+**Listing 5 - StepAvailable formula**
 
 ```prism
 formula StepAvailable = ReadyPendingCleared & ClosingPendingCleared & (StepReady_task1 | StepReady_task2 | ... );
 ```
 
-4. **Prioritization Formulas**:
+4. **Prioritization Formulas** ([Listing 6](#lst-prioritization-formula)):
+
+<a id="lst-prioritization-formula"></a>
+
+**Listing 6 - Prioritization formula**
 
 ```prism
 formula ActiveReadyPending_typeid = ReadyPending_typeid & !ReadyPending_type1id1 & !ReadyPending_type2id2 & ... ;
@@ -101,7 +125,11 @@ formula ActiveReadyPending_typeid = ReadyPending_typeid & !ReadyPending_type1id1
 The power of this formula-based approach lies in its ability to create complex coordination patterns while maintaining the principle that each module only updates its own variables. The formulas encode the global coordination logic, while the updates remain strictly local.
 
 
-The BPMN+CPI impact vectors are naturally mapped to PRISM reward structures. Each dimension of the impact vectors becomes a separate reward structure:
+The BPMN+CPI impact vectors are naturally mapped to PRISM reward structures. Each dimension of the impact vectors becomes a separate reward structure, as shown in [Listing 7](#lst-reward-structures):
+
+<a id="lst-reward-structures"></a>
+
+**Listing 7 - Reward structures**
 
 ```prism
 rewards "energy_consumption"
@@ -119,13 +147,17 @@ endrewards
 
 The guard conditions `state{task_id}!=0 & state{task_id}!=1` ensure that rewards are only accumulated for tasks that were actually executed in a particular process path.
 
-With these reward structures in place, PRISM multi-objective property specification can be leveraged to verify whether processes meet multiple impact bounds simultaneously:
+With these reward structures in place, PRISM multi-objective property specification can be leveraged to verify whether processes meet multiple impact bounds simultaneously, as shown in [Listing 8](#lst-multi-objective-property):
+
+<a id="lst-multi-objective-property"></a>
+
+**Listing 8 - Multi-objective property**
 
 ```prism
 multi(R{"energy_consumption"}<=135 [C], R{"worker_hours"}<=9 [C])
 ```
 
-This directly corresponds to the bound verification problem from Chapter~\ref{chap:strategy}, allowing cross-validation of the specialized algorithm against PRISM general-purpose verification capabilities.
+This directly corresponds to the strategy synthesis problem discussed in the paper, allowing cross-validation of the specialized algorithm against PRISM general-purpose verification capabilities.
 
 
 A significant challenge in transforming BPMN+CPI to PRISM is managing state space explosion, particularly for processes with parallel execution. In a naive encoding, the number of states would grow factorially with the number of concurrent activities due to all possible interleavings of their executions.

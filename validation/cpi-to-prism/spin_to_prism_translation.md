@@ -1,6 +1,6 @@
 # Encoding SPIN plays into PRISM
 
-In this section, we present a direct translation from BPMN+CPI models to PRISM~\cite{KNP11}, available at `https://anonymous.4open.science/r/PACO-D1D0/README.md`.
+In this section, we present a direct translation from BPMN+CPI models to [PRISM](https://www.prismmodelchecker.org/), available at [the project repository](https://anonymous.4open.science/r/PACO-D1D0/README.md).
 The repository includes the presentation of the extended validation results,
 the BPMN+CPI to SPIN and the SPIN to PRISM translations, together with their visual representations. As we will see in this section, we need to create more intermediate MDP states due to the simple and restrictive structure of the PRISM program, in order to correctly map the SPIN into the PRISM framework. Because of this, we had to carefully craft a method that compacts all these intermediate states into those corresponding to the SPIN places. 
 
@@ -9,7 +9,11 @@ This translation addresses the strategy synthesis problem by encoding it as a mu
 
 ## PRISM Module System and Translation Overview
 
-PRISM uses a state-based formalism where systems are composed of modules that interact through synchronized actions. We illustrate this with a comprehensive example showing the key PRISM mechanisms.
+PRISM uses a state-based formalism where systems are composed of modules that interact through synchronized actions. We illustrate this with a comprehensive example showing the key PRISM mechanisms in [Listing 1](#lst-prism-basic-example).
+
+<a id="lst-prism-basic-example"></a>
+
+**Listing 1 - Basic PRISM example**
 
 ```prism
 global x : [0..3] init 0;
@@ -36,7 +40,7 @@ module mod2
 endmodule
 ```
 
-The example, provided above, demonstrates the four key mechanisms: *guards* use conditions (e.g., `psi_ready` at line 5 and `psi_active` at line 6) to coordinate module interactions based on global state. *Updates* modify local state variables (e.g., `s1'=1` at line 11 and `s1'=2` at line 13) and global variables (e.g., `x'=x+1` at line 13) simultaneously. *Action synchronization* through labeled actions (e.g., `[sync]` at lines 13 and 18) ensures coordinated execution across modules. *Probabilistic choice* provides explicit probability distributions for non-deterministic outcomes.
+The example in [Listing 1](#lst-prism-basic-example) demonstrates the four key mechanisms: *guards* use conditions such as `psi_ready` and `psi_active` to coordinate module interactions based on global state. *Updates* modify local state variables such as `s1'=1` and `s1'=2`, together with global variables such as `x'=x+1`. *Action synchronization* through labeled actions such as `[sync]` ensures coordinated execution across modules. *Probabilistic choice* provides explicit probability distributions for non-deterministic outcomes.
 
 ## Variable Encoding and State Representation
 
@@ -53,7 +57,11 @@ synchronous semantics. Stage 0 handles state activation decisions, stage 1 reset
 
 Each SPIN place $p \in P$ with duration $d = Duration(p)$ is encoded using two global PRISM variables that work together to maintain both state information and execution coordination. The *place value variable* `p_value : [-1..d]` directly encodes the SPIN state function $q(p)$, where `p_value = -1` corresponds to $q(p) = \epsilon$ (no token present) and `p_value = n` for $n \geq 0$ corresponds to $q(p) = n$ (token present for $n$ time units). The *coordination variable* `p_updated : [0..1]` ensures deterministic processing order during time advancement phases, preventing race conditions in the parallel execution environment.
 
-The stage-based execution protocol is controlled by the manager module, which orchestrates the six-stage cycle that replicates SPIN synchronous semantics, as shown in Listing~\ref{lst:stage_operations}.
+The stage-based execution protocol is controlled by the manager module, which orchestrates the six-stage cycle that replicates SPIN synchronous semantics, as shown in [Listing 2](#lst-stage-operations).
+
+<a id="lst-stage-operations"></a>
+
+**Listing 2 - Stage operations**
 
 ```prism
 module manager
@@ -81,8 +89,12 @@ module manager
 endmodule
 ```
 
-The time advancement transition (lines 2-3 in Listing above) occurs when no transitions can fire (`psi_step` condition), while the termination condition (lines 5-6) is checked when no transitions are active and no time advancement is possible. Transition firing (lines 8-9) is triggered when at least one transition is active, and the return to analysis phase occurs after processing non-nature transitions (lines 14-15) and nature transitions (lines 17-18).
-During Stage 3 (time advancement), each place follows a three-case update protocol that directly implements the $\emptyset$ transition semantics from SPIN, as illustrated below.
+The time advancement transition in [Listing 2](#lst-stage-operations) occurs when no transitions can fire (`psi_step` condition), while the termination condition is checked when no transitions are active and no time advancement is possible. Transition firing is triggered when at least one transition is active, and the return to analysis phase occurs after processing non-nature transitions and nature transitions.
+During Stage 3 (time advancement), each place follows a three-case update protocol that directly implements the $\emptyset$ transition semantics from SPIN, as illustrated in [Listing 3](#lst-place-update).
+
+<a id="lst-place-update"></a>
+
+**Listing 3 - Place update rules**
 
 ```prism
 // Place p0 with duration=2, time advancement rules
@@ -104,8 +116,12 @@ module manager
 endmodule
 ```
 
-Case 1 (lines 5-6 in Listing~\ref{lst:place_update}) handles places without tokens by only updating the coordination flag, Case 2 (lines 8-10) manages time advancement for active tokens by incrementing both the time value and coordination flag, and Case 3 (lines 12-13) processes tokens that have reached their duration limit by only updating the coordination flag.
-The deterministic ordering is enforced through coordination formulas that ensure places are processed in lexicographic order, as shown in Listing~\ref{lst:place_coordination}. This systematic approach prevents race conditions and ensures that exactly one place updates per step within each stage cycle.
+Case 1 (lines 5-6 in [Listing 3](#lst-place-update)) handles places without tokens by only updating the coordination flag, Case 2 (lines 8-10) manages time advancement for active tokens by incrementing both the time value and coordination flag, and Case 3 (lines 12-13) processes tokens that have reached their duration limit by only updating the coordination flag.
+The deterministic ordering is enforced through coordination formulas that ensure places are processed in lexicographic order, as shown in [Listing 4](#lst-place-coordination). This systematic approach prevents race conditions and ensures that exactly one place updates per step within each stage cycle.
+
+<a id="lst-place-coordination"></a>
+
+**Listing 4 - Place coordination formulas**
 
 ```prism
 // Coordination formulas for deterministic place update ordering
@@ -120,7 +136,7 @@ formula psi_all_step_updated = p0_updated=1 & p1_updated=1 & p2_updated=1;
 [] STAGE=3 & psi_all_step_updated -> (STAGE'=1);
 ```
 
-The coordination formulas (lines 2-4 in Listing~\ref{lst:place_coordination}) establish the lexicographic ordering where each place can only update after all preceding places have been processed. The global coordination check (`psi_all_step_updated` at line 6) determines when all places have completed their updates, triggering the stage transition (line 9) from Stage 3 to Stage 1.
+The coordination formulas (lines 2-4 in [Listing 4](#lst-place-coordination)) establish the lexicographic ordering where each place can only update after all preceding places have been processed. The global coordination check (`psi_all_step_updated` at line 6) determines when all places have completed their updates, triggering the stage transition (line 9) from Stage 3 to Stage 1.
 
 Places without tokens (`p_value = -1`) simply mark themselves as updated without state change. Places with tokens that have not yet met their duration requirement (`p_value < d`) increment their time counter and mark themselves as updated. Places that have already satisfied their duration constraint (`p_value = d`) remain unchanged but still participate in the coordination protocol. This systematic approach guarantees that the PRISM time advancement phase produces exactly the same state transitions as the corresponding $\emptyset$ transitions in the original SPIN model, maintaining semantic equivalence while providing the coordination necessary for deterministic execution in the PRISM framework.
 
@@ -132,8 +148,12 @@ The module structure follows a consistent pattern regardless of transition type:
 
 The following listings illustrate the generated PRISM code for each transition type.
 
-**Single Transition (Task/Simple):** one input place, one output place, visible in Listing~\ref{lst:single_transition}.
-The module structure contains a local state variable (line 2 in Listing~\ref{lst:single_transition}) that tracks the transition readiness throughout the execution cycle. The activation analysis occurs during Stage 0 through two rules: the first rule (lines 4-5) sets the transition state to 1 when duration requirements are met, while the second rule (lines 6-7) sets the state to -1 when requirements are not satisfied. The actual execution phase updates place values during Stage 4 (lines 9-12), where enabled transitions consume input tokens and produce output tokens.
+**Single Transition (Task/Simple):** one input place, one output place, visible in [Listing 5](#lst-single-transition).
+The module structure contains a local state variable (line 2 in [Listing 5](#lst-single-transition)) that tracks the transition readiness throughout the execution cycle. The activation analysis occurs during Stage 0 through two rules: the first rule (lines 4-5) sets the transition state to 1 when duration requirements are met, while the second rule (lines 6-7) sets the state to -1 when requirements are not satisfied. The actual execution phase updates place values during Stage 4 (lines 9-12), where enabled transitions consume input tokens and produce output tokens.
+
+<a id="lst-single-transition"></a>
+
+**Listing 5 - Single transition module**
 
 ```prism
 module t_task
@@ -148,8 +168,12 @@ module t_task
 endmodule
 ```
 
-**Parallel Split:** one input place, two output places, shown in Listing~\ref{lst:parallel_split}.
-The parallel split demonstrates how one input place (checked at line 4 in Listing~\ref{lst:parallel_split}) can produce tokens in multiple output places simultaneously (line 10), where tokens are placed in both output places by setting `p_out1_value'=0` and `p_out2_value'=0` in the same update operation.
+**Parallel Split:** one input place, two output places, shown in [Listing 6](#lst-parallel-split).
+The parallel split demonstrates how one input place (checked at line 4 in [Listing 6](#lst-parallel-split)) can produce tokens in multiple output places simultaneously (line 10), where tokens are placed in both output places by setting `p_out1_value'=0` and `p_out2_value'=0` in the same update operation.
+
+<a id="lst-parallel-split"></a>
+
+**Listing 6 - Parallel split module**
 
 ```prism
 module t_split
@@ -164,8 +188,12 @@ module t_split
 endmodule
 ```
 
-**Parallel Merge:** two input places, one output place, visible in Listing~\ref{lst:parallel_merge}.
-The merge module shows the coordination required for multiple input places (lines 4-5 in Listing~\ref{lst:parallel_merge}) to synchronize before proceeding, where both duration conditions must be satisfied simultaneously, and the execution phase (line 9) consumes tokens from both input places.
+**Parallel Merge:** two input places, one output place, visible in [Listing 7](#lst-parallel-merge).
+The merge module shows the coordination required for multiple input places (lines 4-5 in [Listing 7](#lst-parallel-merge)) to synchronize before proceeding, where both duration conditions must be satisfied simultaneously, and the execution phase (line 9) consumes tokens from both input places.
+
+<a id="lst-parallel-merge"></a>
+
+**Listing 7 - Parallel merge module**
 
 ```prism
 module t_merge
@@ -180,8 +208,12 @@ module t_merge
 endmodule
 ```
 
-**Choice Split Module:** one input place, two alternative output places (non-deterministic), as shown in Listing~\ref{lst:choice_split}.
-Choice transitions provide non-deterministic alternatives through multiple execution rules (lines 9-12 in Listing~\ref{lst:choice_split}), where the first alternative (line 10) places the token in `p_true` by setting `p_true_value'=0` and the second alternative (line 12) places it in `p_false` by setting `p_false_value'=0`.
+**Choice Split Module:** one input place, two alternative output places (non-deterministic), as shown in [Listing 8](#lst-choice-split).
+Choice transitions provide non-deterministic alternatives through multiple execution rules (lines 9-12 in [Listing 8](#lst-choice-split)), where the first alternative (line 10) places the token in `p_true` by setting `p_true_value'=0` and the second alternative (line 12) places it in `p_false` by setting `p_false_value'=0`.
+
+<a id="lst-choice-split"></a>
+
+**Listing 8 - Choice split module**
 
 ```prism
 module t_choice
@@ -198,8 +230,12 @@ module t_choice
 endmodule
 ```
 
-**Nature Split Module:** one input place, two alternative output places (probabilistic) as shown in Listing~\ref{lst:nature_split}.
-Nature transitions implement probabilistic branching with explicit probability distributions (lines 9-11 in Listing~\ref{lst:nature_split}), where the 0.7 probability (line 10) places the token in `p_true` by setting `p_true_value'=0` and the 0.3 probability (line 11) places the token in `p_false` by setting `p_false_value'=0`.
+**Nature Split Module:** one input place, two alternative output places (probabilistic) as shown in [Listing 9](#lst-nature-split).
+Nature transitions implement probabilistic branching with explicit probability distributions (lines 9-11 in [Listing 9](#lst-nature-split)), where the 0.7 probability (line 10) places the token in `p_true` by setting `p_true_value'=0` and the 0.3 probability (line 11) places the token in `p_false` by setting `p_false_value'=0`.
+
+<a id="lst-nature-split"></a>
+
+**Listing 9 - Nature split module**
 
 ```prism
 module t_nature
@@ -245,7 +281,11 @@ The PRISM encoding captures the multi-dimensional impact vectors from SPIN tasks
 
 For each task transition $t \in t$ with associated place $p_t$ having non-zero impact vector $Impact(p_t) \neq {\mathbf{0}}$, the PRISM encoding assigns an action label `[fire_t]` to the transition from `t_state = 0` to `t_state = 1` during Stage 0 state activation analysis. This labeling occurs precisely when the strategic decision to activate the task is made, rather than during the mechanical execution phases.
 
-The reward structures are generated systematically for each impact dimension (as visible in Listing~\ref{lst:reward_structures}), creating separate reward streams that can be analyzed independently or in combination for multi-objective verification:
+The reward structures are generated systematically for each impact dimension (as visible in [Listing 10](#lst-reward-structures)), creating separate reward streams that can be analyzed independently or in combination for multi-objective verification:
+
+<a id="lst-reward-structures"></a>
+
+**Listing 10 - Reward structures**
 
 ```prism
 rewards "impact_0"
@@ -261,20 +301,24 @@ rewards "impact_1"
 endrewards
 ```
 
-The reward assignment mechanism operates on several key principles that ensure correctness and prevent double-counting. First, action labels are triggered exclusively during Stage 0 when strategic decisions about task activation are made (as seen with `[fire_task1]` at line 2 in Listing~\ref{lst:reward_structures}), ensuring that rewards reflect actual task executions rather than mechanical state transitions. Second, the guard condition `true` (lines 2, 3, 4, 7, 8, 9) applies universally since the action label itself provides sufficient specificity about which task is being activated. Third, the reward values correspond directly to the impact vector components from the original SPIN model (e.g., values 10, 5, 40 for impact dimension 0 and values 1, 4, 1 for impact dimension 1), maintaining quantitative fidelity across the translation.
+The reward assignment mechanism operates on several key principles that ensure correctness and prevent double-counting. First, action labels are triggered exclusively during Stage 0 when strategic decisions about task activation are made (as seen with `[fire_task1]` at line 2 in [Listing 10](#lst-reward-structures)), ensuring that rewards reflect actual task executions rather than mechanical state transitions. Second, the guard condition `true` (lines 2, 3, 4, 7, 8, 9) applies universally since the action label itself provides sufficient specificity about which task is being activated. Third, the reward values correspond directly to the impact vector components from the original SPIN model (e.g., values 10, 5, 40 for impact dimension 0 and values 1, 4, 1 for impact dimension 1), maintaining quantitative fidelity across the translation.
 
 The temporal separation between reward assignment (Stage 0) and task execution (Stages 4-5) provides important semantic clarity: rewards are accumulated when the strategic decision to execute a task is made, not when the task mechanically completes. This design choice aligns with the SPIN semantics where impact accumulation occurs when tokens are placed in task places, corresponding to task activation rather than task completion.
 
-For multi-objective strategy synthesis verification, PRISM property specifications can reference these reward structures to formulate bounded reachability queries that directly correspond to Problem~\ref{prob:strategy}:
+For multi-objective strategy synthesis verification, PRISM property specifications can reference these reward structures to formulate bounded reachability queries that directly correspond to the strategy synthesis problem discussed in the paper:
+
+<a id="lst-propertyspec"></a>
+
+**Listing 11 - Property specification**
 
 ```prism
 multi(R{"impact_0"}<=135 [C], R{"impact_1"}<=9 [C])
 ```
 
-This property specification (Listing~\ref{lst:propertyspec}) verifies whether there exists a strategy that reaches a terminal state while keeping the expected cumulative reward for impact dimension 0 below 135 and impact dimension 1 below 9, providing direct cross-validation capability for our specialized strategy synthesis algorithms against the general-purpose PRISM verification framework.
+This property specification ([Listing 11](#lst-propertyspec)) verifies whether there exists a strategy that reaches a terminal state while keeping the expected cumulative reward for impact dimension 0 below 135 and impact dimension 1 below 9, providing direct cross-validation capability for our specialized strategy synthesis algorithms against the general-purpose PRISM verification framework.
 
 The comprehensive PRISM encoding presented in this section establishes a faithful translation from SPIN
 models to the PRISM probabilistic model checker framework while mimicking the synchronous
 semantics and temporal behavior essential for accurate verification.
 
-The stage-based execution protocol presented above faithfully reproduces the synchronous semantics of SPIN through two critical ordering principles. First, the precedence of temporal transitions over time passage is enforced by the stage transition logic: when transitions are enabled (Stage 0 → Stage 4/5), the system processes all active transitions before allowing time to advance, whereas time advancement (Stage 0 → Stage 3) occurs only when no transitions are immediately available for firing. This ordering ensures that the PRISM encoding captures the same causality relationships as SPIN, where enabled transitions must fire before time can progress. Second, when choice and nature transitions are simultaneously enabled, the sequential processing through Stage 4 (non-nature transitions including choices) followed by Stage 5 (nature transitions) implements the deterministic resolution order specified in SPIN semantics, where strategic choices are resolved before probabilistic nature outcomes are determined. This separation prevents information leakage from nature decisions to strategic choices and maintains the clean separation of concerns essential for strategy synthesis. Through these carefully orchestrated stage transitions and coordination formulas, the PRISM encoding preserves not only the structural properties of SPIN models but also their precise temporal and probabilistic execution semantics, enabling faithful cross-validation between our specialized synthesis algorithms and general-purpose probabilistic model checking approaches.
+The stage-based execution protocol presented above faithfully reproduces the synchronous semantics of SPIN through two critical ordering principles. First, the precedence of temporal transitions over time passage is enforced by the stage transition logic: when transitions are enabled (Stage 0 $\rightarrow$ Stage 4/5), the system processes all active transitions before allowing time to advance, whereas time advancement (Stage 0 $\rightarrow$ Stage 3) occurs only when no transitions are immediately available for firing. This ordering ensures that the PRISM encoding captures the same causality relationships as SPIN, where enabled transitions must fire before time can progress. Second, when choice and nature transitions are simultaneously enabled, the sequential processing through Stage 4 (non-nature transitions including choices) followed by Stage 5 (nature transitions) implements the deterministic resolution order specified in SPIN semantics, where strategic choices are resolved before probabilistic nature outcomes are determined. This separation prevents information leakage from nature decisions to strategic choices and maintains the clean separation of concerns essential for strategy synthesis. Through these carefully orchestrated stage transitions and coordination formulas, the PRISM encoding preserves not only the structural properties of SPIN models but also their precise temporal and probabilistic execution semantics, enabling faithful cross-validation between our specialized synthesis algorithms and general-purpose probabilistic model checking approaches.
