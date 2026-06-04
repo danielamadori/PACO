@@ -13,12 +13,12 @@ It includes all experimental outputs, SQLite databases, and Jupyter notebooks us
 validation/results/
 ├── benchmarks_our.sqlite # Results produced by our synthesis & explainer tool
 ├── benchmarks_prism.sqlite # Reference results obtained from PRISM
-├── Validation_Explaining_Strategies_for_Expected_Impacts.ipynb # Main analysis notebook
+├── Validation_Expalining_Strategies_for_Expected_Impacts.ipynb # Main analysis notebook
 ```
 
  **`benchmarks_our.sqlite`** – Results from the proposed BPMN+CPI strategy synthesis algorithm and explainer.  
 - **`benchmarks_prism.sqlite`** – Results from the PRISM model checker for comparison.  
-- **`Validation_Explaining_Strategies_for_Expected_Impacts.ipynb`** – The notebook that aggregates, compares, and visualizes the results.  
+- **`Validation_Expalining_Strategies_for_Expected_Impacts.ipynb`** – The notebook that aggregates, compares, and visualizes the results.  
 
 ---
 

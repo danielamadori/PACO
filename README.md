@@ -67,7 +67,7 @@ This will convert CPI bundles into PRISM models, run PRISM on them, and store re
 
 
 ### Analyze results
-The generated results are stored in `validation/results/` (e.g. benchmarks_our.sqlite, benchmarks_prism.sqlite) along with the analysis notebook (e.g. Validation_Expalining_Strategies_for_Expected_Impacts.ipynb).
+The generated results are stored in `validation/results/` (e.g. benchmarks_our.sqlite, benchmarks_prism.sqlite) along with the [analysis notebook](validation/results/Validation_Expalining_Strategies_for_Expected_Impacts.ipynb).
 You can open that notebook (locally or via Jupyter) to reproduce plots, tables, and comparisons.
 
 ## Configuration & Dependencies
@@ -96,7 +96,7 @@ Benchmark output from the tool component: logs, result files, possibly intermedi
 
 - `validation/results/benchmarks_prism.sqlite`
 
-- Final analysis notebook: `Validation_Expalining_Strategies_for_Expected_Impacts.ipynb`
+- Final analysis notebook: [`Validation_Expalining_Strategies_for_Expected_Impacts.ipynb`](validation/results/Validation_Expalining_Strategies_for_Expected_Impacts.ipynb)
 
 CPI generation outputs: in `validation/cpi-to-prism/CPIs/`
 
