@@ -3,8 +3,6 @@ title: Installation and Usage
 layout: default
 ---
 
-{% include navbar.html %}
-
 # Installation and Usage
 
 ## Prerequisites

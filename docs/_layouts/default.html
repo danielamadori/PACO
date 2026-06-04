@@ -3,14 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ page.title }}</title>
+  <title>{% if page.title %}{{ page.title }} · {% endif %}PACO</title>
+  <meta name="description" content="PACO — strategy finder and explainer for BPMN+CPI processes.">
   <link rel="stylesheet" href="{{ 'style.css' | relative_url }}">
 </head>
 <body>
-  <main class="page-wrapper">
-    <div class="content">
-      {{ content }}
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="{{ 'index.html' | relative_url }}">
+        <span class="brand-mark">PACO</span>
+        <span class="brand-sub">BPMN+CPI strategy finder</span>
+      </a>
+      {% include navbar.html %}
     </div>
+  </header>
+
+  <main class="page-wrapper">
+    <article class="content">
+      {{ content }}
+    </article>
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>PACO · Licensed under the MIT License</span>
+      <span class="footer-links">
+        <a href="https://github.com/danielamadori/PACO">GitHub</a>
+        <a href="https://danielamadori.github.io/">danielamadori.github.io</a>
+      </span>
+    </div>
+  </footer>
 </body>
 </html>

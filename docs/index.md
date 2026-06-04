@@ -3,8 +3,6 @@ title: Home
 layout: default
 ---
 
-{% include navbar.html %}
-
 ## Strategy finder for *BPMN + CPI*
 
 ## Features
