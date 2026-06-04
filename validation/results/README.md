@@ -1,7 +1,8 @@
-# Validation Results — Explaining Strategies for Expected Impacts
+# Validation Results — PACO
 
-This folder contains the **results and analysis notebooks** associated with the paper  
-**“Explaining Strategies for Expected Impacts” (AAMAS 2026)**.  
+This folder contains the **results and analysis notebooks** associated with the tool paper
+**“PACO: A Petri Net-Based Tool for Designing, Simulating, and Analyzing Multi-objective Stochastic Processes”** (PETRI NETS 2026, LNCS 16567, pp. 335–346 — [doi:10.1007/978-3-032-27879-1_16](https://doi.org/10.1007/978-3-032-27879-1_16)),
+whose formal foundations are given in **“Reactive Synthesis for Expected Impacts”** (EPTCS 409, pp. 35–52, 2024 — [doi:10.4204/EPTCS.409.7](https://doi.org/10.4204/EPTCS.409.7)).
 
 It includes all experimental outputs, SQLite databases, and Jupyter notebooks used to reproduce the figures and tables presented in the paper.
 

@@ -13,8 +13,11 @@
 
 ## Features
 
-- Models complex business processes with probabilistic decision points
-- Provides a strategy synthesis algorithm for BPMN+CPI diagrams
+- Models complex business processes with probabilistic decision points (BPMN+CPI), with a formal semantics given by **Synchronous Probabilistic Impactful Networks (SPIN)**, an enriched Petri net model
+- Provides an **on-the-fly strategy synthesis** algorithm for BPMN+CPI diagrams, with multi-dimensional bound vectors over positive cumulative impacts (cost, energy, time, risk, ...)
+- **Explains** synthesized strategies by decomposing them into *minimal decision trees* attached to individual choices, using *impact-based* explainers with automatic fallback to *decision-based* ones
+- **Interactive simulator** for step-by-step execution, what-if analysis, and strategy-guided decision making
+- **LLM-assisted process design**: translates natural-language descriptions into syntactically valid BPMN+CPI models (always validated by the parser)
 - Web-based interface using Dash for visualizations
 
 ## Description
@@ -99,6 +102,71 @@ CPI generation outputs: in `validation/cpi-to-prism/CPIs/`
 
 Intermediate model / log data in validation/cpi-to-prism/ (e.g. PRISM models, CPIs, database files)
 
+
+## Citation
+
+If you use PACO in your research, please cite the tool paper:
+
+> Chini, E., Amadori, D., Sala, P., Nasir Rajput, S., Baldi, M., Cappelletti, M.:
+> *PACO: A Petri Net-Based Tool for Designing, Simulating, and Analyzing Multi-objective Stochastic Processes.*
+> In: Desel, J., Kalenkova, A. (eds.) Application and Theory of Petri Nets and Concurrency.
+> PETRI NETS 2026. LNCS, vol. 16567, pp. 335–346. Springer, Cham (2026).
+> [doi:10.1007/978-3-032-27879-1_16](https://doi.org/10.1007/978-3-032-27879-1_16)
+
+```bibtex
+@inproceedings{chini2026paco,
+  author    = {Chini, Emanuele and Amadori, Daniel and Sala, Pietro and Nasir Rajput, Sidra and Baldi, Matteo and Cappelletti, Mattia},
+  title     = {{PACO}: A {Petri} Net-Based Tool for Designing, Simulating, and Analyzing Multi-objective Stochastic Processes},
+  booktitle = {Application and Theory of Petri Nets and Concurrency},
+  editor    = {Desel, J{\"o}rg and Kalenkova, Anna},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {16567},
+  pages     = {335--346},
+  publisher = {Springer},
+  address   = {Cham},
+  year      = {2026},
+  doi       = {10.1007/978-3-032-27879-1_16},
+  note      = {47th International Conference, PETRI NETS 2026, Hamburg, Germany, June 22--26, 2026}
+}
+```
+
+The formal foundations (semantics and synthesis problem) are described in the companion paper, presented at **GandALF 2024** (*Games, Automata, Logics, and Formal Verification*):
+
+> Chini, E., Sala, P., Simonetti, A., Zare, O.:
+> *Reactive Synthesis for Expected Impacts.* In: Proceedings of GandALF 2024.
+> EPTCS, vol. 409, pp. 35–52 (2024).
+> [doi:10.4204/EPTCS.409.7](https://doi.org/10.4204/EPTCS.409.7) — arXiv:[2410.22760](https://arxiv.org/abs/2410.22760)
+
+```bibtex
+@inproceedings{chini2024reactive,
+  author    = {Chini, Emanuele and Sala, Pietro and Simonetti, Andrea and Zare, Omid},
+  title     = {Reactive Synthesis for Expected Impacts},
+  booktitle = {Proceedings of the 15th International Symposium on Games, Automata, Logics, and Formal Verification (GandALF 2024)},
+  series    = {Electronic Proceedings in Theoretical Computer Science (EPTCS)},
+  volume    = {409},
+  pages     = {35--52},
+  year      = {2024},
+  doi       = {10.4204/EPTCS.409.7}
+}
+```
+
+## Acknowledgements — Upstream Project
+
+This repository is an extended fork of the PACO project by
+**Emanuele Chini, Pietro Sala, Andrea Simonetti, and Omid Zare**
+([ansimonetti/PACO](https://github.com/ansimonetti/PACO)).
+
+The upstream project implements the *strategy-existence* algorithm (the **solver**) introduced in the
+GandALF 2024 paper *Reactive Synthesis for Expected Impacts* (see the [Citation](#citation) section).
+Building on that core, this fork extends PACO into a full **web-based, multi-objective tool**, adding:
+
+- the **explainer** module (minimal decision trees: impact-based / decision-based),
+- the **interactive simulator** ([`simulator/`](simulator/)),
+- the **LLM-assisted process design** component ([`src/ai/`](src/ai/)),
+- the **Dash web application** and REST APIs ([`src/`](src/), [`gui/`](gui/)),
+- the **validation pipeline** (BPMN+CPI → PRISM/STORM translation, synthetic CPI generation, benchmarks — [`validation/`](validation/)).
+
+This extended tool is the one described in the PETRI NETS 2026 tool paper.
 
 ## Contributing
 
