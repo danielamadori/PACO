@@ -1,4 +1,4 @@
-# PACO
+# PACO: Tool for Designing, Simulating, and Analyzing Multi-objective Stochastic Processes
 
 ![Build Status](https://github.com/danielamadori/PACO/actions/workflows/tests.yml/badge.svg)
 ![License](https://img.shields.io/github/license/danielamadori/PACO)
