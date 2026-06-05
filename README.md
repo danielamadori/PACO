@@ -9,8 +9,6 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/danielamadori/PACO)
 ![GitHub contributors](https://img.shields.io/github/contributors/danielamadori/PACO)
 
-## Strategy finder for *BPMN + CPI*
-
 ## Features
 
 - Models complex business processes with probabilistic decision points (BPMN+CPI), with a formal semantics given by **Synchronous Probabilistic Impactful Networks (SPIN)**, an enriched Petri net model
@@ -38,22 +36,26 @@ To set up the project (install dependencies or build Docker image), you can use 
 
 Please refer to the [Installation and Usage Documentation](docs/installation_and_usage.md) for detailed instructions and all available options.
 
-
 ### Validation / CPI Generation / PRISM Benchmarking
 
 #### Generate CPI processes
+
 Go to `validation/CPI_generation/` (inside Docker or native environment), install dependencies, and run the notebook / scripts to generate synthetic CPI bundles.
 This generates process templates in `validation/CPI_generation/generated_processes/` and CPI bundles in `validation/cpi-to-prism/CPIs/`.
 
 #### Translate CPI to PRISM / run benchmarks
+
 Navigate to `validation/cpi-to-prism/`. Make sure PRISM is available (e.g. binaries included or installed).
 
-> ⚠️ **BPMN+CPI TO PRISM & SPIN TO PRISM Translations**  
-> For the ecoding details please refer to: 
+> ⚠️ **BPMN+CPI TO SPIN TO PRISM Translations**
+>
+> For the ecoding details please refer to:
+>
 > * Check [BPMN+CPI → PRISM translation](validation/cpi-to-prism/cpi_to_prism_translation.md) for the translation of BPMN+CPI processes into PRISM (and so STORM) MDPs.
 > * Check [SPIN → PRISM translation](validation/cpi-to-prism/spin_to_prism_translation.md) for the translation of BPMN+CPI processes into PRISM (and so STORM) MDPs.
 
 Run:
+
 ```
 chmod +x run_benchmark.sh
 ./run_benchmark.sh
@@ -61,24 +63,22 @@ chmod +x run_benchmark.sh
 
 This will convert CPI bundles into PRISM models, run PRISM on them, and store results (e.g. into SQLite database, logs).
 
-> ⚠️ **CPIs:**  
-> The canonical CPI dataset used by experiments is in `validation/cpi-to-prism/CPIs`.  
+> ⚠️ **CPIs:**
+> The canonical CPI dataset used by experiments is in `validation/cpi-to-prism/CPIs`.
 > The generation pipeline and benchmark pipeline both read/write from this folder.
 
-
 ### Analyze results
+
 The generated results are stored in `validation/results/` (e.g. benchmarks_our.sqlite, benchmarks_prism.sqlite) along with the [analysis notebook](validation/results/Validation_Expalining_Strategies_for_Expected_Impacts.ipynb).
 You can open that notebook (locally or via Jupyter) to reproduce plots, tables, and comparisons.
 
 ## Configuration & Dependencies
 
-Python version: 3.12+ (as indicated in the original README) 
-
+Python version: 3.12+ (as indicated in the original README)
 
 Dependencies: each submodule (tool, cpi-to-prism, CPI_generation) has a requirements.txt with needed Python packages.
 
-PRISM: version 4.8.1 or higher (binaries should be placed into `cpi-to-prism/prism-*` folders). 
-
+PRISM: version 4.8.1 or higher (binaries should be placed into `cpi-to-prism/prism-*` folders).
 
 Other external tools / libraries (e.g. for GUI, matplotlib, etc.) as per the requirements files.
 
@@ -93,15 +93,12 @@ Benchmark output from the tool component: logs, result files, possibly intermedi
 ### Validation / Results:
 
 - `validation/results/benchmarks_our.sqlite`
-
 - `validation/results/benchmarks_prism.sqlite`
-
 - Final analysis notebook: [`Validation_Expalining_Strategies_for_Expected_Impacts.ipynb`](validation/results/Validation_Expalining_Strategies_for_Expected_Impacts.ipynb)
 
 CPI generation outputs: in `validation/cpi-to-prism/CPIs/`
 
 Intermediate model / log data in validation/cpi-to-prism/ (e.g. PRISM models, CPIs, database files)
-
 
 ## Citation
 
